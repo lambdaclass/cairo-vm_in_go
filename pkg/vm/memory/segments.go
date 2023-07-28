@@ -13,7 +13,8 @@ func NewMemorySegmentManager() *MemorySegmentManager {
 	return &MemorySegmentManager{make(map[uint]uint), *memory}
 }
 
-func (m *MemorySegmentManager) Add() Relocatable {
+// Adds a memory segment and returns the first address of the new segment
+func (m *MemorySegmentManager) AddSegment() Relocatable {
 	ptr := Relocatable{int(m.Memory.num_segments), 0}
 	m.Memory.num_segments += 1
 	return ptr
