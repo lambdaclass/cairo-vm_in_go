@@ -1,0 +1,14 @@
+[package]
+name = "lambdaworks"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+libc = "0.2"
+lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git" }
+lambdaworks-crypto = { git = "https://github.com/lambdaclass/lambdaworks.git" }
+
+[lib]
+crate-type = ["cdylib", "staticlib", "lib"]
