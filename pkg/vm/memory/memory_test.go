@@ -139,7 +139,7 @@ func TestMemorySegmentsLoadDataUnallocatedSegment(t *testing.T) {
 
 func TestMemorySegmentsLoadDataOneElement(t *testing.T) {
 	mem_manager := memory.NewMemorySegmentManager()
-	mem_manager.Add()
+	mem_manager.AddSegment()
 
 	ptr := memory.NewRelocatable(0, 0)
 	val := memory.NewMaybeRelocatableInt(5)
@@ -171,7 +171,7 @@ func TestMemorySegmentsLoadDataOneElement(t *testing.T) {
 
 func TestMemorySegmentsLoadDataTwoElements(t *testing.T) {
 	mem_manager := memory.NewMemorySegmentManager()
-	mem_manager.Add()
+	mem_manager.AddSegment()
 
 	ptr := memory.NewRelocatable(0, 0)
 	val := memory.NewMaybeRelocatableInt(5)
