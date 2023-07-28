@@ -9,8 +9,8 @@ import (
 
 func TestMemoryInsert(t *testing.T) {
 	mem_manager := memory.NewMemorySegmentManager()
-	mem_manager.Add()
-	mem_manager.Add()
+	mem_manager.AddSegment()
+	mem_manager.AddSegment()
 	mem := &mem_manager.Memory
 
 	// Instantiate the address where we want to insert and the value.
@@ -38,8 +38,8 @@ func TestMemoryInsert(t *testing.T) {
 
 func TestMemoryInsertWithHoles(t *testing.T) {
 	mem_manager := memory.NewMemorySegmentManager()
-	mem_manager.Add()
-	mem_manager.Add()
+	mem_manager.AddSegment()
+	mem_manager.AddSegment()
 	mem := &mem_manager.Memory
 
 	// Instantiate the address where we want to insert and the value.
@@ -70,7 +70,7 @@ func TestMemoryInsertOverWriteSameValue(t *testing.T) {
 	mem := &mem_manager.Memory
 
 	// We will insert the MaybeRelocatable Int(7) in segment 0, offset 0
-	key := mem_manager.Add()
+	key := mem_manager.AddSegment()
 	val := memory.NewMaybeRelocatableInt(7)
 
 	// Make the insertion
@@ -91,7 +91,7 @@ func TestMemoryInsertOverWriteValue(t *testing.T) {
 	mem := &mem_manager.Memory
 
 	// We will insert the MaybeRelocatable Int(7) in segment 0, offset 0
-	key := mem_manager.Add()
+	key := mem_manager.AddSegment()
 	val := memory.NewMaybeRelocatableInt(7)
 
 	// Make the insertion
