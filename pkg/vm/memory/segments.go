@@ -18,3 +18,14 @@ func (m *MemorySegmentManager) Add() Relocatable {
 	m.Memory.num_segments += 1
 	return ptr
 }
+
+func (m *MemorySegmentManager) LoadData(ptr Relocatable, data []MaybeRelocatable) (Relocatable, error) {
+	for _, val := range data {
+		err := m.Memory.Insert(ptr, &val)
+		if err != nil {
+			return Relocatable{0, 0}, err
+		}
+		ptr.offset += 1
+	}
+	return ptr, nil
+}
