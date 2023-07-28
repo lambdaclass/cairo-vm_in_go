@@ -168,3 +168,50 @@ func TestMemorySegmentsLoadDataOneElement(t *testing.T) {
 		t.Errorf("Inserted value and original value are not the same")
 	}
 }
+
+func TestMemorySegmentsLoadDataTwoElements(t *testing.T) {
+	mem_manager := memory.NewMemorySegmentManager()
+	mem_manager.Add()
+
+	ptr := memory.NewRelocatable(0, 0)
+	val := memory.NewMaybeRelocatableInt(5)
+	val2 := memory.NewMaybeRelocatableInt(5)
+	data := []memory.MaybeRelocatable{*val, *val2}
+
+	// Load Data
+	end_ptr, err := mem_manager.LoadData(ptr, &data)
+	if err != nil {
+		t.Errorf("LoadData error in test: %s", err)
+	}
+
+	// Check returned ptr
+	expected_end_ptr := memory.NewRelocatable(0, 2)
+	if !reflect.DeepEqual(end_ptr, expected_end_ptr) {
+		t.Errorf("LoadData returned wrong ptr")
+	}
+
+	// Check inserted values
+
+	// val
+	res_val, err := mem_manager.Memory.Get(ptr)
+	if err != nil {
+		t.Errorf("Get error in test: %s", err)
+	}
+
+	// Check that the original and the retrieved values are the same
+	if !reflect.DeepEqual(res_val, val) {
+		t.Errorf("Inserted value and original value are not the same")
+	}
+
+	//val2
+	ptr2 := memory.NewRelocatable(0, 1)
+	res_val2, err := mem_manager.Memory.Get(ptr2)
+	if err != nil {
+		t.Errorf("Get error in test: %s", err)
+	}
+
+	// Check that the original and the retrieved values are the same
+	if !reflect.DeepEqual(res_val2, val2) {
+		t.Errorf("Inserted value and original value are not the same")
+	}
+}
