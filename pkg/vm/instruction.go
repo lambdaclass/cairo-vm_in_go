@@ -1,5 +1,9 @@
 package vm
 
+import (
+	"errors"
+)
+
 //  Structure of the 63-bit that form the first word of each instruction.
 //  See Cairo whitepaper, page 32 - https://eprint.iacr.org/2021/1063.pdf.
 // ┌─────────────────────────────────────────────────────────────────────────┐
@@ -19,17 +23,17 @@ package vm
 // Some instructions spread over two words when they use an immediate value, so
 // representing the first one with this struct is enougth.
 type Instruction struct {
-	offDst   int
-	offOp0   int
-	offOp1   int
-	dstReg   Register
-	op0Reg   Register
-	op1Addr  Op1Src
-	resLogic ResLogic
-	pcUpdate PcUpdate
-	apUpdate ApUpdate
-	fpUpdate FpUpdate
-	opcode   Opcode
+	OffDst   int
+	OffOp0   int
+	OffOp1   int
+	DstReg   Register
+	Op0Reg   Register
+	Op1Addr  Op1Src
+	ResLogic ResLogic
+	PcUpdate PcUpdate
+	ApUpdate ApUpdate
+	FpUpdate FpUpdate
+	Opcode   Opcode
 }
 
 // x-----------------------------x
@@ -95,3 +99,164 @@ const (
 	Call     Opcode = 2
 	Ret      Opcode = 4
 )
+
+var NonZeroHighBitError = errors.New("Instruction high bit was not set to zero")
+var InvalidOp1RegError = errors.New("Instruction had invalid Op1 Register")
+var InvalidPcUpdateError = errors.New("Instruction had invalid Pc update")
+var InvalidResError = errors.New("Instruction had an invalid res")
+var InvalidOpcodeError = errors.New("Instruction had an invalid opcode")
+var InvalidApUpdateError = errors.New("Instruction had an invalid Ap Update")
+
+func DecodeInstruction(encodedInstruction uint64) (Instruction, error) {
+	const HighBit uint64 = 1 << 63
+	const DstRegMask uint64 = 0x0001
+	const DstRegOff uint64 = 0
+	const Op0RegMask uint64 = 0x0002
+	const Op0RegOff uint64 = 1
+	const Op1SrcMask uint64 = 0x001C
+	const Op1SrcOff uint64 = 2
+	const ResLogicMask uint64 = 0x0060
+	const ResLogicOff uint64 = 5
+	const PcUpdateMask uint64 = 0x0380
+	const PcUpdateOff uint64 = 7
+	const ApUpdateMask uint64 = 0x0C00
+	const ApUpdateOff uint64 = 10
+	const OpcodeMask uint64 = 0x7000
+	const OpcodeOff uint64 = 12
+
+	if encodedInstruction&HighBit != 0 {
+		return Instruction{}, NonZeroHighBitError
+	}
+
+	var offset0 = fromBiasedRepresentation((encodedInstruction) & 0xFFFF)
+	var offset1 = fromBiasedRepresentation((encodedInstruction >> 16) & 0xFFFF)
+	var offset2 = fromBiasedRepresentation((encodedInstruction >> 32) & 0xFFFF)
+
+	var flags = encodedInstruction >> 48
+
+	var dstRegNum = (flags & DstRegMask) >> DstRegOff
+	var op0RegNum = (flags & Op0RegMask) >> Op0RegOff
+	var op1SrcNum = (flags & Op1SrcMask) >> Op1SrcOff
+	var resLogicNum = (flags & ResLogicMask) >> ResLogicOff
+	var pcUpdateNum = (flags & PcUpdateMask) >> PcUpdateOff
+	var apUpdateNum = (flags & ApUpdateMask) >> ApUpdateOff
+	var opCodeNum = (flags & OpcodeMask) >> OpcodeOff
+
+	var dstRegister Register
+	var op0Register Register
+	var op1Src Op1Src
+	var pcUpdate PcUpdate
+	var res ResLogic
+	var opcode Opcode
+	var apUpdate ApUpdate
+	var fpUpdate FpUpdate
+
+	if dstRegNum == 1 {
+		dstRegister = FP
+	} else {
+		dstRegister = AP
+	}
+
+	if op0RegNum == 1 {
+		op0Register = FP
+	} else {
+		op0Register = AP
+	}
+
+	switch op1SrcNum {
+	case 0:
+		op1Src = Op1SrcOp0
+	case 1:
+		op1Src = Op1SrcImm
+	case 2:
+		op1Src = Op1SrcFP
+	case 4:
+		op1Src = Op1SrcAP
+	default:
+		return Instruction{}, InvalidOp1RegError
+	}
+
+	switch pcUpdateNum {
+	case 0:
+		pcUpdate = PcUpdateRegular
+	case 1:
+		pcUpdate = PcUpdateJump
+	case 2:
+		pcUpdate = PcUpdateJumpRel
+	case 4:
+		pcUpdate = PcUpdateJnz
+	default:
+		return Instruction{}, InvalidPcUpdateError
+	}
+
+	switch resLogicNum {
+	case 0:
+		if pcUpdate == PcUpdateJnz {
+			res = ResUnconstrained
+		} else {
+			res = ResOp1
+		}
+	case 1:
+		res = ResAdd
+	case 2:
+		res = ResMul
+	default:
+		return Instruction{}, InvalidResError
+	}
+
+	switch opCodeNum {
+	case 0:
+		opcode = NOp
+	case 1:
+		opcode = Call
+	case 2:
+		opcode = Ret
+	case 4:
+		opcode = AssertEq
+	default:
+		return Instruction{}, InvalidOpcodeError
+	}
+
+	switch apUpdateNum {
+	case 0:
+		if opcode == Call {
+			apUpdate = ApUpdateAdd2
+		} else {
+			apUpdate = ApUpdateRegular
+		}
+	case 1:
+		apUpdate = ApUpdateAdd
+	case 2:
+		apUpdate = ApUpdateAdd1
+	default:
+		return Instruction{}, InvalidApUpdateError
+	}
+
+	switch opcode {
+	case Call:
+		fpUpdate = FpUpdateAPPlus2
+	case Ret:
+		fpUpdate = FpUpdateDst
+	default:
+		fpUpdate = FpUpdateRegular
+	}
+
+	return Instruction{
+		OffOp0:   offset0,
+		OffOp1:   offset1,
+		OffDst:   offset2,
+		DstReg:   dstRegister,
+		Op0Reg:   op0Register,
+		Op1Addr:  op1Src,
+		ResLogic: res,
+		PcUpdate: pcUpdate,
+		ApUpdate: apUpdate,
+		FpUpdate: fpUpdate,
+		Opcode:   opcode,
+	}, nil
+}
+
+func fromBiasedRepresentation(offset uint64) int {
+	var bias uint16 = 1 << 15
+	return int(int16(uint16(offset) - bias))
+}
