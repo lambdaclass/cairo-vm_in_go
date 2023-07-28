@@ -119,7 +119,7 @@ func TestMemoryInsertUnallocatedSegment(t *testing.T) {
 
 	// Make the insertion
 	err := mem.Insert(key, val)
-	if err != nil {
+	if err == nil {
 		t.Errorf("Insertion on unallocated segment should fail")
 	}
 }
