@@ -123,3 +123,48 @@ func TestMemoryInsertUnallocatedSegment(t *testing.T) {
 		t.Errorf("Insertion on unallocated segment should fail")
 	}
 }
+
+func TestMemorySegmentsLoadDataUnallocatedSegment(t *testing.T) {
+	mem_manager := memory.NewMemorySegmentManager()
+
+	ptr := memory.NewRelocatable(1, 0)
+	data := []memory.MaybeRelocatable{*memory.NewMaybeRelocatableInt(5)}
+
+	// Load Data
+	_, err := mem_manager.LoadData(ptr, &data)
+	if err == nil {
+		t.Errorf("Insertion on unallocated segment should fail")
+	}
+}
+
+func TestMemorySegmentsLoadDataOneElement(t *testing.T) {
+	mem_manager := memory.NewMemorySegmentManager()
+	mem_manager.Add()
+
+	ptr := memory.NewRelocatable(0, 0)
+	val := memory.NewMaybeRelocatableInt(5)
+	data := []memory.MaybeRelocatable{*val}
+
+	// Load Data
+	end_ptr, err := mem_manager.LoadData(ptr, &data)
+	if err != nil {
+		t.Errorf("LoadData error in test: %s", err)
+	}
+
+	// Check returned ptr
+	expected_end_ptr := memory.NewRelocatable(0, 1)
+	if !reflect.DeepEqual(end_ptr, expected_end_ptr) {
+		t.Errorf("LoadData returned wrong ptr")
+	}
+
+	// Check inserted value
+	res_val, err := mem_manager.Memory.Get(ptr)
+	if err != nil {
+		t.Errorf("Get error in test: %s", err)
+	}
+
+	// Check that the original and the retrieved values are the same
+	if !reflect.DeepEqual(res_val, val) {
+		t.Errorf("Inserted value and original value are not the same")
+	}
+}
