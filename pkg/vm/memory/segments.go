@@ -5,5 +5,16 @@ package memory
 // the memory at the end of the VM run.
 type MemorySegmentManager struct {
 	segmentSizes map[uint]uint
-	memory       Memory
+	Memory       Memory
+}
+
+func NewMemorySegmentManager() *MemorySegmentManager {
+	memory := NewMemory()
+	return &MemorySegmentManager{make(map[uint]uint), *memory}
+}
+
+func (m *MemorySegmentManager) Add() Relocatable {
+	ptr := Relocatable{int(m.Memory.num_segments), 0}
+	m.Memory.num_segments += 1
+	return ptr
 }
