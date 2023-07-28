@@ -56,3 +56,15 @@ func NewMaybeRelocatableNil() *MaybeRelocatable {
 func (m *MaybeRelocatable) is_nil() bool {
 	return m.inner == nil
 }
+
+// If m is Int, returns the inner value + true, if not, returns zero + false
+func (m *MaybeRelocatable) int() (Int, bool) {
+	int, is_type := m.inner.(Int)
+	return int, is_type
+}
+
+// If m is Relocatable, returns the inner value + true, if not, returns zero + false
+func (m *MaybeRelocatable) relocatable() (Relocatable, bool) {
+	rel, is_type := m.inner.(Relocatable)
+	return rel, is_type
+}
