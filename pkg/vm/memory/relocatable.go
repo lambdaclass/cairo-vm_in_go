@@ -1,5 +1,10 @@
 package memory
 
+import (
+	"errors"
+	"fmt"
+)
+
 // Relocatable in the Cairo VM represents an address
 // in some memory segment. When the VM finishes running,
 // these values are replaced by real memory addresses,
@@ -13,6 +18,10 @@ type Relocatable struct {
 // and offset.
 func NewRelocatable(segment_idx int, offset uint) Relocatable {
 	return Relocatable{segment_idx, offset}
+}
+
+func (r *Relocatable) RelocateAddress(relocationTable []uint) uint {
+	return relocationTable[r.segmentIndex] + r.offset
 }
 
 // Int in the Cairo VM represents a value in memory that
@@ -34,4 +43,24 @@ type MaybeRelocatable struct {
 // Creates a new MaybeRelocatable with an Int inner value
 func NewMaybeRelocatableInt(felt uint) *MaybeRelocatable {
 	return &MaybeRelocatable{inner: Int{felt}}
+}
+
+// Creates a new MaybeRelocatable with a Relocatable inner value
+func NewMaybeRelocatableRelocatable(segmentIndex int, offset uint) *MaybeRelocatable {
+	return &MaybeRelocatable{inner: Relocatable{segmentIndex: segmentIndex, offset: offset}}
+}
+
+// TODO: Return value should be of type (felt, error)
+func (m *MaybeRelocatable) RelocateValue(relocationTable []uint) (int, error) {
+	inner_int, ok := m.inner.(Int)
+	if ok {
+		return int(inner_int.felt), nil
+	}
+
+	inner_relocatable, ok := m.inner.(Relocatable)
+	if ok {
+		return int(inner_relocatable.RelocateAddress(relocationTable)), nil
+	}
+
+	return -1, errors.New(fmt.Sprintf("Unexpected type %T", m.inner))
 }
