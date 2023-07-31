@@ -237,51 +237,27 @@ type Memory struct {
 
 Now we can define the basic memory operations:
 
-*Add Segment*
-
-As we are using a hashmap, we dont have to allocate memory for the new segment, so we only have to raise our segment counter and return the first address of the new segment:
-
-```c
-relocatable memory_add_segment(memory *memory) {
-	relocatable rel = {memory->num_segments, 0};
-	memory->num_segments += 1;
-	return rel;
-}
-```
 *Insert*
 Here we need to make perform some checks to make sure that the memory remains consistent with its rules:
 - We must check that insertions are performed on previously-allocated segments, by checking that the address's segment_index is lower than our segment counter
 - We must check that we are not mutating memory we have previously written, by checking that the memory doesn't already contain a value at that address that is not equal to the one we are inserting
-```c
-ResultMemory memory_insert(memory *mem, relocatable ptr, maybe_relocatable value) {
- // Guard out of bounds writes
-	if (ptr.segment_index >= mem->num_segments) {
-		ResultMemory error = {.is_error = true, .value = {.error = Insert}};
-		return error;
+
+```go
+func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
+	// Check that insertions are preformed within the memory bounds
+	if addr.segmentIndex >= int(m.num_segments) {
+		return errors.New("Error: Inserting into a non allocated segment")
 	}
-	// Guard overwrites
-	maybe_relocatable *prev_value = NULL;
-	if (cc_hashtable_get(mem->data, &ptr, (void *)&prev_value) == CC_OK) {
-		if (maybe_relocatable_equal(prev_value, &value)) {
-			ResultMemory ok = {.is_error = false, .value = {.none = 0}};
-			return ok;
-		} else {
-			ResultMemory error = {.is_error = true, .value = {.error = Insert}};
-			return error;
-		}
+
+	// Check for possible overwrites
+	prev_elem, ok := m.data[addr]
+	if ok && prev_elem != *val {
+		return errors.New("Memory is write-once, cannot overwrite memory value")
 	}
-	// Write new value
-	// Allocate new values
-	relocatable *ptr_alloc = malloc(sizeof(relocatable));
-	*ptr_alloc = ptr;
-	maybe_relocatable *value_alloc = malloc(sizeof(maybe_relocatable));
-	*value_alloc = value;
-	if (cc_hashtable_add(mem->data, ptr_alloc, value_alloc) == CC_OK) {
-		ResultMemory ok = {.is_error = false, .value = {.none = 0}};
-		return ok;
-	}
-	ResultMemory error = {.is_error = true, .value = {.error = Insert}};
-	return error;
+
+	m.data[addr] = *val
+
+	return nil
 }
 ```
 
