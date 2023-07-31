@@ -9,43 +9,38 @@ import (
 
 type CairoRunner struct {
 	// TODO: relocatedMemory should be of type felt
-	relocatedMemory []int
+	RelocatedMemory []int
 }
 
 func NewCairoRunner() *CairoRunner {
-	return &CairoRunner{relocatedMemory: make([]int, 0)}
-}
-
-func (c *CairoRunner) RelocatedMemory() *[]int {
-	return &c.relocatedMemory
+	return &CairoRunner{RelocatedMemory: make([]int, 0)}
 }
 
 func (c *CairoRunner) RelocateMemory(vm *vm.VirtualMachine, relocationTable []uint) error {
-	if len(c.relocatedMemory) != 0 {
+	if len(c.RelocatedMemory) != 0 {
 		return errors.New("Inconsistent relocation")
 	}
 
 	// Relocated addresses start at 1
 	// TODO: with felts, we should use nil instead of -1
-	c.relocatedMemory = append(c.relocatedMemory, -1)
-	segments := vm.Segments()
+	c.RelocatedMemory = append(c.RelocatedMemory, -1)
 
-	for i := uint(0); i < segments.Memory.NumSegments(); i++ {
-		for j := uint(0); j < segments.SegmentSizes[i]; j++ {
+	for i := uint(0); i < vm.Segments.Memory.NumSegments(); i++ {
+		for j := uint(0); j < vm.Segments.SegmentSizes[i]; j++ {
 			ptr := memory.NewRelocatable(int(i), j)
-			cell, err := segments.Memory.Get(ptr)
+			cell, err := vm.Segments.Memory.Get(ptr)
 			if err == nil {
 				relocatedAddr := ptr.RelocateAddress(relocationTable)
 				value, err := cell.RelocateValue(relocationTable)
 				if err != nil {
 					return err
 				}
-				for len(c.relocatedMemory) <= int(relocatedAddr) {
-					c.relocatedMemory = append(c.relocatedMemory, -1)
+				for len(c.RelocatedMemory) <= int(relocatedAddr) {
+					c.RelocatedMemory = append(c.RelocatedMemory, -1)
 				}
-				c.relocatedMemory[relocatedAddr] = value
+				c.RelocatedMemory[relocatedAddr] = value
 			} else {
-				c.relocatedMemory = append(c.relocatedMemory, -1)
+				c.RelocatedMemory = append(c.RelocatedMemory, -1)
 			}
 		}
 	}
