@@ -223,6 +223,24 @@ func NewMaybeRelocatableRelocatable(relocatable Relocatable) *MaybeRelocatable {
 }
 ```
 
+We will also add some methods that will allow us access `MaybeRelocatable` inner values:
+
+```go
+// If m is Int, returns the inner value + true, if not, returns zero + false
+func (m *MaybeRelocatable) GetInt() (Int, bool) {
+	int, is_type := m.inner.(Int)
+	return int, is_type
+}
+
+// If m is Relocatable, returns the inner value + true, if not, returns zero + false
+func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
+	rel, is_type := m.inner.(Relocatable)
+	return rel, is_type
+}
+```
+
+These will alow us to safely discern between Felt and Relocatable values later on.
+
 #### Memory
 As we previously described, the memory is made up of a series of segments of variable length, each containing a continuous sequence of `MaybeRelocatable` elements. Memory is also immutable, which means that once we have written a value into memory, it can't be changed.
 There are multiple valid ways to represent this memory structure, but the simplest way to represent it is by using a map, maping a `Relocatable` address to a `MaybeRelocatable` value.
