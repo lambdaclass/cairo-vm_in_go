@@ -47,6 +47,11 @@ func NewMaybeRelocatableInt(felt uint) *MaybeRelocatable {
 	return &MaybeRelocatable{inner: Int{felt}}
 }
 
+// Creates a new MaybeRelocatable with a Relocatable inner value
+func NewMaybeRelocatableRelocatable(relocatable Relocatable) *MaybeRelocatable {
+	return &MaybeRelocatable{inner: relocatable}
+}
+
 // Creates a new MaybeRelocatable with a `nil` inner value
 func NewMaybeRelocatableNil() *MaybeRelocatable {
 	return &MaybeRelocatable{inner: nil}
