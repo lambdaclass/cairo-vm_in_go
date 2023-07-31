@@ -4,7 +4,7 @@ package memory
 // Also holds metadata useful for the relocation process of
 // the memory at the end of the VM run.
 type MemorySegmentManager struct {
-	segmentSizes map[uint]uint
+	SegmentSizes map[uint]uint
 	Memory       Memory
 }
 
@@ -18,4 +18,24 @@ func (m *MemorySegmentManager) AddSegment() Relocatable {
 	ptr := Relocatable{int(m.Memory.num_segments), 0}
 	m.Memory.num_segments += 1
 	return ptr
+}
+
+func (m *MemorySegmentManager) RelocateSegments() ([]uint, bool) {
+	if m.SegmentSizes == nil {
+		return nil, false
+	}
+
+	first_addr := uint(1)
+	relocation_table := []uint{first_addr}
+
+	for key, value := range m.SegmentSizes {
+		for uint(len(relocation_table)) <= key {
+			relocation_table = append(relocation_table, relocation_table[len(relocation_table)-1])
+		}
+		new_addr := relocation_table[key] + value
+		relocation_table = append(relocation_table, new_addr)
+	}
+	relocation_table = relocation_table[:len(relocation_table)-1]
+
+	return relocation_table, true
 }
