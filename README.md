@@ -342,6 +342,24 @@ func (m *MemorySegmentManager) LoadData(ptr Relocatable, data *[]MaybeRelocatabl
 }
 ```
 
+### RunContext
+
+The RunContext keeps track of the vm's registers. Cairo VM only has 3 registers:
+
+- The program counter `Pc`, which points to the next instruction to be executed.
+- The allocation pointer `Ap`, pointing to the next unused memory cell.
+- The frame pointer `Fp`, pointing to the base of the current stack frame. When a new function is called, `Fp` is set to the current `Ap` value. When the function returns, `Fp` goes back to its previous value.
+
+We can represent it like this:
+
+```go
+type RunContext struct {
+	Pc memory.Relocatable
+	Ap memory.Relocatable
+	Fp memory.Relocatable
+}
+```
+
 ### Builtins
 
 TODO
