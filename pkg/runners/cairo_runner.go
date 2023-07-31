@@ -13,6 +13,7 @@ type CairoRunner struct {
 	InitialPc     memory.Relocatable
 	InitialAp     memory.Relocatable
 	InitialFp     memory.Relocatable
+	FinalPc       memory.Relocatable
 }
 
 // Creates program, execution and builtin segments
@@ -35,4 +36,16 @@ func (r *CairoRunner) initializeState(entrypoint uint, stack *[]memory.MaybeRelo
 	}
 	// Mark data segment as accessed
 	return err
+}
+
+// Initializes memory, initial register values & returns the end pointer (final pc) to run from a given pc offset
+// (entrypoint)
+func (r *CairoRunner) InitializeFunctionEntrypoint(entrypoint uint, stack *[]memory.MaybeRelocatable, return_fp memory.Relocatable) (memory.Relocatable, error) {
+	end := r.Vm.Segments.AddSegment()
+	*stack = append(*stack, *memory.NewMaybeRelocatableRelocatable(end), *memory.NewMaybeRelocatableRelocatable(return_fp))
+	r.InitialFp = r.ExecutionBase
+	r.InitialFp.Offset += uint(len(*stack))
+	r.InitialAp = r.InitialFp
+	r.FinalPc = end
+	return end, r.initializeState(entrypoint, stack)
 }
