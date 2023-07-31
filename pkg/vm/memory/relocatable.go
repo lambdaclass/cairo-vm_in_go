@@ -51,7 +51,7 @@ func NewMaybeRelocatableRelocatable(segmentIndex int, offset uint) *MaybeRelocat
 }
 
 // TODO: Return value should be of type (felt, error)
-func (m *MaybeRelocatable) RelocateValue(relocationTable []uint) (int, error) {
+func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (int, error) {
 	inner_int, ok := m.GetInt()
 	if ok {
 		return int(inner_int.felt), nil

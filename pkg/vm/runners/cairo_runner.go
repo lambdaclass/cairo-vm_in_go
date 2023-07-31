@@ -16,7 +16,7 @@ func NewCairoRunner() *CairoRunner {
 	return &CairoRunner{RelocatedMemory: make([]int, 0)}
 }
 
-func (c *CairoRunner) RelocateMemory(vm *vm.VirtualMachine, relocationTable []uint) error {
+func (c *CairoRunner) RelocateMemory(vm *vm.VirtualMachine, relocationTable *[]uint) error {
 	if len(c.RelocatedMemory) != 0 {
 		return errors.New("Inconsistent relocation")
 	}

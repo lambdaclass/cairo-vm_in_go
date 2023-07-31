@@ -29,7 +29,7 @@ func TestRelocateMemory(t *testing.T) {
 		t.Errorf("Could not create relocation table")
 	}
 
-	err := runner.RelocateMemory(virtualMachine, relocationTable)
+	err := runner.RelocateMemory(virtualMachine, &relocationTable)
 	if err != nil {
 		t.Errorf("Test failed with error: %s", err)
 	}
