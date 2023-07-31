@@ -204,18 +204,23 @@ type Relocatable struct {
 
 ### MaybeRelocatable
 
-As the cairo memory can hold both felts and relocatables, we need a data type that can represent both in order to represent a basic memory unit, therefore:
+As the cairo memory can hold both felts and relocatables, we need a data type that can represent both in order to represent a basic memory unit.
+We would normally use enums or unions to represent this type, but as go lacks both, we will instead hold a non-typed inner value and rely on the api to make sure we can only create MaybeRelocatable values with either Felt or Relocatable as inner type.
 
-```c
-union maybe_relocatable_value {
-	struct relocatable relocatable;
-	felt_t felt;
-};
+```go
+type MaybeRelocatable struct {
+	inner any
+}
 
-typedef struct maybe_relocatable {
-	union maybe_relocatable_value value;
-	bool is_felt;
-} maybe_relocatable;
+// Creates a new MaybeRelocatable with an Int inner value
+func NewMaybeRelocatableInt(felt uint) *MaybeRelocatable {
+	return &MaybeRelocatable{inner: Int{felt}}
+}
+
+// Creates a new MaybeRelocatable with a Relocatable inner value
+func NewMaybeRelocatableRelocatable(relocatable Relocatable) *MaybeRelocatable {
+	return &MaybeRelocatable{inner: relocatable}
+}
 ```
 
 We use two structs to represent it as we need to be able to distinguish between the two union types during execution.
