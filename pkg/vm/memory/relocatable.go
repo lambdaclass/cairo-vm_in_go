@@ -51,18 +51,18 @@ func NewMaybeRelocatableRelocatable(segmentIndex int, offset uint) *MaybeRelocat
 }
 
 // TODO: Return value should be of type (felt, error)
-func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (int, error) {
+func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (uint, error) {
 	inner_int, ok := m.GetInt()
 	if ok {
-		return int(inner_int.felt), nil
+		return inner_int.felt, nil
 	}
 
 	inner_relocatable, ok := m.GetRelocatable()
 	if ok {
-		return int(inner_relocatable.RelocateAddress(relocationTable)), nil
+		return inner_relocatable.RelocateAddress(relocationTable), nil
 	}
 
-	return -1, errors.New(fmt.Sprintf("Unexpected type %T", m.inner))
+	return 0, errors.New(fmt.Sprintf("Unexpected type %T", m.inner))
 }
 
 // If m is Int, returns the inner value + true, if not, returns zero + false

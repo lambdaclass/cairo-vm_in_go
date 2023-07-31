@@ -73,10 +73,8 @@ func (m *MemorySegmentManager) RelocateSegments() ([]uint, bool) {
 	return relocation_table, true
 }
 
-func (s *MemorySegmentManager) RelocateMemory(relocationTable *[]uint) ([]int, error) {
-	// Relocated addresses start at 1
-	// TODO: with felts, we should use nil instead of -1
-	relocatedMemory := []int{-1}
+func (s *MemorySegmentManager) RelocateMemory(relocationTable *[]uint) (map[uint]uint, error) {
+	relocatedMemory := make(map[uint]uint, 0)
 
 	for i := uint(0); i < s.Memory.NumSegments(); i++ {
 		for j := uint(0); j < s.SegmentSizes[i]; j++ {
@@ -88,12 +86,7 @@ func (s *MemorySegmentManager) RelocateMemory(relocationTable *[]uint) ([]int, e
 				if err != nil {
 					return nil, err
 				}
-				for len(relocatedMemory) <= int(relocatedAddr) {
-					relocatedMemory = append(relocatedMemory, -1)
-				}
 				relocatedMemory[relocatedAddr] = value
-			} else {
-				relocatedMemory = append(relocatedMemory, -1)
 			}
 		}
 	}
