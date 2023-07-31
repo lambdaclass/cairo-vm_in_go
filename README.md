@@ -326,7 +326,7 @@ func (m *MemorySegmentManager) AddSegment() Relocatable {
 This method inserts a contiguous array of values starting from a certain addres in memory, and returns the next address after the inserted values. This is useful when inserting the program's instructions in memory.
 In order to perform this operation, we only need to iterate over the array, inserting each value at the address indicated by `ptr` while advancing the ptr with each iteration and then return the final ptr.
 
-```
+```go
 func (m *MemorySegmentManager) LoadData(ptr Relocatable, data *[]MaybeRelocatable) (Relocatable, error) {
 	for _, val := range *data {
 		err := m.Memory.Insert(ptr, &val)
