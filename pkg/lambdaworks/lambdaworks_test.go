@@ -7,8 +7,7 @@ import (
 func TestFeltSub(t *testing.T) {
 	f_one := One()
 
-	var expected Felt
-	Zero()
+	var expected Felt = Zero()
 
 	result := Sub(f_one, f_one)
 	if result != expected {
