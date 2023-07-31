@@ -6,7 +6,7 @@ import (
 
 // Memory represents the Cairo VM's memory.
 type Memory struct {
-	Data         map[Relocatable]MaybeRelocatable
+	data         map[Relocatable]MaybeRelocatable
 	num_segments uint
 }
 
@@ -34,12 +34,12 @@ func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
 	}
 
 	// Check for possible overwrites
-	prev_elem, ok := m.Data[addr]
+	prev_elem, ok := m.data[addr]
 	if ok && prev_elem != *val {
 		return errors.New("Memory is write-once, cannot overwrite memory value")
 	}
 
-	m.Data[addr] = *val
+	m.data[addr] = *val
 
 	return nil
 }
@@ -58,7 +58,7 @@ func (m *Memory) Get(addr Relocatable) (*MaybeRelocatable, error) {
 	// check if the value is a `Relocatable` with a negative
 	// segment index. Again, these are edge cases so not important
 	// right now. See cairo-vm code for details.
-	value, ok := m.Data[addr]
+	value, ok := m.data[addr]
 
 	if !ok {
 		return nil, errors.New("Memory Get: Value not found")
