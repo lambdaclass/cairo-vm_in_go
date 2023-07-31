@@ -20,7 +20,7 @@ func NewRelocatable(segment_idx int, offset uint) Relocatable {
 type Int struct {
 	// FIXME: Here we should use Lambdaworks felt, just mocking
 	// this for now.
-	felt uint
+	Felt uint
 }
 
 // MaybeRelocatable is the type of the memory cells in the Cairo
