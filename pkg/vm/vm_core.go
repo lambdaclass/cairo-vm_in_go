@@ -9,3 +9,7 @@ type VirtualMachine struct {
 	currentStep uint
 	Segments    memory.MemorySegmentManager
 }
+
+func NewVirtualMachine() *VirtualMachine {
+	return &VirtualMachine{Segments: *memory.NewMemorySegmentManager()}
+}

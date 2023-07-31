@@ -17,6 +17,14 @@ type CairoRunner struct {
 	MainOffset    uint
 }
 
+func NewCairoRunner(program vm.Program) *CairoRunner {
+	// TODO: Fetch main entrypoint offset from program identifiers
+	// Placeholder
+	main_offset := uint(0)
+	return &CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), MainOffset: main_offset}
+
+}
+
 // Creates program, execution and builtin segments
 func (r *CairoRunner) InitializeSegments() {
 	// Program Segment
