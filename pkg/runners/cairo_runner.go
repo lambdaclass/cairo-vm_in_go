@@ -26,7 +26,8 @@ func (r *CairoRunner) InitializeSegments() {
 
 // Initializes the program segment & initial pc
 func (r *CairoRunner) initializeState(entrypoint uint, stack *[]memory.MaybeRelocatable) error {
-	r.InitialPc = memory.Relocatable(r.ProgramBase.SegmentIndex, r.ProgramBase.Offset+entrypoint)
+	r.InitialPc = r.ProgramBase
+	r.InitialPc.Offset += entrypoint
 	// Load program data
 	_, err := r.Vm.Segments.LoadData(r.ProgramBase, &r.Program.Data)
 	if err != nil {
