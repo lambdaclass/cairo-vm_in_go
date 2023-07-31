@@ -193,7 +193,7 @@ TODO: Instructions on how to use Lambdaworks felt from Go
 
 ### Relocatable
 
-This is how cairo represents pointers, they are made up of `segment_index`, which segment the variable is in, and `offset`, how many values exist between the start of a segment and the variable. We represent them like this:
+This is how cairo represents pointers, they are made up of `SegmentIndex`, which segment the variable is in, and `Offset`, how many values exist between the start of a segment and the variable. We represent them like this:
 
 ```go
 type Relocatable struct {
@@ -224,16 +224,15 @@ func NewMaybeRelocatableRelocatable(relocatable Relocatable) *MaybeRelocatable {
 ```
 
 #### Memory
-As we previously described, the memory is made up of a series of segments of variable length, each containing a continuous sequence of `maybe_relocatable` elements. Memory is also immutable, which means that once we have written a value into memory, it can't be changed.
-There are multiple valid ways to represent this memory structure, but the simples way to represent it is by using a hashmap, maping a `relocatable` address to a `maybe_relocatable` value.
+As we previously described, the memory is made up of a series of segments of variable length, each containing a continuous sequence of `MaybeRelocatable` elements. Memory is also immutable, which means that once we have written a value into memory, it can't be changed.
+There are multiple valid ways to represent this memory structure, but the simplest way to represent it is by using a map, maping a `Relocatable` address to a `MaybeRelocatable` value.
 As we don't have an actual representation of segments, we have to keep track of the number of segments.
-In this project we decided to use the Collections-C library for our data structures, but you can choose any other library (or implement your own!).
 
-```c
-typedef struct memory {
-	unsigned int num_segments;
-	CC_HashTable *data;
-} memory;
+```go
+type Memory struct {
+	data         map[Relocatable]MaybeRelocatable
+	num_segments uint
+}
 ```
 
 Now we can define the basic memory operations:
