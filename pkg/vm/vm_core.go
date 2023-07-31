@@ -11,7 +11,7 @@ type VirtualMachine struct {
 }
 
 func NewVirtualMachine() *VirtualMachine {
-	runContext := RunContext{pc: memory.NewRelocatable(0, 0), ap: 0, fp: 0}
+	runContext := RunContext{Pc: memory.NewRelocatable(0, 0), Ap: memory.NewRelocatable(0, 0), Fp: memory.NewRelocatable(0, 0)}
 	segments := memory.NewMemorySegmentManager()
 
 	return &VirtualMachine{runContext: runContext, currentStep: 0, Segments: *segments}
