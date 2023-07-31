@@ -5,7 +5,6 @@ package lambdaworks
 #include "lib/lambdaworks.h"
 */
 import "C"
-import "fmt"
 
 // Go representation of a single limb (unsigned integer with 64 bits).
 type Limb C.limb_t
@@ -15,61 +14,82 @@ type Felt struct {
 	limbs [4]Limb
 }
 
-func Number() int {
-	return int(C.number())
+// Converts a Go Felt to a C felt_t.
+func (f Felt) toC() C.felt_t {
+	var result C.felt_t
+	for i, limb := range f.limbs {
+		result[i] = C.limb_t(limb)
+	}
+	return result
+}
+
+// Converts a C felt_t to a Go Felt.
+func fromC(result C.felt_t) Felt {
+	var limbs [4]Limb
+	for i, limb := range result {
+		limbs[i] = Limb(limb)
+	}
+	return Felt{limbs: limbs}
 }
 
 // Gets a Felt representing the "value" number, in Montgomery format.
 func From(value uint64) Felt {
 	var result C.felt_t
 	C.from(&result[0], C.uint64_t(value))
-
-	// Convert the result to uint64 (C.uint64_t is mapped to _Ctype_ulonglong).
-	goValue := &result[0]
-
-	// Print the result.
-	fmt.Println("Result:", uint64(*goValue))
-	return Felt{}
+	return fromC(result)
 }
 
-// // Gets a Felt representing 0.
-// func Zero() Felt {
-// 	var result Felt
-// 	C.zero(&result.limbs[0])
-// 	return result
-// }
+// Gets a Felt representing 0.
+func Zero() Felt {
+	var result C.felt_t
+	C.zero(&result[0])
+	return fromC(result)
+}
 
-// // Gets a Felt representing 1.
-// func One() Felt {
-// 	var result Felt
-// 	C.one(&result.limbs[0])
-// 	return result
-// }
+// Gets a Felt representing 1.
+func One() Felt {
+	var result C.felt_t
+	C.one(&result[0])
+	return fromC(result)
+}
 
-// // Writes the result variable with the sum of a and b felts.
-// func Add(a, b Felt) Felt {
-// 	var result Felt
-// 	C.add((*C.felt_t)(&a.limbs[0]), (*C.felt_t)(&b.limbs[0]), (*C.felt_t)(&result.limbs[0]))
-// 	return result
-// }
+// Writes the result variable with the sum of a and b felts.
+func Add(a, b Felt) Felt {
+	var result C.felt_t
+	var a_c C.felt_t = a.toC()
+	var b_c C.felt_t = b.toC()
+	C.add(&a_c[0], &b_c[0], &result[0])
+	return fromC(result)
+}
 
-// // Writes the result variable with a - b.
-// func Sub(a, b Felt) Felt {
-// 	var result Felt
-// 	C.sub((*C.felt_t)(&a.limbs[0]), (*C.felt_t)(&b.limbs[0]), (*C.felt_t)(&result.limbs[0]))
-// 	return result
-// }
+// Writes the result variable with a - b.
+func Sub(a, b Felt) Felt {
+	var result C.felt_t
+	var a_c C.felt_t = a.toC()
+	var b_c C.felt_t = b.toC()
+	C.sub(&a_c[0], &b_c[0], &result[0])
+	return fromC(result)
+}
 
-// // Writes the result variable with a * b.
-// func Mul(a, b Felt) Felt {
-// 	var result Felt
-// 	C.mul((*C.felt_t)(&a.limbs[0]), (*C.felt_t)(&b.limbs[0]), (*C.felt_t)(&result.limbs[0]))
-// 	return result
-// }
+// Writes the result variable with a * b.
+func Mul(a, b Felt) Felt {
+	var result C.felt_t
+	var a_c C.felt_t = a.toC()
+	var b_c C.felt_t = b.toC()
+	C.mul(&a_c[0], &b_c[0], &result[0])
+	return fromC(result)
+}
 
-// // Writes the result variable with a / b.
-// func Div(a, b Felt) Felt {
-// 	var result Felt
-// 	C.div((*C.felt_t)(&a.limbs[0]), (*C.felt_t)(&b.limbs[0]), (*C.felt_t)(&result.limbs[0]))
-// 	return result
-// }
+// Writes the result variable with a / b.
+func Div(a, b Felt) Felt {
+	var result C.felt_t
+	var a_c C.felt_t = a.toC()
+	var b_c C.felt_t = b.toC()
+	C.div(&a_c[0], &b_c[0], &result[0])
+	return fromC(result)
+}
+
+// Returns the result of the number function.
+func Number() int {
+	return int(C.number())
+}

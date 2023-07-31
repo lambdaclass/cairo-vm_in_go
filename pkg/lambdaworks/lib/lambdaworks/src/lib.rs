@@ -74,5 +74,5 @@ pub extern "C" fn div(a: Limbs, b: Limbs, result: Limbs) {
 
 #[no_mangle]
 pub extern "C" fn number() -> i32 {
-    return 44;
+    return 42;
 }
