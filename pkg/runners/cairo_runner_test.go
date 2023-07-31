@@ -10,7 +10,7 @@ import (
 
 func TestInitializeRunnerNoBuiltinsNoProofModeEmptyProgram(t *testing.T) {
 	// Create a Program with empty data
-	program_data := make([]memory.MaybeRelocatable, 1)
+	program_data := make([]memory.MaybeRelocatable, 0)
 	program := vm.Program{Data: program_data}
 	// Create CairoRunner
 	runner := runners.NewCairoRunner(program)
@@ -45,7 +45,7 @@ func TestInitializeRunnerNoBuiltinsNoProofModeEmptyProgram(t *testing.T) {
 	// 0:0 program_data[0] should be empty
 	value, err := runner.Vm.Segments.Memory.Get(memory.Relocatable{SegmentIndex: 0, Offset: 0})
 	if err == nil {
-		t.Errorf("Expected addr 0:0 to be emptu for empty program")
+		t.Errorf("Expected addr 0:0 to be empty for empty program, got: %+v", value)
 	}
 
 	// Execution segment
