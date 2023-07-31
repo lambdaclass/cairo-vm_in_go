@@ -278,27 +278,46 @@ func (m *Memory) Get(addr Relocatable) (*MaybeRelocatable, error) {
 }
 ```
 
-Then we have some convenience methods that make specific functions of the vm more readable:
+### MemorySegmentManager
+
+In our `Memory` implementation, it looks like we need to have segments allocated before performing any valid memory operation, but we can't do so from the `Memory` api. To do so, we need to use the `MemorySegmentManager`.
+The `MemorySegmentManager` is in charge of creating new segments and calculating their size during the relocation process, it has the following structure:
+
+```go
+type MemorySegmentManager struct {
+	segmentSizes map[uint]uint
+	Memory       Memory
+}
+```
+
+And the following methods:
+
+*Add Segment*
+
+As we are using a map, we dont have to allocate memory for the new segment, so we only have to raise our segment counter and return the first address of the new segment:
+
+```go
+func (m *MemorySegmentManager) AddSegment() Relocatable {
+	ptr := Relocatable{int(m.Memory.num_segments), 0}
+	m.Memory.num_segments += 1
+	return ptr
+}
+```
+
 *Load Data*
 This method inserts a contiguous array of values starting from a certain addres in memory, and returns the next address after the inserted values. This is useful when inserting the program's instructions in memory.
 In order to perform this operation, we only need to iterate over the array, inserting each value at the address indicated by `ptr` while advancing the ptr with each iteration and then return the final ptr.
+
 ```
-ResultMemory memory_load_data(memory *mem, relocatable ptr, CC_Array *data) {
-	// Load each value sequentially
-	CC_ArrayIter data_iter;
-	cc_array_iter_init(&data_iter, data);
-	maybe_relocatable *value = NULL;
-	while (cc_array_iter_next(&data_iter, (void *)&value) != CC_ITER_END) {
-		// Insert Value
-		if (memory_insert(mem, ptr, *value).is_error) {
-			ResultMemory error = {.is_error = true, .value = {.error = LoadData}};
-			return error;
+func (m *MemorySegmentManager) LoadData(ptr Relocatable, data *[]MaybeRelocatable) (Relocatable, error) {
+	for _, val := range *data {
+		err := m.Memory.Insert(ptr, &val)
+		if err != nil {
+			return Relocatable{0, 0}, err
 		}
-		// Advance ptr
-		ptr.offset += 1;
+		ptr.offset += 1
 	}
-	ResultMemory ok = {.is_error = false, .value = {.ptr = ptr}};
-	return ok;
+	return ptr, nil
 }
 ```
 
