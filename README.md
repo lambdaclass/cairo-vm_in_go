@@ -360,6 +360,19 @@ type RunContext struct {
 }
 ```
 
+### VirtualMachine
+With all of these types and structures defined, we can build our VM:
+
+```go
+type VirtualMachine struct {
+	runContext  RunContext
+	currentStep uint
+	segments    memory.MemorySegmentManager
+}
+```
+
+To begin coding the basic execution functionality of our VM, we only need these basic fields, we will be adding more fields as we dive deeper into this guide.
+
 ### Builtins
 
 TODO
