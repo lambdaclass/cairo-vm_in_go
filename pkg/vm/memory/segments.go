@@ -27,7 +27,7 @@ func (m *MemorySegmentManager) ComputeEffectiveSizes() map[uint]uint {
 	if len(m.SegmentSizes) == 0 {
 		greatestIndex := uint(0)
 
-		for ptr := range m.Memory.Data() {
+		for ptr := range *m.Memory.Data() {
 			segmentIndex := uint(ptr.segmentIndex)
 			segmentMaxSize, ok := m.SegmentSizes[segmentIndex]
 			segmentSize := ptr.offset + 1

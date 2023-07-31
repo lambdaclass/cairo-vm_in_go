@@ -33,7 +33,7 @@ func TestRelocateMemory(t *testing.T) {
 		t.Errorf("Test failed with error: %s", err)
 	}
 
-	actualMemory := runner.RelocatedMemory()
+	actualMemory := *runner.RelocatedMemory()
 	expectedMemory := []int{-1, 4613515612218425347, 5, 2345108766317314046, 10, 10, -1, -1, -1, 5}
 	for i, v := range expectedMemory {
 		actual := actualMemory[i]

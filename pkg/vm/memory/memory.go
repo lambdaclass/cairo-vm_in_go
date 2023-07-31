@@ -15,8 +15,8 @@ func NewMemory() *Memory {
 	return &Memory{data, 0}
 }
 
-func (m *Memory) Data() map[Relocatable]MaybeRelocatable {
-	return m.data
+func (m *Memory) Data() *map[Relocatable]MaybeRelocatable {
+	return &m.data
 }
 
 func (m *Memory) NumSegments() uint {

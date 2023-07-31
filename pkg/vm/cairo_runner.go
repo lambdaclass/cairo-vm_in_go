@@ -15,8 +15,8 @@ func NewCairoRunner() *CairoRunner {
 	return &CairoRunner{relocatedMemory: make([]int, 0)}
 }
 
-func (c *CairoRunner) RelocatedMemory() []int {
-	return c.relocatedMemory
+func (c *CairoRunner) RelocatedMemory() *[]int {
+	return &c.relocatedMemory
 }
 
 func (c *CairoRunner) RelocateMemory(vm *VirtualMachine, relocationTable []uint) error {
