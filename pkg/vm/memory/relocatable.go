@@ -1,5 +1,9 @@
 package memory
 
+import (
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+)
+
 // Relocatable in the Cairo VM represents an address
 // in some memory segment. When the VM finishes running,
 // these values are replaced by real memory addresses,
@@ -31,7 +35,7 @@ func (r *Relocatable) into_indexes() (uint, uint) {
 type Int struct {
 	// FIXME: Here we should use Lambdaworks felt, just mocking
 	// this for now.
-	felt uint
+	felt lambdaworks.Felt
 }
 
 // MaybeRelocatable is the type of the memory cells in the Cairo
@@ -43,7 +47,7 @@ type MaybeRelocatable struct {
 }
 
 // Creates a new MaybeRelocatable with an Int inner value
-func NewMaybeRelocatableInt(felt uint) *MaybeRelocatable {
+func NewMaybeRelocatableInt(felt lambdaworks.Felt) *MaybeRelocatable {
 	return &MaybeRelocatable{inner: Int{felt}}
 }
 
