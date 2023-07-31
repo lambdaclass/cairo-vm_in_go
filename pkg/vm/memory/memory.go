@@ -15,6 +15,14 @@ func NewMemory() *Memory {
 	return &Memory{data, 0}
 }
 
+func (m *Memory) Data() map[Relocatable]MaybeRelocatable {
+	return m.data
+}
+
+func (m *Memory) NumSegments() uint {
+	return m.num_segments
+}
+
 // Inserts a value in some memory address, given by a Relocatable value.
 func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
 	// FIXME: There should be a special handling if the key
