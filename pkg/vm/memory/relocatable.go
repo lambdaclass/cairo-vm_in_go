@@ -5,8 +5,8 @@ package memory
 // these values are replaced by real memory addresses,
 // represented by a field element.
 type Relocatable struct {
-	segmentIndex int
-	offset       uint
+	SegmentIndex int
+	Offset       uint
 }
 
 // Creates a new Relocatable struct with the specified segment index
