@@ -195,11 +195,11 @@ TODO: Instructions on how to use Lambdaworks felt from Go
 
 This is how cairo represents pointers, they are made up of `segment_index`, which segment the variable is in, and `offset`, how many values exist between the start of a segment and the variable. We represent them like this:
 
-```c
-typedef struct relocatable {
-	unsigned int segment_index;
-	unsigned int offset;
-} relocatable;
+```go
+type Relocatable struct {
+	segmentIndex int
+	offset       uint
+}
 ```
 
 ### MaybeRelocatable
