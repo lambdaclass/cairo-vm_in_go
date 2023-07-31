@@ -223,8 +223,6 @@ func NewMaybeRelocatableRelocatable(relocatable Relocatable) *MaybeRelocatable {
 }
 ```
 
-We use two structs to represent it as we need to be able to distinguish between the two union types during execution.
-
 #### Memory
 As we previously described, the memory is made up of a series of segments of variable length, each containing a continuous sequence of `maybe_relocatable` elements. Memory is also immutable, which means that once we have written a value into memory, it can't be changed.
 There are multiple valid ways to represent this memory structure, but the simples way to represent it is by using a hashmap, maping a `relocatable` address to a `maybe_relocatable` value.
