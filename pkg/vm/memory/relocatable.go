@@ -15,8 +15,23 @@ type Relocatable struct {
 
 // Creates a new Relocatable struct with the specified segment index
 // and offset.
-func NewRelocatable(segment_idx int, offset uint) *Relocatable {
-	return &Relocatable{segment_idx, offset}
+func NewRelocatable(segment_idx int, offset uint) Relocatable {
+	return Relocatable{segment_idx, offset}
+}
+
+func (relocatable *Relocatable) SubRelocatable(other uint) (Relocatable, error) {
+	if relocatable.offset < other {
+		return NewRelocatable(0, 0), &SubReloctableError{Msg: "RelocatableSubUsizeNegOffset"}
+	} else {
+		new_offset := relocatable.offset - other
+		return NewRelocatable(relocatable.segmentIndex, new_offset), nil
+	}
+}
+
+func (relocatable *Relocatable) AddRelocatable(other uint) (Relocatable, error) {
+	new_offset := relocatable.offset + other
+	return NewRelocatable(relocatable.segmentIndex, new_offset), nil
+
 }
 
 // Get the the indexes of the Relocatable struct.
@@ -33,8 +48,6 @@ func (r *Relocatable) into_indexes() (uint, uint) {
 // Int in the Cairo VM represents a value in memory that
 // is not an address.
 type Int struct {
-	// FIXME: Here we should use Lambdaworks felt, just mocking
-	// this for now.
 	felt lambdaworks.Felt
 }
 
