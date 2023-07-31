@@ -14,6 +14,7 @@ type CairoRunner struct {
 	InitialAp     memory.Relocatable
 	InitialFp     memory.Relocatable
 	FinalPc       memory.Relocatable
+	MainOffset    uint
 }
 
 // Creates program, execution and builtin segments
@@ -48,4 +49,14 @@ func (r *CairoRunner) InitializeFunctionEntrypoint(entrypoint uint, stack *[]mem
 	r.InitialAp = r.InitialFp
 	r.FinalPc = end
 	return end, r.initializeState(entrypoint, stack)
+}
+
+// Initializes memory, initial register values & returns the end pointer (final pc) to run from the main entrypoint
+func (r *CairoRunner) InitializeMainEntrypoint() (memory.Relocatable, error) {
+	// When running from main entrypoint, only up to 11 values will be written (9 builtin bases + end + return_fp)
+	stack := make([]memory.MaybeRelocatable, 0, 11)
+	// Append builtins initial stack to stack
+	// Handle proof-mode specific behaviour
+	return_fp := r.Vm.Segments.AddSegment()
+	return r.InitializeFunctionEntrypoint(r.MainOffset, &stack, return_fp)
 }
