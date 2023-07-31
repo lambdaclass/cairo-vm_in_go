@@ -1,8 +1,9 @@
-package vm
+package runners
 
 import (
 	"errors"
 
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -19,7 +20,7 @@ func (c *CairoRunner) RelocatedMemory() *[]int {
 	return &c.relocatedMemory
 }
 
-func (c *CairoRunner) RelocateMemory(vm *VirtualMachine, relocationTable []uint) error {
+func (c *CairoRunner) RelocateMemory(vm *vm.VirtualMachine, relocationTable []uint) error {
 	if len(c.relocatedMemory) != 0 {
 		return errors.New("Inconsistent relocation")
 	}
@@ -27,11 +28,12 @@ func (c *CairoRunner) RelocateMemory(vm *VirtualMachine, relocationTable []uint)
 	// Relocated addresses start at 1
 	// TODO: with felts, we should use nil instead of -1
 	c.relocatedMemory = append(c.relocatedMemory, -1)
+	segments := vm.Segments()
 
-	for i := uint(0); i < vm.segments.Memory.NumSegments(); i++ {
-		for j := uint(0); j < vm.segments.SegmentSizes[i]; j++ {
+	for i := uint(0); i < segments.Memory.NumSegments(); i++ {
+		for j := uint(0); j < segments.SegmentSizes[i]; j++ {
 			ptr := memory.NewRelocatable(int(i), j)
-			cell, err := vm.segments.Memory.Get(ptr)
+			cell, err := segments.Memory.Get(ptr)
 			if err == nil {
 				relocatedAddr := ptr.RelocateAddress(relocationTable)
 				value, err := cell.RelocateValue(relocationTable)

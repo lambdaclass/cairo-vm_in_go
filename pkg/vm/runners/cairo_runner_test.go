@@ -1,14 +1,15 @@
-package vm_test
+package runners_test
 
 import (
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/runners"
 )
 
 func TestRelocateMemory(t *testing.T) {
-	runner := vm.NewCairoRunner()
+	runner := runners.NewCairoRunner()
 	virtualMachine := vm.NewVirtualMachine()
 	segments := virtualMachine.Segments()
 	for i := 0; i < 4; i++ {
