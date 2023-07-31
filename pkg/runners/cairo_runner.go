@@ -25,12 +25,12 @@ func (r *CairoRunner) InitializeSegments() {
 }
 
 // Initializes the program segment & initial pc
-func (r *CairoRunner) initializeState(entrypoint uint, stack []memory.MaybeRelocatable) error {
+func (r *CairoRunner) initializeState(entrypoint uint, stack *[]memory.MaybeRelocatable) error {
 	r.InitialPc = memory.Relocatable(r.ProgramBase.SegmentIndex, r.ProgramBase.Offset+entrypoint)
 	// Load program data
-	err := r.Vm.Segments.LoadData(r.ProgramBase, r.Program.Data)
-	if !err {
-		err = r.Vm.Segments.LoadData(r.ExecutionBase, stack)
+	_, err := r.Vm.Segments.LoadData(r.ProgramBase, &r.Program.Data)
+	if err != nil {
+		_, err = r.Vm.Segments.LoadData(r.ExecutionBase, stack)
 	}
 	// Mark data segment as accessed
 	return err
