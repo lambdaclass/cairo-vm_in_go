@@ -197,8 +197,8 @@ This is how cairo represents pointers, they are made up of `segment_index`, whic
 
 ```go
 type Relocatable struct {
-	segmentIndex int
-	offset       uint
+	SegmentIndex int
+	Offset       uint
 }
 ```
 
