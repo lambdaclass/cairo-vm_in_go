@@ -25,6 +25,14 @@ func NewCairoRunner(program vm.Program) *CairoRunner {
 
 }
 
+// Performs the initialization step, returns the end pointer (pc upon which execution should stop)
+func (r *CairoRunner) Initialize() (memory.Relocatable, error) {
+	r.InitializeSegments()
+	end, err := r.InitializeMainEntrypoint()
+	r.InitializeVM()
+	return end, err
+}
+
 // Creates program, execution and builtin segments
 func (r *CairoRunner) InitializeSegments() {
 	// Program Segment
