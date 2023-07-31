@@ -283,7 +283,7 @@ func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
 
 *Get*
 
-This is the easiest operation, as we only need to fetch the value from our hashmap:
+This is the easiest operation, as we only need to fetch the value from our map:
 
 ```go
 // Gets some value stored in the memory address `addr`.
