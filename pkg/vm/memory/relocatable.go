@@ -20,8 +20,8 @@ func NewRelocatable(segment_idx int, offset uint) Relocatable {
 	return Relocatable{segment_idx, offset}
 }
 
-func (r *Relocatable) RelocateAddress(relocationTable []uint) uint {
-	return relocationTable[r.segmentIndex] + r.offset
+func (r *Relocatable) RelocateAddress(relocationTable *[]uint) uint {
+	return (*relocationTable)[r.segmentIndex] + r.offset
 }
 
 // Int in the Cairo VM represents a value in memory that
