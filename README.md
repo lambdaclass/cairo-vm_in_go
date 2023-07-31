@@ -183,7 +183,144 @@ Go through the main parts of a compiled program `Json` file. `data` field with i
 
 ### Code walkthrough/Write your own Cairo VM
 
-TODO
+Let's begin by creating the basic types and structures for our VM:
+
+### Felt
+
+As anyone who has ever written a cairo program will know, everything in cairo is a Felt. We can think of it as our unsigned integer. In this project, we use the `Lambdaworks` library to abstract ourselves from modular arithmetic.
+
+TODO: Instructions on how to use Lambdaworks felt from Go
+
+### Relocatable
+
+This is how cairo represents pointers, they are made up of `segment_index`, which segment the variable is in, and `offset`, how many values exist between the start of a segment and the variable. We represent them like this:
+
+```c
+typedef struct relocatable {
+	unsigned int segment_index;
+	unsigned int offset;
+} relocatable;
+```
+
+### MaybeRelocatable
+
+As the cairo memory can hold both felts and relocatables, we need a data type that can represent both in order to represent a basic memory unit, therefore:
+
+```c
+union maybe_relocatable_value {
+	struct relocatable relocatable;
+	felt_t felt;
+};
+
+typedef struct maybe_relocatable {
+	union maybe_relocatable_value value;
+	bool is_felt;
+} maybe_relocatable;
+```
+
+We use two structs to represent it as we need to be able to distinguish between the two union types during execution.
+
+#### Memory
+As we previously described, the memory is made up of a series of segments of variable length, each containing a continuous sequence of `maybe_relocatable` elements. Memory is also immutable, which means that once we have written a value into memory, it can't be changed.
+There are multiple valid ways to represent this memory structure, but the simples way to represent it is by using a hashmap, maping a `relocatable` address to a `maybe_relocatable` value.
+As we don't have an actual representation of segments, we have to keep track of the number of segments.
+In this project we decided to use the Collections-C library for our data structures, but you can choose any other library (or implement your own!).
+
+```c
+typedef struct memory {
+	unsigned int num_segments;
+	CC_HashTable *data;
+} memory;
+```
+
+Now we can define the basic memory operations:
+
+*Add Segment*
+
+As we are using a hashmap, we dont have to allocate memory for the new segment, so we only have to raise our segment counter and return the first address of the new segment:
+
+```c
+relocatable memory_add_segment(memory *memory) {
+	relocatable rel = {memory->num_segments, 0};
+	memory->num_segments += 1;
+	return rel;
+}
+```
+*Insert*
+Here we need to make perform some checks to make sure that the memory remains consistent with its rules:
+- We must check that insertions are performed on previously-allocated segments, by checking that the address's segment_index is lower than our segment counter
+- We must check that we are not mutating memory we have previously written, by checking that the memory doesn't already contain a value at that address that is not equal to the one we are inserting
+```c
+ResultMemory memory_insert(memory *mem, relocatable ptr, maybe_relocatable value) {
+ // Guard out of bounds writes
+	if (ptr.segment_index >= mem->num_segments) {
+		ResultMemory error = {.is_error = true, .value = {.error = Insert}};
+		return error;
+	}
+	// Guard overwrites
+	maybe_relocatable *prev_value = NULL;
+	if (cc_hashtable_get(mem->data, &ptr, (void *)&prev_value) == CC_OK) {
+		if (maybe_relocatable_equal(prev_value, &value)) {
+			ResultMemory ok = {.is_error = false, .value = {.none = 0}};
+			return ok;
+		} else {
+			ResultMemory error = {.is_error = true, .value = {.error = Insert}};
+			return error;
+		}
+	}
+	// Write new value
+	// Allocate new values
+	relocatable *ptr_alloc = malloc(sizeof(relocatable));
+	*ptr_alloc = ptr;
+	maybe_relocatable *value_alloc = malloc(sizeof(maybe_relocatable));
+	*value_alloc = value;
+	if (cc_hashtable_add(mem->data, ptr_alloc, value_alloc) == CC_OK) {
+		ResultMemory ok = {.is_error = false, .value = {.none = 0}};
+		return ok;
+	}
+	ResultMemory error = {.is_error = true, .value = {.error = Insert}};
+	return error;
+}
+```
+
+*Get*
+
+This is the easiest operation, as we only need to fetch the value from our hashmap:
+
+```c
+ResultMemory memory_get(memory *mem, relocatable ptr) {
+	maybe_relocatable *value = NULL;
+	if (cc_hashtable_get(mem->data, &ptr, (void *)&value) == CC_OK) {
+		ResultMemory ok = {.is_error = false, .value = {.memory_value = *value}};
+		return ok;
+	}
+	ResultMemory error = {.is_error = true, .value = {.error = Get}};
+	return error;
+}
+```
+Then we have some convenience methods that make specific functions of the vm more readable:
+*Load Data*
+This method inserts a contiguous array of values starting from a certain addres in memory, and returns the next address after the inserted values. This is useful when inserting the program's instructions in memory.
+In order to perform this operation, we only need to iterate over the array, inserting each value at the address indicated by `ptr` while advancing the ptr with each iteration and then return the final ptr.
+```
+ResultMemory memory_load_data(memory *mem, relocatable ptr, CC_Array *data) {
+	// Load each value sequentially
+	CC_ArrayIter data_iter;
+	cc_array_iter_init(&data_iter, data);
+	maybe_relocatable *value = NULL;
+	while (cc_array_iter_next(&data_iter, (void *)&value) != CC_ITER_END) {
+		// Insert Value
+		if (memory_insert(mem, ptr, *value).is_error) {
+			ResultMemory error = {.is_error = true, .value = {.error = LoadData}};
+			return error;
+		}
+		// Advance ptr
+		ptr.offset += 1;
+	}
+	ResultMemory ok = {.is_error = false, .value = {.ptr = ptr}};
+	return ok;
+}
+```
 
 ### Builtins
 
