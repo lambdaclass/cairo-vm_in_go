@@ -1,5 +1,10 @@
 # cairo-vm.go
 
+This is a work in progress implementation of the [Cairo VM](https://github.com/lambdaclass/cairo-vm) in `Go`. The reasons for doing this include:
+
+- Having a diversity of implementations helps find bugs and make the whole ecosystem more resilient.
+- It's a good opportunity to extensively document the VM in general, as currently the documentation on its internals is very scarce and mostly lives on the minds of a few people.
+
 ## Other docs
 
 - [Project layout](docs/layout.md)
