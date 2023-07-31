@@ -64,12 +64,14 @@ func NewMaybeRelocatableInt(felt lambdaworks.Felt) *MaybeRelocatable {
 	return &MaybeRelocatable{inner: Int{felt}}
 }
 
-// Creates a new MaybeRelocatable with a `nil` inner value
-func NewMaybeRelocatableNil() *MaybeRelocatable {
-	return &MaybeRelocatable{inner: nil}
+// If m is Int, returns the inner value + true, if not, returns zero + false
+func (m *MaybeRelocatable) GetInt() (Int, bool) {
+	int, is_type := m.inner.(Int)
+	return int, is_type
 }
 
-// Checks if inner value of MaybeRelocatable is `nil`
-func (m *MaybeRelocatable) is_nil() bool {
-	return m.inner == nil
+// If m is Relocatable, returns the inner value + true, if not, returns zero + false
+func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
+	rel, is_type := m.inner.(Relocatable)
+	return rel, is_type
 }
