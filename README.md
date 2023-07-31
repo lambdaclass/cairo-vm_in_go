@@ -242,6 +242,7 @@ func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
 These will allow us to safely discern between `Felt` and `Relocatable` values later on.
 
 #### Memory
+
 As we previously described, the memory is made up of a series of segments of variable length, each containing a continuous sequence of `MaybeRelocatable` elements. Memory is also immutable, which means that once we have written a value into memory, it can't be changed.
 There are multiple valid ways to represent this memory structure, but the simplest way to represent it is by using a map, maping a `Relocatable` address to a `MaybeRelocatable` value.
 As we don't have an actual representation of segments, we have to keep track of the number of segments.
@@ -256,6 +257,7 @@ type Memory struct {
 Now we can define the basic memory operations:
 
 *Insert*
+
 Here we need to make perform some checks to make sure that the memory remains consistent with its rules:
 - We must check that insertions are performed on previously-allocated segments, by checking that the address's segment_index is lower than our segment counter
 - We must check that we are not mutating memory we have previously written, by checking that the memory doesn't already contain a value at that address that is not equal to the one we are inserting
@@ -323,6 +325,7 @@ func (m *MemorySegmentManager) AddSegment() Relocatable {
 ```
 
 *Load Data*
+
 This method inserts a contiguous array of values starting from a certain addres in memory, and returns the next address after the inserted values. This is useful when inserting the program's instructions in memory.
 In order to perform this operation, we only need to iterate over the array, inserting each value at the address indicated by `ptr` while advancing the ptr with each iteration and then return the final ptr.
 
