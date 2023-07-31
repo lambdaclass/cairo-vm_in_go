@@ -48,7 +48,7 @@ func (r *CairoRunner) initializeState(entrypoint uint, stack *[]memory.MaybeRelo
 	r.initialPc.Offset += entrypoint
 	// Load program data
 	_, err := r.Vm.Segments.LoadData(r.ProgramBase, &r.Program.Data)
-	if err != nil {
+	if err == nil {
 		_, err = r.Vm.Segments.LoadData(r.executionBase, stack)
 	}
 	// Mark data segment as accessed
