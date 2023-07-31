@@ -35,3 +35,15 @@ type MaybeRelocatable struct {
 func NewMaybeRelocatableInt(felt uint) *MaybeRelocatable {
 	return &MaybeRelocatable{inner: Int{felt}}
 }
+
+// If m is Int, returns the inner value + true, if not, returns zero + false
+func (m *MaybeRelocatable) GetInt() (Int, bool) {
+	int, is_type := m.inner.(Int)
+	return int, is_type
+}
+
+// If m is Relocatable, returns the inner value + true, if not, returns zero + false
+func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
+	rel, is_type := m.inner.(Relocatable)
+	return rel, is_type
+}
