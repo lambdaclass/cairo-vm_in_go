@@ -11,19 +11,8 @@ type Relocatable struct {
 
 // Creates a new Relocatable struct with the specified segment index
 // and offset.
-func NewRelocatable(segment_idx int, offset uint) *Relocatable {
-	return &Relocatable{segment_idx, offset}
-}
-
-// Get the the indexes of the Relocatable struct.
-// Returns a tuple with both values (segment_index, offset)
-func (r *Relocatable) into_indexes() (uint, uint) {
-	if r.segmentIndex < 0 {
-		corrected_segment_idx := uint(-(r.segmentIndex + 1))
-		return corrected_segment_idx, r.offset
-	}
-
-	return uint(r.segmentIndex), r.offset
+func NewRelocatable(segment_idx int, offset uint) Relocatable {
+	return Relocatable{segment_idx, offset}
 }
 
 // Int in the Cairo VM represents a value in memory that
@@ -47,12 +36,14 @@ func NewMaybeRelocatableInt(felt uint) *MaybeRelocatable {
 	return &MaybeRelocatable{inner: Int{felt}}
 }
 
-// Creates a new MaybeRelocatable with a `nil` inner value
-func NewMaybeRelocatableNil() *MaybeRelocatable {
-	return &MaybeRelocatable{inner: nil}
+// If m is Int, returns the inner value + true, if not, returns zero + false
+func (m *MaybeRelocatable) GetInt() (Int, bool) {
+	int, is_type := m.inner.(Int)
+	return int, is_type
 }
 
-// Checks if inner value of MaybeRelocatable is `nil`
-func (m *MaybeRelocatable) is_nil() bool {
-	return m.inner == nil
+// If m is Relocatable, returns the inner value + true, if not, returns zero + false
+func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
+	rel, is_type := m.inner.(Relocatable)
+	return rel, is_type
 }
