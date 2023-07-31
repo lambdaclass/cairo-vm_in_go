@@ -265,17 +265,19 @@ func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
 
 This is the easiest operation, as we only need to fetch the value from our hashmap:
 
-```c
-ResultMemory memory_get(memory *mem, relocatable ptr) {
-	maybe_relocatable *value = NULL;
-	if (cc_hashtable_get(mem->data, &ptr, (void *)&value) == CC_OK) {
-		ResultMemory ok = {.is_error = false, .value = {.memory_value = *value}};
-		return ok;
+```go
+// Gets some value stored in the memory address `addr`.
+func (m *Memory) Get(addr Relocatable) (*MaybeRelocatable, error) {
+	value, ok := m.data[addr]
+
+	if !ok {
+		return nil, errors.New("Memory Get: Value not found")
 	}
-	ResultMemory error = {.is_error = true, .value = {.error = Get}};
-	return error;
+
+	return &value, nil
 }
 ```
+
 Then we have some convenience methods that make specific functions of the vm more readable:
 *Load Data*
 This method inserts a contiguous array of values starting from a certain addres in memory, and returns the next address after the inserted values. This is useful when inserting the program's instructions in memory.
