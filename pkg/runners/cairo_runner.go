@@ -68,3 +68,12 @@ func (r *CairoRunner) InitializeMainEntrypoint() (memory.Relocatable, error) {
 	return_fp := r.Vm.Segments.AddSegment()
 	return r.InitializeFunctionEntrypoint(r.MainOffset, &stack, return_fp)
 }
+
+// Initializes the vm's run_context, adds builtin validation rules & validates memory
+func (r *CairoRunner) InitializeVM() {
+	r.Vm.RunContext.Ap = r.InitialAp
+	r.Vm.RunContext.Fp = r.InitialFp
+	r.Vm.RunContext.Pc = r.InitialPc
+	// Add validation rules
+	// Apply validation rules to memory
+}
