@@ -1,5 +1,7 @@
 package memory
 
+import "sort"
+
 // MemorySegmentManager manages the list of memory segments.
 // Also holds metadata useful for the relocation process of
 // the memory at the end of the VM run.
@@ -20,6 +22,22 @@ func (m *MemorySegmentManager) AddSegment() Relocatable {
 	return ptr
 }
 
+// Calculates the size of each memory segment.
+func (m *MemorySegmentManager) ComputeEffectiveSizes() map[uint]uint {
+	if len(m.SegmentSizes) == 0 {
+		for ptr := range m.Memory.Data() {
+			segmentIndex := uint(ptr.segmentIndex)
+			segmentMaxSize, ok := m.SegmentSizes[segmentIndex]
+			segmentSize := ptr.offset + 1
+			if (ok && segmentSize > segmentMaxSize) || !ok {
+				m.SegmentSizes[segmentIndex] = segmentSize
+			}
+		}
+	}
+
+	return m.SegmentSizes
+}
+
 func (m *MemorySegmentManager) RelocateSegments() ([]uint, bool) {
 	if m.SegmentSizes == nil {
 		return nil, false
@@ -28,11 +46,17 @@ func (m *MemorySegmentManager) RelocateSegments() ([]uint, bool) {
 	first_addr := uint(1)
 	relocation_table := []uint{first_addr}
 
-	for key, value := range m.SegmentSizes {
+	sorted_keys := make([]uint, 0, len(m.SegmentSizes))
+	for key := range m.SegmentSizes {
+		sorted_keys = append(sorted_keys, key)
+	}
+	sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
+
+	for _, key := range sorted_keys {
 		for uint(len(relocation_table)) <= key {
 			relocation_table = append(relocation_table, relocation_table[len(relocation_table)-1])
 		}
-		new_addr := relocation_table[key] + value
+		new_addr := relocation_table[key] + m.SegmentSizes[key]
 		relocation_table = append(relocation_table, new_addr)
 	}
 	relocation_table = relocation_table[:len(relocation_table)-1]
