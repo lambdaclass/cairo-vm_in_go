@@ -239,7 +239,7 @@ func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
 }
 ```
 
-These will alow us to safely discern between Felt and Relocatable values later on.
+These will allow us to safely discern between `Felt` and `Relocatable` values later on.
 
 #### Memory
 As we previously described, the memory is made up of a series of segments of variable length, each containing a continuous sequence of `MaybeRelocatable` elements. Memory is also immutable, which means that once we have written a value into memory, it can't be changed.
