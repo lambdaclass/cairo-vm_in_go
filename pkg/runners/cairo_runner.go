@@ -6,9 +6,13 @@ import (
 )
 
 type CairoRunner struct {
+	Program       vm.Program
 	Vm            vm.VirtualMachine
 	ProgramBase   memory.Relocatable
 	ExecutionBase memory.Relocatable
+	InitialPc     memory.Relocatable
+	InitialAp     memory.Relocatable
+	InitialFp     memory.Relocatable
 }
 
 // Creates program, execution and builtin segments
@@ -18,4 +22,16 @@ func (r *CairoRunner) InitializeSegments() {
 	// Execution Segment
 	r.ExecutionBase = r.Vm.Segments.AddSegment()
 	// Initialize builtin segments
+}
+
+// Initializes the program segment & initial pc
+func (r *CairoRunner) initializeState(entrypoint uint, stack []memory.MaybeRelocatable) error {
+	r.InitialPc = memory.Relocatable(r.ProgramBase.SegmentIndex, r.ProgramBase.Offset+entrypoint)
+	// Load program data
+	err := r.Vm.Segments.LoadData(r.ProgramBase, r.Program.Data)
+	if !err {
+		err = r.Vm.Segments.LoadData(r.ExecutionBase, stack)
+	}
+	// Mark data segment as accessed
+	return err
 }
