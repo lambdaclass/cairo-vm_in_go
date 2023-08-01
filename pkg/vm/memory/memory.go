@@ -50,8 +50,7 @@ func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
 	}
 
 	m.data[addr] = *val
-
-	return nil
+	return m.validateAddress(addr)
 }
 
 // Gets some value stored in the memory address `addr`.
@@ -77,6 +76,7 @@ func (m *Memory) Get(addr Relocatable) (*MaybeRelocatable, error) {
 	return &value, nil
 }
 
+// Adds a validation rule for a given segment
 func (m *Memory) AddValidationRule(segment_index uint, rule ValidationRule) {
 	m.validation_rules[segment_index] = rule
 }
