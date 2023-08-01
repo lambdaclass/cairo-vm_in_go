@@ -76,3 +76,7 @@ func (m *Memory) Get(addr Relocatable) (*MaybeRelocatable, error) {
 
 	return &value, nil
 }
+
+func (m *Memory) AddValidationRule(segment_index uint, rule ValidationRule) {
+	m.validation_rules[segment_index] = rule
+}
