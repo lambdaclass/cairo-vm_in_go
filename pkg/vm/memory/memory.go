@@ -91,10 +91,10 @@ func (m *Memory) AddValidationRule(segment_index uint, rule ValidationRule) {
 // Applies the validation rule for the addr's segment if any
 // Skips validation if the address is temporary or if it has been previously validated
 func (m *Memory) validateAddress(addr Relocatable) error {
-	if addr.segmentIndex < 0 || m.validated_addresses.Contains(addr) {
+	if addr.SegmentIndex < 0 || m.validated_addresses.Contains(addr) {
 		return nil
 	}
-	rule, ok := m.validation_rules[uint(addr.segmentIndex)]
+	rule, ok := m.validation_rules[uint(addr.SegmentIndex)]
 	if !ok {
 		return nil
 	}
