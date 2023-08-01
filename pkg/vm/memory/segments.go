@@ -23,7 +23,6 @@ func (m *MemorySegmentManager) AddSegment() Relocatable {
 // Calculates the size of each memory segment.
 func (m *MemorySegmentManager) ComputeEffectiveSizes() map[uint]uint {
 	if len(m.SegmentSizes) == 0 {
-		greatestIndex := uint(0)
 
 		for ptr := range m.Memory.data {
 			segmentIndex := uint(ptr.SegmentIndex)
@@ -31,9 +30,6 @@ func (m *MemorySegmentManager) ComputeEffectiveSizes() map[uint]uint {
 			segmentSize := ptr.Offset + 1
 			if segmentSize > segmentMaxSize {
 				m.SegmentSizes[segmentIndex] = segmentSize
-			}
-			if segmentIndex > greatestIndex {
-				greatestIndex = segmentIndex
 			}
 		}
 	}
