@@ -22,9 +22,17 @@ type VirtualMachine struct {
 	segments    memory.MemorySegmentManager
 }
 
+func NewVirtualMachine() *VirtualMachine {
+	return &VirtualMachine{
+		runContext:  *NewRunContext(),
+		currentStep: 0,
+		segments:    *memory.NewMemorySegmentManager(),
+	}
+}
+
 type Operands struct {
 	DST memory.MaybeRelocatable
-	RES memory.MaybeRelocatable
+	RES *memory.MaybeRelocatable
 	OP0 memory.MaybeRelocatable
 	OP1 memory.MaybeRelocatable
 }
@@ -42,17 +50,20 @@ type DeducedOperands struct {
 func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Operands) error {
 	switch instruction.Opcode {
 	case AssertEq:
-		// Todo: Implement the None possibility in mayberelocatable
+		if operands.RES == nil {
+			return &VirtualMachineError{"UnconstrainedResAssertEq"}
+		}
 		if !operands.RES.IsEqual(&operands.DST) {
 
 			return &VirtualMachineError{"Diff values operands.res, operands.dest in Opcode: AssertEq"}
 		}
 	case Call:
 		new_rel, err := vm.runContext.Pc.AddRelocatable(instruction.size())
-		returnPC := memory.NewMaybeRelocatableRelocatable(new_rel)
 		if err != nil {
 			return err
 		}
+		returnPC := memory.NewMaybeRelocatableRelocatable(new_rel)
+
 		if !operands.OP0.IsEqual(returnPC) {
 			return &VirtualMachineError{"Cant write return pc"}
 		}

@@ -14,6 +14,14 @@ type RunContext struct {
 	Fp memory.Relocatable
 }
 
+func NewRunContext() *RunContext {
+	return &RunContext{
+		Pc: memory.NewRelocatable(0, 0),
+		Ap: memory.NewRelocatable(0, 0),
+		Fp: memory.NewRelocatable(0, 0),
+	}
+}
+
 func (run_context RunContext) GetAp() memory.Relocatable {
 	return run_context.Ap
 }
