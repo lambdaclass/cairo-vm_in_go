@@ -190,8 +190,8 @@ func TestRelocateMemory(t *testing.T) {
 	segments.Memory.Insert(memory.NewRelocatable(0, 0), memory.NewMaybeRelocatableInt(4613515612218425347))
 	segments.Memory.Insert(memory.NewRelocatable(0, 1), memory.NewMaybeRelocatableInt(5))
 	segments.Memory.Insert(memory.NewRelocatable(0, 2), memory.NewMaybeRelocatableInt(2345108766317314046))
-	segments.Memory.Insert(memory.NewRelocatable(1, 0), memory.NewMaybeRelocatableRelocatable(2, 0))
-	segments.Memory.Insert(memory.NewRelocatable(1, 1), memory.NewMaybeRelocatableRelocatable(3, 0))
+	segments.Memory.Insert(memory.NewRelocatable(1, 0), memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(2, 0)))
+	segments.Memory.Insert(memory.NewRelocatable(1, 1), memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(3, 0)))
 	segments.Memory.Insert(memory.NewRelocatable(1, 5), memory.NewMaybeRelocatableInt(5))
 
 	segments.ComputeEffectiveSizes()

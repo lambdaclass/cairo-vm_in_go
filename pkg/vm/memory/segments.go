@@ -28,9 +28,9 @@ func (m *MemorySegmentManager) ComputeEffectiveSizes() map[uint]uint {
 		greatestIndex := uint(0)
 
 		for ptr := range m.Memory.data {
-			segmentIndex := uint(ptr.segmentIndex)
+			segmentIndex := uint(ptr.SegmentIndex)
 			segmentMaxSize := m.SegmentSizes[segmentIndex]
-			segmentSize := ptr.offset + 1
+			segmentSize := ptr.Offset + 1
 			if segmentSize > segmentMaxSize {
 				m.SegmentSizes[segmentIndex] = segmentSize
 			}
@@ -102,7 +102,7 @@ func (m *MemorySegmentManager) LoadData(ptr Relocatable, data *[]MaybeRelocatabl
 		if err != nil {
 			return Relocatable{0, 0}, err
 		}
-		ptr.offset += 1
+		ptr.Offset += 1
 	}
 	return ptr, nil
 }

@@ -10,8 +10,8 @@ import (
 // these values are replaced by real memory addresses,
 // represented by a field element.
 type Relocatable struct {
-	segmentIndex int
-	offset       uint
+	SegmentIndex int
+	Offset       uint
 }
 
 // Creates a new Relocatable struct with the specified segment index
@@ -21,7 +21,7 @@ func NewRelocatable(segment_idx int, offset uint) Relocatable {
 }
 
 func (r *Relocatable) RelocateAddress(relocationTable *[]uint) uint {
-	return (*relocationTable)[r.segmentIndex] + r.offset
+	return (*relocationTable)[r.SegmentIndex] + r.Offset
 }
 
 // Int in the Cairo VM represents a value in memory that
@@ -34,7 +34,7 @@ type Int struct {
 
 // MaybeRelocatable is the type of the memory cells in the Cairo
 // VM. For now, `inner` will hold any type but it should be
-// instantiated only with `Relocatable`, `Int` or `nil` types.
+// instantiated only with `Relocatable` or `Int` types.
 // We should analyze better alternatives to this.
 type MaybeRelocatable struct {
 	inner any
@@ -46,8 +46,20 @@ func NewMaybeRelocatableInt(felt uint) *MaybeRelocatable {
 }
 
 // Creates a new MaybeRelocatable with a Relocatable inner value
-func NewMaybeRelocatableRelocatable(segmentIndex int, offset uint) *MaybeRelocatable {
-	return &MaybeRelocatable{inner: Relocatable{segmentIndex: segmentIndex, offset: offset}}
+func NewMaybeRelocatableRelocatable(relocatable Relocatable) *MaybeRelocatable {
+	return &MaybeRelocatable{inner: relocatable}
+}
+
+// If m is Int, returns the inner value + true, if not, returns zero + false
+func (m *MaybeRelocatable) GetInt() (Int, bool) {
+	int, is_type := m.inner.(Int)
+	return int, is_type
+}
+
+// If m is Relocatable, returns the inner value + true, if not, returns zero + false
+func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
+	rel, is_type := m.inner.(Relocatable)
+	return rel, is_type
 }
 
 // TODO: Return value should be of type (felt, error)
@@ -63,16 +75,4 @@ func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (uint, error) 
 	}
 
 	return 0, errors.New(fmt.Sprintf("Unexpected type %T", m.inner))
-}
-
-// If m is Int, returns the inner value + true, if not, returns zero + false
-func (m *MaybeRelocatable) GetInt() (Int, bool) {
-	int, is_type := m.inner.(Int)
-	return int, is_type
-}
-
-// If m is Relocatable, returns the inner value + true, if not, returns zero + false
-func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
-	rel, is_type := m.inner.(Relocatable)
-	return rel, is_type
 }
