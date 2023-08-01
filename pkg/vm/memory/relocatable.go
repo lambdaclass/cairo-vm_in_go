@@ -1,6 +1,8 @@
 package memory
 
 import (
+	"errors"
+
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 )
 
@@ -20,35 +22,35 @@ func NewRelocatable(segment_idx int, offset uint) Relocatable {
 }
 
 func (relocatable *Relocatable) SubRelocatable(other uint) (Relocatable, error) {
-	if relocatable.offset < other {
+	if relocatable.Offset < other {
 		return NewRelocatable(0, 0), &SubReloctableError{Msg: "RelocatableSubUsizeNegOffset"}
 	} else {
-		new_offset := relocatable.offset - other
-		return NewRelocatable(relocatable.segmentIndex, new_offset), nil
+		new_offset := relocatable.Offset - other
+		return NewRelocatable(relocatable.SegmentIndex, new_offset), nil
 	}
 }
 
 func (relocatable *Relocatable) AddRelocatable(other uint) (Relocatable, error) {
-	new_offset := relocatable.offset + other
-	return NewRelocatable(relocatable.segmentIndex, new_offset), nil
+	new_offset := relocatable.Offset + other
+	return NewRelocatable(relocatable.SegmentIndex, new_offset), nil
 
 }
 
 // Get the the indexes of the Relocatable struct.
 // Returns a tuple with both values (segment_index, offset)
 func (r *Relocatable) into_indexes() (uint, uint) {
-	if r.segmentIndex < 0 {
-		corrected_segment_idx := uint(-(r.segmentIndex + 1))
-		return corrected_segment_idx, r.offset
+	if r.SegmentIndex < 0 {
+		corrected_segment_idx := uint(-(r.SegmentIndex + 1))
+		return corrected_segment_idx, r.Offset
 	}
 
-	return uint(r.segmentIndex), r.offset
+	return uint(r.SegmentIndex), r.Offset
 }
 
 // Int in the Cairo VM represents a value in memory that
 // is not an address.
 type Int struct {
-	felt lambdaworks.Felt
+	Felt lambdaworks.Felt
 }
 
 // MaybeRelocatable is the type of the memory cells in the Cairo
@@ -57,6 +59,42 @@ type Int struct {
 // We should analyze better alternatives to this.
 type MaybeRelocatable struct {
 	inner any
+}
+
+func (m MaybeRelocatable) AddMaybeRelocatable(other MaybeRelocatable) (MaybeRelocatable, error) {
+	// check if they are felt
+	m_int, m_type := m.GetInt()
+	other_int, other_type := other.GetInt()
+
+	if m_type && other_type {
+		result := NewMaybeRelocatableInt(lambdaworks.Add(m_int.Felt, other_int.Felt))
+		return *result, nil
+	}
+	// check if one is relocatable and the other int
+	m_rel, is_rel_m := m.GetRelocatable()
+	other_rel, is_rel_other := other.GetRelocatable()
+
+	if is_rel_m && !is_rel_other {
+
+		other_felt, _ := other.GetInt()
+		other_usize, _ := other_felt.Felt.ToU64()
+		offset := m_rel.Offset
+		new_offset := uint64(offset) + other_usize
+		rel := NewRelocatable(m_rel.SegmentIndex, uint(new_offset))
+		res := NewMaybeRelocatableRelocatable(rel)
+		return *res, nil
+	} else if !is_rel_m && is_rel_other {
+
+		m_felt, _ := m.GetInt()
+		m_usize, _ := m_felt.Felt.ToU64()
+		offset := other_rel.Offset
+		new_offset := uint64(offset) + m_usize
+		rel := NewRelocatable(other_rel.SegmentIndex, uint(new_offset))
+		res := NewMaybeRelocatableRelocatable(rel)
+		return *res, nil
+	} else {
+		return MaybeRelocatable{}, errors.New("RelocatableAdd")
+	}
 }
 
 // Creates a new MaybeRelocatable with an Int inner value
