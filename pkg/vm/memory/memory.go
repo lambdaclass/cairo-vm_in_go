@@ -4,15 +4,29 @@ import (
 	"errors"
 )
 
+type AddressSet map[Relocatable]bool
+
+func (set AddressSet) Add(element Relocatable) {
+	set[element] = true
+}
+
+func (set AddressSet) Contains(element Relocatable) bool {
+	return set[element]
+}
+
+type ValidationRule func(*Memory, Relocatable) ([]MaybeRelocatable, error)
+
 // Memory represents the Cairo VM's memory.
 type Memory struct {
-	data         map[Relocatable]MaybeRelocatable
-	num_segments uint
+	data                map[Relocatable]MaybeRelocatable
+	num_segments        uint
+	validation_rules    map[uint]ValidationRule
+	validated_addresses AddressSet
 }
 
 func NewMemory() *Memory {
 	data := make(map[Relocatable]MaybeRelocatable)
-	return &Memory{data, 0}
+	return &Memory{data: data}
 }
 
 // Inserts a value in some memory address, given by a Relocatable value.

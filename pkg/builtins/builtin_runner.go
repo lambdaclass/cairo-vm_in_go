@@ -2,8 +2,6 @@ package builtins
 
 import "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 
-type ValidationRule func(*memory.Memory, memory.Relocatable) ([]memory.MaybeRelocatable, error)
-
 type BuiltinRunner interface {
 	// Returns the first address of the builtin's memory segment
 	Base() memory.Relocatable
