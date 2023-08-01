@@ -13,6 +13,10 @@ type Relocatable struct {
 	Offset       uint
 }
 
+func (r *Relocatable) IsEqual(r1 *Relocatable) bool {
+	return (r.SegmentIndex == r1.SegmentIndex && r.Offset == r1.Offset)
+}
+
 // Creates a new Relocatable struct with the specified segment index
 // and offset.
 func NewRelocatable(segment_idx int, offset uint) Relocatable {
@@ -20,29 +24,29 @@ func NewRelocatable(segment_idx int, offset uint) Relocatable {
 }
 
 func (relocatable *Relocatable) SubRelocatable(other uint) (Relocatable, error) {
-	if relocatable.offset < other {
+	if relocatable.Offset < other {
 		return NewRelocatable(0, 0), &SubReloctableError{Msg: "RelocatableSubUsizeNegOffset"}
 	} else {
-		new_offset := relocatable.offset - other
-		return NewRelocatable(relocatable.segmentIndex, new_offset), nil
+		new_offset := relocatable.Offset - other
+		return NewRelocatable(relocatable.SegmentIndex, new_offset), nil
 	}
 }
 
 func (relocatable *Relocatable) AddRelocatable(other uint) (Relocatable, error) {
-	new_offset := relocatable.offset + other
-	return NewRelocatable(relocatable.segmentIndex, new_offset), nil
+	new_offset := relocatable.Offset + other
+	return NewRelocatable(relocatable.SegmentIndex, new_offset), nil
 
 }
 
 // Get the the indexes of the Relocatable struct.
 // Returns a tuple with both values (segment_index, offset)
 func (r *Relocatable) into_indexes() (uint, uint) {
-	if r.segmentIndex < 0 {
-		corrected_segment_idx := uint(-(r.segmentIndex + 1))
-		return corrected_segment_idx, r.offset
+	if r.SegmentIndex < 0 {
+		corrected_segment_idx := uint(-(r.SegmentIndex + 1))
+		return corrected_segment_idx, r.Offset
 	}
 
-	return uint(r.segmentIndex), r.offset
+	return uint(r.SegmentIndex), r.Offset
 }
 
 // Int in the Cairo VM represents a value in memory that
@@ -79,4 +83,21 @@ func (m *MaybeRelocatable) GetInt() (Int, bool) {
 func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
 	rel, is_type := m.inner.(Relocatable)
 	return rel, is_type
+}
+
+// If m and m1 are equal, returns true, otherwise returns false
+func (m *MaybeRelocatable) IsEqual(m1 *MaybeRelocatable) bool {
+	a, a_type := m.GetInt()
+	b, b_type := m1.GetInt()
+	if a_type == b_type {
+		if a_type {
+			return a == b
+		} else {
+			a, _ := m.GetRelocatable()
+			b, _ := m1.GetRelocatable()
+			return a.IsEqual(&b)
+		}
+	} else {
+		return false
+	}
 }

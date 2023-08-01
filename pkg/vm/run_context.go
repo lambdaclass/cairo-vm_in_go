@@ -3,7 +3,6 @@ package vm
 import (
 	"math"
 
-	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -16,15 +15,15 @@ type RunContext struct {
 }
 
 func (run_context RunContext) GetAp() memory.Relocatable {
-	return memory.NewRelocatable(1, run_context.ap)
+	return run_context.Ap
 }
 
 func (run_context RunContext) GetFP() memory.Relocatable {
-	return memory.NewRelocatable(1, run_context.fp)
+	return run_context.Fp
 }
 
-func (run_context RunContext) get_pc() memory.Relocatable {
-	return run_context.pc
+func (run_context RunContext) GetPC() memory.Relocatable {
+	return run_context.Pc
 }
 
 func (run_context RunContext) ComputeDstAddr(instruction Instruction) (memory.Relocatable, error) {
@@ -70,10 +69,10 @@ func (run_context RunContext) ComputeOp1Addr(instruction Instruction, op0 memory
 		base_addr = run_context.GetAp()
 	case Op1SrcImm:
 		if instruction.OffOp1 == 1 {
-			base_addr = run_context.get_pc()
+			base_addr = run_context.GetPC()
 		} else {
 			base_addr = memory.NewRelocatable(-1, 0)
-			return base_addr, VirtualMachineError{Msg: "UnknownOp0"}
+			return base_addr, &VirtualMachineError{Msg: "UnknownOp0"}
 		}
 		// Todo:check case op0
 	}

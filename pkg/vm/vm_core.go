@@ -2,6 +2,7 @@ package vm
 
 import (
 	"fmt"
+
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -9,7 +10,7 @@ type VirtualMachineError struct {
 	Msg string
 }
 
-func (e VirtualMachineError) Error() string {
+func (e *VirtualMachineError) Error() string {
 	return fmt.Sprintf(e.Msg)
 }
 
@@ -38,30 +39,58 @@ type DeducedOperands struct {
 	operands uint8
 }
 
-func (vm VirtualMachine) compute_operands(instruction Instruction) (Operands, OperandsAddresses, DeducedOperands, VirtualMachineError) {
+func (vm *VirtualMachine) opcodeAssertions(instruction Instruction, operands Operands) error {
+	switch instruction.Opcode {
+	case AssertEq:
+		// Todo: Implement the None possibility in mayberelocatable
+		if !operands.res.IsEqual(&operands.dst) {
 
-	dst_addr, err := vm.runContext.ComputeDstAddr(instruction)
-	if err != nil {
-		return Operands{}, OperandsAddresses{}, DeducedOperands{}, VirtualMachineError{Msg: "FailtToComputeDstAddr"}
+			return &VirtualMachineError{"Diff values operands.res, operands.dest in Opcode: AssertEq"}
+		}
+	case Call:
+		new_rel, err := vm.runContext.Pc.AddRelocatable(instruction.size())
+		returnPC := memory.NewMaybeRelocatableRelocatable(new_rel)
+		if err != nil {
+			return err
+		}
+		if !operands.op0.IsEqual(returnPC) {
+			return &VirtualMachineError{"Cant write return pc"}
+		}
+
+		returnFP := vm.runContext.GetFP()
+		dstRelocatable, _ := operands.dst.GetRelocatable()
+		if !returnFP.IsEqual(&dstRelocatable) {
+			return &VirtualMachineError{"Cant Write return FP"}
+		}
 	}
 
-	dst_op, err_dst = vm.segments.Memory.Get(&dst_addr)
-
-	op0_addr, err := vm.runContext.ComputeOp0Addr(instruction)
-	if err != nil {
-		return Operands{}, OperandsAddresses{}, DeducedOperands{}, VirtualMachineError{Msg: "FailtToComputeOp0Addr"}
-	}
-
-	op0_op, err_op0 := vm.segments.Memory.Get(&op0_addr)
-
-	op1_addr, err := vm.runContext.ComputeOp1Addr(instruction)
-	if err != nil {
-		return Operands{}, OperandsAddresses{}, DeducedOperands{}, VirtualMachineError{Msg: "FailtToComputeOp1Addr"}
-	}
-	op1_op, err_op1 := vm.segments.Memory.Get(&op1_addr)
-
-	deduced_operands := DeducedOperands{operands: 0}
+	return nil
 }
+
+// func (vm VirtualMachine) compute_operands(instruction Instruction) (Operands, OperandsAddresses, DeducedOperands, VirtualMachineError) {
+
+// 	dst_addr, err := vm.runContext.ComputeDstAddr(instruction)
+// 	if err != nil {
+// 		return Operands{}, OperandsAddresses{}, DeducedOperands{}, VirtualMachineError{Msg: "FailtToComputeDstAddr"}
+// 	}
+
+// 	dst_op, err_dst = vm.segments.Memory.Get(&dst_addr)
+
+// 	op0_addr, err := vm.runContext.ComputeOp0Addr(instruction)
+// 	if err != nil {
+// 		return Operands{}, OperandsAddresses{}, DeducedOperands{}, VirtualMachineError{Msg: "FailtToComputeOp0Addr"}
+// 	}
+
+// 	op0_op, err_op0 := vm.segments.Memory.Get(&op0_addr)
+
+// 	op1_addr, err := vm.runContext.ComputeOp1Addr(instruction)
+// 	if err != nil {
+// 		return Operands{}, OperandsAddresses{}, DeducedOperands{}, VirtualMachineError{Msg: "FailtToComputeOp1Addr"}
+// 	}
+// 	op1_op, err_op1 := vm.segments.Memory.Get(&op1_addr)
+
+// 	deduced_operands := DeducedOperands{operands: 0}
+// }
 
 func (vm VirtualMachine) run_instrucion(instruction Instruction) {
 	fmt.Println("hello from instruction")
