@@ -39,7 +39,7 @@ type DeducedOperands struct {
 	operands uint8
 }
 
-func (vm *VirtualMachine) opcodeAssertions(instruction Instruction, operands Operands) error {
+func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Operands) error {
 	switch instruction.Opcode {
 	case AssertEq:
 		// Todo: Implement the None possibility in mayberelocatable
