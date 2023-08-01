@@ -5,9 +5,10 @@ import (
 )
 
 func TestFeltSub(t *testing.T) {
-	f_one := One()
-
-	var expected Felt = Zero()
+	var f_one Felt
+	f_one.One()
+	var expected Felt
+	expected.One()
 
 	result := Sub(f_one, f_one)
 	if result != expected {
@@ -16,10 +17,13 @@ func TestFeltSub(t *testing.T) {
 }
 
 func TestFeltAdd(t *testing.T) {
-	f_one := One()
-	f_zero := Zero()
+	var f_one Felt
+	var f_zero Felt
+	f_zero.Zero()
+	f_one.One()
 
-	var expected Felt = One()
+	var expected Felt
+	expected.One()
 
 	result := Add(f_one, f_zero)
 	if result != expected {
@@ -28,9 +32,11 @@ func TestFeltAdd(t *testing.T) {
 }
 
 func TestFeltMul1(t *testing.T) {
-	f_one := One()
+	var f_one Felt
+	f_one.One()
 
-	var expected Felt = One()
+	var expected Felt
+	expected.One()
 
 	result := Mul(f_one, f_one)
 	if result != expected {
@@ -39,10 +45,13 @@ func TestFeltMul1(t *testing.T) {
 }
 
 func TestFeltMul0(t *testing.T) {
-	f_one := One()
-	f_zero := Zero()
+	var f_one Felt
+	var f_zero Felt
+	f_one.One()
+	f_zero.Zero()
 
-	var expected Felt = Zero()
+	var expected Felt
+	expected.Zero()
 
 	result := Mul(f_one, f_zero)
 	if result != expected {

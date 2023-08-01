@@ -40,17 +40,17 @@ func From(value uint64) Felt {
 }
 
 // Gets a Felt representing 0.
-func Zero() Felt {
+func (f Felt) Zero() {
 	var result C.felt_t
 	C.zero(&result[0])
-	return fromC(result)
+	f = fromC(result)
 }
 
 // Gets a Felt representing 1.
-func One() Felt {
+func (f Felt) One() {
 	var result C.felt_t
 	C.one(&result[0])
-	return fromC(result)
+	f = fromC(result)
 }
 
 // Writes the result variable with the sum of a and b felts.
