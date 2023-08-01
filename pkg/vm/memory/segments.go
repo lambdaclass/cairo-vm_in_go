@@ -28,7 +28,7 @@ func (m *MemorySegmentManager) LoadData(ptr Relocatable, data *[]MaybeRelocatabl
 		if err != nil {
 			return Relocatable{0, 0}, err
 		}
-		ptr.offset += 1
+		ptr.Offset += 1
 	}
 	return ptr, nil
 }
