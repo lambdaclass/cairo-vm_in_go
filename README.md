@@ -435,6 +435,131 @@ type VirtualMachine struct {
 
 To begin coding the basic execution functionality of our VM, we only need these basic fields, we will be adding more fields as we dive deeper into this guide.
 
+### Instrcution Decoding and Execution
+
+### CairoRunner
+
+Now that can can execute cairo steps, lets look at the VM's initialization step.
+We will begin by creating our `CairoRunner`:
+
+```go
+type CairoRunner struct {
+	Program       vm.Program
+	Vm            vm.VirtualMachine
+	ProgramBase   memory.Relocatable
+	executionBase memory.Relocatable
+	initialPc     memory.Relocatable
+	initialAp     memory.Relocatable
+	initialFp     memory.Relocatable
+	finalPc       memory.Relocatable
+	mainOffset    uint
+}
+
+func NewCairoRunner(program vm.Program) *CairoRunner {
+    // TODO line below is fake
+	main_offset := program.identifiers["__main__.main"]
+	return &CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
+
+}
+```
+
+Now we will create our `Initialize` method step by step:
+
+```go
+// Performs the initialization step, returns the end pointer (pc upon which execution should stop)
+func (r *CairoRunner) Initialize() (memory.Relocatable, error) {
+	r.initializeSegments()
+	end, err := r.initializeMainEntrypoint()
+	r.initializeVM()
+	return end, err
+}
+```
+
+*InitializeSegments*
+
+This method will create our program and execution segments
+
+```go
+func (r *CairoRunner) initializeSegments() {
+	// Program Segment
+	r.ProgramBase = r.Vm.Segments.AddSegment()
+	// Execution Segment
+	r.executionBase = r.Vm.Segments.AddSegment()
+}
+```
+
+*initializeMainEntrypoint*
+
+This method will initialize the memory and initial register values to begin execution from the main entrypoint, and return the final pc
+
+```go
+func (r *CairoRunner) initializeMainEntrypoint() (memory.Relocatable, error) {
+	stack := make([]memory.MaybeRelocatable, 0, 2)
+	return_fp := r.Vm.Segments.AddSegment()
+	return r.initializeFunctionEntrypoint(r.mainOffset, &stack, return_fp)
+}
+```
+
+*initializeFunctionEntrypoint*
+
+This method will initialize the memory and initial register values to execute a cairo function given its offset within the program segment (aka entrypoint) and return the final pc. In our case, this function will be the main entrypoint, but later on we will be able to use this method to run starknet contract entrypoints
+
+```go
+func (r *CairoRunner) initializeFunctionEntrypoint(entrypoint uint, stack *[]memory.MaybeRelocatable, return_fp memory.Relocatable) (memory.Relocatable, error) {
+	end := r.Vm.Segments.AddSegment()
+	*stack = append(*stack, *memory.NewMaybeRelocatableRelocatable(end), *memory.NewMaybeRelocatableRelocatable(return_fp))
+	r.initialFp = r.executionBase
+	r.initialFp.Offset += uint(len(*stack))
+	r.initialAp = r.initialFp
+	r.finalPc = end
+	return end, r.initializeState(entrypoint, stack)
+}
+```
+
+*InitializeState*
+
+This method will be in charge of loading the program data into the program segment and the stack into the execution segment
+
+```go
+func (r *CairoRunner) initializeState(entrypoint uint, stack *[]memory.MaybeRelocatable) error {
+	r.initialPc = r.ProgramBase
+	r.initialPc.Offset += entrypoint
+	// Load program data
+	_, err := r.Vm.Segments.LoadData(r.ProgramBase, &r.Program.Data)
+	if err == nil {
+		_, err = r.Vm.Segments.LoadData(r.executionBase, stack)
+	}
+	return err
+}
+```
+
+*initializeVm*
+
+This method will set the values of the VM's `RunContext` with our `CairoRunner`'s initial values
+
+```go
+func (r *CairoRunner) initializeVM() {
+	r.Vm.RunContext.Ap = r.initialAp
+	r.Vm.RunContext.Fp = r.initialFp
+	r.Vm.RunContext.Pc = r.initialPc
+}
+```
+
+With `CairoRunner.Initialize()` now complete we can move on to the execution step:
+
+*RunUntilPc*
+
+This method will continuously execute cairo steps until the end pc, returned by 'CairoRunner.Initialize()' is reached
+
+```go
+    //TODO
+```
+
+Once we are done executing, we can relocate our memory & trace and output them into files
+
+### Memory Relocation
+TODO
+
 ### Builtins
 
 TODO
