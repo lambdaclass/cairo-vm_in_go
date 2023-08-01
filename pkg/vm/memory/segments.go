@@ -36,10 +36,6 @@ func (m *MemorySegmentManager) ComputeEffectiveSizes() map[uint]uint {
 				greatestIndex = segmentIndex
 			}
 		}
-
-		for i := greatestIndex + 1; i < m.Memory.NumSegments(); i++ {
-			m.SegmentSizes[i] = 0
-		}
 	}
 
 	return m.SegmentSizes
