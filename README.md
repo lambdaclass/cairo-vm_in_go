@@ -481,7 +481,7 @@ Then we will create two new types to handle validation rules in the `Memory`:
  
 *ValidationRule* 
 
-This will represent our builtin's validation rules, they take a memory address, a referenece to the memory, and return a list of validated addresses, for most builtins, these list will contain the address it received if the validation was succesful, but some builtins may return additional addresses.
+This will represent our builtin's validation rules, they take a memory address and a referenece to the memory, and return a list of validated addresses, for most builtins, this list will contain the address it received if the validation was succesful, but some builtins may return additional addresses.
 
 ```go
 // A function that validates a memory address and returns a list of validated addresses
