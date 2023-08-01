@@ -23,10 +23,10 @@ type VirtualMachine struct {
 }
 
 type Operands struct {
-	dst memory.MaybeRelocatable
-	res memory.MaybeRelocatable
-	op0 memory.MaybeRelocatable
-	op1 memory.MaybeRelocatable
+	DST memory.MaybeRelocatable
+	RES memory.MaybeRelocatable
+	OP0 memory.MaybeRelocatable
+	OP1 memory.MaybeRelocatable
 }
 
 type OperandsAddresses struct {
@@ -43,7 +43,7 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 	switch instruction.Opcode {
 	case AssertEq:
 		// Todo: Implement the None possibility in mayberelocatable
-		if !operands.res.IsEqual(&operands.dst) {
+		if !operands.RES.IsEqual(&operands.DST) {
 
 			return &VirtualMachineError{"Diff values operands.res, operands.dest in Opcode: AssertEq"}
 		}
@@ -53,12 +53,12 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 		if err != nil {
 			return err
 		}
-		if !operands.op0.IsEqual(returnPC) {
+		if !operands.OP0.IsEqual(returnPC) {
 			return &VirtualMachineError{"Cant write return pc"}
 		}
 
 		returnFP := vm.runContext.GetFP()
-		dstRelocatable, _ := operands.dst.GetRelocatable()
+		dstRelocatable, _ := operands.DST.GetRelocatable()
 		if !returnFP.IsEqual(&dstRelocatable) {
 			return &VirtualMachineError{"Cant Write return FP"}
 		}
