@@ -4,6 +4,7 @@ import (
 	"errors"
 )
 
+// A Set to store Relocatable values
 type AddressSet map[Relocatable]bool
 
 func NewAddressSet() AddressSet {
@@ -18,6 +19,7 @@ func (set AddressSet) Contains(element Relocatable) bool {
 	return set[element]
 }
 
+// A function that validates a memory address and returns a list of validated addresses
 type ValidationRule func(*Memory, Relocatable) ([]Relocatable, error)
 
 // Memory represents the Cairo VM's memory.
