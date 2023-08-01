@@ -62,6 +62,9 @@ func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
 	return rel, is_type
 }
 
+// Turns a MaybeRelocatable into a Felt252 value.
+// If the inner value is an Int, it will extract the Felt252 value from it.
+// If the inner value is a Relocatable, it will relocate it according to the relocation_table
 // TODO: Return value should be of type (felt, error)
 func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (uint, error) {
 	inner_int, ok := m.GetInt()
