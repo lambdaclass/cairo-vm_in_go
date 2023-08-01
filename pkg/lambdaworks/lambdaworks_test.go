@@ -4,11 +4,33 @@ import (
 	"testing"
 )
 
+func TestFromHex(t *testing.T) {
+	var h_one = "a"
+	expected := From(10)
+
+	result, err := FromHex(h_one)
+	if result != expected {
+		t.Errorf("TestFromHex failed. Expected: %v, Got: %v", expected, result)
+		t.Errorf("Error is: %s", err)
+	}
+
+}
+
+func TestFromString(t *testing.T) {
+	var s_one = "9"
+	expected := From(9)
+
+	result, err := FromString(s_one)
+	if result != expected {
+		t.Errorf("TestFromString failed. Expected: %v, Got: %v", expected, result)
+		t.Errorf("Error is: %s", err)
+	}
+}
+
 func TestFeltSub(t *testing.T) {
-	var f_one Felt
-	f_one.One()
-	var expected Felt
-	expected.One()
+	var felt Felt
+	f_one := felt.One()
+	expected := felt.Zero()
 
 	result := Sub(f_one, f_one)
 	if result != expected {
@@ -17,13 +39,10 @@ func TestFeltSub(t *testing.T) {
 }
 
 func TestFeltAdd(t *testing.T) {
-	var f_one Felt
-	var f_zero Felt
-	f_zero.Zero()
-	f_one.One()
-
-	var expected Felt
-	expected.One()
+	var felt Felt
+	f_zero := felt.Zero()
+	f_one := felt.One()
+	expected := felt.One()
 
 	result := Add(f_one, f_zero)
 	if result != expected {
@@ -32,11 +51,9 @@ func TestFeltAdd(t *testing.T) {
 }
 
 func TestFeltMul1(t *testing.T) {
-	var f_one Felt
-	f_one.One()
-
-	var expected Felt
-	expected.One()
+	var felt Felt
+	f_one := felt.One()
+	expected := felt.One()
 
 	result := Mul(f_one, f_one)
 	if result != expected {
@@ -45,13 +62,10 @@ func TestFeltMul1(t *testing.T) {
 }
 
 func TestFeltMul0(t *testing.T) {
-	var f_one Felt
-	var f_zero Felt
-	f_one.One()
-	f_zero.Zero()
-
-	var expected Felt
-	expected.Zero()
+	var felt Felt
+	f_one := felt.One()
+	f_zero := felt.Zero()
+	expected := felt.Zero()
 
 	result := Mul(f_one, f_zero)
 	if result != expected {
@@ -61,8 +75,7 @@ func TestFeltMul0(t *testing.T) {
 
 func TestFeltMul9(t *testing.T) {
 	f_three := From(3)
-
-	var expected Felt = From(9)
+	expected := From(9)
 
 	result := Mul(f_three, f_three)
 	if result != expected {
@@ -72,8 +85,7 @@ func TestFeltMul9(t *testing.T) {
 
 func TestFeltDiv3(t *testing.T) {
 	f_three := From(3)
-
-	var expected Felt = From(1)
+	expected := From(1)
 
 	result := Div(f_three, f_three)
 	if result != expected {
@@ -85,7 +97,7 @@ func TestFeltDiv4(t *testing.T) {
 	f_four := From(4)
 	f_two := From(2)
 
-	var expected Felt = From(2)
+	expected := From(2)
 
 	result := Div(f_four, f_two)
 	if result != expected {
@@ -97,7 +109,7 @@ func TestFeltDiv4Error(t *testing.T) {
 	f_four := From(4)
 	f_one := From(1)
 
-	var expected Felt = From(45)
+	expected := From(45)
 
 	result := Div(f_four, f_one)
 	if result == expected {
