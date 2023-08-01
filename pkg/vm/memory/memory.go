@@ -6,6 +6,10 @@ import (
 
 type AddressSet map[Relocatable]bool
 
+func NewAddressSet() AddressSet {
+	return make(map[Relocatable]bool)
+}
+
 func (set AddressSet) Add(element Relocatable) {
 	set[element] = true
 }
@@ -25,8 +29,11 @@ type Memory struct {
 }
 
 func NewMemory() *Memory {
-	data := make(map[Relocatable]MaybeRelocatable)
-	return &Memory{data: data}
+	return &Memory{
+		data:                make(map[Relocatable]MaybeRelocatable),
+		validated_addresses: NewAddressSet(),
+		validation_rules:    make(map[uint]ValidationRule),
+	}
 }
 
 // Inserts a value in some memory address, given by a Relocatable value.
