@@ -51,7 +51,7 @@ make test
 
 What we have:
 
-- Parsing of `json`` programs
+- Parsing of `json` programs
 - Decoding of instructions
 - Memory relocation
 
