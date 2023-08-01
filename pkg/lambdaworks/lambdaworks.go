@@ -88,8 +88,3 @@ func Div(a, b Felt) Felt {
 	C.div(&a_c[0], &b_c[0], &result[0])
 	return fromC(result)
 }
-
-// Returns the result of the number function.
-func Number() int {
-	return int(C.number())
-}
