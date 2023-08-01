@@ -166,7 +166,7 @@ TODO: explain the components of an instruction (`dst_reg`, `op0_reg`, etc), what
 
 ### Felts
 
-TODO: Short explanation of Felts and the Cairo/Stark field we use through Lambdaworks.
+Felts, or Field Elements, are cairo's basic integer type. Every variable in a cairo vm that is not a pointer is a felt. From our point of view we could say a felt in cairo is an unsigned integer in the range [0, CAIRO_PRIME). This means that all operations are done modulo CAIRO_PRIME. The CAIRO_PRIME is 0x800000000000011000000000000000000000000000000000000000000000001, which means felts can be quite big (up to 252 bits), luckily, we have the [Lambdaworks](https://github.com/lambdaclass/lambdaworks) library to help with handling these big integer values and providing fast and efficient modular arithmetic.
 
 ### More on memory
 
