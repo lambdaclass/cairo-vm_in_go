@@ -435,9 +435,32 @@ type VirtualMachine struct {
 
 To begin coding the basic execution functionality of our VM, we only need these basic fields, we will be adding more fields as we dive deeper into this guide.
 
+[TODO: Execution, CairoRunner, CairoRun]
+
 ### Builtins
 
-TODO
+Now that we are able to run a basic fibbonacci program, lets step up our game by adding builtins to our VM. A builtin is a low level optimization integrated into the core loop of the VM that allows otherwise expensive computation to be performed more efficiently. Builtins have two ways to operate: via validation rules and via auto-deduction rules. Validation rules are applied to every element that is inserted into a builtin's segment. For example, if I wanted to verify as ecdsa signature, I can insert it into the ecdsa builtin's segment and let a validation rule take care of verifying the signature. Auto-dedcution rules take over during instruction execution, when we can't compute the value of an operand who's address belongs to a builtin segment, we can use that builtin's auto-deduction rule to calculate the value of the operand. For example, If I wanted to calculate the pedersen hash of two values, I can write the values into the pedersen builtin's segment and then ask for the next memory cell, without builtins, this instruction would have failed, as there is no value in that cell, but now we can use auto-deduction rules to calculate the hash and fill in that memory cell.
+
+We will define a basic interface to generalize all of our builtin's behaviour:
+
+```go
+type BuiltinRunner interface {
+	// Returns the first address of the builtin's memory segment
+	Base() memory.Relocatable
+	// Returns the name of the builtin
+	Name() string
+	// Creates a memory segment for the builtin and initializes its base
+	InitializeSegments(*memory.MemorySegmentManager)
+	// Returns the builtin's initial stack
+	InitialStack() []memory.MaybeRelocatable
+	// Attempts to deduce the value of a memory cell given by its address. Can return either a nil pointer and an error, if an error arises during the deduction,
+	// a valid pointer and nil if the deduction was succesful, or a nil pointer and nil if there is no deduction for the memory cell
+	DeduceMemoryCell(memory.Relocatable, *memory.Memory) (*memory.MaybeRelocatable, error)
+	// Adds a validation rule to the memory
+	// Validation rules are applied when a value is inserted into the builtin's segment
+	AddValidationRule(*memory.Memory)
+}
+```
 
 ### Hints
 
