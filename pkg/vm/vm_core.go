@@ -17,16 +17,16 @@ func (e *VirtualMachineError) Error() string {
 // VirtualMachine represents the Cairo VM.
 // Runs Cairo assembly and produces an execution trace.
 type VirtualMachine struct {
-	runContext  RunContext
+	runContext  *RunContext
 	currentStep uint
-	segments    memory.MemorySegmentManager
+	segments    *memory.MemorySegmentManager
 }
 
 func NewVirtualMachine() *VirtualMachine {
 	return &VirtualMachine{
-		runContext:  *NewRunContext(),
+		runContext:  NewRunContext(),
 		currentStep: 0,
-		segments:    *memory.NewMemorySegmentManager(),
+		segments:    memory.NewMemorySegmentManager(),
 	}
 }
 
@@ -54,8 +54,12 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 			return &VirtualMachineError{"UnconstrainedResAssertEq"}
 		}
 		if !operands.RES.IsEqual(&operands.DST) {
-
-			return &VirtualMachineError{"Diff values operands.res, operands.dest in Opcode: AssertEq"}
+			_, isInt := operands.RES.GetInt()
+			if isInt {
+				return &VirtualMachineError{"IntDiffAssertValues"}
+			} else {
+				return &VirtualMachineError{"RelocatableDiffAssertValues"}
+			}
 		}
 	case Call:
 		new_rel, err := vm.runContext.Pc.AddRelocatable(instruction.size())
@@ -65,13 +69,13 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 		returnPC := memory.NewMaybeRelocatableRelocatable(new_rel)
 
 		if !operands.OP0.IsEqual(returnPC) {
-			return &VirtualMachineError{"Cant write return pc"}
+			return &VirtualMachineError{"CantWriteReturnPc"}
 		}
 
 		returnFP := vm.runContext.GetFP()
 		dstRelocatable, _ := operands.DST.GetRelocatable()
 		if !returnFP.IsEqual(&dstRelocatable) {
-			return &VirtualMachineError{"Cant Write return FP"}
+			return &VirtualMachineError{"CantWriteReturnFp"}
 		}
 	}
 
