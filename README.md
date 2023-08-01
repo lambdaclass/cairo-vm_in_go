@@ -427,9 +427,9 @@ With all of these types and structures defined, we can build our VM:
 
 ```go
 type VirtualMachine struct {
-	runContext  RunContext
-	currentStep uint
-	segments    memory.MemorySegmentManager
+	RunContext     RunContext
+	currentStep    uint
+	Segments       memory.MemorySegmentManager
 }
 ```
 
@@ -439,7 +439,7 @@ To begin coding the basic execution functionality of our VM, we only need these 
 
 ### Builtins
 
-Now that we are able to run a basic fibbonacci program, lets step up our game by adding builtins to our VM. A builtin is a low level optimization integrated into the core loop of the VM that allows otherwise expensive computation to be performed more efficiently. Builtins have two ways to operate: via validation rules and via auto-deduction rules. Validation rules are applied to every element that is inserted into a builtin's segment. For example, if I wanted to verify as ecdsa signature, I can insert it into the ecdsa builtin's segment and let a validation rule take care of verifying the signature. Auto-dedcution rules take over during instruction execution, when we can't compute the value of an operand who's address belongs to a builtin segment, we can use that builtin's auto-deduction rule to calculate the value of the operand. For example, If I wanted to calculate the pedersen hash of two values, I can write the values into the pedersen builtin's segment and then ask for the next memory cell, without builtins, this instruction would have failed, as there is no value in that cell, but now we can use auto-deduction rules to calculate the hash and fill in that memory cell.
+Now that we are able to run a basic fibonacci program, lets step up our game by adding builtins to our VM. A builtin is a low level optimization integrated into the core loop of the VM that allows otherwise expensive computation to be performed more efficiently. Builtins have two ways to operate: via validation rules and via auto-deduction rules. Validation rules are applied to every element that is inserted into a builtin's segment. For example, if I wanted to verify as ecdsa signature, I can insert it into the ecdsa builtin's segment and let a validation rule take care of verifying the signature. Auto-dedcution rules take over during instruction execution, when we can't compute the value of an operand who's address belongs to a builtin segment, we can use that builtin's auto-deduction rule to calculate the value of the operand. For example, If I wanted to calculate the pedersen hash of two values, I can write the values into the pedersen builtin's segment and then ask for the next memory cell, without builtins, this instruction would have failed, as there is no value stored in that cell, but now we can use auto-deduction rules to calculate the hash and fill in that memory cell.
 
 We will define a basic interface to generalize all of our builtin's behaviour:
 
@@ -461,6 +461,122 @@ type BuiltinRunner interface {
 	AddValidationRule(*memory.Memory)
 }
 ```
+
+And now lets integrate this into our existing codebase:
+
+First we will make some modifications to our basic structures:
+
+We will add our builtin runners to the VM:
+
+```go
+type VirtualMachine struct {
+	RunContext     RunContext
+	currentStep    uint
+	Segments       memory.MemorySegmentManager
+	BuiltinRunners []builtins.BuiltinRunner
+}
+```
+
+Then we will create two new types to handle validation rules in the `Memory`:
+ 
+*ValidationRule* 
+
+This will represent our builtin's validation rules, they take a memory address, a referenece to the memory, and return a list of validated addresses, for most builtins, these list will contain the address it received if the validation was succesful, but some builtins may return additional addresses.
+
+```go
+// A function that validates a memory address and returns a list of validated addresses
+type ValidationRule func(*Memory, Relocatable) ([]Relocatable, error)
+```
+
+*AddressSet*
+
+As go doesn't have a set type, we created our own really basic set for `Relocatable`s. This will hold the values returned by the validation rules, so that we don't have to run them more than once for each memory cell.
+
+```go
+// A Set to store Relocatable values
+type AddressSet map[Relocatable]bool
+
+func NewAddressSet() AddressSet {
+	return make(map[Relocatable]bool)
+}
+
+func (set AddressSet) Add(element Relocatable) {
+	set[element] = true
+}
+
+func (set AddressSet) Contains(element Relocatable) bool {
+	return set[element]
+}
+```
+
+And we will add them to our `Memory` stuct:
+
+``` go
+type Memory struct {
+	data                map[Relocatable]MaybeRelocatable
+	num_segments        uint
+	validation_rules    map[uint]ValidationRule
+	validated_addresses AddressSet
+}
+```
+
+Now we only need to add a way to create this validation rules:
+
+```go
+// Adds a validation rule for a given segment
+func (m *Memory) AddValidationRule(segment_index uint, rule ValidationRule) {
+	m.validation_rules[segment_index] = rule
+}
+```
+
+And a method that runs validations on a memory address:
+
+```go
+// Applies the validation rule for the addr's segment if any
+// Skips validation if the address is temporary or if it has been previously validated
+func (m *Memory) validateAddress(addr Relocatable) error {
+	if addr.SegmentIndex < 0 || m.validated_addresses.Contains(addr) {
+		return nil
+	}
+	rule, ok := m.validation_rules[uint(addr.SegmentIndex)]
+	if !ok {
+		return nil
+	}
+	validated_addresses, error := rule(m, addr)
+	if error != nil {
+		return error
+	}
+	for _, validated_address := range validated_addresses {
+		m.validated_addresses.Add(validated_address)
+	}
+	return nil
+}
+```
+
+And we are all set to integrate this new logic into our `Memory`'s `Insert` operation:
+
+```go
+// Inserts a value in some memory address, given by a Relocatable value.
+func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
+	// Check that insertions are preformed within the memory bounds
+	if addr.SegmentIndex >= int(m.num_segments) {
+		return errors.New("Error: Inserting into a non allocated segment")
+	}
+	// Check for possible overwrites
+	prev_elem, ok := m.data[addr]
+	if ok && prev_elem != *val {
+		return errors.New("Memory is write-once, cannot overwrite memory value")
+	}
+
+	m.data[addr] = *val
+
+	return m.validateAddress(addr)
+}
+```
+
+[TODO (for builtins section): BuiltinRunners in Initialization Step, BuiltinRunners in Compute Operands]
+
+[Next sections: Implementing each builtin runner]
 
 ### Hints
 
