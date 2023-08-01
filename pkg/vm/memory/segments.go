@@ -1,7 +1,5 @@
 package memory
 
-import "sort"
-
 // MemorySegmentManager manages the list of memory segments.
 // Also holds metadata useful for the relocation process of
 // the memory at the end of the VM run.
@@ -55,17 +53,8 @@ func (m *MemorySegmentManager) RelocateSegments() ([]uint, bool) {
 	first_addr := uint(1)
 	relocation_table := []uint{first_addr}
 
-	sorted_keys := make([]uint, 0, len(m.SegmentSizes))
-	for key := range m.SegmentSizes {
-		sorted_keys = append(sorted_keys, key)
-	}
-	sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
-
-	for _, key := range sorted_keys {
-		for uint(len(relocation_table)) <= key {
-			relocation_table = append(relocation_table, relocation_table[len(relocation_table)-1])
-		}
-		new_addr := relocation_table[key] + m.SegmentSizes[key]
+	for i := uint(0); i < m.Memory.NumSegments(); i++ {
+		new_addr := relocation_table[i] + m.SegmentSizes[i]
 		relocation_table = append(relocation_table, new_addr)
 	}
 	relocation_table = relocation_table[:len(relocation_table)-1]
