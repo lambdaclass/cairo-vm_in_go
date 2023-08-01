@@ -45,6 +45,68 @@ make test
 - To check for security and other types of bugs, the code will be fuzzed extensively.
 - PRs must be accompanied by its corresponding documentation. A book will be written documenting the entire inner workings of it, so anyone can dive in to a Cairo VM codebase and follow it along.
 
+# Roadmap
+
+## First milestone: Fibonacci/Factorial
+
+What we have:
+
+- Parsing of `json` programs
+- Decoding of instructions
+- Memory relocation
+
+What we need to finish this milestone:
+- Instruction execution.
+- Writing of the trace and memory into files with the correct format.
+- Make the fibonacci test pass, comparing our own trace with the Rust VM one, making sure they match.
+- Make the factorial test pass, same as above.
+
+
+## Cairo 0/Cairo 1
+
+The above will work for Cairo 0 programs. Cairo 1 has the following extra issues to address:
+
+- There is no `Json` representation of a Cairo 1 Program, so we can only run contracts. This means we will have to add functions to run cairo contracts (aka implement run_from_entrypoint).
+- Cairo 1 contracts use the `range_check` builtin by default, so we need to implement it.
+
+## Full VM implementation
+
+To have a full implementation, we will need the following:
+
+- Builtins. Add the `BuiltinRunner` logic, then implement each builtin:
+    - `Range check (RC)`
+    - `Output`
+    - `Bitwise`
+    - `Ec_op`
+    - `Pedersen`
+    - `Keccak`
+    - `Poseidon`
+    - `Signature`
+    - `Segment Arena`
+- Memory layouts. This is related to builtins but we will do it after implementing them.
+- Hints. Add the `HintProcessor` logic, then implement each hint. Hints need to be documented extensively, implementing them is super easy since it's just porting code; what's not so clear is what they are used for. Having explanations and examples for each is important. List of hints below:
+    - Parsing of references https://github.com/lambdaclass/cairo-vm/tree/main/docs/references_parsing
+    - `CommonLib` https://github.com/starkware-libs/cairo-lang/tree/master/src/starkware/cairo/common
+    - `Secp`
+    - `Vrf`
+    - `BigInt`
+    - `Blake2`
+    - `DictManager`
+    - `EcRecover`
+    - `Field Arithmetic`
+    - `Garaga`
+    - `set_add`
+    - `sha256 utils`
+    - `ECDSA verification`
+    - `uint384` and `uint384 extension`
+    - `uint512 utils`
+    - `Cairo 1` hints.
+- Proof mode. It's important to explain in detail what this is when we do it. It's one of the most obscure parts of the VM in my experience.
+- Air Public inputs. (Tied to Proof-mode)
+- Temporary segments.
+- Program tests from Cairo VM in Rust.
+- Fuzzing/Differential fuzzing.
+
 # Documentation
 
 ## High Level Overview
