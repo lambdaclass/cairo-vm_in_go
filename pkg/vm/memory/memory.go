@@ -14,7 +14,7 @@ func (set AddressSet) Contains(element Relocatable) bool {
 	return set[element]
 }
 
-type ValidationRule func(*Memory, Relocatable) ([]MaybeRelocatable, error)
+type ValidationRule func(*Memory, Relocatable) ([]Relocatable, error)
 
 // Memory represents the Cairo VM's memory.
 type Memory struct {
@@ -79,4 +79,24 @@ func (m *Memory) Get(addr Relocatable) (*MaybeRelocatable, error) {
 
 func (m *Memory) AddValidationRule(segment_index uint, rule ValidationRule) {
 	m.validation_rules[segment_index] = rule
+}
+
+// Applies the validation rule for the addr's segment if any
+// Skips validation if the address is temporary or if it has been previously validated
+func (m *Memory) validateAddress(addr Relocatable) error {
+	if addr.segmentIndex < 0 || m.validated_addresses.Contains(addr) {
+		return nil
+	}
+	rule, ok := m.validation_rules[uint(addr.segmentIndex)]
+	if !ok {
+		return nil
+	}
+	validated_addresses, error := rule(m, addr)
+	if error != nil {
+		return error
+	}
+	for _, validated_address := range validated_addresses {
+		m.validated_addresses.Add(validated_address)
+	}
+	return nil
 }
