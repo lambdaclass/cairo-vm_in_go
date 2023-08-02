@@ -42,7 +42,7 @@ func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 func (r *CairoRunner) Initialize() (memory.Relocatable, error) {
 	r.initializeSegments()
 	end, err := r.initializeMainEntrypoint()
-	if err != nil {
+	if err == nil {
 		err = r.initializeVM()
 	}
 	return end, err
