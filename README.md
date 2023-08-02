@@ -18,6 +18,8 @@ Go needs to be installed. For mac computers, run
 brew install go
 ```
 
+We also use [pyenv](https://github.com/pyenv/pyenv) to install testing-related dependencies
+
 ## Compiling, running, testing
 
 To compile, run:
@@ -30,6 +32,12 @@ To run the main example file, run:
 
 ```shell
 make run
+```
+
+Before running the tests, install the testing dependencies:
+
+```
+make deps
 ```
 
 To run all tests, run:
