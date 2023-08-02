@@ -1,6 +1,8 @@
 package runners
 
 import (
+	"errors"
+
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
@@ -17,11 +19,22 @@ type CairoRunner struct {
 	mainOffset    uint
 }
 
-func NewCairoRunner(program vm.Program) *CairoRunner {
+func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 	// TODO: Fetch main entrypoint offset from program identifiers
 	// Placeholder
 	main_offset := uint(0)
-	return &CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
+	runner := CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
+	for _, builtin_name := range program.Builtins {
+		switch builtin_name {
+		// Add a case for each builtin here, example:
+		// case "range_check":
+		// 	runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, RangeCheckBuiltin{})
+		default:
+			return nil, errors.New("Invalid builtin")
+		}
+	}
+
+	return &runner, nil
 
 }
 
@@ -39,7 +52,10 @@ func (r *CairoRunner) initializeSegments() {
 	r.ProgramBase = r.Vm.Segments.AddSegment()
 	// Execution Segment
 	r.executionBase = r.Vm.Segments.AddSegment()
-	// Initialize builtin segments
+	// Builtin Segments
+	for i := range r.Vm.BuiltinRunners {
+		r.Vm.BuiltinRunners[i].InitializeSegments(&r.Vm.Segments)
+	}
 }
 
 // Initializes the program segment & initial pc
@@ -72,6 +88,11 @@ func (r *CairoRunner) initializeMainEntrypoint() (memory.Relocatable, error) {
 	// When running from main entrypoint, only up to 11 values will be written (9 builtin bases + end + return_fp)
 	stack := make([]memory.MaybeRelocatable, 0, 11)
 	// Append builtins initial stack to stack
+	for i := range r.Vm.BuiltinRunners {
+		for _, val := range r.Vm.BuiltinRunners[i].InitialStack() {
+			stack = append(stack, val)
+		}
+	}
 	// Handle proof-mode specific behaviour
 	return_fp := r.Vm.Segments.AddSegment()
 	return r.initializeFunctionEntrypoint(r.mainOffset, &stack, return_fp)
@@ -83,5 +104,8 @@ func (r *CairoRunner) initializeVM() {
 	r.Vm.RunContext.Fp = r.initialFp
 	r.Vm.RunContext.Pc = r.initialPc
 	// Add validation rules
+	for i := range r.Vm.BuiltinRunners {
+		r.Vm.BuiltinRunners[i].AddValidationRule(&r.Vm.Segments.Memory)
+	}
 	// Apply validation rules to memory
 }
