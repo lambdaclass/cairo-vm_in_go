@@ -65,7 +65,7 @@ func FromDecString(value string) Felt {
 	cs := C.CString(value)
 	defer C.free(unsafe.Pointer(cs))
 
-	var result C.felt_t 
+	var result C.felt_t
 	C.from_dec_str(&result[0], cs)
 	return fromC(result)
 }
