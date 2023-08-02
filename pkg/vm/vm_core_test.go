@@ -23,10 +23,10 @@ func TestOpcodeAssertionsResUnconstrained(t *testing.T) {
 	}
 
 	operands := Operands{
-		DST: *memory.NewMaybeRelocatableInt(lambdaworks.From(8)),
-		RES: nil,
-		OP0: *memory.NewMaybeRelocatableInt(lambdaworks.From(9)),
-		OP1: *memory.NewMaybeRelocatableInt(lambdaworks.From(10)),
+		Dst: *memory.NewMaybeRelocatableInt(lambdaworks.From(8)),
+		Res: nil,
+		Op0: *memory.NewMaybeRelocatableInt(lambdaworks.From(9)),
+		Op1: *memory.NewMaybeRelocatableInt(lambdaworks.From(10)),
 	}
 
 	testVm := NewVirtualMachine()
@@ -53,10 +53,10 @@ func TestOpcodeAssertionsInstructionFailed(t *testing.T) {
 	}
 
 	operands := Operands{
-		DST: *memory.NewMaybeRelocatableInt(lambdaworks.From(9)),
-		RES: memory.NewMaybeRelocatableInt(lambdaworks.From(8)),
-		OP0: *memory.NewMaybeRelocatableInt(lambdaworks.From(9)),
-		OP1: *memory.NewMaybeRelocatableInt(lambdaworks.From(10)),
+		Dst: *memory.NewMaybeRelocatableInt(lambdaworks.From(9)),
+		Res: memory.NewMaybeRelocatableInt(lambdaworks.From(8)),
+		Op0: *memory.NewMaybeRelocatableInt(lambdaworks.From(9)),
+		Op1: *memory.NewMaybeRelocatableInt(lambdaworks.From(10)),
 	}
 
 	testVm := NewVirtualMachine()
@@ -83,10 +83,10 @@ func TestOpcodeAssertionsInstructionFailedRelocatables(t *testing.T) {
 	}
 
 	operands := Operands{
-		DST: *memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(1, 1)),
-		RES: memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(1, 2)),
-		OP0: *memory.NewMaybeRelocatableInt(lambdaworks.From(9)),
-		OP1: *memory.NewMaybeRelocatableInt(lambdaworks.From(10)),
+		Dst: *memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(1, 1)),
+		Res: memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(1, 2)),
+		Op0: *memory.NewMaybeRelocatableInt(lambdaworks.From(9)),
+		Op1: *memory.NewMaybeRelocatableInt(lambdaworks.From(10)),
 	}
 
 	testVm := NewVirtualMachine()
@@ -112,10 +112,10 @@ func TestOpcodeAssertionsInconsistentOp0(t *testing.T) {
 	}
 
 	operands := Operands{
-		DST: *memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(0, 8)),
-		RES: memory.NewMaybeRelocatableInt(lambdaworks.From(8)),
-		OP0: *memory.NewMaybeRelocatableInt(lambdaworks.From(9)),
-		OP1: *memory.NewMaybeRelocatableInt(lambdaworks.From(10)),
+		Dst: *memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(0, 8)),
+		Res: memory.NewMaybeRelocatableInt(lambdaworks.From(8)),
+		Op0: *memory.NewMaybeRelocatableInt(lambdaworks.From(9)),
+		Op1: *memory.NewMaybeRelocatableInt(lambdaworks.From(10)),
 	}
 
 	testVm := NewVirtualMachine()
@@ -142,10 +142,10 @@ func TestOpcodeAssertionsInconsistentDst(t *testing.T) {
 	}
 
 	operands := Operands{
-		DST: *memory.NewMaybeRelocatableInt(lambdaworks.From(8)),
-		RES: memory.NewMaybeRelocatableInt(lambdaworks.From(8)),
-		OP0: *memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(0, 1)),
-		OP1: *memory.NewMaybeRelocatableInt(lambdaworks.From(10)),
+		Dst: *memory.NewMaybeRelocatableInt(lambdaworks.From(8)),
+		Res: memory.NewMaybeRelocatableInt(lambdaworks.From(8)),
+		Op0: *memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(0, 1)),
+		Op1: *memory.NewMaybeRelocatableInt(lambdaworks.From(10)),
 	}
 
 	testVm := NewVirtualMachine()

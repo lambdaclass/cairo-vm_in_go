@@ -17,30 +17,30 @@ func (e *VirtualMachineError) Error() string {
 // VirtualMachine represents the Cairo VM.
 // Runs Cairo assembly and produces an execution trace.
 type VirtualMachine struct {
-	runContext  *RunContext
+	runContext  RunContext
 	currentStep uint
-	segments    *memory.MemorySegmentManager
+	segments    memory.MemorySegmentManager
 }
 
 func NewVirtualMachine() *VirtualMachine {
 	return &VirtualMachine{
-		runContext:  NewRunContext(),
+		runContext:  RunContext{},
 		currentStep: 0,
 		segments:    memory.NewMemorySegmentManager(),
 	}
 }
 
 type Operands struct {
-	DST memory.MaybeRelocatable
-	RES *memory.MaybeRelocatable
-	OP0 memory.MaybeRelocatable
-	OP1 memory.MaybeRelocatable
+	Dst memory.MaybeRelocatable
+	Res *memory.MaybeRelocatable
+	Op0 memory.MaybeRelocatable
+	Op1 memory.MaybeRelocatable
 }
 
 type OperandsAddresses struct {
-	dst_addr memory.Relocatable
-	op0_addr memory.Relocatable
-	op1_addr memory.Relocatable
+	DstAddr memory.Relocatable
+	Op0Addr memory.Relocatable
+	Op1Addr memory.Relocatable
 }
 
 type DeducedOperands struct {
@@ -50,11 +50,11 @@ type DeducedOperands struct {
 func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Operands) error {
 	switch instruction.Opcode {
 	case AssertEq:
-		if operands.RES == nil {
+		if operands.Res == nil {
 			return &VirtualMachineError{"UnconstrainedResAssertEq"}
 		}
-		if !operands.RES.IsEqual(&operands.DST) {
-			_, isInt := operands.RES.GetInt()
+		if !operands.Res.IsEqual(&operands.Dst) {
+			_, isInt := operands.Res.GetInt()
 			if isInt {
 				return &VirtualMachineError{"IntDiffAssertValues"}
 			} else {
@@ -68,12 +68,12 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 		}
 		returnPC := memory.NewMaybeRelocatableRelocatable(new_rel)
 
-		if !operands.OP0.IsEqual(returnPC) {
+		if !operands.Op0.IsEqual(returnPC) {
 			return &VirtualMachineError{"CantWriteReturnPc"}
 		}
 
-		returnFP := vm.runContext.GetFP()
-		dstRelocatable, _ := operands.DST.GetRelocatable()
+		returnFP := vm.runContext.Fp
+		dstRelocatable, _ := operands.Dst.GetRelocatable()
 		if !returnFP.IsEqual(&dstRelocatable) {
 			return &VirtualMachineError{"CantWriteReturnFp"}
 		}

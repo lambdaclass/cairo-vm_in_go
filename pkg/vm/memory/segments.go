@@ -8,9 +8,9 @@ type MemorySegmentManager struct {
 	Memory       Memory
 }
 
-func NewMemorySegmentManager() *MemorySegmentManager {
+func NewMemorySegmentManager() MemorySegmentManager {
 	memory := NewMemory()
-	return &MemorySegmentManager{make(map[uint]uint), *memory}
+	return MemorySegmentManager{make(map[uint]uint), *memory}
 }
 
 // Adds a memory segment and returns the first address of the new segment
