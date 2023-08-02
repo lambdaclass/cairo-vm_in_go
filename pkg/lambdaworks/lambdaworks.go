@@ -3,7 +3,6 @@ package lambdaworks
 /*
 #cgo LDFLAGS: pkg/lambdaworks/lib/liblambdaworks.a -ldl
 #include "lib/lambdaworks.h"
-#include <stdio.h>
 #include <stdlib.h>
 */
 import "C"
