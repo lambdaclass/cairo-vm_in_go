@@ -45,6 +45,68 @@ make test
 - To check for security and other types of bugs, the code will be fuzzed extensively.
 - PRs must be accompanied by its corresponding documentation. A book will be written documenting the entire inner workings of it, so anyone can dive in to a Cairo VM codebase and follow it along.
 
+# Roadmap
+
+## First milestone: Fibonacci/Factorial
+
+What we have:
+
+- Parsing of `json` programs
+- Decoding of instructions
+- Memory relocation
+
+What we need to finish this milestone:
+- Instruction execution.
+- Writing of the trace and memory into files with the correct format.
+- Make the fibonacci test pass, comparing our own trace with the Rust VM one, making sure they match.
+- Make the factorial test pass, same as above.
+
+
+## Cairo 0/Cairo 1
+
+The above will work for Cairo 0 programs. Cairo 1 has the following extra issues to address:
+
+- There is no `Json` representation of a Cairo 1 Program, so we can only run contracts. This means we will have to add functions to run cairo contracts (aka implement run_from_entrypoint).
+- Cairo 1 contracts use the `range_check` builtin by default, so we need to implement it.
+
+## Full VM implementation
+
+To have a full implementation, we will need the following:
+
+- Builtins. Add the `BuiltinRunner` logic, then implement each builtin:
+    - `Range check (RC)`
+    - `Output`
+    - `Bitwise`
+    - `Ec_op`
+    - `Pedersen`
+    - `Keccak`
+    - `Poseidon`
+    - `Signature`
+    - `Segment Arena`
+- Memory layouts. This is related to builtins but we will do it after implementing them.
+- Hints. Add the `HintProcessor` logic, then implement each hint. Hints need to be documented extensively, implementing them is super easy since it's just porting code; what's not so clear is what they are used for. Having explanations and examples for each is important. List of hints below:
+    - Parsing of references https://github.com/lambdaclass/cairo-vm/tree/main/docs/references_parsing
+    - `CommonLib` https://github.com/starkware-libs/cairo-lang/tree/master/src/starkware/cairo/common
+    - `Secp`
+    - `Vrf`
+    - `BigInt`
+    - `Blake2`
+    - `DictManager`
+    - `EcRecover`
+    - `Field Arithmetic`
+    - `Garaga`
+    - `set_add`
+    - `sha256 utils`
+    - `ECDSA verification`
+    - `uint384` and `uint384 extension`
+    - `uint512 utils`
+    - `Cairo 1` hints.
+- Proof mode. It's important to explain in detail what this is when we do it. It's one of the most obscure parts of the VM in my experience.
+- Air Public inputs. (Tied to Proof-mode)
+- Temporary segments.
+- Program tests from Cairo VM in Rust.
+- Fuzzing/Differential fuzzing.
+
 # Documentation
 
 ## High Level Overview
@@ -104,7 +166,7 @@ TODO: explain the components of an instruction (`dst_reg`, `op0_reg`, etc), what
 
 ### Felts
 
-TODO: Short explanation of Felts and the Cairo/Stark field we use through Lambdaworks.
+Felts, or Field Elements, are cairo's basic integer type. Every variable in a cairo vm that is not a pointer is a felt. From our point of view we could say a felt in cairo is an unsigned integer in the range [0, CAIRO_PRIME). This means that all operations are done modulo CAIRO_PRIME. The CAIRO_PRIME is 0x800000000000011000000000000000000000000000000000000000000000001, which means felts can be quite big (up to 252 bits), luckily, we have the [Lambdaworks](https://github.com/lambdaclass/lambdaworks) library to help with handling these big integer values and providing fast and efficient modular arithmetic.
 
 ### More on memory
 
@@ -156,15 +218,15 @@ For example, if we have this memory represented by address, value pairs:
 
 Step 1: Calculate segment sizes:
 
-    0 -> 3
-    1 -> 5
-    2 -> 1
+    0 --(has size)--> 3
+    1 --(has size)--> 5
+    2 --(has size)--> 1
 
 Step 2: Assign a base to each segment:
 
-    0 -> 1
-    1 -> 4 (1 + 3)
-    2 -> 9 (4 + 5)
+    0 --(has base value)--> 1
+    1 --(has base value)--> 4 (that is: 1 + 3)
+    2 --(has base value)--> 9 (that is: 4 + 5)
 
 Step 3: Convert relocatables to integers
 
@@ -172,9 +234,9 @@ Step 3: Convert relocatables to integers
     2 (base[0] + 1) -> 4
     3 (base[0] + 2) -> 7
     4 (base[1] + 0) -> 8
-    5 (base[1] + 1) -> 3 (base[0] + 2)
+    5 (base[1] + 1) -> 3 (that is: base[0] + 2)
     .... (memory gaps)
-    8 (base[1] + 4) -> 2 (base[0] + 1)
+    8 (base[1] + 4) -> 2 (that is: base[0] + 1)
     9 (base[2] + 0) -> 1
 
 ### Program parsing
@@ -202,7 +264,195 @@ Step 3: Convert relocatables to integers
 
 ### Code walkthrough/Write your own Cairo VM
 
-TODO
+Let's begin by creating the basic types and structures for our VM:
+
+### Felt
+
+As anyone who has ever written a cairo program will know, everything in cairo is a Felt. We can think of it as our unsigned integer. In this project, we use the `Lambdaworks` library to abstract ourselves from modular arithmetic.
+
+TODO: Instructions on how to use Lambdaworks felt from Go
+
+### Relocatable
+
+This is how cairo represents pointers, they are made up of `SegmentIndex`, which segment the variable is in, and `Offset`, how many values exist between the start of a segment and the variable. We represent them like this:
+
+```go
+type Relocatable struct {
+	SegmentIndex int
+	Offset       uint
+}
+```
+
+### MaybeRelocatable
+
+As the cairo memory can hold both felts and relocatables, we need a data type that can represent both in order to represent a basic memory unit.
+We would normally use enums or unions to represent this type, but as go lacks both, we will instead hold a non-typed inner value and rely on the api to make sure we can only create MaybeRelocatable values with either Felt or Relocatable as inner type.
+
+```go
+type MaybeRelocatable struct {
+	inner any
+}
+
+// Creates a new MaybeRelocatable with an Int inner value
+func NewMaybeRelocatableInt(felt uint) *MaybeRelocatable {
+	return &MaybeRelocatable{inner: Int{felt}}
+}
+
+// Creates a new MaybeRelocatable with a Relocatable inner value
+func NewMaybeRelocatableRelocatable(relocatable Relocatable) *MaybeRelocatable {
+	return &MaybeRelocatable{inner: relocatable}
+}
+```
+
+We will also add some methods that will allow us access `MaybeRelocatable` inner values:
+
+```go
+// If m is Int, returns the inner value + true, if not, returns zero + false
+func (m *MaybeRelocatable) GetInt() (Int, bool) {
+	int, is_type := m.inner.(Int)
+	return int, is_type
+}
+
+// If m is Relocatable, returns the inner value + true, if not, returns zero + false
+func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
+	rel, is_type := m.inner.(Relocatable)
+	return rel, is_type
+}
+```
+
+These will allow us to safely discern between `Felt` and `Relocatable` values later on.
+
+#### Memory
+
+As we previously described, the memory is made up of a series of segments of variable length, each containing a continuous sequence of `MaybeRelocatable` elements. Memory is also immutable, which means that once we have written a value into memory, it can't be changed.
+There are multiple valid ways to represent this memory structure, but the simplest way to represent it is by using a map, maping a `Relocatable` address to a `MaybeRelocatable` value.
+As we don't have an actual representation of segments, we have to keep track of the number of segments.
+
+```go
+type Memory struct {
+	data         map[Relocatable]MaybeRelocatable
+	num_segments uint
+}
+```
+
+Now we can define the basic memory operations:
+
+*Insert*
+
+Here we need to make perform some checks to make sure that the memory remains consistent with its rules:
+- We must check that insertions are performed on previously-allocated segments, by checking that the address's segment_index is lower than our segment counter
+- We must check that we are not mutating memory we have previously written, by checking that the memory doesn't already contain a value at that address that is not equal to the one we are inserting
+
+```go
+func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
+	// Check that insertions are preformed within the memory bounds
+	if addr.segmentIndex >= int(m.num_segments) {
+		return errors.New("Error: Inserting into a non allocated segment")
+	}
+
+	// Check for possible overwrites
+	prev_elem, ok := m.data[addr]
+	if ok && prev_elem != *val {
+		return errors.New("Memory is write-once, cannot overwrite memory value")
+	}
+
+	m.data[addr] = *val
+
+	return nil
+}
+```
+
+*Get*
+
+This is the easiest operation, as we only need to fetch the value from our map:
+
+```go
+// Gets some value stored in the memory address `addr`.
+func (m *Memory) Get(addr Relocatable) (*MaybeRelocatable, error) {
+	value, ok := m.data[addr]
+
+	if !ok {
+		return nil, errors.New("Memory Get: Value not found")
+	}
+
+	return &value, nil
+}
+```
+
+### MemorySegmentManager
+
+In our `Memory` implementation, it looks like we need to have segments allocated before performing any valid memory operation, but we can't do so from the `Memory` api. To do so, we need to use the `MemorySegmentManager`.
+The `MemorySegmentManager` is in charge of creating new segments and calculating their size during the relocation process, it has the following structure:
+
+```go
+type MemorySegmentManager struct {
+	segmentSizes map[uint]uint
+	Memory       Memory
+}
+```
+
+And the following methods:
+
+*Add Segment*
+
+As we are using a map, we dont have to allocate memory for the new segment, so we only have to raise our segment counter and return the first address of the new segment:
+
+```go
+func (m *MemorySegmentManager) AddSegment() Relocatable {
+	ptr := Relocatable{int(m.Memory.num_segments), 0}
+	m.Memory.num_segments += 1
+	return ptr
+}
+```
+
+*Load Data*
+
+This method inserts a contiguous array of values starting from a certain addres in memory, and returns the next address after the inserted values. This is useful when inserting the program's instructions in memory.
+In order to perform this operation, we only need to iterate over the array, inserting each value at the address indicated by `ptr` while advancing the ptr with each iteration and then return the final ptr.
+
+```go
+func (m *MemorySegmentManager) LoadData(ptr Relocatable, data *[]MaybeRelocatable) (Relocatable, error) {
+	for _, val := range *data {
+		err := m.Memory.Insert(ptr, &val)
+		if err != nil {
+			return Relocatable{0, 0}, err
+		}
+		ptr.offset += 1
+	}
+	return ptr, nil
+}
+```
+
+### RunContext
+
+The RunContext keeps track of the vm's registers. Cairo VM only has 3 registers:
+
+- The program counter `Pc`, which points to the next instruction to be executed.
+- The allocation pointer `Ap`, pointing to the next unused memory cell.
+- The frame pointer `Fp`, pointing to the base of the current stack frame. When a new function is called, `Fp` is set to the current `Ap` value. When the function returns, `Fp` goes back to its previous value.
+
+We can represent it like this:
+
+```go
+type RunContext struct {
+	Pc memory.Relocatable
+	Ap memory.Relocatable
+	Fp memory.Relocatable
+}
+```
+
+### VirtualMachine
+With all of these types and structures defined, we can build our VM:
+
+```go
+type VirtualMachine struct {
+	runContext  RunContext
+	currentStep uint
+	segments    memory.MemorySegmentManager
+}
+```
+
+To begin coding the basic execution functionality of our VM, we only need these basic fields, we will be adding more fields as we dive deeper into this guide.
 
 ### Builtins
 
