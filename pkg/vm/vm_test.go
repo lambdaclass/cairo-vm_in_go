@@ -41,9 +41,11 @@ func TestRelocateTraceOneEntry(t *testing.T) {
 	}
 
 	expectedTrace := []vm.TraceEntry{{Pc: 1, Ap: 4, Fp: 4}}
-	println(expectedTrace[0].Pc, expectedTrace[0].Ap, expectedTrace[0].Fp)
-	println(virtualMachine.Trace[0].Pc, virtualMachine.Trace[0].Ap, virtualMachine.Trace[0].Fp)
-	if !reflect.DeepEqual(expectedTrace, virtualMachine.Trace) {
+	actualTrace, err := virtualMachine.GetRelocatedTrace()
+	if err != nil {
+		t.Errorf("Trace relocation error failed with test: %s", err)
+	}
+	if !reflect.DeepEqual(expectedTrace, *actualTrace) {
 		t.Errorf("Relocated trace and expected trace are not the same")
 	}
 }

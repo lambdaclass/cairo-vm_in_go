@@ -34,7 +34,6 @@ func (v *VirtualMachine) RelocateTrace(relocationTable *[]uint) error {
 		v.Trace[i].Fp += segment1Base
 	}
 	v.traceRelocated = true
-	println(v.Trace[0].Pc, v.Trace[0].Ap, v.Trace[0].Fp)
 
 	return nil
 }
