@@ -42,7 +42,9 @@ func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 func (r *CairoRunner) Initialize() (memory.Relocatable, error) {
 	r.initializeSegments()
 	end, err := r.initializeMainEntrypoint()
-	r.initializeVM()
+	if err != nil {
+		err = r.initializeVM()
+	}
 	return end, err
 }
 
@@ -99,7 +101,7 @@ func (r *CairoRunner) initializeMainEntrypoint() (memory.Relocatable, error) {
 }
 
 // Initializes the vm's run_context, adds builtin validation rules & validates memory
-func (r *CairoRunner) initializeVM() {
+func (r *CairoRunner) initializeVM() error {
 	r.Vm.RunContext.Ap = r.initialAp
 	r.Vm.RunContext.Fp = r.initialFp
 	r.Vm.RunContext.Pc = r.initialPc
@@ -108,4 +110,5 @@ func (r *CairoRunner) initializeVM() {
 		r.Vm.BuiltinRunners[i].AddValidationRule(&r.Vm.Segments.Memory)
 	}
 	// Apply validation rules to memory
+	return r.Vm.Segments.Memory.ValidateExistingMemory()
 }
