@@ -40,9 +40,10 @@ Before running the tests, install the testing dependencies:
 make deps
 ```
 
-To run all tests, run:
+To run all tests, activate the venv created by make deps and run the test target:
 
 ```shell
+. cairo-vm-env/bin/activate
 make test
 ```
 
