@@ -218,15 +218,15 @@ For example, if we have this memory represented by address, value pairs:
 
 Step 1: Calculate segment sizes:
 
-    0 -> 3
-    1 -> 5
-    2 -> 1
+    0 --(has size)--> 3
+    1 --(has size)--> 5
+    2 --(has size)--> 1
 
 Step 2: Assign a base to each segment:
 
-    0 -> 1
-    1 -> 4 (1 + 3)
-    2 -> 9 (4 + 5)
+    0 --(has base value)--> 1
+    1 --(has base value)--> 4 (that is: 1 + 3)
+    2 --(has base value)--> 9 (that is: 4 + 5)
 
 Step 3: Convert relocatables to integers
 
@@ -234,9 +234,9 @@ Step 3: Convert relocatables to integers
     2 (base[0] + 1) -> 4
     3 (base[0] + 2) -> 7
     4 (base[1] + 0) -> 8
-    5 (base[1] + 1) -> 3 (base[0] + 2)
+    5 (base[1] + 1) -> 3 (that is: base[0] + 2)
     .... (memory gaps)
-    8 (base[1] + 4) -> 2 (base[0] + 1)
+    8 (base[1] + 4) -> 2 (that is: base[0] + 1)
     9 (base[2] + 0) -> 1
 
 ### Program parsing
