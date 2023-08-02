@@ -1,4 +1,4 @@
-.PHONY: run fmt check_fmt
+.PHONY: deps deps-macos run test build fmt check_fmt clean
 
 TEST_DIR=cairo_programs
 TEST_FILES:=$(wildcard $(TEST_DIR)/*.cairo)
@@ -38,3 +38,6 @@ fmt:
 
 check_fmt:
 	./check_fmt.sh
+
+clean:
+	rm cairo_programs/*.json
