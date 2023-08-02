@@ -1,7 +1,11 @@
 package vm_test
 
 import (
+	"reflect"
 	"testing"
+
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
 // Things we are skipping for now:
@@ -17,4 +21,29 @@ func TestFibonacci(t *testing.T) {
 	// if err != nil {
 	// 	t.Errorf("Program execution failed with error: %s", err)
 	// }
+}
+
+func TestRelocateTraceOneEntry(t *testing.T) {
+	virtualMachine := vm.NewVirtualMachine()
+	virtualMachine.Trace = []vm.TraceEntry{{Pc: 0, Ap: 2, Fp: 2}}
+	for i := 0; i < 4; i++ {
+		virtualMachine.Segments.AddSegment()
+	}
+	virtualMachine.Segments.Memory.Insert(memory.NewRelocatable(0, 0), memory.NewMaybeRelocatableInt(2345108766317314046))
+	virtualMachine.Segments.Memory.Insert(memory.NewRelocatable(1, 0), memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(2, 0)))
+	virtualMachine.Segments.Memory.Insert(memory.NewRelocatable(1, 1), memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(3, 0)))
+
+	virtualMachine.Segments.ComputeEffectiveSizes()
+	relocationTable, _ := virtualMachine.Segments.RelocateSegments()
+	err := virtualMachine.RelocateTrace(&relocationTable)
+	if err != nil {
+		t.Errorf("Trace relocation error failed with test: %s", err)
+	}
+
+	expectedTrace := []vm.TraceEntry{{Pc: 1, Ap: 4, Fp: 4}}
+	println(expectedTrace[0].Pc, expectedTrace[0].Ap, expectedTrace[0].Fp)
+	println(virtualMachine.Trace[0].Pc, virtualMachine.Trace[0].Ap, virtualMachine.Trace[0].Fp)
+	if !reflect.DeepEqual(expectedTrace, virtualMachine.Trace) {
+		t.Errorf("Relocated trace and expected trace are not the same")
+	}
 }
