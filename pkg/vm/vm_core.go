@@ -45,3 +45,24 @@ func (v *VirtualMachine) GetRelocatedTrace() (*[]TraceEntry, error) {
 		return nil, errors.New("Trace not relocated")
 	}
 }
+
+func (v *VirtualMachine) Relocate() error {
+	v.Segments.ComputeEffectiveSizes()
+	if len(v.Trace) == 0 {
+		return nil
+	}
+
+	relocationTable, ok := v.Segments.RelocateSegments()
+	// This should be unreachable
+	if !ok {
+		return errors.New("ComputeEffectiveSizes called but RelocateSegments still returned error")
+	}
+
+	_, err := v.Segments.RelocateMemory(&relocationTable)
+	if err != nil {
+		return err
+	}
+
+	v.RelocateTrace(&relocationTable)
+	return nil
+}
