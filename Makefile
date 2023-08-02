@@ -41,3 +41,5 @@ check_fmt:
 
 clean:
 	rm cairo_programs/*.json
+	rm -r cairo-vm-env
+
