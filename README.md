@@ -574,7 +574,99 @@ func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
 }
 ```
 
-[TODO (for builtins section): BuiltinRunners in Initialization Step, BuiltinRunners in Compute Operands]
+Now we will initialize the builtins from our `CairoRunner`:
+
+*NewCairoRunner*
+
+Here we will have to iterate over the `Builtins` field of the `Program`, and add the corresponding builtin to the `VirtualMachine`'s `BuiltinRunner` field. We don't have any builtins yet, so we wil add a comment as placeholder and just leave a default case. As we implement more builtins, we will add a case for each of them.
+
+```go
+func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
+	main_offset := program.identifiers["__main__.main"]
+	runner := CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
+	for _, builtin_name := range program.Builtins {
+		switch builtin_name {
+		// Add a case for each builtin here, example:
+		// case "range_check":
+		// 	runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, RangeCheckBuiltin{})
+		default:
+			return nil, errors.New("Invalid builtin")
+		}
+	}
+	return &runner, nil
+}
+```
+
+*initializeSegments*
+
+Here we will also initialize the builtin segments by calling each builtin's `InitializeSegments` method
+
+```go
+func (r *CairoRunner) initializeSegments() {
+	// Program Segment
+	r.ProgramBase = r.Vm.Segments.AddSegment()
+	// Execution Segment
+	r.executionBase = r.Vm.Segments.AddSegment()
+	// Builtin Segments
+	for i := range r.Vm.BuiltinRunners {
+		r.Vm.BuiltinRunners[i].InitializeSegments(&r.Vm.Segments)
+	}
+}
+```
+
+*InitializeMainEntryPoint*
+
+Here we will add the builtin's initial_stack to our stack. The builtin's initial_stack is generally made up of the builtin's base, and is what allows the main function to write into the builtin's segment.
+
+```go
+func (r *CairoRunner) initializeMainEntrypoint() (memory.Relocatable, error) {
+	// When running from main entrypoint, only up to 11 values will be written (9 builtin bases + end + return_fp)
+	stack := make([]memory.MaybeRelocatable, 0, 11)
+	// Append builtins initial stack to stack
+	for i := range r.Vm.BuiltinRunners {
+		for _, val := range r.Vm.BuiltinRunners[i].InitialStack() {
+			stack = append(stack, val)
+		}
+	}
+	return_fp := r.Vm.Segments.AddSegment()
+	return r.initializeFunctionEntrypoint(r.mainOffset, &stack, return_fp)
+}
+```
+
+*initializeVm*
+
+Here we will add our builtin's validation rules to the `Memory` and use them to validate the meory cells we loaded before
+
+```go
+func (r *CairoRunner) initializeVM() error {
+	r.Vm.RunContext.Ap = r.initialAp
+	r.Vm.RunContext.Fp = r.initialFp
+	r.Vm.RunContext.Pc = r.initialPc
+	// Add validation rules
+	for i := range r.Vm.BuiltinRunners {
+		r.Vm.BuiltinRunners[i].AddValidationRule(&r.Vm.Segments.Memory)
+	}
+	// Apply validation rules to memory
+	return r.Vm.Segments.Memory.ValidateExistingMemory()
+}
+```
+
+For this we will add the method `Memory.ValidateExistingMemory`:
+
+```go
+func (m *Memory) ValidateExistingMemory() error {
+	for addr := range m.data {
+		err := m.validateAddress(addr)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+```
+
+
+[TODO (for builtins section): BuiltinRunners in Compute Operands]
 
 [Next sections: Implementing each builtin runner]
 
