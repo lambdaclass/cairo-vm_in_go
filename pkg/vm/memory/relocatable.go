@@ -25,7 +25,7 @@ type Int struct {
 
 // MaybeRelocatable is the type of the memory cells in the Cairo
 // VM. For now, `inner` will hold any type but it should be
-// instantiated only with `Relocatable`, `Int` or `nil` types.
+// instantiated only with `Relocatable` or `Int` types.
 // We should analyze better alternatives to this.
 type MaybeRelocatable struct {
 	inner any
