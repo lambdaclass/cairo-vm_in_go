@@ -2,6 +2,7 @@ use lambdaworks_math::{
     field::element::FieldElement,
     field::fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
     unsigned_integer::element::UnsignedInteger,
+    unsigned_integer::element::U256
 };
 
 extern crate libc;
@@ -53,7 +54,21 @@ pub extern "C" fn from_hex(result: Limbs, value: *const libc::c_char) {
             panic!("Failed to convert hexadecimal string to FieldElement.");
         }
     };
-        felt_to_limbs(felt, result);
+    felt_to_limbs(felt, result);
+}
+
+#[no_mangle]
+pub extern "C" fn from_dec_str(result: Limbs, value: *const libc::c_char) {
+    let val_cstr = unsafe { core::ffi::CStr::from_ptr(value) };
+    let val_str = val_cstr.to_str().unwrap();
+    let felt = { U256::from_dec_str(val_str).unwrap() };
+    for i in 0..4 {
+        let u = i as usize;
+        unsafe {
+            *result.offset(i) = felt.limbs[u];
+        }
+    }
+    
 }
 
 #[no_mangle]

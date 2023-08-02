@@ -15,14 +15,13 @@ func TestFromHex(t *testing.T) {
 
 }
 
-func TestFromString(t *testing.T) {
-	var s_one = "9"
-	expected := From(9)
+func TestFromDecString(t *testing.T) {
+	var s_one = "435"
+	expected := From(435)
 
-	result, err := FromString(s_one)
+	result := FromDecString(s_one)
 	if result != expected {
-		t.Errorf("TestFromString failed. Expected: %v, Got: %v", expected, result)
-		t.Errorf("Error is: %s", err)
+		t.Errorf("TestFromDecString failed. Expected: %v, Got: %v", expected, result)
 	}
 }
 

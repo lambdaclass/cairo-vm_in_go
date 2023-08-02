@@ -61,12 +61,13 @@ func FromHex(value string) Felt {
 	return fromC(result)
 }
 
-func FromString(value string) (Felt, error) {
-	val, err := stringToUint64(value)
-	if err != nil {
-		return From(0), err
-	}
-	return From(val), nil
+func FromDecString(value string) Felt {
+	cs := C.CString(value)
+	defer C.free(unsafe.Pointer(cs))
+
+	var result C.felt_t 
+	C.from_dec_str(&result[0], cs)
+	return fromC(result)
 }
 
 // Gets a Felt representing 0.

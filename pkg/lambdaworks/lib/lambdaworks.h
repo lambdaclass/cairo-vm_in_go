@@ -11,6 +11,9 @@ void from(felt_t result, uint64_t value);
 /*Gets a felt_t representing the "value" hexadecimal string, in montgomery format. */
 void from_hex(felt_t result,  char *value);
 
+/*Gets a felt_t representing the "value" decimal string, in montgomery format. */
+void from_dec_str(felt_t result, char *value);
+
 /* Gets a felt_t representing 0 */
 void zero(felt_t result);
 
