@@ -5,13 +5,12 @@ import (
 )
 
 func TestFromHex(t *testing.T) {
-	var h_one = "a"
-	expected := From(10)
+	var h_one = "1a"
+	expected := From(26)
 
-	result, err := FromHex(h_one)
+	result := FromHex(h_one)
 	if result != expected {
 		t.Errorf("TestFromHex failed. Expected: %v, Got: %v", expected, result)
-		t.Errorf("Error is: %s", err)
 	}
 
 }

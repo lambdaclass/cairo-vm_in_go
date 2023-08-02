@@ -4,6 +4,7 @@ use lambdaworks_math::{
     unsigned_integer::element::UnsignedInteger,
 };
 
+extern crate libc;
 // A 256 bit prime field represented as a Montgomery, 4-limb UnsignedInteger.
 type Felt = FieldElement<Stark252PrimeField>;
 
@@ -43,6 +44,19 @@ pub extern "C" fn from(result: Limbs, value: u64) {
 }
 
 #[no_mangle]
+pub extern "C" fn from_hex(result: Limbs, value: *const libc::c_char) {
+    let val_cstr = unsafe { core::ffi::CStr::from_ptr(value) };
+    let value = val_cstr.to_str().unwrap();
+    let felt = match FieldElement::from_hex(value) {
+        Ok(felt) => felt,
+        Err(_) => {
+            panic!("Failed to convert hexadecimal string to FieldElement.");
+        }
+    };
+        felt_to_limbs(felt, result);
+}
+
+#[no_mangle]
 pub extern "C" fn zero(result: Limbs) {
     felt_to_limbs(Felt::zero(), result)
 }
@@ -68,6 +82,6 @@ pub extern "C" fn mul(a: Limbs, b: Limbs, result: Limbs) {
 }
 
 #[no_mangle]
-pub extern "C" fn div(a: Limbs, b: Limbs, result: Limbs) {
+pub extern "C" fn lw_div(a: Limbs, b: Limbs, result: Limbs) {
     felt_to_limbs(limbs_to_felt(a) / limbs_to_felt(b), result)
 }

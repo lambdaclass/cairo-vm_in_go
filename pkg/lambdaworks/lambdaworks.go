@@ -3,10 +3,13 @@ package lambdaworks
 /*
 #cgo LDFLAGS: pkg/lambdaworks/lib/liblambdaworks.a -ldl
 #include "lib/lambdaworks.h"
+#include <stdio.h>
+#include <stdlib.h>
 */
 import "C"
 import (
 	"strconv"
+	"unsafe"
 )
 
 // Go representation of a single limb (unsigned integer with 64 bits).
@@ -15,15 +18,6 @@ type Limb C.limb_t
 // Go representation of a 256 bit prime field element (felt).
 type Felt struct {
 	limbs [4]Limb
-}
-
-func hexToUint64(hexStr string) (uint64, error) {
-	val, err := strconv.ParseUint(hexStr, 16, 64)
-	if err != nil {
-		return 0, err
-	}
-	return val, nil
-
 }
 
 func stringToUint64(numberStr string) (uint64, error) {
@@ -59,12 +53,13 @@ func From(value uint64) Felt {
 	return fromC(result)
 }
 
-func FromHex(value string) (Felt, error) {
-	val, err := hexToUint64(value)
-	if err != nil {
-		return From(0), err
-	}
-	return From(val), nil
+func FromHex(value string) Felt {
+	cs := C.CString(value)
+	defer C.free(unsafe.Pointer(cs))
+
+	var result C.felt_t
+	C.from_hex(&result[0], cs)
+	return fromC(result)
 }
 
 func FromString(value string) (Felt, error) {
@@ -122,6 +117,6 @@ func Div(a, b Felt) Felt {
 	var result C.felt_t
 	var a_c C.felt_t = a.toC()
 	var b_c C.felt_t = b.toC()
-	C.div(&a_c[0], &b_c[0], &result[0])
+	C.lw_div(&a_c[0], &b_c[0], &result[0])
 	return fromC(result)
 }
