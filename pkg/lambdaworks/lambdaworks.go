@@ -5,6 +5,7 @@ package lambdaworks
 #include "lib/lambdaworks.h"
 */
 import "C"
+import "errors"
 
 // Go representation of a single limb (unsigned integer with 64 bits).
 type Limb C.limb_t
@@ -92,4 +93,13 @@ func Div(a, b Felt) Felt {
 // Returns the result of the number function.
 func Number() int {
 	return int(C.number())
+}
+
+// turns a felt to usize
+func (felt Felt) ToU64() (uint64, error) {
+	if felt.limbs[0] == 0 && felt.limbs[1] == 0 && felt.limbs[2] == 0 {
+		return uint64(felt.limbs[3]), nil
+	} else {
+		return 0, errors.New("Cannot convert felt to u64")
+	}
 }
