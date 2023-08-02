@@ -24,9 +24,9 @@ func (run_context RunContext) ComputeDstAddr(instruction Instruction) (memory.Re
 	}
 
 	if instruction.OffOp0 < 0 {
-		return base_addr.SubRelocatable(uint(math.Abs(float64(instruction.OffDst))))
+		return base_addr.SubUint(uint(math.Abs(float64(instruction.OffDst))))
 	} else {
-		return base_addr.AddRelocatable(uint(instruction.OffDst))
+		return base_addr.AddUint(uint(instruction.OffDst))
 	}
 
 }
@@ -41,9 +41,9 @@ func (run_context RunContext) ComputeOp0Addr(instruction Instruction) (memory.Re
 	}
 
 	if instruction.OffOp1 < 0 {
-		return base_addr.SubRelocatable(uint(math.Abs(float64(instruction.OffOp0))))
+		return base_addr.SubUint(uint(math.Abs(float64(instruction.OffOp0))))
 	} else {
-		return base_addr.AddRelocatable(uint(instruction.OffOp0))
+		return base_addr.AddUint(uint(instruction.OffOp0))
 	}
 }
 
@@ -65,8 +65,8 @@ func (run_context RunContext) ComputeOp1Addr(instruction Instruction, op0 memory
 		// Todo:check case op0
 	}
 	if instruction.OffOp1 < 0 {
-		return base_addr.SubRelocatable(uint(math.Abs(float64(instruction.OffOp1))))
+		return base_addr.SubUint(uint(math.Abs(float64(instruction.OffOp1))))
 	} else {
-		return base_addr.AddRelocatable(uint(instruction.OffOp1))
+		return base_addr.AddUint(uint(instruction.OffOp1))
 	}
 }

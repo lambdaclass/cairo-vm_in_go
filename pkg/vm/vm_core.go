@@ -68,7 +68,7 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 			}
 		}
 	case Call:
-		new_rel, err := vm.runContext.Pc.AddRelocatable(instruction.size())
+		new_rel, err := vm.runContext.Pc.AddUint(instruction.size())
 		if err != nil {
 			return err
 		}

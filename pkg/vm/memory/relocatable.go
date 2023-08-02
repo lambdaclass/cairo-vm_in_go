@@ -25,7 +25,7 @@ func NewRelocatable(segment_idx int, offset uint) Relocatable {
 	return Relocatable{segment_idx, offset}
 }
 
-func (relocatable *Relocatable) SubRelocatable(other uint) (Relocatable, error) {
+func (relocatable *Relocatable) SubUint(other uint) (Relocatable, error) {
 	if relocatable.Offset < other {
 		return NewRelocatable(0, 0), &SubReloctableError{Msg: "RelocatableSubUsizeNegOffset"}
 	} else {
@@ -34,21 +34,10 @@ func (relocatable *Relocatable) SubRelocatable(other uint) (Relocatable, error) 
 	}
 }
 
-func (relocatable *Relocatable) AddRelocatable(other uint) (Relocatable, error) {
+func (relocatable *Relocatable) AddUint(other uint) (Relocatable, error) {
 	new_offset := relocatable.Offset + other
 	return NewRelocatable(relocatable.SegmentIndex, new_offset), nil
 
-}
-
-// Get the the indexes of the Relocatable struct.
-// Returns a tuple with both values (segment_index, offset)
-func (r *Relocatable) into_indexes() (uint, uint) {
-	if r.SegmentIndex < 0 {
-		corrected_segment_idx := uint(-(r.SegmentIndex + 1))
-		return corrected_segment_idx, r.Offset
-	}
-
-	return uint(r.SegmentIndex), r.Offset
 }
 
 // Int in the Cairo VM represents a value in memory that

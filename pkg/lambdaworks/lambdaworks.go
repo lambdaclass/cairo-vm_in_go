@@ -90,11 +90,6 @@ func Div(a, b Felt) Felt {
 	return fromC(result)
 }
 
-// Returns the result of the number function.
-func Number() int {
-	return int(C.number())
-}
-
 // turns a felt to usize
 func (felt Felt) ToU64() (uint64, error) {
 	if felt.limbs[0] == 0 && felt.limbs[1] == 0 && felt.limbs[2] == 0 {
