@@ -22,8 +22,13 @@ jobs:
       with:
         toolchain: stable
 
-    - name: build
-      run: make build
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install cairo-lang and deps
+      run: pip install -r requirements.txt
 
     - name: test
       run: make test
