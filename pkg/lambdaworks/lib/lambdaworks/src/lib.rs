@@ -72,7 +72,3 @@ pub extern "C" fn div(a: Limbs, b: Limbs, result: Limbs) {
     felt_to_limbs(limbs_to_felt(a) / limbs_to_felt(b), result)
 }
 
-#[no_mangle]
-pub extern "C" fn number() -> i32 {
-    return 42;
-}

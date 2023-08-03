@@ -8,6 +8,14 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
+type VirtualMachineError struct {
+	Msg string
+}
+
+func (e *VirtualMachineError) Error() string {
+	return fmt.Sprintf(e.Msg)
+}
+
 // VirtualMachine represents the Cairo VM.
 // Runs Cairo assembly and produces an execution trace.
 // TODO: write proper methods to obtain the fields instead of making them public
@@ -17,17 +25,25 @@ type VirtualMachine struct {
 	Segments    memory.MemorySegmentManager
 }
 
+func NewVirtualMachine() *VirtualMachine {
+	return &VirtualMachine{
+		runContext:  RunContext{},
+		currentStep: 0,
+		segments:    memory.NewMemorySegmentManager(),
+	}
+}
+
 type Operands struct {
-	dst memory.MaybeRelocatable
-	res memory.MaybeRelocatable
-	op0 memory.MaybeRelocatable
-	op1 memory.MaybeRelocatable
+	Dst memory.MaybeRelocatable
+	Res *memory.MaybeRelocatable
+	Op0 memory.MaybeRelocatable
+	Op1 memory.MaybeRelocatable
 }
 
 type OperandsAddresses struct {
-	dst_addr memory.Relocatable
-	op0_addr memory.Relocatable
-	op1_addr memory.Relocatable
+	DstAddr memory.Relocatable
+	Op0Addr memory.Relocatable
+	Op1Addr memory.Relocatable
 }
 
 // ------------------------
@@ -36,6 +52,36 @@ type OperandsAddresses struct {
 
 type DeducedOperands struct {
 	operands uint8
+}
+
+func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Operands) error {
+	switch instruction.Opcode {
+	case AssertEq:
+		if operands.Res == nil {
+			return &VirtualMachineError{"UnconstrainedResAssertEq"}
+		}
+		if !operands.Res.IsEqual(&operands.Dst) {
+			return &VirtualMachineError{"DiffAssertValues"}
+		}
+	case Call:
+		new_rel, err := vm.runContext.Pc.AddUint(instruction.size())
+		if err != nil {
+			return err
+		}
+		returnPC := memory.NewMaybeRelocatableRelocatable(new_rel)
+
+		if !operands.Op0.IsEqual(returnPC) {
+			return &VirtualMachineError{"CantWriteReturnPc"}
+		}
+
+		returnFP := vm.runContext.Fp
+		dstRelocatable, _ := operands.Dst.GetRelocatable()
+		if !returnFP.IsEqual(&dstRelocatable) {
+			return &VirtualMachineError{"CantWriteReturnFp"}
+		}
+	}
+
+	return nil
 }
 
 func (deduced *DeducedOperands) set_dst(value uint8) {
@@ -114,16 +160,16 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, Op
 	res, err := vm.ComputeRes(instruction, *op0_op, *op1_op)
 
 	accesed_addresses := OperandsAddresses{
-		dst_addr: dst_addr,
-		op0_addr: op0_addr,
-		op1_addr: op1_addr,
+		DstAddr: dst_addr,
+		Op0Addr: op0_addr,
+		Op1Addr: op1_addr,
 	}
 
 	operands := Operands{
-		dst: *dst_op,
-		op0: *op0_op,
-		op1: *op1_op,
-		res: res,
+		Dst: *dst_op,
+		Op0: *op0_op,
+		Op1: *op1_op,
+		Res: &res,
 	}
 	return operands, accesed_addresses, deduced_operands, nil
 }
