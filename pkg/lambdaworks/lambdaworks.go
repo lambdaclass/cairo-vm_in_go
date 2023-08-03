@@ -61,7 +61,7 @@ func FeltFromHex(value string) Felt {
 	return fromC(result)
 }
 
-func FromDecString(value string) Felt {
+func FeltFromDecString(value string) Felt {
 	cs := C.CString(value)
 	defer C.free(unsafe.Pointer(cs))
 
