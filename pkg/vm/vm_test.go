@@ -19,7 +19,6 @@ func TestUpdatePcRegularNoImm(t *testing.T) {
 	if !reflect.DeepEqual(vm.RunContext.Pc, memory.Relocatable{SegmentIndex: 0, Offset: 1}) {
 		t.Errorf("Wrong value after pc update")
 	}
-
 }
 
 func TestUpdatePcRegularWithImm(t *testing.T) {
@@ -33,7 +32,6 @@ func TestUpdatePcRegularWithImm(t *testing.T) {
 	if !reflect.DeepEqual(vm.RunContext.Pc, memory.Relocatable{SegmentIndex: 0, Offset: 2}) {
 		t.Errorf("Wrong value after pc update")
 	}
-
 }
 
 func TestUpdatePcJumpWithRelRes(t *testing.T) {
@@ -48,7 +46,6 @@ func TestUpdatePcJumpWithRelRes(t *testing.T) {
 	if !reflect.DeepEqual(vm.RunContext.Pc, res) {
 		t.Errorf("Wrong value after pc update")
 	}
-
 }
 
 func TestUpdatePcJumpWithIntRes(t *testing.T) {
@@ -59,18 +56,53 @@ func TestUpdatePcJumpWithIntRes(t *testing.T) {
 	if err == nil {
 		t.Errorf("UpdatePc should have failed")
 	}
-
 }
 
 func TestUpdatePcJumpWithoutRes(t *testing.T) {
 	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJump}
 	operands := vm.Operands{}
 	vm := vm.NewVirtualMachine()
+
 	err := vm.UpdatePc(&instruction, &operands)
 	if err == nil {
 		t.Errorf("UpdatePc should have failed")
 	}
+}
 
+func TestUpdatePcJumpRelWithIntRes(t *testing.T) {
+	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJumpRel}
+	operands := vm.Operands{Res: memory.NewMaybeRelocatableInt(5)}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdatePc(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdatePc failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Pc, memory.Relocatable{SegmentIndex: 0, Offset: 5}) {
+		t.Errorf("Wrong value after pc update")
+	}
+}
+
+func TestUpdatePcJumpRelWithRelRes(t *testing.T) {
+	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJumpRel}
+	res := memory.Relocatable{SegmentIndex: 0, Offset: 5}
+	operands := vm.Operands{Res: memory.NewMaybeRelocatableRelocatable(res)}
+	vm := vm.NewVirtualMachine()
+
+	err := vm.UpdatePc(&instruction, &operands)
+	if err == nil {
+		t.Errorf("UpdatePc should have failed")
+	}
+}
+
+func TestUpdatePcJumpRelNoRes(t *testing.T) {
+	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJumpRel}
+	operands := vm.Operands{}
+	vm := vm.NewVirtualMachine()
+
+	err := vm.UpdatePc(&instruction, &operands)
+	if err == nil {
+		t.Errorf("UpdatePc should have failed")
+	}
 }
 
 // Things we are skipping for now:
