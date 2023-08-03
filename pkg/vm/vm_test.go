@@ -48,7 +48,7 @@ func TestRelocateTraceOneEntry(t *testing.T) {
 }
 
 func TestWriteBinaryTraceFile(t *testing.T) {
-	tracePath, err := filepath.Abs("../../cairo_programs/trace_memory/cairo_trace_struct")
+	tracePath, err := filepath.Abs("../../cairo_programs/struct.trace")
 	if err != nil {
 		t.Errorf("Trace file writing error failed with test: %s", err)
 	}
