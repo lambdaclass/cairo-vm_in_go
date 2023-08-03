@@ -67,7 +67,7 @@ func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands)
 	return nil
 }
 
-// Updates the value of PC according to the executed instruction
+// Updates the value of AP according to the executed instruction
 func (vm *VirtualMachine) UpdateAp(instruction *Instruction, operands *Operands) error {
 	switch instruction.ApUpdate {
 	case ApUpdateAdd:
