@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+
 )
 
 // Relocatable in the Cairo VM represents an address
@@ -37,7 +38,9 @@ func (relocatable *Relocatable) SubUint(other uint) (Relocatable, error) {
 func (relocatable *Relocatable) AddUint(other uint) (Relocatable, error) {
 	new_offset := relocatable.Offset + other
 	return NewRelocatable(relocatable.SegmentIndex, new_offset), nil
-
+}
+func (r *Relocatable) RelocateAddress(relocationTable *[]uint) uint {
+	return (*relocationTable)[r.SegmentIndex] + r.Offset
 }
 
 // Int in the Cairo VM represents a value in memory that
@@ -126,5 +129,23 @@ func (m *MaybeRelocatable) IsEqual(m1 *MaybeRelocatable) bool {
 		}
 	} else {
 		return false
+  }
+}
+
+// Turns a MaybeRelocatable into a Felt252 value.
+// If the inner value is an Int, it will extract the Felt252 value from it.
+// If the inner value is a Relocatable, it will relocate it according to the relocation_table
+// TODO: Return value should be of type (felt, error)
+func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (uint, error) {
+	inner_int, ok := m.GetInt()
+	if ok {
+		return inner_int.Felt, nil
 	}
+
+	inner_relocatable, ok := m.GetRelocatable()
+	if ok {
+		return inner_relocatable.RelocateAddress(relocationTable), nil
+	}
+
+	return 0, errors.New(fmt.Sprintf("Unexpected type %T", m.inner))
 }
