@@ -26,6 +26,26 @@ func TestUpdateRegistersAllRegularNoImm(t *testing.T) {
 		t.Errorf("Wrong pc value after registers update")
 	}
 }
+
+func TestUpdateRegistersMixedTypes(t *testing.T) {
+	instruction := vm.Instruction{FpUpdate: vm.FpUpdateDst, ApUpdate: vm.ApUpdateAdd2, PcUpdate: vm.PcUpdateJumpRel, Op1Addr: vm.Op1SrcAP}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(1, 11)), Res: memory.NewMaybeRelocatableInt(8)}
+	v := vm.NewVirtualMachine()
+	v.RunContext = vm.RunContext{Pc: memory.NewRelocatable(0, 4), Ap: memory.NewRelocatable(1, 5), Fp: memory.NewRelocatable(1, 6)}
+	err := v.UpdateRegisters(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateResigters failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(v.RunContext.Fp, memory.Relocatable{SegmentIndex: 1, Offset: 11}) {
+		t.Errorf("Wrong fp value after registers update")
+	}
+	if !reflect.DeepEqual(v.RunContext.Ap, memory.Relocatable{SegmentIndex: 1, Offset: 7}) {
+		t.Errorf("Wrong ap value after registers update")
+	}
+	if !reflect.DeepEqual(v.RunContext.Pc, memory.Relocatable{SegmentIndex: 0, Offset: 12}) {
+		t.Errorf("Wrong pc value after registers update")
+	}
+}
 func TestUpdateFpRegular(t *testing.T) {
 	instruction := vm.Instruction{FpUpdate: vm.FpUpdateRegular}
 	operands := vm.Operands{}
