@@ -79,6 +79,14 @@ func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
 	return rel, is_type
 }
 
+func (m *MaybeRelocatable) IsZero() (is_zero bool) {
+	felt, is_zero := m.GetInt()
+	if !is_zero {
+		is_zero = felt.Felt == 0
+	}
+	return
+}
+
 // Turns a MaybeRelocatable into a Felt252 value.
 // If the inner value is an Int, it will extract the Felt252 value from it.
 // If the inner value is a Relocatable, it will relocate it according to the relocation_table
