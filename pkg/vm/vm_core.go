@@ -9,7 +9,7 @@ import (
 // VirtualMachine represents the Cairo VM.
 // Runs Cairo assembly and produces an execution trace.
 type VirtualMachine struct {
-	runContext     RunContext
+	RunContext     RunContext
 	currentStep    uint
 	Segments       memory.MemorySegmentManager
 	traceRelocated bool

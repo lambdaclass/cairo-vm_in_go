@@ -29,7 +29,7 @@ func (r *Relocatable) RelocateAddress(relocationTable *[]uint) uint {
 type Int struct {
 	// FIXME: Here we should use Lambdaworks felt, just mocking
 	// this for now.
-	felt uint
+	Felt uint
 }
 
 // MaybeRelocatable is the type of the memory cells in the Cairo
@@ -69,7 +69,7 @@ func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
 func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (uint, error) {
 	inner_int, ok := m.GetInt()
 	if ok {
-		return inner_int.felt, nil
+		return inner_int.Felt, nil
 	}
 
 	inner_relocatable, ok := m.GetRelocatable()
