@@ -61,8 +61,8 @@ func TestOpcodeAssertionsInstructionFailed(t *testing.T) {
 
 	testVm := NewVirtualMachine()
 	err := testVm.OpcodeAssertions(instruction, operands)
-	if err.Error() != "IntDiffAssertValues" {
-		t.Error("Assertion should error out with IntDiffAssertValues")
+	if err.Error() != "DiffAssertValues" {
+		t.Error("Assertion should error out with DiffAssertValues")
 	}
 
 }
@@ -91,8 +91,8 @@ func TestOpcodeAssertionsInstructionFailedRelocatables(t *testing.T) {
 
 	testVm := NewVirtualMachine()
 	err := testVm.OpcodeAssertions(instruction, operands)
-	if err.Error() != "RelocatableDiffAssertValues" {
-		t.Error("Assertion should error out with RelocatableDiffAssertValues")
+	if err.Error() != "DiffAssertValues" {
+		t.Error("Assertion should error out with DiffAssertValues")
 	}
 }
 

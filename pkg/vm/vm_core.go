@@ -60,12 +60,7 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 			return &VirtualMachineError{"UnconstrainedResAssertEq"}
 		}
 		if !operands.Res.IsEqual(&operands.Dst) {
-			_, isInt := operands.Res.GetInt()
-			if isInt {
-				return &VirtualMachineError{"IntDiffAssertValues"}
-			} else {
-				return &VirtualMachineError{"RelocatableDiffAssertValues"}
-			}
+			return &VirtualMachineError{"DiffAssertValues"}
 		}
 	case Call:
 		new_rel, err := vm.runContext.Pc.AddUint(instruction.size())
