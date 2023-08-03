@@ -105,7 +105,7 @@ func (a Felt) Sub(b Felt) Felt {
 	return fromC(result)
 }
 
-// Writes the result variable with the difference of a and the elements in b array. 
+// Writes the result variable with the difference of a and the elements in b array.
 func (a Felt) SubFelts(felts []Felt) Felt {
 	var a_c C.felt_t = a.toC()
 	for _, felt := range felts {
