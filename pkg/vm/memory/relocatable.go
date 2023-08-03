@@ -81,7 +81,7 @@ func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
 
 func (m *MaybeRelocatable) IsZero() (is_zero bool) {
 	felt, is_zero := m.GetInt()
-	if !is_zero {
+	if is_zero {
 		is_zero = felt.Felt == 0
 	}
 	return
