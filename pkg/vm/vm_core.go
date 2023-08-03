@@ -7,5 +7,11 @@ import "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 type VirtualMachine struct {
 	runContext  RunContext
 	currentStep uint
-	segments    memory.MemorySegmentManager
+	Segments    *memory.MemorySegmentManager
+}
+
+func NewVirtualMachine() *VirtualMachine {
+	segments := memory.NewMemorySegmentManager()
+
+	return &VirtualMachine{Segments: segments}
 }
