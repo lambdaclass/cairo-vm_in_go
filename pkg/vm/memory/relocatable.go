@@ -3,8 +3,8 @@ package memory
 import (
 	"errors"
 
+	"fmt"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
-
 )
 
 // Relocatable in the Cairo VM represents an address
@@ -39,7 +39,7 @@ func (relocatable *Relocatable) AddUint(other uint) (Relocatable, error) {
 	new_offset := relocatable.Offset + other
 	return NewRelocatable(relocatable.SegmentIndex, new_offset), nil
 }
-func (r *Relocatable) RelocateAddress(relocationTable *[]uint) uint {
+func (r *Relocatable) RelocateAddress(relocationTable *[]lambdaworks.Felt) uint {
 	return (*relocationTable)[r.SegmentIndex] + r.Offset
 }
 
@@ -129,14 +129,14 @@ func (m *MaybeRelocatable) IsEqual(m1 *MaybeRelocatable) bool {
 		}
 	} else {
 		return false
-  }
+	}
 }
 
 // Turns a MaybeRelocatable into a Felt252 value.
 // If the inner value is an Int, it will extract the Felt252 value from it.
 // If the inner value is a Relocatable, it will relocate it according to the relocation_table
 // TODO: Return value should be of type (felt, error)
-func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (uint, error) {
+func (m *MaybeRelocatable) RelocateValue(relocationTable *[]lambdaworks.Felt) (lambdaworks.Felt, error) {
 	inner_int, ok := m.GetInt()
 	if ok {
 		return inner_int.Felt, nil
@@ -147,5 +147,5 @@ func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (uint, error) 
 		return inner_relocatable.RelocateAddress(relocationTable), nil
 	}
 
-	return 0, errors.New(fmt.Sprintf("Unexpected type %T", m.inner))
+	return lambdaworks.From(0), errors.New(fmt.Sprintf("Unexpected type %T", m.inner))
 }
