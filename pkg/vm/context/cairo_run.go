@@ -37,7 +37,7 @@ func CairoRun(compiledProgram parser.CompiledJson, hintExecutor BuiltinHintProce
 	vm := vm.NewVirtualMachine()
 	cairoRunner := runners.NewCairoRunner(programJson)
 	_, err := cairoRunner.Initialize()
-	//err = cairoRunner.RunUnitlPc()
+	//err = cairoRunner.RunUntilPC()
 	//cairoRunner.EndRun()
 	//vm.VerifyAutoDeductions()
 	//cairoRunner.ReadReturnValues(vm)
