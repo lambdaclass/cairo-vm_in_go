@@ -61,13 +61,16 @@ pub extern "C" fn from_hex(result: Limbs, value: *const libc::c_char) {
 pub extern "C" fn from_dec_str(result: Limbs, value: *const libc::c_char) {
     let val_cstr = unsafe { core::ffi::CStr::from_ptr(value) };
     let val_str = val_cstr.to_str().unwrap();
-    let felt = { U256::from_dec_str(val_str).unwrap() };
-    for i in 0..4 {
-        let u = i as usize;
-        unsafe {
-            *result.offset(i) = felt.limbs[u];
+    let felt = match val_str.strip_prefix("-") {
+        Some(stripped) => {
+            let val = U256::from_dec_str(stripped).unwrap(); 
+            Felt::from(0) - Felt::from(&val)
         }
-    }
+        None => { 
+            Felt::from(&U256::from_dec_str(val_str).unwrap())
+        }
+    };
+    felt_to_limbs(felt, result)
     
 }
 

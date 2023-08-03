@@ -25,6 +25,16 @@ func TestFromDecString(t *testing.T) {
 	}
 }
 
+func TestFromNegDecString(t *testing.T) {
+	var s_one = "-1"
+	expected := FeltFromHex("800000000000011000000000000000000000000000000000000000000000000")
+
+	result := FeltFromDecString(s_one)
+	if result != expected {
+		t.Errorf("TestFromNegDecString failed. Expected: %v, Got: %v", expected, result)
+	}
+}
+
 func TestFeltSub(t *testing.T) {
 	var felt Felt
 	f_one := felt.One()
