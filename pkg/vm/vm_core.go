@@ -5,13 +5,11 @@ import "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 // VirtualMachine represents the Cairo VM.
 // Runs Cairo assembly and produces an execution trace.
 type VirtualMachine struct {
-	runContext  RunContext
+	RunContext  RunContext
 	currentStep uint
-	Segments    *memory.MemorySegmentManager
+	Segments    memory.MemorySegmentManager
 }
 
 func NewVirtualMachine() *VirtualMachine {
-	segments := memory.NewMemorySegmentManager()
-
-	return &VirtualMachine{Segments: segments}
+	return &VirtualMachine{Segments: *memory.NewMemorySegmentManager()}
 }
