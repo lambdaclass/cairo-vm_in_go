@@ -23,6 +23,10 @@ func NewVirtualMachine() *VirtualMachine {
 	return &VirtualMachine{Segments: *segments, Trace: trace, RelocatedTrace: relocatedTrace}
 }
 
+// Writes the trace binary representation.
+//
+// Bincode encodes to little endian by default and each trace entry is composed of
+// 3 usize values that are padded to always reach 64 bit size.
 func (v *VirtualMachine) RelocateTrace(relocationTable *[]uint) error {
 	if len(*relocationTable) < 2 {
 		return errors.New("No relocation found for execution segment")
