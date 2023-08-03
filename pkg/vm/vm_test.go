@@ -42,7 +42,7 @@ func TestRelocateTraceOneEntry(t *testing.T) {
 	if err != nil {
 		t.Errorf("Trace relocation error failed with test: %s", err)
 	}
-	if !reflect.DeepEqual(expectedTrace, *actualTrace) {
+	if !reflect.DeepEqual(expectedTrace, actualTrace) {
 		t.Errorf("Relocated trace and expected trace are not the same")
 	}
 }

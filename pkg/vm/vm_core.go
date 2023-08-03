@@ -40,9 +40,9 @@ func (v *VirtualMachine) RelocateTrace(relocationTable *[]uint) error {
 	return nil
 }
 
-func (v *VirtualMachine) GetRelocatedTrace() (*[]RelocatedTraceEntry, error) {
+func (v *VirtualMachine) GetRelocatedTrace() ([]RelocatedTraceEntry, error) {
 	if len(v.RelocatedTrace) > 0 {
-		return &v.RelocatedTrace, nil
+		return v.RelocatedTrace, nil
 	} else {
 		return nil, errors.New("Trace not relocated")
 	}
