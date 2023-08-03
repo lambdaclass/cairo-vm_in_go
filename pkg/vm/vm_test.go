@@ -36,6 +36,43 @@ func TestUpdatePcRegularWithImm(t *testing.T) {
 
 }
 
+func TestUpdatePcJumpWithRelRes(t *testing.T) {
+	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJump}
+	res := memory.Relocatable{SegmentIndex: 0, Offset: 5}
+	operands := vm.Operands{Res: memory.NewMaybeRelocatableRelocatable(res)}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdatePc(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdatePc failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Pc, res) {
+		t.Errorf("Wrong value after pc update")
+	}
+
+}
+
+func TestUpdatePcJumpWithIntRes(t *testing.T) {
+	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJump}
+	operands := vm.Operands{Res: memory.NewMaybeRelocatableInt(0)}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdatePc(&instruction, &operands)
+	if err == nil {
+		t.Errorf("UpdatePc should have failed")
+	}
+
+}
+
+func TestUpdatePcJumpWithoutRes(t *testing.T) {
+	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJump}
+	operands := vm.Operands{}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdatePc(&instruction, &operands)
+	if err == nil {
+		t.Errorf("UpdatePc should have failed")
+	}
+
+}
+
 // Things we are skipping for now:
 // - Initializing hint_executor and passing it to `cairo_run`
 // - cairo_run_config stuff
