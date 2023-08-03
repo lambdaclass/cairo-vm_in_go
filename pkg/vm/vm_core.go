@@ -27,13 +27,12 @@ func (v *VirtualMachine) RelocateTrace(relocationTable *[]uint) error {
 	if len(*relocationTable) < 2 {
 		return errors.New("No relocation found for execution segment")
 	}
-	segment1Base := (*relocationTable)[1]
 
 	for _, entry := range v.Trace {
 		v.RelocatedTrace = append(v.RelocatedTrace, RelocatedTraceEntry{
 			Pc: entry.Pc.RelocateAddress(relocationTable),
-			Ap: entry.Ap.RelocateAddress(relocationTable) + segment1Base,
-			Fp: entry.Fp.RelocateAddress(relocationTable) + segment1Base,
+			Ap: entry.Ap.RelocateAddress(relocationTable),
+			Fp: entry.Fp.RelocateAddress(relocationTable),
 		})
 	}
 

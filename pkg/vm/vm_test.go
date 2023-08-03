@@ -80,7 +80,7 @@ func TestWriteBinaryTraceFile(t *testing.T) {
 }
 
 func buildTestProgramMemory(virtualMachine *vm.VirtualMachine) {
-	virtualMachine.Trace = []vm.TraceEntry{{Pc: memory.NewRelocatable(0, 0), Ap: memory.NewRelocatable(1, 0), Fp: memory.NewRelocatable(1, 0)}}
+	virtualMachine.Trace = []vm.TraceEntry{{Pc: memory.NewRelocatable(0, 0), Ap: memory.NewRelocatable(2, 0), Fp: memory.NewRelocatable(2, 0)}}
 	for i := 0; i < 4; i++ {
 		virtualMachine.Segments.AddSegment()
 	}
