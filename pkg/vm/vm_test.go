@@ -37,7 +37,7 @@ func TestRelocateTraceOneEntry(t *testing.T) {
 		t.Errorf("Trace relocation error failed with test: %s", err)
 	}
 
-	expectedTrace := []vm.TraceEntry{{Pc: 1, Ap: 4, Fp: 4}}
+	expectedTrace := []vm.RelocatedTraceEntry{{Pc: 1, Ap: 4, Fp: 4}}
 	actualTrace, err := virtualMachine.GetRelocatedTrace()
 	if err != nil {
 		t.Errorf("Trace relocation error failed with test: %s", err)
@@ -80,7 +80,7 @@ func TestWriteBinaryTraceFile(t *testing.T) {
 }
 
 func buildTestProgramMemory(virtualMachine *vm.VirtualMachine) {
-	virtualMachine.Trace = []vm.TraceEntry{{Pc: 0, Ap: 2, Fp: 2}}
+	virtualMachine.Trace = []vm.TraceEntry{{Pc: 0, Ap: memory.NewRelocatable(1, 0), Fp: memory.NewRelocatable(1, 0)}}
 	for i := 0; i < 4; i++ {
 		virtualMachine.Segments.AddSegment()
 	}

@@ -12,14 +12,15 @@ type VirtualMachine struct {
 	RunContext     RunContext
 	currentStep    uint
 	Segments       memory.MemorySegmentManager
-	traceRelocated bool
 	Trace          []TraceEntry
+	RelocatedTrace []RelocatedTraceEntry
 }
 
 func NewVirtualMachine() *VirtualMachine {
 	segments := memory.NewMemorySegmentManager()
 	trace := make([]TraceEntry, 0)
-	return &VirtualMachine{Segments: *segments, Trace: trace}
+	relocatedTrace := make([]RelocatedTraceEntry, 0)
+	return &VirtualMachine{Segments: *segments, Trace: trace, RelocatedTrace: relocatedTrace}
 }
 
 func (v *VirtualMachine) RelocateTrace(relocationTable *[]uint) error {
@@ -28,19 +29,20 @@ func (v *VirtualMachine) RelocateTrace(relocationTable *[]uint) error {
 	}
 	segment1Base := (*relocationTable)[1]
 
-	for i := range v.Trace {
-		v.Trace[i].Pc++
-		v.Trace[i].Ap += segment1Base
-		v.Trace[i].Fp += segment1Base
+	for _, entry := range v.Trace {
+		v.RelocatedTrace = append(v.RelocatedTrace, RelocatedTraceEntry{
+			Pc: entry.Pc + 1,
+			Ap: entry.Ap.RelocateAddress(relocationTable) + segment1Base,
+			Fp: entry.Fp.RelocateAddress(relocationTable) + segment1Base,
+		})
 	}
-	v.traceRelocated = true
 
 	return nil
 }
 
-func (v *VirtualMachine) GetRelocatedTrace() (*[]TraceEntry, error) {
-	if v.traceRelocated {
-		return &v.Trace, nil
+func (v *VirtualMachine) GetRelocatedTrace() (*[]RelocatedTraceEntry, error) {
+	if len(v.RelocatedTrace) > 0 {
+		return &v.RelocatedTrace, nil
 	} else {
 		return nil, errors.New("Trace not relocated")
 	}

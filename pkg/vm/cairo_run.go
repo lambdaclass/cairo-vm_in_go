@@ -11,7 +11,7 @@ func CairoRun(data []string) error {
 	return errors.New("Unimplemented")
 }
 
-func WriteEncodedTrace(relocatedTrace *[]TraceEntry, dest io.Writer) error {
+func WriteEncodedTrace(relocatedTrace *[]RelocatedTraceEntry, dest io.Writer) error {
 	for i, entry := range *relocatedTrace {
 		ap := make([]byte, 8)
 		binary.LittleEndian.PutUint64(ap, uint64(entry.Ap))
