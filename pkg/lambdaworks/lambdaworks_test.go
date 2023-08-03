@@ -1,14 +1,16 @@
-package lambdaworks
+package lambdaworks_test
 
 import (
 	"testing"
+
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 )
 
 func TestFromHex(t *testing.T) {
 	var h_one = "1a"
-	expected := From(26)
+	expected := lambdaworks.FeltFromUint64(26)
 
-	result := FeltFromHex(h_one)
+	result := lambdaworks.FeltFromHex(h_one)
 	if result != expected {
 		t.Errorf("TestFromHex failed. Expected: %v, Got: %v", expected, result)
 	}
@@ -17,16 +19,26 @@ func TestFromHex(t *testing.T) {
 
 func TestFromDecString(t *testing.T) {
 	var s_one = "435"
-	expected := From(435)
+	expected := lambdaworks.FeltFromUint64(435)
 
-	result := FeltFromDecString(s_one)
+	result := lambdaworks.FeltFromDecString(s_one)
 	if result != expected {
 		t.Errorf("TestFromDecString failed. Expected: %v, Got: %v", expected, result)
 	}
 }
 
+func TestFromNegDecString(t *testing.T) {
+	var s_one = "-1"
+	expected := lambdaworks.FeltFromHex("800000000000011000000000000000000000000000000000000000000000000")
+
+	result := lambdaworks.FeltFromDecString(s_one)
+	if result != expected {
+		t.Errorf("TestFromNegDecString failed. Expected: %v, Got: %v", expected, result)
+	}
+}
+
 func TestFeltSub(t *testing.T) {
-	var felt Felt
+	var felt lambdaworks.Felt
 	f_one := felt.One()
 	expected := felt.Zero()
 
@@ -37,10 +49,10 @@ func TestFeltSub(t *testing.T) {
 }
 
 func TestFeltSubFelts(t *testing.T) {
-	var felt Felt
-	f_ten := From(10)
-	felts := [3]Felt{felt.One(), felt.One(), felt.One()}
-	expected := From(7)
+	var felt lambdaworks.Felt
+	f_ten := lambdaworks.FeltFromUint64(10)
+	felts := [3]lambdaworks.Felt{felt.One(), felt.One(), felt.One()}
+	expected := lambdaworks.FeltFromUint64(7)
 
 	result := f_ten.SubFelts(felts[:])
 	if result != expected {
@@ -49,7 +61,7 @@ func TestFeltSubFelts(t *testing.T) {
 }
 
 func TestFeltAdd(t *testing.T) {
-	var felt Felt
+	var felt lambdaworks.Felt
 	f_zero := felt.Zero()
 	f_one := felt.One()
 	expected := felt.One()
@@ -61,10 +73,10 @@ func TestFeltAdd(t *testing.T) {
 }
 
 func TestFeltAddFelts(t *testing.T) {
-	var felt Felt
+	var felt lambdaworks.Felt
 	f_zero := felt.Zero()
-	felts := [3]Felt{felt.One(), felt.One(), felt.One()}
-	expected := From(3)
+	felts := [3]lambdaworks.Felt{felt.One(), felt.One(), felt.One()}
+	expected := lambdaworks.FeltFromUint64(3)
 
 	result := f_zero.AddFelts(felts[:])
 	if result != expected {
@@ -73,7 +85,7 @@ func TestFeltAddFelts(t *testing.T) {
 }
 
 func TestFeltMul1(t *testing.T) {
-	var felt Felt
+	var felt lambdaworks.Felt
 	f_one := felt.One()
 	expected := felt.One()
 
@@ -84,7 +96,7 @@ func TestFeltMul1(t *testing.T) {
 }
 
 func TestFeltMul0(t *testing.T) {
-	var felt Felt
+	var felt lambdaworks.Felt
 	f_one := felt.One()
 	f_zero := felt.Zero()
 	expected := felt.Zero()
@@ -96,8 +108,8 @@ func TestFeltMul0(t *testing.T) {
 }
 
 func TestFeltMul9(t *testing.T) {
-	f_three := From(3)
-	expected := From(9)
+	f_three := lambdaworks.FeltFromUint64(3)
+	expected := lambdaworks.FeltFromUint64(9)
 
 	result := f_three.Mul(f_three)
 	if result != expected {
@@ -106,8 +118,8 @@ func TestFeltMul9(t *testing.T) {
 }
 
 func TestFeltDiv3(t *testing.T) {
-	f_three := From(3)
-	expected := From(1)
+	f_three := lambdaworks.FeltFromUint64(3)
+	expected := lambdaworks.FeltFromUint64(1)
 
 	result := f_three.Div(f_three)
 	if result != expected {
@@ -116,10 +128,10 @@ func TestFeltDiv3(t *testing.T) {
 }
 
 func TestFeltDiv4(t *testing.T) {
-	f_four := From(4)
-	f_two := From(2)
+	f_four := lambdaworks.FeltFromUint64(4)
+	f_two := lambdaworks.FeltFromUint64(2)
 
-	expected := From(2)
+	expected := lambdaworks.FeltFromUint64(2)
 
 	result := f_four.Div(f_two)
 	if result != expected {
@@ -128,10 +140,10 @@ func TestFeltDiv4(t *testing.T) {
 }
 
 func TestFeltDiv4Error(t *testing.T) {
-	f_four := From(4)
-	f_one := From(1)
+	f_four := lambdaworks.FeltFromUint64(4)
+	f_one := lambdaworks.FeltFromUint64(1)
 
-	expected := From(45)
+	expected := lambdaworks.FeltFromUint64(45)
 
 	result := f_four.Div(f_one)
 	if result == expected {

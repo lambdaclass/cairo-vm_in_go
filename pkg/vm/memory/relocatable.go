@@ -22,8 +22,8 @@ func NewRelocatable(segment_idx int, offset uint) Relocatable {
 	return Relocatable{segment_idx, offset}
 }
 
-func (r *Relocatable) RelocateAddress(relocationTable *[]uint) uint {
-	return (*relocationTable)[r.SegmentIndex] + r.Offset
+func (r *Relocatable) RelocateAddress(relocationTable *[]uint) lambdaworks.Felt {
+	return lambdaworks.FeltFromUint64(uint64((*relocationTable)[r.SegmentIndex] + r.Offset))
 }
 
 // Int in the Cairo VM represents a value in memory that
@@ -66,10 +66,10 @@ func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
 // If the inner value is an Int, it will extract the Felt252 value from it.
 // If the inner value is a Relocatable, it will relocate it according to the relocation_table
 // TODO: Return value should be of type (felt, error)
-func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (uint, error) {
-	inner_int, ok := m.GetInt()
+func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (lambdaworks.Felt, error) {
+	inner_int, ok := m.GetFelt()
 	if ok {
-		return inner_int.Felt, nil
+		return inner_int, nil
 	}
 
 	inner_relocatable, ok := m.GetRelocatable()
@@ -77,5 +77,6 @@ func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (uint, error) 
 		return inner_relocatable.RelocateAddress(relocationTable), nil
 	}
 
-	return 0, errors.New(fmt.Sprintf("Unexpected type %T", m.inner))
+	var felt lambdaworks.Felt
+	return felt.Zero(), errors.New(fmt.Sprintf("Unexpected type %T", m.inner))
 }

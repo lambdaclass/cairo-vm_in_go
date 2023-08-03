@@ -1,5 +1,7 @@
 package memory
 
+import "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+
 // MemorySegmentManager manages the list of memory segments.
 // Also holds metadata useful for the relocation process of
 // the memory at the end of the VM run.
@@ -54,8 +56,8 @@ func (m *MemorySegmentManager) RelocateSegments() ([]uint, bool) {
 	return relocation_table, true
 }
 
-func (s *MemorySegmentManager) RelocateMemory(relocationTable *[]uint) (map[uint]uint, error) {
-	relocatedMemory := make(map[uint]uint, 0)
+func (s *MemorySegmentManager) RelocateMemory(relocationTable *[]uint) (map[lambdaworks.Felt]lambdaworks.Felt, error) {
+	relocatedMemory := make(map[lambdaworks.Felt]lambdaworks.Felt, 0)
 
 	for i := uint(0); i < s.Memory.NumSegments(); i++ {
 		for j := uint(0); j < s.SegmentSizes[i]; j++ {
