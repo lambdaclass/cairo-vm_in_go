@@ -8,6 +8,39 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
+func TestUpdateApAddWithResInt(t *testing.T) {
+	instruction := vm.Instruction{ApUpdate: vm.ApUpdateAdd}
+	operands := vm.Operands{Res: memory.NewMaybeRelocatableInt(5)}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateAp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateAp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Ap, memory.Relocatable{SegmentIndex: 0, Offset: 5}) {
+		t.Errorf("Wrong value after ap update")
+	}
+}
+
+func TestUpdateApAddWithResRel(t *testing.T) {
+	instruction := vm.Instruction{ApUpdate: vm.ApUpdateAdd}
+	operands := vm.Operands{Res: memory.NewMaybeRelocatableRelocatable(memory.Relocatable{})}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateAp(&instruction, &operands)
+	if err == nil {
+		t.Errorf("UpdateA should have failed")
+	}
+}
+
+func TestUpdateApAddWithoutRes(t *testing.T) {
+	instruction := vm.Instruction{ApUpdate: vm.ApUpdateAdd}
+	operands := vm.Operands{}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateAp(&instruction, &operands)
+	if err == nil {
+		t.Errorf("UpdateA should have failed")
+	}
+}
+
 func TestUpdatePcRegularNoImm(t *testing.T) {
 	instruction := vm.Instruction{PcUpdate: vm.PcUpdateRegular, Op1Addr: vm.Op1SrcAP}
 	operands := vm.Operands{}
