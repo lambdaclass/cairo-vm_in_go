@@ -16,7 +16,7 @@ CAIRO_RS_TRACE:=$(patsubst $(TEST_DIR)/%.json, $(TEST_DIR)/%.rs.trace, $(COMPILE
 CAIRO_GO_MEM:=$(patsubst $(TEST_DIR)/%.json, $(TEST_DIR)/%.go.memory, $(COMPILED_TESTS))
 CAIRO_GO_TRACE:=$(patsubst $(TEST_DIR)/%.json, $(TEST_DIR)/%.go.trace, $(COMPILED_TESTS))
 
-$(TEST_DIR)/%.rs.trace $(TEST_DIR)/%.rs.memory: $(TEST_DIR)/%.json $(RELBIN)
+$(TEST_DIR)/%.rs.trace $(TEST_DIR)/%.rs.memory: $(TEST_DIR)/%.json $(CAIRO_VM_CLI)
 	$(CAIRO_VM_CLI) --layout all_cairo $< --trace_file $@ --memory_file $(@D)/$(*F).rs.memory
 
 # TODO: Uses cairo-lang as placeholder, should use go vm
@@ -59,10 +59,10 @@ check_fmt:
 	./check_fmt.sh
 
 clean:
-	rm cairo_programs/*.json
+	rm cairo_programs/*.json*
 	rm -rf cairo-vm
 	rm -r cairo-vm-env
 
 build_cairo_vm_cli: | $(CAIRO_VM_CLI)
 
-compare_trace_memory: build_cairo_vm_cli $(CAIRO_RS_MEM)
+compare_trace_memory: build_cairo_vm_cli $(CAIRO_RS_MEM) $(CAIRO_RS_TRACE) $(CAIRO_GO_MEM) $(CAIRO_GO_TRACE)
