@@ -79,12 +79,9 @@ func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
 	return rel, is_type
 }
 
-func (m *MaybeRelocatable) IsZero() (is_zero bool) {
-	felt, is_zero := m.GetInt()
-	if is_zero {
-		is_zero = felt.Felt == 0
-	}
-	return
+func (m *MaybeRelocatable) IsZero() bool {
+	felt, is_int := m.GetInt()
+	return is_int && felt.Felt == 0
 }
 
 // Turns a MaybeRelocatable into a Felt252 value.
