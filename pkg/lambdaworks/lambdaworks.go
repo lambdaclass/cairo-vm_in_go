@@ -3,9 +3,14 @@ package lambdaworks
 /*
 #cgo LDFLAGS: pkg/lambdaworks/lib/liblambdaworks.a -ldl
 #include "lib/lambdaworks.h"
+#include <stdlib.h>
 */
 import "C"
+
 import "errors"
+import (
+	"unsafe"
+)
 
 // Go representation of a single limb (unsigned integer with 64 bits).
 type Limb C.limb_t
@@ -34,28 +39,47 @@ func fromC(result C.felt_t) Felt {
 }
 
 // Gets a Felt representing the "value" number, in Montgomery format.
-func From(value uint64) Felt {
+func FeltFromUint64(value uint64) Felt {
 	var result C.felt_t
 	C.from(&result[0], C.uint64_t(value))
 	return fromC(result)
 }
 
+func FeltFromHex(value string) Felt {
+	cs := C.CString(value)
+	defer C.free(unsafe.Pointer(cs))
+
+	var result C.felt_t
+	C.from_hex(&result[0], cs)
+	return fromC(result)
+}
+
+func FeltFromDecString(value string) Felt {
+	cs := C.CString(value)
+	defer C.free(unsafe.Pointer(cs))
+
+	var result C.felt_t
+	C.from_dec_str(&result[0], cs)
+	return fromC(result)
+}
+
 // Gets a Felt representing 0.
-func Zero() Felt {
+func (f Felt) Zero() Felt {
 	var result C.felt_t
 	C.zero(&result[0])
 	return fromC(result)
 }
 
 // Gets a Felt representing 1.
-func One() Felt {
+func (f Felt) One() Felt {
 	var result C.felt_t
 	C.one(&result[0])
 	return fromC(result)
+
 }
 
 // Writes the result variable with the sum of a and b felts.
-func Add(a, b Felt) Felt {
+func (a Felt) Add(b Felt) Felt {
 	var result C.felt_t
 	var a_c C.felt_t = a.toC()
 	var b_c C.felt_t = b.toC()
@@ -64,7 +88,7 @@ func Add(a, b Felt) Felt {
 }
 
 // Writes the result variable with a - b.
-func Sub(a, b Felt) Felt {
+func (a Felt) Sub(b Felt) Felt {
 	var result C.felt_t
 	var a_c C.felt_t = a.toC()
 	var b_c C.felt_t = b.toC()
@@ -73,7 +97,7 @@ func Sub(a, b Felt) Felt {
 }
 
 // Writes the result variable with a * b.
-func Mul(a, b Felt) Felt {
+func (a Felt) Mul(b Felt) Felt {
 	var result C.felt_t
 	var a_c C.felt_t = a.toC()
 	var b_c C.felt_t = b.toC()
@@ -82,13 +106,7 @@ func Mul(a, b Felt) Felt {
 }
 
 // Writes the result variable with a / b.
-func Div(a, b Felt) Felt {
-	var result C.felt_t
-	var a_c C.felt_t = a.toC()
-	var b_c C.felt_t = b.toC()
-	C.div(&a_c[0], &b_c[0], &result[0])
-	return fromC(result)
-}
+
 
 // turns a felt to usize
 func (felt Felt) ToU64() (uint64, error) {
@@ -97,4 +115,12 @@ func (felt Felt) ToU64() (uint64, error) {
 	} else {
 		return 0, errors.New("Cannot convert felt to u64")
 	}
+}
+
+func (a Felt) Div(b Felt) Felt {
+	var result C.felt_t
+	var a_c C.felt_t = a.toC()
+	var b_c C.felt_t = b.toC()
+	C.lw_div(&a_c[0], &b_c[0], &result[0])
+	return fromC(result)
 }
