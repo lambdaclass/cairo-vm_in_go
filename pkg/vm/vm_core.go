@@ -26,7 +26,7 @@ type Operands struct {
 }
 
 // Updates the value of PC according to the executed instrcuction
-func (vm *VirtualMachine) updatePc(instruction *Instruction, operands *Operands) error {
+func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands) error {
 	switch instruction.PcUpdate {
 	case PcUpdateRegular:
 		vm.RunContext.Pc.Offset += instruction.Size()
