@@ -37,7 +37,7 @@ func fromC(result C.felt_t) Felt {
 }
 
 // Gets a Felt representing the "value" number, in Montgomery format.
-func From(value uint64) Felt {
+func FeltFromUint64(value uint64) Felt {
 	var result C.felt_t
 	C.from(&result[0], C.uint64_t(value))
 	return fromC(result)

@@ -6,7 +6,7 @@ import (
 
 func TestFromHex(t *testing.T) {
 	var h_one = "1a"
-	expected := From(26)
+	expected := FeltFromUint64(26)
 
 	result := FeltFromHex(h_one)
 	if result != expected {
@@ -17,7 +17,7 @@ func TestFromHex(t *testing.T) {
 
 func TestFromDecString(t *testing.T) {
 	var s_one = "435"
-	expected := From(435)
+	expected := FeltFromUint64(435)
 
 	result := FeltFromDecString(s_one)
 	if result != expected {
@@ -82,8 +82,8 @@ func TestFeltMul0(t *testing.T) {
 }
 
 func TestFeltMul9(t *testing.T) {
-	f_three := From(3)
-	expected := From(9)
+	f_three := FeltFromUint64(3)
+	expected := FeltFromUint64(9)
 
 	result := f_three.Mul(f_three)
 	if result != expected {
@@ -92,8 +92,8 @@ func TestFeltMul9(t *testing.T) {
 }
 
 func TestFeltDiv3(t *testing.T) {
-	f_three := From(3)
-	expected := From(1)
+	f_three := FeltFromUint64(3)
+	expected := FeltFromUint64(1)
 
 	result := f_three.Div(f_three)
 	if result != expected {
@@ -102,10 +102,10 @@ func TestFeltDiv3(t *testing.T) {
 }
 
 func TestFeltDiv4(t *testing.T) {
-	f_four := From(4)
-	f_two := From(2)
+	f_four := FeltFromUint64(4)
+	f_two := FeltFromUint64(2)
 
-	expected := From(2)
+	expected := FeltFromUint64(2)
 
 	result := f_four.Div(f_two)
 	if result != expected {
@@ -114,10 +114,10 @@ func TestFeltDiv4(t *testing.T) {
 }
 
 func TestFeltDiv4Error(t *testing.T) {
-	f_four := From(4)
-	f_one := From(1)
+	f_four := FeltFromUint64(4)
+	f_one := FeltFromUint64(1)
 
-	expected := From(45)
+	expected := FeltFromUint64(45)
 
 	result := f_four.Div(f_one)
 	if result == expected {
