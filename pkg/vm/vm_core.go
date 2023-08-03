@@ -35,7 +35,7 @@ func NewVirtualMachine() *VirtualMachine {
 
 type Operands struct {
 	Dst memory.MaybeRelocatable
-	Res memory.MaybeRelocatable
+	Res *memory.MaybeRelocatable
 	Op0 memory.MaybeRelocatable
 	Op1 memory.MaybeRelocatable
 }
@@ -64,7 +64,7 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 			return &VirtualMachineError{"DiffAssertValues"}
 		}
 	case Call:
-		new_rel, err := vm.runContext.Pc.AddUint(instruction.size())
+		new_rel, err := vm.RunContext.Pc.AddUint(instruction.size())
 		if err != nil {
 			return err
 		}
@@ -74,7 +74,7 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 			return &VirtualMachineError{"CantWriteReturnPc"}
 		}
 
-		returnFP := vm.runContext.Fp
+		returnFP := vm.RunContext.Fp
 		dstRelocatable, _ := operands.Dst.GetRelocatable()
 		if !returnFP.IsEqual(&dstRelocatable) {
 			return &VirtualMachineError{"CantWriteReturnFp"}
@@ -169,7 +169,7 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, Op
 		Dst: *dst_op,
 		Op0: *op0_op,
 		Op1: *op1_op,
-		Res: res,
+		Res: &res,
 	}
 	return operands, accesed_addresses, deduced_operands, nil
 }

@@ -34,7 +34,6 @@ func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
 	if ok && prev_elem != *val {
 		return errors.New("Memory is write-once, cannot overwrite memory value")
 	}
-
 	m.data[addr] = *val
 
 	return nil

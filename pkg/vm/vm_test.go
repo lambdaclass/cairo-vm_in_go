@@ -1,7 +1,6 @@
 package vm_test
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
@@ -52,7 +51,7 @@ func TestComputeOperandsAddAp(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		vmachine.Segments.AddSegment()
 	}
-	vmachine.Segments.Memory = *memory.NewMemory()
+
 	dst_addr := memory.NewRelocatable(1, 0)
 	dst_addr_value := memory.NewMaybeRelocatableInt(lambdaworks.From(5))
 	op0_addr := memory.NewRelocatable(1, 1)
@@ -66,7 +65,7 @@ func TestComputeOperandsAddAp(t *testing.T) {
 
 	expected_operands := vm.Operands{
 		Dst: *dst_addr_value,
-		Res: *dst_addr_value,
+		Res: dst_addr_value,
 		Op0: *op0_addr_value,
 		Op1: *op1_addr_value,
 	}
@@ -79,10 +78,27 @@ func TestComputeOperandsAddAp(t *testing.T) {
 
 	operands, addresses, _, _ := vmachine.ComputeOperands(instruction)
 
-	if !reflect.DeepEqual(operands, expected_operands) {
-		t.Errorf("We should have this data  got ")
+	if addresses.Dst_addr != expected_addresses.Dst_addr {
+		t.Errorf("Different dst addr")
 	}
-	if !reflect.DeepEqual(addresses, expected_addresses) {
-		t.Errorf("Addresses are not equal")
+
+	if addresses.Op0_addr != expected_addresses.Op0_addr {
+		t.Errorf("Different op0 addr")
+	}
+	if addresses.Op1_addr != expected_addresses.Op1_addr {
+		t.Errorf("Different op1 addr")
+	}
+
+	if operands.Dst != expected_operands.Dst {
+		t.Errorf("Different Dst register")
+	}
+	if operands.Op0 != expected_operands.Op0 {
+		t.Errorf("Different op0 register")
+	}
+	if operands.Op1 != expected_operands.Op1 {
+		t.Errorf("Different op1 register")
+	}
+	if *operands.Res != *expected_operands.Res {
+		t.Errorf("Different res register")
 	}
 }

@@ -119,7 +119,7 @@ func TestOpcodeAssertionsInconsistentOp0(t *testing.T) {
 	}
 
 	testVm := NewVirtualMachine()
-	testVm.runContext.Pc = memory.NewRelocatable(0, 4)
+	testVm.RunContext.Pc = memory.NewRelocatable(0, 4)
 	err := testVm.OpcodeAssertions(instruction, operands)
 	if err.Error() != "CantWriteReturnPc" {
 		t.Error("Assertion should error out with CantWriteReturnPc")
@@ -149,7 +149,7 @@ func TestOpcodeAssertionsInconsistentDst(t *testing.T) {
 	}
 
 	testVm := NewVirtualMachine()
-	testVm.runContext.Fp = memory.NewRelocatable(1, 6)
+	testVm.RunContext.Fp = memory.NewRelocatable(1, 6)
 	err := testVm.OpcodeAssertions(instruction, operands)
 	if err.Error() != "CantWriteReturnFp" {
 		t.Error("Assertion should error out with CantWriteReturnFp")

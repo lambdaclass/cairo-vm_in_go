@@ -64,6 +64,7 @@ func (run_context RunContext) ComputeOp1Addr(instruction Instruction, op0 memory
 		}
 		// Todo:check case op0
 	}
+
 	if instruction.OffOp1 < 0 {
 		return base_addr.SubUint(uint(math.Abs(float64(instruction.OffOp1))))
 	} else {
