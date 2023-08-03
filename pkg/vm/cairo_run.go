@@ -1,7 +1,5 @@
 package vm
 
-import "github.com/lambdaclass/cairo-vm.go/pkg/parser"
-
 type RunResources struct {
 	NSteps *uint
 }
@@ -21,13 +19,14 @@ type CairoRunConfig struct {
 	SecureRun    *bool
 }
 
-func CairoRunProgram(program parser.CompiledJson) error {
-	hintExecutor := BuiltinHintProcessor{}
-	cairoRunConfig := CairoRunConfig{}
-	CairoRun(program, hintExecutor, cairoRunConfig)
+// func CairoRunProgram(program parser.CompiledJson) error {
+// 	hintExecutor := BuiltinHintProcessor{}
+// 	cairoRunConfig := CairoRunConfig{}
+// 	CairoRun(program, hintExecutor, cairoRunConfig)
 
-}
+// }
 
-func CairoRun(program parser.CompiledJson, hintExecutor BuiltinHintProcessor, cairoRunConfig CairoRunConfig) error {
-	programJson := DeserializeProgramJson(program)
-}
+// func CairoRun(program parser.CompiledJson, hintExecutor BuiltinHintProcessor, cairoRunConfig CairoRunConfig) error {
+// 	programJson := DeserializeProgramJson(program)
+// 	return InvalidApUpdateError(programJson.Data)
+// }

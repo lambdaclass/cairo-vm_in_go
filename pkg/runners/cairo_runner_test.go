@@ -3,6 +3,7 @@ package runners_test
 import (
 	"testing"
 
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/runners"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
@@ -72,7 +73,7 @@ func TestInitializeRunnerNoBuiltinsNoProofModeEmptyProgram(t *testing.T) {
 func TestInitializeRunnerNoBuiltinsNoProofModeNonEmptyProgram(t *testing.T) {
 	// Create a Program with one fake instruction
 	program_data := make([]memory.MaybeRelocatable, 1)
-	program_data[0] = *memory.NewMaybeRelocatableInt(1)
+	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.From(1))
 	program := vm.Program{Data: program_data}
 	// Create CairoRunner
 	runner := runners.NewCairoRunner(program)
@@ -109,9 +110,9 @@ func TestInitializeRunnerNoBuiltinsNoProofModeNonEmptyProgram(t *testing.T) {
 	if err != nil {
 		t.Errorf("Memory Get error in test: %s", err)
 	}
-	int, ok := value.GetInt()
-	if !ok || int.Felt != 1 {
-		t.Errorf("Wrong value for address 0:0: %d", int)
+	felt, ok := value.GetFelt()
+	if !ok || felt != lambdaworks.From(1) {
+		t.Errorf("Wrong value for address 0:0: %d", felt)
 	}
 
 	// Execution segment

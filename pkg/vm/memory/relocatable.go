@@ -1,5 +1,7 @@
 package memory
 
+import "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+
 // Relocatable in the Cairo VM represents an address
 // in some memory segment. When the VM finishes running,
 // these values are replaced by real memory addresses,
@@ -18,9 +20,7 @@ func NewRelocatable(segment_idx int, offset uint) Relocatable {
 // Int in the Cairo VM represents a value in memory that
 // is not an address.
 type Int struct {
-	// FIXME: Here we should use Lambdaworks felt, just mocking
-	// this for now.
-	Felt uint
+	Felt lambdaworks.Felt
 }
 
 // MaybeRelocatable is the type of the memory cells in the Cairo
@@ -32,8 +32,8 @@ type MaybeRelocatable struct {
 }
 
 // Creates a new MaybeRelocatable with an Int inner value
-func NewMaybeRelocatableInt(felt uint) *MaybeRelocatable {
-	return &MaybeRelocatable{inner: Int{felt}}
+func NewMaybeRelocatableFelt(felt lambdaworks.Felt) *MaybeRelocatable {
+	return &MaybeRelocatable{inner: felt}
 }
 
 // Creates a new MaybeRelocatable with a Relocatable inner value
@@ -41,10 +41,10 @@ func NewMaybeRelocatableRelocatable(relocatable Relocatable) *MaybeRelocatable {
 	return &MaybeRelocatable{inner: relocatable}
 }
 
-// If m is Int, returns the inner value + true, if not, returns zero + false
-func (m *MaybeRelocatable) GetInt() (Int, bool) {
-	int, is_type := m.inner.(Int)
-	return int, is_type
+// If m is Felt, returns the inner value + true, if not, returns zero + false
+func (m *MaybeRelocatable) GetFelt() (lambdaworks.Felt, bool) {
+	felt, is_type := m.inner.(lambdaworks.Felt)
+	return felt, is_type
 }
 
 // If m is Relocatable, returns the inner value + true, if not, returns zero + false
