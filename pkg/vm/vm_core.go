@@ -31,7 +31,7 @@ func (v *VirtualMachine) RelocateTrace(relocationTable *[]uint) error {
 
 	for _, entry := range v.Trace {
 		v.RelocatedTrace = append(v.RelocatedTrace, RelocatedTraceEntry{
-			Pc: entry.Pc + 1,
+			Pc: entry.Pc.RelocateAddress(relocationTable),
 			Ap: entry.Ap.RelocateAddress(relocationTable) + segment1Base,
 			Fp: entry.Fp.RelocateAddress(relocationTable) + segment1Base,
 		})

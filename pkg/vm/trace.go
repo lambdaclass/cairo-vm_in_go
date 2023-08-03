@@ -3,7 +3,7 @@ package vm
 import "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 
 type TraceEntry struct {
-	Pc uint
+	Pc memory.Relocatable
 	Ap memory.Relocatable
 	Fp memory.Relocatable
 }
