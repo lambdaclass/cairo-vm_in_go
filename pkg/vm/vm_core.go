@@ -105,7 +105,7 @@ func VmNew(run_context RunContext, current_step uint, segments_manager memory.Me
 func (vm *VirtualMachine) ComputeRes(instruction Instruction, op0 memory.MaybeRelocatable, op1 memory.MaybeRelocatable) (*memory.MaybeRelocatable, error) {
 	switch instruction.ResLogic {
 	case ResOp1:
-		return op1, nil
+		return &op1, nil
 
 	case ResAdd:
 		maybe_rel, err := op0.AddMaybeRelocatable(op1)

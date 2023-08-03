@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
-	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
 // Relocatable in the Cairo VM represents an address
