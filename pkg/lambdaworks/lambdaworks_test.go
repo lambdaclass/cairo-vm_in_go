@@ -47,7 +47,6 @@ func TestFeltSub(t *testing.T) {
 }
 
 func TestFeltAdd(t *testing.T) {
-
 	var felt Felt
 	f_zero := felt.Zero()
 	f_one := felt.One()
