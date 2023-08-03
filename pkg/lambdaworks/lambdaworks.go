@@ -52,7 +52,7 @@ func From(value uint64) Felt {
 	return fromC(result)
 }
 
-func FromHex(value string) Felt {
+func FeltFromHex(value string) Felt {
 	cs := C.CString(value)
 	defer C.free(unsafe.Pointer(cs))
 
