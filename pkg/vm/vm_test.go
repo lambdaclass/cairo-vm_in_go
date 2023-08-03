@@ -8,6 +8,44 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
+func TestUpdateApRegular(t *testing.T) {
+	instruction := vm.Instruction{ApUpdate: vm.ApUpdateRegular}
+	operands := vm.Operands{}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateAp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateAp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Ap, memory.Relocatable{SegmentIndex: 0, Offset: 0}) {
+		t.Errorf("Wrong value after ap update")
+	}
+}
+
+func TestUpdateApAdd2(t *testing.T) {
+	instruction := vm.Instruction{ApUpdate: vm.ApUpdateAdd2}
+	operands := vm.Operands{}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateAp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateAp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Ap, memory.Relocatable{SegmentIndex: 0, Offset: 2}) {
+		t.Errorf("Wrong value after ap update")
+	}
+}
+
+func TestUpdateApAdd1(t *testing.T) {
+	instruction := vm.Instruction{ApUpdate: vm.ApUpdateAdd1}
+	operands := vm.Operands{}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateAp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateAp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Ap, memory.Relocatable{SegmentIndex: 0, Offset: 1}) {
+		t.Errorf("Wrong value after ap update")
+	}
+}
 func TestUpdateApAddWithResInt(t *testing.T) {
 	instruction := vm.Instruction{ApUpdate: vm.ApUpdateAdd}
 	operands := vm.Operands{Res: memory.NewMaybeRelocatableInt(5)}
