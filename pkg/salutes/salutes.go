@@ -7,5 +7,5 @@ import (
 )
 
 func Hello() string {
-	return fmt.Sprintf("Hello, world! Here's your number: %d", lambdaworks.Number())
+	return fmt.Sprintf("Hello, world! Here's your felt: %d", lambdaworks.From(42))
 }

@@ -8,6 +8,14 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
+type VirtualMachineError struct {
+	Msg string
+}
+
+func (e *VirtualMachineError) Error() string {
+	return fmt.Sprintf(e.Msg)
+}
+
 // VirtualMachine represents the Cairo VM.
 // Runs Cairo assembly and produces an execution trace.
 // TODO: write proper methods to obtain the fields instead of making them public
@@ -15,6 +23,14 @@ type VirtualMachine struct {
 	RunContext  RunContext
 	CurrentStep uint
 	Segments    memory.MemorySegmentManager
+}
+
+func NewVirtualMachine() *VirtualMachine {
+	return &VirtualMachine{
+		RunContext:  RunContext{},
+		CurrentStep: 0,
+		Segments:    memory.NewMemorySegmentManager(),
+	}
 }
 
 type Operands struct {
@@ -36,6 +52,36 @@ type OperandsAddresses struct {
 
 type DeducedOperands struct {
 	Operands uint8
+}
+
+func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Operands) error {
+	switch instruction.Opcode {
+	case AssertEq:
+		if operands.Res == nil {
+			return &VirtualMachineError{"UnconstrainedResAssertEq"}
+		}
+		if !operands.Res.IsEqual(&operands.Dst) {
+			return &VirtualMachineError{"DiffAssertValues"}
+		}
+	case Call:
+		new_rel, err := vm.runContext.Pc.AddUint(instruction.size())
+		if err != nil {
+			return err
+		}
+		returnPC := memory.NewMaybeRelocatableRelocatable(new_rel)
+
+		if !operands.Op0.IsEqual(returnPC) {
+			return &VirtualMachineError{"CantWriteReturnPc"}
+		}
+
+		returnFP := vm.runContext.Fp
+		dstRelocatable, _ := operands.Dst.GetRelocatable()
+		if !returnFP.IsEqual(&dstRelocatable) {
+			return &VirtualMachineError{"CantWriteReturnFp"}
+		}
+	}
+
+	return nil
 }
 
 func (deduced *DeducedOperands) set_dst(value uint8) {

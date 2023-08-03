@@ -47,7 +47,7 @@ func TestComputeOperandsAddAp(t *testing.T) {
 		Fp: memory.NewRelocatable(1, 0),
 		Pc: memory.NewRelocatable(0, 0),
 	}
-	vmachine := vm.VmNew(run_context, 0, *memory_manager)
+	vmachine := vm.VmNew(run_context, 0, memory_manager)
 
 	for i := 0; i < 2; i++ {
 		vmachine.Segments.AddSegment()
