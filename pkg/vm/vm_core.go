@@ -21,6 +21,6 @@ type Operands struct {
 	Op1 memory.MaybeRelocatable
 }
 
-func (vm *VirtualMachine) update_pc(instruction *Instruction, operands *Operands) error {
+func (vm *VirtualMachine) updatePc(instruction *Instruction, operands *Operands) error {
 	return nil
 }
