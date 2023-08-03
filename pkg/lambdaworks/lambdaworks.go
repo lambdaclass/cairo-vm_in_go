@@ -7,8 +7,8 @@ package lambdaworks
 */
 import "C"
 
-import "errors"
 import (
+	"errors"
 	"unsafe"
 )
 
@@ -106,7 +106,6 @@ func (a Felt) Mul(b Felt) Felt {
 }
 
 // Writes the result variable with a / b.
-
 
 // turns a felt to usize
 func (felt Felt) ToU64() (uint64, error) {

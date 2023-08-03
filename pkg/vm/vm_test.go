@@ -53,11 +53,11 @@ func TestComputeOperandsAddAp(t *testing.T) {
 	}
 
 	dst_addr := memory.NewRelocatable(1, 0)
-	dst_addr_value := memory.NewMaybeRelocatableInt(lambdaworks.From(5))
+	dst_addr_value := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(5))
 	op0_addr := memory.NewRelocatable(1, 1)
-	op0_addr_value := memory.NewMaybeRelocatableInt(lambdaworks.From(2))
+	op0_addr_value := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(2))
 	op1_addr := memory.NewRelocatable(1, 2)
-	op1_addr_value := memory.NewMaybeRelocatableInt(lambdaworks.From(3))
+	op1_addr_value := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(3))
 
 	vmachine.Segments.Memory.Insert(dst_addr, dst_addr_value)
 	vmachine.Segments.Memory.Insert(op0_addr, op0_addr_value)

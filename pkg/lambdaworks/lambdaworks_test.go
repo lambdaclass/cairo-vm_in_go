@@ -4,14 +4,6 @@ import (
 	"testing"
 )
 
-func TestFeltSub(t *testing.T) {
-	f_one := One()
-
-	var expected Felt
-	Zero()
-
-	result := Sub(f_one, f_one)
-}
 func TestFromHex(t *testing.T) {
 	var h_one = "1a"
 	expected := FeltFromUint64(26)

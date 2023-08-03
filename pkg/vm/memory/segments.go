@@ -67,7 +67,9 @@ func (s *MemorySegmentManager) RelocateMemory(relocationTable *[]uint) (map[uint
 				if err != nil {
 					return nil, err
 				}
-				relocatedMemory[relocatedAddr] = value
+				// Todo: fix this, should be a felt
+				val, _ := value.ToU64()
+				relocatedMemory[relocatedAddr] = uint(val)
 			}
 		}
 	}

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -18,19 +17,14 @@ func (e *VirtualMachineError) Error() string {
 
 // VirtualMachine represents the Cairo VM.
 // Runs Cairo assembly and produces an execution trace.
-// TODO: write proper methods to obtain the fields instead of making them public
 type VirtualMachine struct {
 	RunContext  RunContext
 	CurrentStep uint
 	Segments    memory.MemorySegmentManager
 }
 
-func NewVirtualMachine() *VirtualMachine {
-	return &VirtualMachine{
-		RunContext:  RunContext{},
-		CurrentStep: 0,
-		Segments:    memory.NewMemorySegmentManager(),
-	}
+func NewVirtualMachine() VirtualMachine {
+	return VirtualMachine{Segments: memory.NewMemorySegmentManager()}
 }
 
 type Operands struct {
@@ -96,7 +90,7 @@ func (deduced *DeducedOperands) set_op1(value uint8) {
 	deduced.Operands = deduced.Operands | value<<2
 }
 
-// ------------------------
+//------------------------
 //  virtual machines funcs
 // ------------------------
 
@@ -124,7 +118,7 @@ func (vm *VirtualMachine) ComputeRes(instruction Instruction, op0 memory.MaybeRe
 		num_op0, m_type := op0.GetInt()
 		num_op1, other_type := op1.GetInt()
 		if m_type && other_type {
-			result := memory.NewMaybeRelocatableInt(lambdaworks.Add(num_op0.Felt, num_op1.Felt))
+			result := memory.NewMaybeRelocatableInt(num_op0.Felt.Add(num_op1.Felt))
 			return *result, nil
 		} else {
 			return memory.MaybeRelocatable{}, errors.New("ComputeResRelocatableMul")

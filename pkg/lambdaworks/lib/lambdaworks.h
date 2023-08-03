@@ -30,6 +30,4 @@ void sub(felt_t a, felt_t b, felt_t result);
 void mul(felt_t a, felt_t b, felt_t result);
 
 /* Writes the result variable with a / b. */
-void div(felt_t a, felt_t b, felt_t result);
-
 void lw_div(felt_t a, felt_t b, felt_t result);

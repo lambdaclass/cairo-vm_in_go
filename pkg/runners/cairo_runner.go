@@ -21,7 +21,7 @@ func NewCairoRunner(program vm.Program) *CairoRunner {
 	// TODO: Fetch main entrypoint offset from program identifiers
 	// Placeholder
 	main_offset := uint(0)
-	return &CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
+	return &CairoRunner{Program: program, Vm: vm.NewVirtualMachine(), mainOffset: main_offset}
 
 }
 
