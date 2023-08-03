@@ -75,3 +75,4 @@ compare_trace: build_cairo_vm_cli $(CAIRO_RS_TRACE) $(CAIRO_GO_TRACE)
 
 compare_memory: build_cairo_vm_cli $(CAIRO_RS_MEM) $(CAIRO_GO_MEM)
 	cd scripts; sh compare_vm_state.sh memory
+
