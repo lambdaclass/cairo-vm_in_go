@@ -66,3 +66,23 @@ func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands)
 	}
 	return nil
 }
+
+// Updates the value of PC according to the executed instruction
+func (vm *VirtualMachine) UpdateAp(instruction *Instruction, operands *Operands) error {
+	switch instruction.ApUpdate {
+	case ApUpdateAdd:
+		if operands.Res == nil {
+			return errors.New("Res.UNCONSTRAINED cannot be used with ApUpdate.ADD")
+		}
+		new_ap, err := vm.RunContext.Ap.AddMaybeRelocatable(*operands.Res)
+		if err != nil {
+			return err
+		}
+		vm.RunContext.Ap = new_ap
+	case ApUpdateAdd1:
+		vm.RunContext.Ap.Offset += 1
+	case ApUpdateAdd2:
+		vm.RunContext.Ap.Offset += 2
+	}
+	return nil
+}
