@@ -7,7 +7,6 @@ package lambdaworks
 */
 import "C"
 import (
-	"strconv"
 	"unsafe"
 )
 
@@ -17,14 +16,6 @@ type Limb C.limb_t
 // Go representation of a 256 bit prime field element (felt).
 type Felt struct {
 	limbs [4]Limb
-}
-
-func stringToUint64(numberStr string) (uint64, error) {
-	val, err := strconv.ParseUint(numberStr, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	return val, nil
 }
 
 // Converts a Go Felt to a C felt_t.
