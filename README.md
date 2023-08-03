@@ -435,7 +435,7 @@ type VirtualMachine struct {
 
 To begin coding the basic execution functionality of our VM, we only need these basic fields, we will be adding more fields as we dive deeper into this guide.
 
-### Instrcution Decoding and Execution
+### Instruction Decoding and Execution
 
 ### CairoRunner
 
