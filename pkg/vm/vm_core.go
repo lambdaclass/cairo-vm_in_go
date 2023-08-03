@@ -13,3 +13,14 @@ type VirtualMachine struct {
 func NewVirtualMachine() *VirtualMachine {
 	return &VirtualMachine{Segments: *memory.NewMemorySegmentManager()}
 }
+
+type Operands struct {
+	Dst memory.MaybeRelocatable
+	Res memory.MaybeRelocatable
+	Op0 memory.MaybeRelocatable
+	Op1 memory.MaybeRelocatable
+}
+
+func (vm *VirtualMachine) update_pc(instruction *Instruction, operands *Operands) error {
+	return nil
+}
