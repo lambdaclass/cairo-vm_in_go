@@ -25,7 +25,7 @@ type Operands struct {
 	Op1 memory.MaybeRelocatable
 }
 
-// Updates the value of PC according to the executed instrcuction
+// Updates the value of PC according to the executed instruction
 func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands) error {
 	switch instruction.PcUpdate {
 	case PcUpdateRegular:
