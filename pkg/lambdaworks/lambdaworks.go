@@ -7,7 +7,6 @@ package lambdaworks
 */
 import "C"
 import (
-	"strconv"
 	"unsafe"
 )
 
@@ -17,14 +16,6 @@ type Limb C.limb_t
 // Go representation of a 256 bit prime field element (felt).
 type Felt struct {
 	limbs [4]Limb
-}
-
-func stringToUint64(numberStr string) (uint64, error) {
-	val, err := strconv.ParseUint(numberStr, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	return val, nil
 }
 
 // Converts a Go Felt to a C felt_t.
@@ -52,7 +43,7 @@ func From(value uint64) Felt {
 	return fromC(result)
 }
 
-func FromHex(value string) Felt {
+func FeltFromHex(value string) Felt {
 	cs := C.CString(value)
 	defer C.free(unsafe.Pointer(cs))
 
@@ -61,7 +52,7 @@ func FromHex(value string) Felt {
 	return fromC(result)
 }
 
-func FromDecString(value string) Felt {
+func FeltFromDecString(value string) Felt {
 	cs := C.CString(value)
 	defer C.free(unsafe.Pointer(cs))
 
@@ -86,7 +77,7 @@ func (f Felt) One() Felt {
 }
 
 // Writes the result variable with the sum of a and b felts.
-func Add(a, b Felt) Felt {
+func (a Felt) Add(b Felt) Felt {
 	var result C.felt_t
 	var a_c C.felt_t = a.toC()
 	var b_c C.felt_t = b.toC()
@@ -94,8 +85,19 @@ func Add(a, b Felt) Felt {
 	return fromC(result)
 }
 
+// Writes the result variable with the sum of a and the elements in b array.
+func (a Felt) AddFelts(felts []Felt) Felt {
+	var a_c C.felt_t = a.toC()
+	for _, felt := range felts {
+		var f_c C.felt_t = felt.toC()
+		C.add(&a_c[0], &f_c[0], &a_c[0])
+	}
+
+	return fromC(a_c)
+}
+
 // Writes the result variable with a - b.
-func Sub(a, b Felt) Felt {
+func (a Felt) Sub(b Felt) Felt {
 	var result C.felt_t
 	var a_c C.felt_t = a.toC()
 	var b_c C.felt_t = b.toC()
@@ -103,8 +105,19 @@ func Sub(a, b Felt) Felt {
 	return fromC(result)
 }
 
+// Writes the result variable with the difference of a and the elements in b array.
+func (a Felt) SubFelts(felts []Felt) Felt {
+	var a_c C.felt_t = a.toC()
+	for _, felt := range felts {
+		var f_c C.felt_t = felt.toC()
+		C.sub(&a_c[0], &f_c[0], &a_c[0])
+	}
+
+	return fromC(a_c)
+}
+
 // Writes the result variable with a * b.
-func Mul(a, b Felt) Felt {
+func (a Felt) Mul(b Felt) Felt {
 	var result C.felt_t
 	var a_c C.felt_t = a.toC()
 	var b_c C.felt_t = b.toC()
@@ -113,7 +126,7 @@ func Mul(a, b Felt) Felt {
 }
 
 // Writes the result variable with a / b.
-func Div(a, b Felt) Felt {
+func (a Felt) Div(b Felt) Felt {
 	var result C.felt_t
 	var a_c C.felt_t = a.toC()
 	var b_c C.felt_t = b.toC()
