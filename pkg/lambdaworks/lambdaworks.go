@@ -77,7 +77,7 @@ func (f Felt) One() Felt {
 }
 
 // Writes the result variable with the sum of a and b felts.
-func Add(a, b Felt) Felt {
+func (a Felt) Add(b Felt) Felt {
 	var result C.felt_t
 	var a_c C.felt_t = a.toC()
 	var b_c C.felt_t = b.toC()
@@ -85,8 +85,19 @@ func Add(a, b Felt) Felt {
 	return fromC(result)
 }
 
+// Writes the result variable with the sum of a and the elements in b array.
+func (a Felt) AddFelts(felts []Felt) Felt {
+	var a_c C.felt_t = a.toC()
+	for _, felt := range felts {
+		var f_c C.felt_t = felt.toC()
+		C.add(&a_c[0], &f_c[0], &a_c[0])
+	}
+
+	return fromC(a_c)
+}
+
 // Writes the result variable with a - b.
-func Sub(a, b Felt) Felt {
+func (a Felt) Sub(b Felt) Felt {
 	var result C.felt_t
 	var a_c C.felt_t = a.toC()
 	var b_c C.felt_t = b.toC()
@@ -95,7 +106,7 @@ func Sub(a, b Felt) Felt {
 }
 
 // Writes the result variable with a * b.
-func Mul(a, b Felt) Felt {
+func (a Felt) Mul(b Felt) Felt {
 	var result C.felt_t
 	var a_c C.felt_t = a.toC()
 	var b_c C.felt_t = b.toC()
@@ -104,7 +115,7 @@ func Mul(a, b Felt) Felt {
 }
 
 // Writes the result variable with a / b.
-func Div(a, b Felt) Felt {
+func (a Felt) Div(b Felt) Felt {
 	var result C.felt_t
 	var a_c C.felt_t = a.toC()
 	var b_c C.felt_t = b.toC()
