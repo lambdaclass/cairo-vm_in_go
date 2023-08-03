@@ -18,16 +18,16 @@ type VirtualMachine struct {
 }
 
 type Operands struct {
-	dst memory.MaybeRelocatable
-	res memory.MaybeRelocatable
-	op0 memory.MaybeRelocatable
-	op1 memory.MaybeRelocatable
+	Dst memory.MaybeRelocatable
+	Res memory.MaybeRelocatable
+	Op0 memory.MaybeRelocatable
+	Op1 memory.MaybeRelocatable
 }
 
 type OperandsAddresses struct {
-	dst_addr memory.Relocatable
-	op0_addr memory.Relocatable
-	op1_addr memory.Relocatable
+	Dst_addr memory.Relocatable
+	Op0_addr memory.Relocatable
+	Op1_addr memory.Relocatable
 }
 
 // ------------------------
@@ -35,19 +35,19 @@ type OperandsAddresses struct {
 // ------------------------
 
 type DeducedOperands struct {
-	operands uint8
+	Operands uint8
 }
 
 func (deduced *DeducedOperands) set_dst(value uint8) {
-	deduced.operands = deduced.operands | value
+	deduced.Operands = deduced.Operands | value
 }
 
 func (deduced *DeducedOperands) set_op0(value uint8) {
-	deduced.operands = deduced.operands | value<<1
+	deduced.Operands = deduced.Operands | value<<1
 }
 
 func (deduced *DeducedOperands) set_op1(value uint8) {
-	deduced.operands = deduced.operands | value<<2
+	deduced.Operands = deduced.Operands | value<<2
 }
 
 // ------------------------
@@ -110,20 +110,20 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, Op
 	}
 	op1_op, _ := vm.Segments.Memory.Get(op1_addr)
 
-	deduced_operands := DeducedOperands{operands: 0}
+	deduced_operands := DeducedOperands{Operands: 0}
 	res, err := vm.ComputeRes(instruction, *op0_op, *op1_op)
 
 	accesed_addresses := OperandsAddresses{
-		dst_addr: dst_addr,
-		op0_addr: op0_addr,
-		op1_addr: op1_addr,
+		Dst_addr: dst_addr,
+		Op0_addr: op0_addr,
+		Op1_addr: op1_addr,
 	}
 
 	operands := Operands{
-		dst: *dst_op,
-		op0: *op0_op,
-		op1: *op1_op,
-		res: res,
+		Dst: *dst_op,
+		Op0: *op0_op,
+		Op1: *op1_op,
+		Res: res,
 	}
 	return operands, accesed_addresses, deduced_operands, nil
 }

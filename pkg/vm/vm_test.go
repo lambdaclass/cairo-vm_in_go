@@ -1,6 +1,7 @@
 package vm_test
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
@@ -25,31 +26,31 @@ func TestFibonacci(t *testing.T) {
 	// }
 }
 
-func test_clambdaworksompute_operands_add_ap(t *testing.T) {
+func TestComputeOperandsAddAp(t *testing.T) {
 	instruction := vm.Instruction{
 		OffDst:   0,
 		OffOp0:   1,
 		OffOp1:   2,
 		DstReg:   vm.AP,
 		Op0Reg:   vm.FP,
-		Op1Addr:  vm.Op1SrcAP,achine
+		Op1Addr:  vm.Op1SrcAP,
 		ResLogic: vm.ResAdd,
 		PcUpdate: vm.PcUpdateRegular,
 		ApUpdate: vm.ApUpdateRegular,
 		FpUpdate: vm.FpUpdateRegular,
-		Opcode:   achinevm.NOp,
+		Opcode:   vm.NOp,
 	}
 
 	memory_manager := memory.NewMemorySegmentManager()
 	run_context := vm.RunContext{
 		Ap: memory.NewRelocatable(1, 0),
 		Fp: memory.NewRelocatable(1, 0),
-		Pc: memory.NewRelocatable(1, 0),
+		Pc: memory.NewRelocatable(0, 0),
 	}
-	vmachine := vmachine.VmNew(run_context, 0, *memory_manager)
+	vmachine := vm.VmNew(run_context, 0, *memory_manager)
 
 	for i := 0; i < 2; i++ {
-		vm.Segments.AddSegment()
+		vmachine.Segments.AddSegment()
 	}
 	vmachine.Segments.Memory = *memory.NewMemory()
 	dst_addr := memory.NewRelocatable(1, 0)
@@ -64,18 +65,24 @@ func test_clambdaworksompute_operands_add_ap(t *testing.T) {
 	vmachine.Segments.Memory.Insert(op1_addr, op1_addr_value)
 
 	expected_operands := vm.Operands{
-		dst: dst_addr_value,
-		res: dst_addr_value,
-		op0: op0_addr_value,
-		op1: op1_addr_value,
+		Dst: *dst_addr_value,
+		Res: *dst_addr_value,
+		Op0: *op0_addr_value,
+		Op1: *op1_addr_value,
 	}
 
-	expected_addresses := vm.OperandsAddresses {
-		dst_addr: dst_addr,
-		op0_addr: op0_addr,
-		op1_addr: op1_addr,
+	expected_addresses := vm.OperandsAddresses{
+		Dst_addr: dst_addr,
+		Op0_addr: op0_addr,
+		Op1_addr: op1_addr,
 	}
 
-	operands, addresses, _, _:= vm.ComputeOperands(instruction)
+	operands, addresses, _, _ := vmachine.ComputeOperands(instruction)
 
+	if !reflect.DeepEqual(operands, expected_operands) {
+		t.Errorf("We should have this data  got ")
+	}
+	if !reflect.DeepEqual(addresses, expected_addresses) {
+		t.Errorf("Addresses are not equal")
+	}
 }
