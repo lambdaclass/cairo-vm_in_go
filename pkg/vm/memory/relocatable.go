@@ -20,6 +20,29 @@ func NewRelocatable(segment_idx int, offset uint) Relocatable {
 	return Relocatable{segment_idx, offset}
 }
 
+func (relocatable *Relocatable) AddFelt(other Int) (Relocatable, error) {
+	new_offset := relocatable.Offset + other.Felt // TODO: Placeholder
+	return NewRelocatable(relocatable.SegmentIndex, new_offset), nil
+
+}
+
+func (r *Relocatable) Add(other Relocatable) (Relocatable, error) {
+	if r.SegmentIndex != other.SegmentIndex {
+		return Relocatable{}, errors.New("Can't add two relocatables with different segment index")
+	}
+	return Relocatable{r.SegmentIndex, r.Offset + other.Offset}, nil
+
+}
+
+func (r *Relocatable) AddMaybeRelocatable(other MaybeRelocatable) (Relocatable, error) {
+	rel, ok := other.GetRelocatable()
+	if !ok {
+		felt, _ := other.GetInt()
+		return r.AddFelt(felt)
+	}
+	return r.Add(rel)
+}
+
 func (r *Relocatable) RelocateAddress(relocationTable *[]uint) uint {
 	return (*relocationTable)[r.SegmentIndex] + r.Offset
 }
