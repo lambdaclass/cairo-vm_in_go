@@ -8,6 +8,59 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
+func TestUpdateFpRegular(t *testing.T) {
+	instruction := vm.Instruction{FpUpdate: vm.FpUpdateRegular}
+	operands := vm.Operands{}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateFp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateFp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Fp, memory.Relocatable{SegmentIndex: 0, Offset: 0}) {
+		t.Errorf("Wrong value after fp update")
+	}
+}
+
+func TestUpdateFpDstInt(t *testing.T) {
+	instruction := vm.Instruction{FpUpdate: vm.FpUpdateDst}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableInt(9)}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateFp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateFp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Fp, memory.Relocatable{SegmentIndex: 0, Offset: 9}) {
+		t.Errorf("Wrong value after fp update")
+	}
+}
+func TestUpdateFpDstRelocatable(t *testing.T) {
+	instruction := vm.Instruction{FpUpdate: vm.FpUpdateDst}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableRelocatable(memory.Relocatable{SegmentIndex: 0, Offset: 9})}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateFp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateFp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Fp, memory.Relocatable{SegmentIndex: 0, Offset: 9}) {
+		t.Errorf("Wrong value after fp update")
+	}
+}
+
+func TestUpdateFpApPlus2(t *testing.T) {
+	instruction := vm.Instruction{FpUpdate: vm.FpUpdateAPPlus2}
+	operands := vm.Operands{}
+	vm := vm.NewVirtualMachine()
+	// Change the value of Ap offset
+	vm.RunContext.Ap.Offset = 7
+	err := vm.UpdateFp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateFp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Fp, memory.Relocatable{SegmentIndex: 0, Offset: 9}) {
+		t.Errorf("Wrong value after fp update")
+	}
+}
+
 func TestUpdateApRegular(t *testing.T) {
 	instruction := vm.Instruction{ApUpdate: vm.ApUpdateRegular}
 	operands := vm.Operands{}
