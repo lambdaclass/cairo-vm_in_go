@@ -105,6 +105,55 @@ func TestUpdatePcJumpRelNoRes(t *testing.T) {
 	}
 }
 
+func TestUpdatePcJnzDstIsZeroNoImm(t *testing.T) {
+	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJnz, Op1Addr: vm.Op1SrcAP}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableInt(0)}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdatePc(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdatePc failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Pc, memory.Relocatable{SegmentIndex: 0, Offset: 1}) {
+		t.Errorf("Wrong value after pc update")
+	}
+}
+
+func TestUpdatePcJnzDstIsZeroWithImm(t *testing.T) {
+	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJnz, Op1Addr: vm.Op1SrcImm}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableInt(0)}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdatePc(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdatePc failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Pc, memory.Relocatable{SegmentIndex: 0, Offset: 2}) {
+		t.Errorf("Wrong value after pc update")
+	}
+}
+
+func TestUpdatePcJnzDstNotZeroOp1Int(t *testing.T) {
+	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJnz}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableInt(1), Op1: *memory.NewMaybeRelocatableInt(3)}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdatePc(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdatePc failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Pc, memory.Relocatable{SegmentIndex: 0, Offset: 3}) {
+		t.Errorf("Wrong value after pc update %v", vm.RunContext.Pc)
+	}
+}
+
+func TestUpdatePcJnzDstNotZeroOp1Rel(t *testing.T) {
+	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJnz}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableInt(1), Op1: *memory.NewMaybeRelocatableRelocatable(memory.Relocatable{})}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdatePc(&instruction, &operands)
+	if err == nil {
+		t.Errorf("UpdatePc should have failed")
+	}
+}
+
 // Things we are skipping for now:
 // - Initializing hint_executor and passing it to `cairo_run`
 // - cairo_run_config stuff
