@@ -60,7 +60,7 @@ func (run_context RunContext) ComputeOp1Addr(instruction Instruction, op0 memory
 			base_addr = run_context.Pc
 		} else {
 			base_addr = memory.NewRelocatable(-1, 0)
-			return base_addr, &VirtualMachineError{Msg: "UnknownOp0"}
+			return memory.Relocatable{}, &VirtualMachineError{Msg: "UnknownOp0"}
 		}
 		// Todo:check case op0
 	}

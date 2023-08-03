@@ -115,7 +115,6 @@ func TestFeltDiv4(t *testing.T) {
 }
 
 func TestFeltDiv4Error(t *testing.T) {
-
 	f_four := FeltFromUint64(4)
 	f_one := FeltFromUint64(1)
 

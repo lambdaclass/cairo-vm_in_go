@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
 // Relocatable in the Cairo VM represents an address
@@ -129,7 +130,10 @@ func (m MaybeRelocatable) AddMaybeRelocatable(other MaybeRelocatable) (MaybeRelo
 	if is_rel_m && !is_rel_other {
 
 		other_felt, _ := other.GetInt()
-		other_usize, _ := other_felt.Felt.ToU64()
+		other_usize, err := other_felt.Felt.ToU64()
+		if err != nil {
+			return MaybeRelocatable{}, err
+		}
 		offset := m_rel.Offset
 		new_offset := uint64(offset) + other_usize
 		rel := NewRelocatable(m_rel.SegmentIndex, uint(new_offset))

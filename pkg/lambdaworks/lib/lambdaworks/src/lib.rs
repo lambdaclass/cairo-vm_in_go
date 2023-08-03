@@ -1,8 +1,7 @@
 use lambdaworks_math::{
     field::element::FieldElement,
     field::fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
-    unsigned_integer::element::UnsignedInteger,
-    unsigned_integer::element::U256
+    unsigned_integer::element::UnsignedInteger, unsigned_integer::element::U256,
 };
 
 extern crate libc;
@@ -63,15 +62,12 @@ pub extern "C" fn from_dec_str(result: Limbs, value: *const libc::c_char) {
     let val_str = val_cstr.to_str().unwrap();
     let felt = match val_str.strip_prefix("-") {
         Some(stripped) => {
-            let val = U256::from_dec_str(stripped).unwrap(); 
+            let val = U256::from_dec_str(stripped).unwrap();
             Felt::from(0) - Felt::from(&val)
         }
-        None => { 
-            Felt::from(&U256::from_dec_str(val_str).unwrap())
-        }
+        None => Felt::from(&U256::from_dec_str(val_str).unwrap()),
     };
     felt_to_limbs(felt, result)
-    
 }
 
 #[no_mangle]
@@ -103,5 +99,3 @@ pub extern "C" fn mul(a: Limbs, b: Limbs, result: Limbs) {
 pub extern "C" fn lw_div(a: Limbs, b: Limbs, result: Limbs) {
     felt_to_limbs(limbs_to_felt(a) / limbs_to_felt(b), result)
 }
-
-
