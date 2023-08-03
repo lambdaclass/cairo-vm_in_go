@@ -2,45 +2,20 @@ package vm
 
 import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
-type ApTracking struct {
-	Group  uint64
-	Offset uint64
-}
-
-type FlowTrackingData struct {
-	ApTracking   ApTracking
-	ReferenceIDs map[string]uint64 `json:"reference_ids"`
-}
-
-type HintParams struct {
-	Code             string
-	AccessibleScopes []string `json:"accesible_scopes"`
-	FlowTrackingData FlowTrackingData
-}
-
-type SharedProgramData struct {
-	Data                   []memory.MaybeRelocatable
-	Hints                  []HintParams
-	HintsRange            []HintRange
-	Main                   *int
-	Start, end             *int
-	errorMessageAttributes []Attribute
-	instructionLocations   map[int]InstructionLocation
-	identifiers            map[string]Identifier
-	referenceManager       []HintReference
-}
-
 type Program struct {
-	sharedProgramData *SharedProgramData
-	constants         map[string]lambdaworks.Felt
-	builtins          []BuiltinName
+	Data []memory.MaybeRelocatable
 }
 
-type BuiltinName struct {
-	// Your BuiltinName fields here, if any
-	// Example:
-	// anotherField float64
+func DeserializeProgramJson(compiledProgram parser.CompiledJson) Program {
+	var program Program
+
+	hexData := compiledProgram.Data
+	for _, hexVal := range hexData {
+		felt := lambdaworks.FeltFromHex(hexVal)
+		program.Data = append(program.Data, *memory.NewMaybeRelocatableInt())
+	}
 }
