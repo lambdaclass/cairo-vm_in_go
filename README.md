@@ -241,7 +241,26 @@ Step 3: Convert relocatables to integers
 
 ### Program parsing
 
-Go through the main parts of a compiled program `Json` file. `data` field with instructions, identifiers, program entrypoint, etc.
+The input of the Virtual Machine is a compiled Cairo program in Json format. The main part of the file are listed below:
+
+- data: List of hexadecimal values that represent the instructions and immediate values defined in the cairo program. Each hexadecimal value is stored as a maybe_relocatable element in memory, but they can only be felts because the decoder has to be able to get the instruction fields in its bit representation.
+
+- debug_info: This field provides information about the instructions defined in the data list. Each one is identified with its index inside the data list. For each one it contains information about the cairo variables in scope, the hints executed before that instruction if any, and its location inside the cairo program.
+
+- hints: All the hints used in the program, ordered by the pc offset at which they should be executed.
+
+- identifiers: User-defined symbols in the Cairo code representing variables, functions, classes, etc. with unique names. The expected offset, type and its corresponding information is provided for each identifier
+
+    For example, the identifier representing the main function (usually the entrypoint of the program) is of `function` type, and a list of decorators wrappers (if there are any) are provided as additional information.
+    Another example is a user defined struct, is of `struct` type, it provides its size, the members it contains (with its information) and more.
+
+- main_scope: Usually something like __main__. All the identifiers associated with main function will be identified as __main__.identifier_name. Useful to identify the entrypoint of the program.
+
+- prime: The cairo prime in hexadecimal format. As explained above, all arithmetic operations are done over a base field, modulo this primer number.
+
+- reference_manager: Contains information about cairo variables. This information is useful to access to variables when executing cairo hints.
+
+In this project, we use a C++ library called [simdjson](https://github.com/simdjson/simdjson), the json is stored in a custom structure  which the vm can use to run the program and create a trace of its execution.
 
 ### Code walkthrough/Write your own Cairo VM
 
