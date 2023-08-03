@@ -67,7 +67,7 @@ func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands)
 	return nil
 }
 
-// Updates the value of PC according to the executed instruction
+// Updates the value of AP according to the executed instruction
 func (vm *VirtualMachine) UpdateAp(instruction *Instruction, operands *Operands) error {
 	switch instruction.ApUpdate {
 	case ApUpdateAdd:
@@ -83,6 +83,27 @@ func (vm *VirtualMachine) UpdateAp(instruction *Instruction, operands *Operands)
 		vm.RunContext.Ap.Offset += 1
 	case ApUpdateAdd2:
 		vm.RunContext.Ap.Offset += 2
+	}
+	return nil
+}
+
+// Updates the value of FP according to the executed instruction
+func (vm *VirtualMachine) UpdateFp(instruction *Instruction, operands *Operands) error {
+	switch instruction.FpUpdate {
+	case FpUpdateAPPlus2:
+		vm.RunContext.Fp.Offset = vm.RunContext.Ap.Offset + 2
+	case FpUpdateDst:
+		rel, ok := operands.Dst.GetRelocatable()
+		if ok {
+			vm.RunContext.Fp = rel
+		} else {
+			felt, _ := operands.Dst.GetInt()
+			new_fp, err := vm.RunContext.Fp.AddFelt(felt)
+			if err != nil {
+				return err
+			}
+			vm.RunContext.Fp = new_fp
+		}
 	}
 	return nil
 }
