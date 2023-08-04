@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -280,8 +281,8 @@ func (vm *VirtualMachine) DeduceOp0(instruction *Instruction, dst *memory.MaybeR
 			if dst != nil && op1 != nil {
 				dst_felt, dst_is_felt := dst.GetInt()
 				op1_felt, op1_is_felt := op1.GetInt()
-				if dst_is_felt && op1_is_felt && op1_felt.Felt != 0 {
-					return dst_felt.Div(op1_felt), dst, nil
+				if dst_is_felt && op1_is_felt && op1_felt.Felt != lambdaworks.FeltZero() {
+					return memory.NewMaybeRelocatableInt(dst_felt.Felt.Div(op1_felt.Felt)), dst, nil
 
 				}
 			}

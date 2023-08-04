@@ -28,13 +28,13 @@ func TestDeduceOp0OpcodeRet(t *testing.T) {
 func TestDeduceOp0OpcodeAssertEqResMulOk(t *testing.T) {
 	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResMul}
 	vm := vm.NewVirtualMachine()
-	dst := memory.NewMaybeRelocatableInt(6)
-	op1 := memory.NewMaybeRelocatableInt(3)
+	dst := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(6))
+	op1 := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(3))
 	op0, res, err := vm.DeduceOp0(&instruction, dst, op1)
 	if err != nil {
 		t.Errorf("DeduceOp0 failed with error: %s", err)
 	}
-	if !reflect.DeepEqual(op0, memory.NewMaybeRelocatableInt(2)) || !reflect.DeepEqual(res, dst) {
+	if !reflect.DeepEqual(op0, memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(2))) || !reflect.DeepEqual(res, dst) {
 		t.Errorf("Wrong values returned by DeduceOp0")
 	}
 }
@@ -42,8 +42,8 @@ func TestDeduceOp0OpcodeAssertEqResMulOk(t *testing.T) {
 func TestDeduceOp0OpcodeAssertEqResMulZeroDiv(t *testing.T) {
 	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResMul}
 	vm := vm.NewVirtualMachine()
-	dst := memory.NewMaybeRelocatableInt(6)
-	op1 := memory.NewMaybeRelocatableInt(0)
+	dst := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(6))
+	op1 := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(0))
 	_, _, err := vm.DeduceOp0(&instruction, dst, op1)
 	if err == nil {
 		t.Errorf("Expected DeduceOp0 to fail")
@@ -73,13 +73,13 @@ func TestDeduceOp0OpcodeAssertEqResMulNilValues(t *testing.T) {
 func TestDeduceOp0OpcodeAssertEqResAddOk(t *testing.T) {
 	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResAdd}
 	vm := vm.NewVirtualMachine()
-	dst := memory.NewMaybeRelocatableInt(7)
-	op1 := memory.NewMaybeRelocatableInt(5)
+	dst := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(7))
+	op1 := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(5))
 	op0, res, err := vm.DeduceOp0(&instruction, dst, op1)
 	if err != nil {
 		t.Errorf("DeduceOp0 failed with error: %s", err)
 	}
-	if !reflect.DeepEqual(op0, memory.NewMaybeRelocatableInt(2)) || !reflect.DeepEqual(res, dst) {
+	if !reflect.DeepEqual(op0, memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(2))) || !reflect.DeepEqual(res, dst) {
 		t.Errorf("Wrong values returned by DeduceOp0")
 	}
 }
