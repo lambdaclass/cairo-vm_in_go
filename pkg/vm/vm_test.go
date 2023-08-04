@@ -303,7 +303,7 @@ func TestWriteBinaryMemoryFile(t *testing.T) {
 	relocatedMemory[3] = 30
 
 	var actualMemoryBuffer bytes.Buffer
-	vm.WriteEncodedMemory(relocatedMemory, &actualMemoryBuffer)
+	cairo_run.WriteEncodedMemory(relocatedMemory, &actualMemoryBuffer)
 }
 
 func buildTestProgramMemory(virtualMachine *vm.VirtualMachine) {
