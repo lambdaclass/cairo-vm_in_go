@@ -156,11 +156,11 @@ func (m MaybeRelocatable) AddMaybeRelocatable(other MaybeRelocatable) (MaybeRelo
 
 	if is_rel_m && !is_rel_other {
 		other_felt, _ := other.GetInt()
-		felt, err := m_rel.AddFelt(other_felt)
+		relocatable, err := m_rel.AddFelt(other_felt)
 		if err != nil {
 			return MaybeRelocatable{}, nil
 		}
-		return *NewMaybeRelocatableRelocatable(felt), nil
+		return *NewMaybeRelocatableRelocatable(relocatable), nil
 
 	} else if !is_rel_m && is_rel_other {
 
