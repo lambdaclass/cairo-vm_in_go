@@ -100,12 +100,12 @@ const (
 	Ret      Opcode = 4
 )
 
-var NonZeroHighBitError = errors.New("Instruction high bit was not set to zero")
-var InvalidOp1RegError = errors.New("Instruction had invalid Op1 Register")
-var InvalidPcUpdateError = errors.New("Instruction had invalid Pc update")
-var InvalidResError = errors.New("Instruction had an invalid res")
-var InvalidOpcodeError = errors.New("Instruction had an invalid opcode")
-var InvalidApUpdateError = errors.New("Instruction had an invalid Ap Update")
+var ErrNonZeroHighBitError = errors.New("Instruction high bit was not set to zero")
+var ErrInvalidOp1RegError = errors.New("Instruction had invalid Op1 Register")
+var ErrInvalidPcUpdateError = errors.New("Instruction had invalid Pc update")
+var ErrInvalidResError = errors.New("Instruction had an invalid res")
+var ErrInvalidOpcodeError = errors.New("Instruction had an invalid opcode")
+var ErrInvalidApUpdateError = errors.New("Instruction had an invalid Ap Update")
 
 func DecodeInstruction(encodedInstruction uint64) (Instruction, error) {
 	const HighBit uint64 = 1 << 63
@@ -125,7 +125,7 @@ func DecodeInstruction(encodedInstruction uint64) (Instruction, error) {
 	const OpcodeOff uint64 = 12
 
 	if encodedInstruction&HighBit != 0 {
-		return Instruction{}, NonZeroHighBitError
+		return Instruction{}, ErrNonZeroHighBitError
 	}
 
 	var offset0 = fromBiasedRepresentation((encodedInstruction) & 0xFFFF)
@@ -173,7 +173,7 @@ func DecodeInstruction(encodedInstruction uint64) (Instruction, error) {
 	case 4:
 		op1Src = Op1SrcAP
 	default:
-		return Instruction{}, InvalidOp1RegError
+		return Instruction{}, ErrInvalidOp1RegError
 	}
 
 	switch pcUpdateNum {
@@ -186,7 +186,7 @@ func DecodeInstruction(encodedInstruction uint64) (Instruction, error) {
 	case 4:
 		pcUpdate = PcUpdateJnz
 	default:
-		return Instruction{}, InvalidPcUpdateError
+		return Instruction{}, ErrInvalidPcUpdateError
 	}
 
 	switch resLogicNum {
@@ -201,7 +201,7 @@ func DecodeInstruction(encodedInstruction uint64) (Instruction, error) {
 	case 2:
 		res = ResMul
 	default:
-		return Instruction{}, InvalidResError
+		return Instruction{}, ErrInvalidResError
 	}
 
 	switch opCodeNum {
@@ -214,7 +214,7 @@ func DecodeInstruction(encodedInstruction uint64) (Instruction, error) {
 	case 4:
 		opcode = AssertEq
 	default:
-		return Instruction{}, InvalidOpcodeError
+		return Instruction{}, ErrInvalidOpcodeError
 	}
 
 	switch apUpdateNum {
@@ -229,7 +229,7 @@ func DecodeInstruction(encodedInstruction uint64) (Instruction, error) {
 	case 2:
 		apUpdate = ApUpdateAdd1
 	default:
-		return Instruction{}, InvalidApUpdateError
+		return Instruction{}, ErrInvalidApUpdateError
 	}
 
 	switch opcode {

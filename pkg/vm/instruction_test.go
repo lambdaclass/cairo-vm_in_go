@@ -8,42 +8,42 @@ import (
 
 func TestNonZeroHighBit(t *testing.T) {
 	var _, err = vm.DecodeInstruction(0x94A7800080008000)
-	if err != vm.NonZeroHighBitError {
+	if err != vm.ErrNonZeroHighBitError {
 		t.Error("Decoding should error out with NonZeroHighBitError")
 	}
 }
 
 func TestInvalidOp1Reg(t *testing.T) {
 	var _, err = vm.DecodeInstruction(0x294F800080008000)
-	if err != vm.InvalidOp1RegError {
+	if err != vm.ErrInvalidOp1RegError {
 		t.Error("Decoding should error out with InvalidOp1RegError")
 	}
 }
 
 func TestInvalidPcUpdate(t *testing.T) {
 	var _, err = vm.DecodeInstruction(0x29A8800080008000)
-	if err != vm.InvalidPcUpdateError {
+	if err != vm.ErrInvalidPcUpdateError {
 		t.Error("Decoding should error out with InvalidPcUpdateError")
 	}
 }
 
 func TestInvalidResLogic(t *testing.T) {
 	var _, err = vm.DecodeInstruction(0x2968800080008000)
-	if err != vm.InvalidResError {
+	if err != vm.ErrInvalidResError {
 		t.Error("Decoding should error out with InvalidResError")
 	}
 }
 
 func TestInvalidOpcode(t *testing.T) {
 	var _, err = vm.DecodeInstruction(0x3948800080008000)
-	if err != vm.InvalidOpcodeError {
+	if err != vm.ErrInvalidOpcodeError {
 		t.Error("Decoding should error out with InvalidOpcodeError")
 	}
 }
 
 func TestInvalidApUpdate(t *testing.T) {
 	var _, err = vm.DecodeInstruction(0x2D48800080008000)
-	if err != vm.InvalidApUpdateError {
+	if err != vm.ErrInvalidApUpdateError {
 		t.Error("Decoding should error out with InvalidApUpdateError")
 	}
 }
