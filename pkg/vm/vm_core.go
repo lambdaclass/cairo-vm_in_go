@@ -117,3 +117,9 @@ func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands)
 	}
 	return nil
 }
+
+// Deduces the value of op0 if possible (based on dst and op1). Otherwise, returns nil.
+// If res is deduced in the process returns its deduced value as well.
+func (vm *VirtualMachine) DeduceOp0(instrution *Instruction, dst *memory.MaybeRelocatable, op1 *memory.MaybeRelocatable) (deduced_op0 *memory.MaybeRelocatable, deduced_res *memory.MaybeRelocatable, error error) {
+	return nil, nil, nil
+}
