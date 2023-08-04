@@ -34,12 +34,6 @@ type Operands struct {
 	Op1 memory.MaybeRelocatable
 }
 
-type OperandsAddresses struct {
-	Dst_addr memory.Relocatable
-	Op0_addr memory.Relocatable
-	Op1_addr memory.Relocatable
-}
-
 // ------------------------
 //  Deduced Operands funcs
 // ------------------------
@@ -94,14 +88,6 @@ func (deduced *DeducedOperands) set_op1(value uint8) {
 //  virtual machines funcs
 // ------------------------
 
-func VmNew(run_context RunContext, current_step uint, segments_manager memory.MemorySegmentManager) VirtualMachine {
-	return VirtualMachine{
-		RunContext:  run_context,
-		CurrentStep: current_step,
-		Segments:    segments_manager,
-	}
-}
-
 func (vm *VirtualMachine) ComputeRes(instruction Instruction, op0 memory.MaybeRelocatable, op1 memory.MaybeRelocatable) (*memory.MaybeRelocatable, error) {
 	switch instruction.ResLogic {
 	case ResOp1:
@@ -130,34 +116,28 @@ func (vm *VirtualMachine) ComputeRes(instruction Instruction, op0 memory.MaybeRe
 	return nil, nil
 }
 
-func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, OperandsAddresses, DeducedOperands, error) {
+func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, DeducedOperands, error) {
 
 	dst_addr, err := vm.RunContext.ComputeDstAddr(instruction)
 	if err != nil {
-		return Operands{}, OperandsAddresses{}, DeducedOperands{}, errors.New("FailedToComputeDstAddr")
+		return Operands{}, DeducedOperands{}, errors.New("FailedToComputeDstAddr")
 	}
 	dst_op, _ := vm.Segments.Memory.Get(dst_addr)
 
 	op0_addr, err := vm.RunContext.ComputeOp0Addr(instruction)
 	if err != nil {
-		return Operands{}, OperandsAddresses{}, DeducedOperands{}, errors.New("FailedToComputeOp0Addr")
+		return Operands{}, DeducedOperands{}, errors.New("FailedToComputeOp0Addr")
 	}
 	op0_op, _ := vm.Segments.Memory.Get(op0_addr)
 
 	op1_addr, err := vm.RunContext.ComputeOp1Addr(instruction, *op0_op)
 	if err != nil {
-		return Operands{}, OperandsAddresses{}, DeducedOperands{}, errors.New("FailedToComputeOp1Addr")
+		return Operands{}, DeducedOperands{}, errors.New("FailedToComputeOp1Addr")
 	}
 	op1_op, _ := vm.Segments.Memory.Get(op1_addr)
 
 	deduced_operands := DeducedOperands{Operands: 0}
 	res, err := vm.ComputeRes(instruction, *op0_op, *op1_op)
-
-	accesed_addresses := OperandsAddresses{
-		Dst_addr: dst_addr,
-		Op0_addr: op0_addr,
-		Op1_addr: op1_addr,
-	}
 
 	operands := Operands{
 		Dst: *dst_op,
@@ -165,7 +145,7 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, Op
 		Op1: *op1_op,
 		Res: res,
 	}
-	return operands, accesed_addresses, deduced_operands, nil
+	return operands, deduced_operands, nil
 }
 
 func (vm VirtualMachine) run_instrucion(instruction Instruction) {

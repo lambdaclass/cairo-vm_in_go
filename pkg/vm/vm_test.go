@@ -25,6 +25,14 @@ func TestFibonacci(t *testing.T) {
 	// }
 }
 
+func VmNew(run_context vm.RunContext, current_step uint, segments_manager memory.MemorySegmentManager) vm.VirtualMachine {
+	return vm.VirtualMachine{
+		RunContext:  run_context,
+		CurrentStep: current_step,
+		Segments:    segments_manager,
+	}
+}
+
 func TestComputeOperandsAddAp(t *testing.T) {
 	instruction := vm.Instruction{
 		OffDst:   0,
@@ -46,7 +54,7 @@ func TestComputeOperandsAddAp(t *testing.T) {
 		Fp: memory.NewRelocatable(1, 0),
 		Pc: memory.NewRelocatable(0, 0),
 	}
-	vmachine := vm.VmNew(run_context, 0, memory_manager)
+	vmachine := VmNew(run_context, 0, memory_manager)
 
 	for i := 0; i < 2; i++ {
 		vmachine.Segments.AddSegment()
@@ -70,24 +78,7 @@ func TestComputeOperandsAddAp(t *testing.T) {
 		Op1: *op1_addr_value,
 	}
 
-	expected_addresses := vm.OperandsAddresses{
-		Dst_addr: dst_addr,
-		Op0_addr: op0_addr,
-		Op1_addr: op1_addr,
-	}
-
-	operands, addresses, _, _ := vmachine.ComputeOperands(instruction)
-
-	if addresses.Dst_addr != expected_addresses.Dst_addr {
-		t.Errorf("Different dst addr")
-	}
-
-	if addresses.Op0_addr != expected_addresses.Op0_addr {
-		t.Errorf("Different op0 addr")
-	}
-	if addresses.Op1_addr != expected_addresses.Op1_addr {
-		t.Errorf("Different op1 addr")
-	}
+	operands, _, _ := vmachine.ComputeOperands(instruction)
 
 	if operands.Dst != expected_operands.Dst {
 		t.Errorf("Different Dst register")
