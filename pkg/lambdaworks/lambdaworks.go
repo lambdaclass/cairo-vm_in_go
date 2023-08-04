@@ -37,7 +37,7 @@ func fromC(result C.felt_t) Felt {
 }
 
 // Gets a Felt representing the "value" number, in Montgomery format.
-func From(value uint64) Felt {
+func FeltFromUint64(value uint64) Felt {
 	var result C.felt_t
 	C.from(&result[0], C.uint64_t(value))
 	return fromC(result)
@@ -85,17 +85,6 @@ func (a Felt) Add(b Felt) Felt {
 	return fromC(result)
 }
 
-// Writes the result variable with the sum of a and the elements in b array.
-func (a Felt) AddFelts(felts []Felt) Felt {
-	var a_c C.felt_t = a.toC()
-	for _, felt := range felts {
-		var f_c C.felt_t = felt.toC()
-		C.add(&a_c[0], &f_c[0], &a_c[0])
-	}
-
-	return fromC(a_c)
-}
-
 // Writes the result variable with a - b.
 func (a Felt) Sub(b Felt) Felt {
 	var result C.felt_t
@@ -103,17 +92,6 @@ func (a Felt) Sub(b Felt) Felt {
 	var b_c C.felt_t = b.toC()
 	C.sub(&a_c[0], &b_c[0], &result[0])
 	return fromC(result)
-}
-
-// Writes the result variable with the difference of a and the elements in b array.
-func (a Felt) SubFelts(felts []Felt) Felt {
-	var a_c C.felt_t = a.toC()
-	for _, felt := range felts {
-		var f_c C.felt_t = felt.toC()
-		C.sub(&a_c[0], &f_c[0], &a_c[0])
-	}
-
-	return fromC(a_c)
 }
 
 // Writes the result variable with a * b.
