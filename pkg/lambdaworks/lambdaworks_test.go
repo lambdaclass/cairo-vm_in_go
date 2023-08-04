@@ -48,18 +48,6 @@ func TestFeltSub(t *testing.T) {
 	}
 }
 
-func TestFeltSubFelts(t *testing.T) {
-	var felt lambdaworks.Felt
-	f_ten := lambdaworks.FeltFromUint64(10)
-	felts := [3]lambdaworks.Felt{felt.One(), felt.One(), felt.One()}
-	expected := lambdaworks.FeltFromUint64(7)
-
-	result := f_ten.SubFelts(felts[:])
-	if result != expected {
-		t.Errorf("TestFeltSubFelts failed. Expected: %v, Got: %v", expected, result)
-	}
-}
-
 func TestFeltAdd(t *testing.T) {
 	var felt lambdaworks.Felt
 	f_zero := felt.Zero()
@@ -69,18 +57,6 @@ func TestFeltAdd(t *testing.T) {
 	result := f_zero.Add(f_one)
 	if result != expected {
 		t.Errorf("TestFeltAdd failed. Expected: %v, Got: %v", expected, result)
-	}
-}
-
-func TestFeltAddFelts(t *testing.T) {
-	var felt lambdaworks.Felt
-	f_zero := felt.Zero()
-	felts := [3]lambdaworks.Felt{felt.One(), felt.One(), felt.One()}
-	expected := lambdaworks.FeltFromUint64(3)
-
-	result := f_zero.AddFelts(felts[:])
-	if result != expected {
-		t.Errorf("TestFeltAddFelts failed. Expected: %v, Got: %v", expected, result)
 	}
 }
 

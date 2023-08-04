@@ -39,6 +39,7 @@ func (m *MemorySegmentManager) ComputeEffectiveSizes() map[uint]uint {
 	return m.SegmentSizes
 }
 
+// Returns a vector containing the first relocated address of each memory segment
 func (m *MemorySegmentManager) RelocateSegments() ([]uint, bool) {
 	if m.SegmentSizes == nil {
 		return nil, false
@@ -56,6 +57,9 @@ func (m *MemorySegmentManager) RelocateSegments() ([]uint, bool) {
 	return relocation_table, true
 }
 
+// Relocates the VM's memory, turning bidimensional indexes into contiguous numbers, and values
+// into Felt252s. Uses the relocation_table to asign each index a number according to the value
+// on its segment number.
 func (s *MemorySegmentManager) RelocateMemory(relocationTable *[]uint) (map[lambdaworks.Felt]lambdaworks.Felt, error) {
 	relocatedMemory := make(map[lambdaworks.Felt]lambdaworks.Felt, 0)
 
