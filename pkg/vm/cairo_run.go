@@ -12,8 +12,12 @@ func CairoRun(data []string) error {
 	return errors.New("Unimplemented")
 }
 
-func WriteEncodedTrace(relocatedTrace *[]RelocatedTraceEntry, dest io.Writer) error {
-	for i, entry := range *relocatedTrace {
+// Writes the trace binary representation.
+//
+// Bincode encodes to little endian by default and each trace entry is composed of
+// 3 usize values that are padded to always reach 64 bit size.
+func WriteEncodedTrace(relocatedTrace []RelocatedTraceEntry, dest io.Writer) error {
+	for i, entry := range relocatedTrace {
 		ap := make([]byte, 8)
 		binary.LittleEndian.PutUint64(ap, uint64(entry.Ap))
 		_, err := dest.Write(ap)
