@@ -26,10 +26,10 @@ func NewRelocatable(segment_idx int, offset uint) Relocatable {
 // Fails if the new offset exceeds the size of a uint
 func (r *Relocatable) AddFelt(other Int) (Relocatable, error) {
 	felt_offset := lambdaworks.FeltFromUint64(uint64(r.Offset))
-	new_offset := felt_offset.Add(other.Felt) // TODO: Placeholder
+	new_offset := felt_offset.Add(other.Felt)
 	res_offset, err := new_offset.ToU64()
 	if err != nil {
-		return Relocatable{}, nil
+		return Relocatable{}, err
 	}
 	return NewRelocatable(r.SegmentIndex, uint(res_offset)), nil
 

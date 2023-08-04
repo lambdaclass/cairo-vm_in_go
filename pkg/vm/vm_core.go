@@ -99,7 +99,7 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 			return &VirtualMachineError{"DiffAssertValues"}
 		}
 	case Call:
-		new_rel, err := vm.RunContext.Pc.AddUint(instruction.size())
+		new_rel, err := vm.RunContext.Pc.AddUint(instruction.Size())
 		if err != nil {
 			return err
 		}

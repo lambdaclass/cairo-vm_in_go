@@ -36,13 +36,6 @@ type Instruction struct {
 	Opcode   Opcode
 }
 
-func (i *Instruction) size() uint {
-	if i.Op1Addr == Op1SrcImm {
-		return 2
-	}
-	return 1
-}
-
 // x-----------------------------x
 // x----- Instruction flags -----x
 // x-----------------------------x
