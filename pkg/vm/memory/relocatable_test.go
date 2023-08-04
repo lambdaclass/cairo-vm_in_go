@@ -4,15 +4,16 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
 func TestMaybeRelocatableIsZeroInt(t *testing.T) {
-	zero := memory.NewMaybeRelocatableInt(0)
+	zero := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(0))
 	if !zero.IsZero() {
 		t.Errorf("MaybeRelocatable(0) should be zero")
 	}
-	not_zero := memory.NewMaybeRelocatableInt(1)
+	not_zero := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1))
 	if not_zero.IsZero() {
 		t.Errorf("MaybeRelocatable(1) should not be zero")
 	}
@@ -31,7 +32,7 @@ func TestMaybeRelocatableIsZeroRelocatable(t *testing.T) {
 }
 
 func TestMaybeRelocatableAddFelt(t *testing.T) {
-	felt := memory.Int{Felt: 5}
+	felt := memory.Int{Felt: lambdaworks.FeltFromUint64(5)}
 	rel := memory.Relocatable{}
 	res, err := rel.AddFelt(felt)
 	if err != nil {
@@ -43,7 +44,7 @@ func TestMaybeRelocatableAddFelt(t *testing.T) {
 }
 
 func TestMaybeRelocatableAddMaybeRelocatableInt(t *testing.T) {
-	mr := memory.NewMaybeRelocatableInt(5)
+	mr := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(5))
 	rel := memory.Relocatable{}
 	res, err := rel.AddMaybeRelocatable(*mr)
 	if err != nil {

@@ -6,7 +6,9 @@ package lambdaworks
 #include <stdlib.h>
 */
 import "C"
+
 import (
+	"errors"
 	"unsafe"
 )
 
@@ -104,6 +106,16 @@ func (a Felt) Mul(b Felt) Felt {
 }
 
 // Writes the result variable with a / b.
+
+// turns a felt to usize
+func (felt Felt) ToU64() (uint64, error) {
+	if felt.limbs[0] == 0 && felt.limbs[1] == 0 && felt.limbs[2] == 0 {
+		return uint64(felt.limbs[3]), nil
+	} else {
+		return 0, errors.New("Cannot convert felt to u64")
+	}
+}
+
 func (a Felt) Div(b Felt) Felt {
 	var result C.felt_t
 	var a_c C.felt_t = a.toC()
