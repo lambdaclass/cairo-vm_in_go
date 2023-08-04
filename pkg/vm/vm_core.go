@@ -120,6 +120,31 @@ func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands)
 
 // Deduces the value of op0 if possible (based on dst and op1). Otherwise, returns nil.
 // If res is deduced in the process returns its deduced value as well.
-func (vm *VirtualMachine) DeduceOp0(instrution *Instruction, dst *memory.MaybeRelocatable, op1 *memory.MaybeRelocatable) (deduced_op0 *memory.MaybeRelocatable, deduced_res *memory.MaybeRelocatable, error error) {
+func (vm *VirtualMachine) DeduceOp0(instruction *Instruction, dst *memory.MaybeRelocatable, op1 *memory.MaybeRelocatable) (deduced_op0 *memory.MaybeRelocatable, deduced_res *memory.MaybeRelocatable, error error) {
+	switch instruction.Opcode {
+	case Call:
+		deduced_op0 := vm.RunContext.Pc
+		deduced_op0.Offset += instruction.Size()
+		return memory.NewMaybeRelocatableRelocatable(deduced_op0), nil, nil
+	case AssertEq:
+		switch instruction.ResLogic {
+		case ResAdd:
+			if dst != nil && op1 != nil {
+				return dst.Sub(op1), dst, nil
+			}
+		case ResMul:
+			if dst != nil && op1 != nil {
+				dst_felt, dst_is_felt := dst.GetInt()
+				op1_felt, op1_is_felt := op1.GetInt()
+				if dst_is_felt && op1_is_felt && op1_felt.Felt != 0 {
+					return dst_felt.Div(op1_felt), dst, nil
+
+				}
+			}
+
+		}
+
+	}
+
 	return nil, nil, nil
 }
