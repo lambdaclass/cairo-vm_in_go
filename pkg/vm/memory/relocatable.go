@@ -22,8 +22,8 @@ func NewRelocatable(segment_idx int, offset uint) Relocatable {
 	return Relocatable{segment_idx, offset}
 }
 
-func (r *Relocatable) RelocateAddress(relocationTable *[]uint) uint {
-	return (*relocationTable)[r.SegmentIndex] + r.Offset
+func (r *Relocatable) RelocateAddress(relocationTable *[]uint) lambdaworks.Felt {
+	return lambdaworks.FeltFromUint64(uint64((*relocationTable)[r.SegmentIndex] + r.Offset))
 }
 
 // Int in the Cairo VM represents a value in memory that

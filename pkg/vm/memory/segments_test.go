@@ -207,7 +207,14 @@ func TestRelocateMemory(t *testing.T) {
 		t.Errorf("Test failed with error: %s", err)
 	}
 
-	expectedMemory := map[uint]uint{1: 4613515612218425347, 2: 5, 3: 2345108766317314046, 4: 10, 5: 10, 9: 5}
+	expectedMemory := map[lambdaworks.Felt]lambdaworks.Felt{
+		lambdaworks.FeltFromUint64(1): lambdaworks.FeltFromUint64(4613515612218425347),
+		lambdaworks.FeltFromUint64(2): lambdaworks.FeltFromUint64(5),
+		lambdaworks.FeltFromUint64(3): lambdaworks.FeltFromUint64(2345108766317314046),
+		lambdaworks.FeltFromUint64(4): lambdaworks.FeltFromUint64(10),
+		lambdaworks.FeltFromUint64(5): lambdaworks.FeltFromUint64(10),
+		lambdaworks.FeltFromUint64(9): lambdaworks.FeltFromUint64(5),
+	}
 	for i, v := range expectedMemory {
 		actual := relocatedMemory[i]
 		if actual != v {
