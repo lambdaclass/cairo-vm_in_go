@@ -59,7 +59,7 @@ func (run_context RunContext) ComputeOp1Addr(instruction Instruction, op0 *memor
 		if instruction.OffOp1 == 1 {
 			base_addr = run_context.Pc
 		} else {
-			base_addr = memory.NewRelocatable(-1, 0)
+			base_addr = memory.NewRelocatable(0, 0)
 			return memory.Relocatable{}, &VirtualMachineError{Msg: "UnknownOp0"}
 		}
 	case Op1SrcOp0:
