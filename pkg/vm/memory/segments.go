@@ -8,9 +8,9 @@ type MemorySegmentManager struct {
 	Memory       Memory
 }
 
-func NewMemorySegmentManager() *MemorySegmentManager {
+func NewMemorySegmentManager() MemorySegmentManager {
 	memory := NewMemory()
-	return &MemorySegmentManager{make(map[uint]uint), *memory}
+	return MemorySegmentManager{make(map[uint]uint), *memory}
 }
 
 // Adds a memory segment and returns the first address of the new segment
@@ -71,7 +71,9 @@ func (s *MemorySegmentManager) RelocateMemory(relocationTable *[]uint) (map[uint
 				if err != nil {
 					return nil, err
 				}
-				relocatedMemory[relocatedAddr] = value
+				// Todo: fix this, should be a felt
+				val, _ := value.ToU64()
+				relocatedMemory[relocatedAddr] = uint(val)
 			}
 		}
 	}
