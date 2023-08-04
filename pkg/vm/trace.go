@@ -1,6 +1,9 @@
 package vm
 
-import "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+import (
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+)
 
 type TraceEntry struct {
 	Pc memory.Relocatable
@@ -9,7 +12,7 @@ type TraceEntry struct {
 }
 
 type RelocatedTraceEntry struct {
-	Pc uint
-	Ap uint
-	Fp uint
+	Pc lambdaworks.Felt
+	Ap lambdaworks.Felt
+	Fp lambdaworks.Felt
 }

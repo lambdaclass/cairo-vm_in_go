@@ -7,11 +7,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
-
-	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
-
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/cairo_run"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
 func TestUpdatePcRegularNoImm(t *testing.T) {
@@ -56,7 +55,7 @@ func TestUpdatePcJumpWithRelRes(t *testing.T) {
 
 func TestUpdatePcJumpWithIntRes(t *testing.T) {
 	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJump}
-	operands := vm.Operands{Res: memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(0))}
+	operands := vm.Operands{Res: memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0))}
 	vm := vm.NewVirtualMachine()
 	err := vm.UpdatePc(&instruction, &operands)
 	if err == nil {
@@ -77,7 +76,7 @@ func TestUpdatePcJumpWithoutRes(t *testing.T) {
 
 func TestUpdatePcJumpRelWithIntRes(t *testing.T) {
 	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJumpRel}
-	operands := vm.Operands{Res: memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(5))}
+	operands := vm.Operands{Res: memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))}
 	vm := vm.NewVirtualMachine()
 	err := vm.UpdatePc(&instruction, &operands)
 	if err != nil {
@@ -113,7 +112,7 @@ func TestUpdatePcJumpRelNoRes(t *testing.T) {
 
 func TestUpdatePcJnzDstIsZeroNoImm(t *testing.T) {
 	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJnz, Op1Addr: vm.Op1SrcAP}
-	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(0))}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0))}
 	vm := vm.NewVirtualMachine()
 	err := vm.UpdatePc(&instruction, &operands)
 	if err != nil {
@@ -126,7 +125,7 @@ func TestUpdatePcJnzDstIsZeroNoImm(t *testing.T) {
 
 func TestUpdatePcJnzDstIsZeroWithImm(t *testing.T) {
 	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJnz, Op1Addr: vm.Op1SrcImm}
-	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(0))}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0))}
 	vm := vm.NewVirtualMachine()
 	err := vm.UpdatePc(&instruction, &operands)
 	if err != nil {
@@ -139,7 +138,7 @@ func TestUpdatePcJnzDstIsZeroWithImm(t *testing.T) {
 
 func TestUpdatePcJnzDstNotZeroOp1Int(t *testing.T) {
 	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJnz}
-	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)), Op1: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(3))}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)), Op1: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(3))}
 	vm := vm.NewVirtualMachine()
 	err := vm.UpdatePc(&instruction, &operands)
 	if err != nil {
@@ -152,7 +151,7 @@ func TestUpdatePcJnzDstNotZeroOp1Int(t *testing.T) {
 
 func TestUpdatePcJnzDstNotZeroOp1Rel(t *testing.T) {
 	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJnz}
-	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)), Op1: *memory.NewMaybeRelocatableRelocatable(memory.Relocatable{})}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)), Op1: *memory.NewMaybeRelocatableRelocatable(memory.Relocatable{})}
 	vm := vm.NewVirtualMachine()
 	err := vm.UpdatePc(&instruction, &operands)
 	if err == nil {
@@ -211,11 +210,11 @@ func TestComputeOperandsAddAp(t *testing.T) {
 	}
 
 	dst_addr := memory.NewRelocatable(1, 0)
-	dst_addr_value := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(5))
+	dst_addr_value := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))
 	op0_addr := memory.NewRelocatable(1, 1)
-	op0_addr_value := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(2))
+	op0_addr_value := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2))
 	op1_addr := memory.NewRelocatable(1, 2)
-	op1_addr_value := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(3))
+	op1_addr_value := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(3))
 
 	vmachine.Segments.Memory.Insert(dst_addr, dst_addr_value)
 	vmachine.Segments.Memory.Insert(op0_addr, op0_addr_value)
@@ -255,7 +254,7 @@ func TestRelocateTraceOneEntry(t *testing.T) {
 		t.Errorf("Trace relocation error failed with test: %s", err)
 	}
 
-	expectedTrace := []vm.RelocatedTraceEntry{{Pc: 1, Ap: 4, Fp: 4}}
+	expectedTrace := []vm.RelocatedTraceEntry{{Pc: lambdaworks.FeltFromUint64(1), Ap: lambdaworks.FeltFromUint64(4), Fp: lambdaworks.FeltFromUint64(4)}}
 	actualTrace, err := virtualMachine.GetRelocatedTrace()
 	if err != nil {
 		t.Errorf("Trace relocation error failed with test: %s", err)
@@ -290,7 +289,7 @@ func TestWriteBinaryTraceFile(t *testing.T) {
 	}
 
 	var actualTraceBuffer bytes.Buffer
-	vm.WriteEncodedTrace(relocatedTrace, &actualTraceBuffer)
+	cairo_run.WriteEncodedTrace(relocatedTrace, &actualTraceBuffer)
 
 	if !reflect.DeepEqual(expectedTrace, actualTraceBuffer.Bytes()) {
 		t.Errorf("Written trace and expected trace are not the same")
@@ -302,7 +301,7 @@ func buildTestProgramMemory(virtualMachine *vm.VirtualMachine) {
 	for i := 0; i < 4; i++ {
 		virtualMachine.Segments.AddSegment()
 	}
-	virtualMachine.Segments.Memory.Insert(memory.NewRelocatable(0, 0), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(2345108766317314046)))
+	virtualMachine.Segments.Memory.Insert(memory.NewRelocatable(0, 0), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2345108766317314046)))
 	virtualMachine.Segments.Memory.Insert(memory.NewRelocatable(1, 0), memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(2, 0)))
 	virtualMachine.Segments.Memory.Insert(memory.NewRelocatable(1, 1), memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(3, 0)))
 }

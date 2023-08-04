@@ -23,10 +23,10 @@ func TestOpcodeAssertionsResUnconstrained(t *testing.T) {
 	}
 
 	operands := Operands{
-		Dst: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(8)),
+		Dst: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(8)),
 		Res: nil,
-		Op0: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(9)),
-		Op1: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(10)),
+		Op0: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(9)),
+		Op1: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(10)),
 	}
 
 	testVm := NewVirtualMachine()
@@ -53,10 +53,10 @@ func TestOpcodeAssertionsInstructionFailed(t *testing.T) {
 	}
 
 	operands := Operands{
-		Dst: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(9)),
-		Res: memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(8)),
-		Op0: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(9)),
-		Op1: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(10)),
+		Dst: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(9)),
+		Res: memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(8)),
+		Op0: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(9)),
+		Op1: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(10)),
 	}
 
 	testVm := NewVirtualMachine()
@@ -85,8 +85,8 @@ func TestOpcodeAssertionsInstructionFailedRelocatables(t *testing.T) {
 	operands := Operands{
 		Dst: *memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(1, 1)),
 		Res: memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(1, 2)),
-		Op0: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(9)),
-		Op1: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(10)),
+		Op0: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(9)),
+		Op1: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(10)),
 	}
 
 	testVm := NewVirtualMachine()
@@ -113,9 +113,9 @@ func TestOpcodeAssertionsInconsistentOp0(t *testing.T) {
 
 	operands := Operands{
 		Dst: *memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(0, 8)),
-		Res: memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(8)),
-		Op0: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(9)),
-		Op1: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(10)),
+		Res: memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(8)),
+		Op0: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(9)),
+		Op1: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(10)),
 	}
 
 	testVm := NewVirtualMachine()
@@ -142,10 +142,10 @@ func TestOpcodeAssertionsInconsistentDst(t *testing.T) {
 	}
 
 	operands := Operands{
-		Dst: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(8)),
-		Res: memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(8)),
+		Dst: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(8)),
+		Res: memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(8)),
 		Op0: *memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(0, 1)),
-		Op1: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(10)),
+		Op1: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(10)),
 	}
 
 	testVm := NewVirtualMachine()

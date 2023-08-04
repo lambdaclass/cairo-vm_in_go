@@ -12,9 +12,9 @@ import (
 func TestComputeEffectiveSizeOneSegment(t *testing.T) {
 	segments := memory.NewMemorySegmentManager()
 	segments.AddSegment()
-	segments.Memory.Insert(memory.NewRelocatable(0, 0), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(0, 1), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(0, 2), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 0), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 1), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 2), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
 
 	segments.ComputeEffectiveSizes()
 
@@ -27,7 +27,7 @@ func TestComputeEffectiveSizeOneSegment(t *testing.T) {
 func TestComputeEffectiveSizeOneSegmentWithOneGap(t *testing.T) {
 	segments := memory.NewMemorySegmentManager()
 	segments.AddSegment()
-	segments.Memory.Insert(memory.NewRelocatable(0, 6), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 6), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
 
 	segments.ComputeEffectiveSizes()
 
@@ -40,10 +40,10 @@ func TestComputeEffectiveSizeOneSegmentWithOneGap(t *testing.T) {
 func TestComputeEffectiveSizeOneSegmentWithMultipleGaps(t *testing.T) {
 	segments := memory.NewMemorySegmentManager()
 	segments.AddSegment()
-	segments.Memory.Insert(memory.NewRelocatable(0, 3), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(0, 4), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(0, 7), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(0, 9), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 3), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 4), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 7), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 9), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
 
 	segments.ComputeEffectiveSizes()
 
@@ -58,15 +58,15 @@ func TestComputeEffectiveSizeThreeSegments(t *testing.T) {
 	segments.AddSegment()
 	segments.AddSegment()
 	segments.AddSegment()
-	segments.Memory.Insert(memory.NewRelocatable(0, 0), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(0, 1), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(0, 2), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(1, 0), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(1, 1), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(1, 2), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(2, 0), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(2, 1), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(2, 2), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 0), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 1), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 2), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(1, 0), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(1, 1), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(1, 2), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(2, 0), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(2, 1), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(2, 2), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
 
 	segments.ComputeEffectiveSizes()
 
@@ -81,13 +81,13 @@ func TestComputeEffectiveSizeThreeSegmentsWithGaps(t *testing.T) {
 	segments.AddSegment()
 	segments.AddSegment()
 	segments.AddSegment()
-	segments.Memory.Insert(memory.NewRelocatable(0, 2), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(0, 5), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(0, 7), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(1, 1), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(2, 2), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(2, 4), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(2, 7), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 2), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 5), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 7), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(1, 1), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(2, 2), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(2, 4), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(2, 7), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
 
 	segments.ComputeEffectiveSizes()
 
@@ -102,13 +102,13 @@ func TestGetSegmentUsedSizeAfterComputingUsed(t *testing.T) {
 	segments.AddSegment()
 	segments.AddSegment()
 	segments.AddSegment()
-	segments.Memory.Insert(memory.NewRelocatable(0, 2), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(0, 5), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(0, 7), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(1, 1), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(2, 2), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(2, 4), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
-	segments.Memory.Insert(memory.NewRelocatable(2, 7), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 2), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 5), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 7), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(1, 1), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(2, 2), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(2, 4), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(2, 7), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
 
 	segments.ComputeEffectiveSizes()
 
@@ -188,12 +188,12 @@ func TestRelocateMemory(t *testing.T) {
 	for i := 0; i < 4; i++ {
 		segments.AddSegment()
 	}
-	segments.Memory.Insert(memory.NewRelocatable(0, 0), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(4613515612218425347)))
-	segments.Memory.Insert(memory.NewRelocatable(0, 1), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(5)))
-	segments.Memory.Insert(memory.NewRelocatable(0, 2), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(2345108766317314046)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 0), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(4613515612218425347)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 1), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 2), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2345108766317314046)))
 	segments.Memory.Insert(memory.NewRelocatable(1, 0), memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(2, 0)))
 	segments.Memory.Insert(memory.NewRelocatable(1, 1), memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(3, 0)))
-	segments.Memory.Insert(memory.NewRelocatable(1, 5), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(5)))
+	segments.Memory.Insert(memory.NewRelocatable(1, 5), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5)))
 
 	segments.ComputeEffectiveSizes()
 
@@ -207,7 +207,14 @@ func TestRelocateMemory(t *testing.T) {
 		t.Errorf("Test failed with error: %s", err)
 	}
 
-	expectedMemory := map[uint]uint{1: 4613515612218425347, 2: 5, 3: 2345108766317314046, 4: 10, 5: 10, 9: 5}
+	expectedMemory := map[lambdaworks.Felt]lambdaworks.Felt{
+		lambdaworks.FeltFromUint64(1): lambdaworks.FeltFromUint64(4613515612218425347),
+		lambdaworks.FeltFromUint64(2): lambdaworks.FeltFromUint64(5),
+		lambdaworks.FeltFromUint64(3): lambdaworks.FeltFromUint64(2345108766317314046),
+		lambdaworks.FeltFromUint64(4): lambdaworks.FeltFromUint64(10),
+		lambdaworks.FeltFromUint64(5): lambdaworks.FeltFromUint64(10),
+		lambdaworks.FeltFromUint64(9): lambdaworks.FeltFromUint64(5),
+	}
 	for i, v := range expectedMemory {
 		actual := relocatedMemory[i]
 		if actual != v {

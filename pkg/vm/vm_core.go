@@ -136,10 +136,10 @@ func (vm *VirtualMachine) ComputeRes(instruction Instruction, op0 memory.MaybeRe
 		return &maybe_rel, nil
 
 	case ResMul:
-		num_op0, m_type := op0.GetInt()
-		num_op1, other_type := op1.GetInt()
+		num_op0, m_type := op0.GetFelt()
+		num_op1, other_type := op1.GetFelt()
 		if m_type && other_type {
-			result := memory.NewMaybeRelocatableInt(num_op0.Felt.Mul(num_op1.Felt))
+			result := memory.NewMaybeRelocatableFelt(num_op0.Mul(num_op1))
 			return result, nil
 		} else {
 			return nil, errors.New("ComputeResRelocatableMul")
@@ -238,7 +238,7 @@ func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands)
 		if operands.Res == nil {
 			return errors.New("Res.UNCONSTRAINED cannot be used with PcUpdate.JUMP_REL")
 		}
-		res, ok := operands.Res.GetInt()
+		res, ok := operands.Res.GetFelt()
 		if !ok {
 			return errors.New("A relocatable value as Res cannot be used with PcUpdate.JUMP_REL")
 		}
