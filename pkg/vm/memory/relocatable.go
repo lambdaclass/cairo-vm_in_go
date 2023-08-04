@@ -22,6 +22,23 @@ func NewRelocatable(segment_idx int, offset uint) Relocatable {
 	return Relocatable{segment_idx, offset}
 }
 
+// Adds a Felt value to a Relocatable
+// Fails if the new offset exceeds the size of a uint
+func (r *Relocatable) AddFelt(other Int) (Relocatable, error) {
+	new_offset := r.Offset + other.Felt // TODO: Placeholder
+	return NewRelocatable(r.SegmentIndex, new_offset), nil
+
+}
+
+// Performs additions if other contains a Felt value, fails otherwise
+func (r *Relocatable) AddMaybeRelocatable(other MaybeRelocatable) (Relocatable, error) {
+	felt, ok := other.GetInt()
+	if !ok {
+		return Relocatable{}, errors.New("Can't add two relocatable values")
+	}
+	return r.AddFelt(felt)
+}
+
 func (r *Relocatable) RelocateAddress(relocationTable *[]uint) uint {
 	return (*relocationTable)[r.SegmentIndex] + r.Offset
 }
@@ -78,6 +95,11 @@ func (m *MaybeRelocatable) GetInt() (Int, bool) {
 func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
 	rel, is_type := m.inner.(Relocatable)
 	return rel, is_type
+}
+
+func (m *MaybeRelocatable) IsZero() bool {
+	felt, is_int := m.GetInt()
+	return is_int && felt.Felt == 0
 }
 
 // Turns a MaybeRelocatable into a Felt252 value.

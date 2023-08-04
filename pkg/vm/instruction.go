@@ -267,3 +267,10 @@ func fromBiasedRepresentation(offset uint64) int {
 	var bias uint16 = 1 << 15
 	return int(int16(uint16(offset) - bias))
 }
+
+func (i *Instruction) Size() uint {
+	if i.Op1Addr == Op1SrcImm {
+		return 2
+	}
+	return 1
+}
