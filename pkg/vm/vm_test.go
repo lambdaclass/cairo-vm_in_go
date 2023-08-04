@@ -1,6 +1,9 @@
 package vm_test
 
 import (
+	"bytes"
+	"io/ioutil"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -239,4 +242,67 @@ func TestComputeOperandsAddAp(t *testing.T) {
 	if *operands.Res != *expected_operands.Res {
 		t.Errorf("Different res register")
 	}
+}
+
+func TestRelocateTraceOneEntry(t *testing.T) {
+	virtualMachine := vm.NewVirtualMachine()
+	buildTestProgramMemory(virtualMachine)
+
+	virtualMachine.Segments.ComputeEffectiveSizes()
+	relocationTable, _ := virtualMachine.Segments.RelocateSegments()
+	err := virtualMachine.RelocateTrace(&relocationTable)
+	if err != nil {
+		t.Errorf("Trace relocation error failed with test: %s", err)
+	}
+
+	expectedTrace := []vm.RelocatedTraceEntry{{Pc: 1, Ap: 4, Fp: 4}}
+	actualTrace, err := virtualMachine.GetRelocatedTrace()
+	if err != nil {
+		t.Errorf("Trace relocation error failed with test: %s", err)
+	}
+	if !reflect.DeepEqual(expectedTrace, actualTrace) {
+		t.Errorf("Relocated trace and expected trace are not the same")
+	}
+}
+
+func TestWriteBinaryTraceFile(t *testing.T) {
+	tracePath, err := filepath.Abs("../../cairo_programs/struct.trace")
+	if err != nil {
+		t.Errorf("Trace file writing error failed with test: %s", err)
+	}
+
+	expectedTrace, err := ioutil.ReadFile(tracePath)
+	if err != nil {
+		t.Errorf("Trace file writing error failed with test: %s", err)
+	}
+
+	virtualMachine := vm.NewVirtualMachine()
+	buildTestProgramMemory(virtualMachine)
+
+	err = virtualMachine.Relocate()
+	if err != nil {
+		t.Errorf("Trace file writing error failed with test: %s", err)
+	}
+
+	relocatedTrace, err := virtualMachine.GetRelocatedTrace()
+	if err != nil {
+		t.Errorf("Trace file writing error failed with test: %s", err)
+	}
+
+	var actualTraceBuffer bytes.Buffer
+	vm.WriteEncodedTrace(relocatedTrace, &actualTraceBuffer)
+
+	if !reflect.DeepEqual(expectedTrace, actualTraceBuffer.Bytes()) {
+		t.Errorf("Written trace and expected trace are not the same")
+	}
+}
+
+func buildTestProgramMemory(virtualMachine *vm.VirtualMachine) {
+	virtualMachine.Trace = []vm.TraceEntry{{Pc: memory.NewRelocatable(0, 0), Ap: memory.NewRelocatable(2, 0), Fp: memory.NewRelocatable(2, 0)}}
+	for i := 0; i < 4; i++ {
+		virtualMachine.Segments.AddSegment()
+	}
+	virtualMachine.Segments.Memory.Insert(memory.NewRelocatable(0, 0), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(2345108766317314046)))
+	virtualMachine.Segments.Memory.Insert(memory.NewRelocatable(1, 0), memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(2, 0)))
+	virtualMachine.Segments.Memory.Insert(memory.NewRelocatable(1, 1), memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(3, 0)))
 }
