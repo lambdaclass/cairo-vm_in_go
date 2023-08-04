@@ -1,9 +1,9 @@
 package vm
 
 import (
-	"math"
-
+	"errors"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+	"math"
 )
 
 // RunContext containts the register states of the
@@ -47,7 +47,7 @@ func (run_context RunContext) ComputeOp0Addr(instruction Instruction) (memory.Re
 	}
 }
 
-func (run_context RunContext) ComputeOp1Addr(instruction Instruction, op0 memory.MaybeRelocatable) (memory.Relocatable, error) {
+func (run_context RunContext) ComputeOp1Addr(instruction Instruction, op0 *memory.MaybeRelocatable) (memory.Relocatable, error) {
 	var base_addr memory.Relocatable
 
 	switch instruction.Op1Addr {
@@ -62,7 +62,16 @@ func (run_context RunContext) ComputeOp1Addr(instruction Instruction, op0 memory
 			base_addr = memory.NewRelocatable(-1, 0)
 			return memory.Relocatable{}, &VirtualMachineError{Msg: "UnknownOp0"}
 		}
-		// Todo:check case op0
+	case Op1SrcOp0:
+		if op0 == nil {
+			return memory.Relocatable{}, errors.New("Unknown Op0")
+		}
+		rel, is_rel := op0.GetRelocatable()
+		if is_rel {
+			base_addr = rel
+		} else {
+			return memory.Relocatable{}, errors.New("AddressNotRelocatable")
+		}
 	}
 
 	if instruction.OffOp1 < 0 {
