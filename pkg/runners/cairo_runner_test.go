@@ -110,9 +110,9 @@ func TestInitializeRunnerNoBuiltinsNoProofModeNonEmptyProgram(t *testing.T) {
 	if err != nil {
 		t.Errorf("Memory Get error in test: %s", err)
 	}
-	felt, ok := value.GetFelt()
-	if !ok || felt != lambdaworks.FeltFromUint64(1) {
-		t.Errorf("Wrong value for address 0:0: %d", felt)
+	int, ok := value.GetFelt()
+	if !ok || int != lambdaworks.FeltFromUint64(1) {
+		t.Errorf("Wrong value for address 0:0: %d", int)
 	}
 
 	// Execution segment

@@ -47,6 +47,24 @@ func (r *Relocatable) AddMaybeRelocatable(other MaybeRelocatable) (Relocatable, 
 	return r.AddFelt(felt)
 }
 
+func (r *Relocatable) IsEqual(r1 *Relocatable) bool {
+	return (r.SegmentIndex == r1.SegmentIndex && r.Offset == r1.Offset)
+}
+
+func (relocatable *Relocatable) SubUint(other uint) (Relocatable, error) {
+	if relocatable.Offset < other {
+		return NewRelocatable(0, 0), &SubReloctableError{Msg: "RelocatableSubUsizeNegOffset"}
+	} else {
+		new_offset := relocatable.Offset - other
+		return NewRelocatable(relocatable.SegmentIndex, new_offset), nil
+	}
+}
+
+func (relocatable *Relocatable) AddUint(other uint) (Relocatable, error) {
+	new_offset := relocatable.Offset + other
+	return NewRelocatable(relocatable.SegmentIndex, new_offset), nil
+}
+
 // MaybeRelocatable is the type of the memory cells in the Cairo
 // VM. For now, `inner` will hold any type but it should be
 // instantiated only with `Relocatable` or `Int` types.
@@ -94,9 +112,59 @@ func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (lambdaworks.F
 
 	inner_relocatable, ok := m.GetRelocatable()
 	if ok {
-		felt_value := inner_relocatable.RelocateAddress(relocationTable)
-		return felt_value, nil
+		return inner_relocatable.RelocateAddress(relocationTable), nil
 	}
 
 	return lambdaworks.FeltFromUint64(0), errors.New(fmt.Sprintf("Unexpected type %T", m.inner))
+}
+
+func (m *MaybeRelocatable) IsEqual(m1 *MaybeRelocatable) bool {
+	a, a_type := m.GetFelt()
+	b, b_type := m1.GetFelt()
+	if a_type == b_type {
+		if a_type {
+			return a == b
+		} else {
+			a, _ := m.GetRelocatable()
+			b, _ := m1.GetRelocatable()
+			return a.IsEqual(&b)
+		}
+	} else {
+		return false
+	}
+}
+
+func (m MaybeRelocatable) AddMaybeRelocatable(other MaybeRelocatable) (MaybeRelocatable, error) {
+	// check if they are felt
+	m_int, m_is_int := m.GetFelt()
+	other_int, other_is_int := other.GetFelt()
+
+	if m_is_int && other_is_int {
+		result := NewMaybeRelocatableFelt(m_int.Add(other_int))
+		return *result, nil
+	}
+
+	// check if one is relocatable and the other int
+	m_rel, is_rel_m := m.GetRelocatable()
+	other_rel, is_rel_other := other.GetRelocatable()
+
+	if is_rel_m && !is_rel_other {
+		other_felt, _ := other.GetFelt()
+		relocatable, err := m_rel.AddFelt(other_felt)
+		if err != nil {
+			return MaybeRelocatable{}, nil
+		}
+		return *NewMaybeRelocatableRelocatable(relocatable), nil
+
+	} else if !is_rel_m && is_rel_other {
+
+		m_felt, _ := m.GetFelt()
+		relocatable, err := other_rel.AddFelt(m_felt)
+		if err != nil {
+			return MaybeRelocatable{}, err
+		}
+		return *NewMaybeRelocatableRelocatable(relocatable), nil
+	} else {
+		return MaybeRelocatable{}, errors.New("RelocatableAdd")
+	}
 }
