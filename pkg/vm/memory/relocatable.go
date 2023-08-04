@@ -20,16 +20,31 @@ type Relocatable struct {
 // and offset.
 func NewRelocatable(segment_idx int, offset uint) Relocatable {
 	return Relocatable{segment_idx, offset}
+
 }
 
 func (r *Relocatable) RelocateAddress(relocationTable *[]uint) lambdaworks.Felt {
 	return lambdaworks.FeltFromUint64(uint64((*relocationTable)[r.SegmentIndex] + r.Offset))
 }
 
-// Int in the Cairo VM represents a value in memory that
-// is not an address.
-type Int struct {
-	Felt lambdaworks.Felt
+// Adds a Felt value to a Relocatable
+// Fails if the new offset exceeds the size of a uint
+func (r *Relocatable) AddFelt(other lambdaworks.Felt) (Relocatable, error) {
+	new_offset_felt := lambdaworks.FeltFromUint64(uint64(r.Offset)).Add(other)
+	new_offset, err := new_offset_felt.ToU64()
+	if err != nil {
+		return *r, err
+	}
+	return NewRelocatable(r.SegmentIndex, uint(new_offset)), nil
+}
+
+// Performs additions if other contains a Felt value, fails otherwise
+func (r *Relocatable) AddMaybeRelocatable(other MaybeRelocatable) (Relocatable, error) {
+	felt, ok := other.GetFelt()
+	if !ok {
+		return Relocatable{}, errors.New("Can't add two relocatable values")
+	}
+	return r.AddFelt(felt)
 }
 
 // MaybeRelocatable is the type of the memory cells in the Cairo
@@ -60,6 +75,11 @@ func (m *MaybeRelocatable) GetFelt() (lambdaworks.Felt, bool) {
 func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
 	rel, is_type := m.inner.(Relocatable)
 	return rel, is_type
+}
+
+func (m *MaybeRelocatable) IsZero() bool {
+	felt, is_int := m.GetFelt()
+	return is_int && felt.IsZero()
 }
 
 // Turns a MaybeRelocatable into a Felt252 value.

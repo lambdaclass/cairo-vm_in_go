@@ -1,10 +1,10 @@
-package context
+package cairo_run_test
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/cairo_run"
 )
 
 // Things we are skipping for now:
@@ -13,8 +13,7 @@ import (
 // - Asserting expected trace values
 // - Asserting memory_holes
 func TestFibonacci(t *testing.T) {
-	compiledProgram := parser.Parse("../../../cairo_programs/fibonacci.json")
-	err := CairoRunProgram(compiledProgram)
+	_, err := cairo_run.CairoRun("../../../cairo_programs/fibonacci.json")
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}

@@ -7,6 +7,7 @@ package lambdaworks
 */
 import "C"
 import (
+	"errors"
 	"unsafe"
 )
 
@@ -61,6 +62,15 @@ func FeltFromDecString(value string) Felt {
 	return fromC(result)
 }
 
+// turns a felt to usize
+func (felt Felt) ToU64() (uint64, error) {
+	if felt.limbs[0] == 0 && felt.limbs[1] == 0 && felt.limbs[2] == 0 {
+		return uint64(felt.limbs[3]), nil
+	} else {
+		return 0, errors.New("Cannot convert felt to u64")
+	}
+}
+
 // Gets a Felt representing 0.
 func (f Felt) Zero() Felt {
 	var result C.felt_t
@@ -73,7 +83,11 @@ func (f Felt) One() Felt {
 	var result C.felt_t
 	C.one(&result[0])
 	return fromC(result)
+}
 
+func (f Felt) IsZero() bool {
+	var felt Felt
+	return f == felt.Zero()
 }
 
 // Writes the result variable with the sum of a and b felts.

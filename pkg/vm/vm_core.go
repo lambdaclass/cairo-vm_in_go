@@ -94,7 +94,7 @@ func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands)
 		if operands.Res == nil {
 			return errors.New("Res.UNCONSTRAINED cannot be used with PcUpdate.JUMP_REL")
 		}
-		res, ok := operands.Res.GetInt()
+		res, ok := operands.Res.GetFelt()
 		if !ok {
 			return errors.New("A relocatable value as Res cannot be used with PcUpdate.JUMP_REL")
 		}
