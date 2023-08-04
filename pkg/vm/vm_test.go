@@ -2,7 +2,7 @@ package vm_test
 
 import (
 	"bytes"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
@@ -53,7 +53,7 @@ func TestWriteBinaryTraceFile(t *testing.T) {
 		t.Errorf("Trace file writing error failed with test: %s", err)
 	}
 
-	expectedTrace, err := ioutil.ReadFile(tracePath)
+	expectedTrace, err := os.ReadFile(tracePath)
 	if err != nil {
 		t.Errorf("Trace file writing error failed with test: %s", err)
 	}
@@ -77,6 +77,16 @@ func TestWriteBinaryTraceFile(t *testing.T) {
 	if !reflect.DeepEqual(expectedTrace, actualTraceBuffer.Bytes()) {
 		t.Errorf("Written trace and expected trace are not the same")
 	}
+}
+
+func TestWriteBinaryMemoryFile(t *testing.T) {
+	var relocatedMemory = make(map[uint]uint)
+	relocatedMemory[1] = 66
+	relocatedMemory[2] = 42
+	relocatedMemory[3] = 30
+
+	var actualMemoryBuffer bytes.Buffer
+	vm.WriteEncodedMemory(relocatedMemory, &actualMemoryBuffer)
 }
 
 func buildTestProgramMemory(virtualMachine *vm.VirtualMachine) {

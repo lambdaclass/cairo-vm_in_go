@@ -40,7 +40,7 @@ func WriteEncodedTrace(relocatedTrace *[]RelocatedTraceEntry, dest io.Writer) er
 }
 
 func encodeTraceError(i int, err error) error {
-	return errors.New(fmt.Sprintf("Failed to encode trace at position %d, serialize error: %s", i, err))
+	return fmt.Errorf("failed to encode trace at position %d, serialize error: %s", i, err)
 }
 
 // Writes a binary representation of the relocated memory.
@@ -60,38 +60,31 @@ func WriteEncodedMemory(relocatedMemory map[uint]uint, dest io.Writer) error {
 
 	// iterate over the `relocatedMemory` map in sorted key order
 	for _, k := range keysMap {
+
+		// get relocatedMemory[k]
+		value := relocatedMemory[k]
+		fmt.Printf("key[%d] = %d\n", k, value)
+
 		// write the key
-		key := make([]byte, 8)
-		binary.LittleEndian.PutUint64(key, uint64(k))
-		_, err := dest.Write(key)
+		keyArray := make([]byte, 8)
+		binary.LittleEndian.PutUint64(keyArray, uint64(k))
+		_, err := dest.Write(keyArray)
 		if err != nil {
-			return encodeMemoryError(int(k), err)
+			return encodeMemoryError(k, err)
+		}
+
+		// write the value
+		valueArray := make([]byte, 8)
+		binary.LittleEndian.PutUint64(valueArray, uint64(value))
+		_, err = dest.Write(valueArray)
+		if err != nil {
+			return encodeMemoryError(k, err)
 		}
 	}
 
-	/*
-		pub fn write_encoded_memory(
-		    relocated_memory: &[Option<Felt252>],
-		    dest: &mut impl Writer,
-		) -> Result<(), EncodeTraceError> {
-		    for (i, memory_cell) in relocated_memory.iter().enumerate() {
-		        match memory_cell {
-		            None => continue,
-		            Some(unwrapped_memory_cell) => {
-		                dest.write(&(i as u64).to_le_bytes())
-		                    .map_err(|e| EncodeTraceError(i, e))?;
-		                dest.write(&unwrapped_memory_cell.to_le_bytes())
-		                    .map_err(|e| EncodeTraceError(i, e))?;
-		            }
-		        }
-		    }
-
-		    Ok(())
-		}
-	*/
-	return errors.New("Unimplemented")
+	return nil
 }
 
-func encodeMemoryError(i int, err error) error {
-	return errors.New(fmt.Sprintf("Failed to encode trace at position %d, serialize error: %s", i, err))
+func encodeMemoryError(i uint, err error) error {
+	return fmt.Errorf("failed to encode trace at position %d, serialize error: %s", i, err)
 }
