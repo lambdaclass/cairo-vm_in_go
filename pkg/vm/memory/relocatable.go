@@ -74,7 +74,7 @@ func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (lambdaworks.F
 
 	inner_relocatable, ok := m.GetRelocatable()
 	if ok {
-		felt_value := lambdaworks.FeltFromUint64(uint64(inner_relocatable.RelocateAddress(relocationTable)))
+		felt_value := inner_relocatable.RelocateAddress(relocationTable)
 		return felt_value, nil
 	}
 
