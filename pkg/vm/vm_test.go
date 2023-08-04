@@ -11,6 +11,109 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
+func TestDeduceOp0OpcodeRet(t *testing.T) {
+	instruction := vm.Instruction{Opcode: vm.Ret}
+	vm := vm.NewVirtualMachine()
+	op0, res, err := vm.DeduceOp0(&instruction, nil, nil)
+	if err != nil {
+		t.Errorf("DeduceOp0 failed with error: %s", err)
+	}
+	if op0 != nil || res != nil {
+		t.Errorf("Wrong values returned by DeduceOp0")
+	}
+}
+func TestDeduceOp0OpcodeAssertEqResMulOk(t *testing.T) {
+	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResMul}
+	vm := vm.NewVirtualMachine()
+	dst := memory.NewMaybeRelocatableInt(6)
+	op1 := memory.NewMaybeRelocatableInt(3)
+	op0, res, err := vm.DeduceOp0(&instruction, dst, op1)
+	if err != nil {
+		t.Errorf("DeduceOp0 failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(op0, memory.NewMaybeRelocatableInt(2)) || !reflect.DeepEqual(res, dst) {
+		t.Errorf("Wrong values returned by DeduceOp0")
+	}
+}
+
+func TestDeduceOp0OpcodeAssertEqResMulZeroDiv(t *testing.T) {
+	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResMul}
+	vm := vm.NewVirtualMachine()
+	dst := memory.NewMaybeRelocatableInt(6)
+	op1 := memory.NewMaybeRelocatableInt(0)
+	_, _, err := vm.DeduceOp0(&instruction, dst, op1)
+	if err == nil {
+		t.Errorf("Expected DeduceOp0 to fail")
+	}
+}
+
+func TestDeduceOp0OpcodeAssertEqResMulRelValues(t *testing.T) {
+	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResMul}
+	vm := vm.NewVirtualMachine()
+	dst := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{})
+	op1 := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{})
+	_, _, err := vm.DeduceOp0(&instruction, dst, op1)
+	if err == nil {
+		t.Errorf("Expected DeduceOp0 to fail")
+	}
+}
+
+func TestDeduceOp0OpcodeAssertEqResMulNilValues(t *testing.T) {
+	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResAdd}
+	vm := vm.NewVirtualMachine()
+	_, _, err := vm.DeduceOp0(&instruction, nil, nil)
+	if err == nil {
+		t.Errorf("Expected DeduceOp0 to fail")
+	}
+}
+
+func TestDeduceOp0OpcodeAssertEqResAddOk(t *testing.T) {
+	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResAdd}
+	vm := vm.NewVirtualMachine()
+	dst := memory.NewMaybeRelocatableInt(7)
+	op1 := memory.NewMaybeRelocatableInt(5)
+	op0, res, err := vm.DeduceOp0(&instruction, dst, op1)
+	if err != nil {
+		t.Errorf("DeduceOp0 failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(op0, memory.NewMaybeRelocatableInt(2)) || !reflect.DeepEqual(res, dst) {
+		t.Errorf("Wrong values returned by DeduceOp0")
+	}
+}
+
+func TestDeduceOp0OpcodeAssertEqResAddRelValues(t *testing.T) {
+	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResAdd}
+	vm := vm.NewVirtualMachine()
+	dst := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{})
+	op1 := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{})
+	_, _, err := vm.DeduceOp0(&instruction, dst, op1)
+	if err == nil {
+		t.Errorf("Expected DeduceOp0 to fail")
+	}
+}
+
+func TestDeduceOp0OpcodeAssertEqResAddNilValues(t *testing.T) {
+	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResAdd}
+	vm := vm.NewVirtualMachine()
+	_, _, err := vm.DeduceOp0(&instruction, nil, nil)
+	if err == nil {
+		t.Errorf("Expected DeduceOp0 to fail")
+	}
+}
+
+func TestDeduceOp0OpcodeCall(t *testing.T) {
+	instruction := vm.Instruction{Opcode: vm.Call, Op1Addr: vm.Op1SrcAP}
+	vm := vm.NewVirtualMachine()
+	vm.RunContext.Pc = memory.Relocatable{SegmentIndex: 1, Offset: 7}
+	op0, res, err := vm.DeduceOp0(&instruction, nil, nil)
+	if err != nil {
+		t.Errorf("DeduceOp0 failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(op0, memory.NewMaybeRelocatableRelocatable(memory.Relocatable{SegmentIndex: 1, Offset: 8})) || res != nil {
+		t.Errorf("Wrong values returned by DeduceOp0")
+	}
+}
+
 func TestUpdatePcRegularNoImm(t *testing.T) {
 	instruction := vm.Instruction{PcUpdate: vm.PcUpdateRegular, Op1Addr: vm.Op1SrcAP}
 	operands := vm.Operands{}
