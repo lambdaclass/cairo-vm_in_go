@@ -141,10 +141,7 @@ func (vm *VirtualMachine) DeduceOp0(instruction *Instruction, dst *memory.MaybeR
 
 				}
 			}
-
 		}
-
 	}
-
 	return nil, nil, nil
 }
