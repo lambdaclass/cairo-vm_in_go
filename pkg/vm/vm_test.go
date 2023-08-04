@@ -53,7 +53,7 @@ func TestUpdatePcJumpWithRelRes(t *testing.T) {
 
 func TestUpdatePcJumpWithIntRes(t *testing.T) {
 	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJump}
-	operands := vm.Operands{Res: memory.NewMaybeRelocatableInt(0)}
+	operands := vm.Operands{Res: memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(0))}
 	vm := vm.NewVirtualMachine()
 	err := vm.UpdatePc(&instruction, &operands)
 	if err == nil {
@@ -74,7 +74,7 @@ func TestUpdatePcJumpWithoutRes(t *testing.T) {
 
 func TestUpdatePcJumpRelWithIntRes(t *testing.T) {
 	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJumpRel}
-	operands := vm.Operands{Res: memory.NewMaybeRelocatableInt(5)}
+	operands := vm.Operands{Res: memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(5))}
 	vm := vm.NewVirtualMachine()
 	err := vm.UpdatePc(&instruction, &operands)
 	if err != nil {
@@ -110,7 +110,7 @@ func TestUpdatePcJumpRelNoRes(t *testing.T) {
 
 func TestUpdatePcJnzDstIsZeroNoImm(t *testing.T) {
 	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJnz, Op1Addr: vm.Op1SrcAP}
-	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableInt(0)}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(0))}
 	vm := vm.NewVirtualMachine()
 	err := vm.UpdatePc(&instruction, &operands)
 	if err != nil {
@@ -123,7 +123,7 @@ func TestUpdatePcJnzDstIsZeroNoImm(t *testing.T) {
 
 func TestUpdatePcJnzDstIsZeroWithImm(t *testing.T) {
 	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJnz, Op1Addr: vm.Op1SrcImm}
-	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableInt(0)}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(0))}
 	vm := vm.NewVirtualMachine()
 	err := vm.UpdatePc(&instruction, &operands)
 	if err != nil {
@@ -136,7 +136,7 @@ func TestUpdatePcJnzDstIsZeroWithImm(t *testing.T) {
 
 func TestUpdatePcJnzDstNotZeroOp1Int(t *testing.T) {
 	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJnz}
-	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableInt(1), Op1: *memory.NewMaybeRelocatableInt(3)}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)), Op1: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(3))}
 	vm := vm.NewVirtualMachine()
 	err := vm.UpdatePc(&instruction, &operands)
 	if err != nil {
@@ -149,7 +149,7 @@ func TestUpdatePcJnzDstNotZeroOp1Int(t *testing.T) {
 
 func TestUpdatePcJnzDstNotZeroOp1Rel(t *testing.T) {
 	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJnz}
-	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableInt(1), Op1: *memory.NewMaybeRelocatableRelocatable(memory.Relocatable{})}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)), Op1: *memory.NewMaybeRelocatableRelocatable(memory.Relocatable{})}
 	vm := vm.NewVirtualMachine()
 	err := vm.UpdatePc(&instruction, &operands)
 	if err == nil {
@@ -225,7 +225,7 @@ func TestComputeOperandsAddAp(t *testing.T) {
 		Op1: *op1_addr_value,
 	}
 
-	operands, _, _ := vmachine.ComputeOperands(instruction)
+	operands, _ := vmachine.ComputeOperands(instruction)
 
 	if operands.Dst != expected_operands.Dst {
 		t.Errorf("Different Dst register")

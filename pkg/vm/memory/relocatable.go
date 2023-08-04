@@ -25,8 +25,13 @@ func NewRelocatable(segment_idx int, offset uint) Relocatable {
 // Adds a Felt value to a Relocatable
 // Fails if the new offset exceeds the size of a uint
 func (r *Relocatable) AddFelt(other Int) (Relocatable, error) {
-	new_offset := r.Offset + other.Felt // TODO: Placeholder
-	return NewRelocatable(r.SegmentIndex, new_offset), nil
+	felt_offset := lambdaworks.FeltFromUint64(uint64(r.Offset))
+	new_offset := felt_offset.Add(other.Felt) // TODO: Placeholder
+	res_offset, err := new_offset.ToU64()
+	if err != nil {
+		return Relocatable{}, nil
+	}
+	return NewRelocatable(r.SegmentIndex, uint(res_offset)), nil
 
 }
 
@@ -99,7 +104,7 @@ func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
 
 func (m *MaybeRelocatable) IsZero() bool {
 	felt, is_int := m.GetInt()
-	return is_int && felt.Felt == 0
+	return is_int && felt.Felt == lambdaworks.FeltFromUint64(0)
 }
 
 // Turns a MaybeRelocatable into a Felt252 value.

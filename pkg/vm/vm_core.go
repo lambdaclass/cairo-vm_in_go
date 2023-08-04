@@ -15,7 +15,6 @@ func (e *VirtualMachineError) Error() string {
 	return fmt.Sprintf(e.Msg)
 }
 
-
 // VirtualMachine represents the Cairo VM.
 // Runs Cairo assembly and produces an execution trace.
 type VirtualMachine struct {
@@ -168,13 +167,6 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 
 func (vm VirtualMachine) run_instrucion(instruction Instruction) {
 	fmt.Println("hello from instruction")
-}
-
-type Operands struct {
-	Dst memory.MaybeRelocatable
-	Res *memory.MaybeRelocatable
-	Op0 memory.MaybeRelocatable
-	Op1 memory.MaybeRelocatable
 }
 
 // Updates the value of PC according to the executed instruction
