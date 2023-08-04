@@ -66,16 +66,17 @@ func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
 // If the inner value is an Int, it will extract the Felt252 value from it.
 // If the inner value is a Relocatable, it will relocate it according to the relocation_table
 // TODO: Return value should be of type (felt, error)
-func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (uint, error) {
-	inner_int, ok := m.GetInt()
+func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (lambdaworks.Felt, error) {
+	inner_felt, ok := m.GetFelt()
 	if ok {
-		return inner_int.Felt, nil
+		return inner_felt, nil
 	}
 
 	inner_relocatable, ok := m.GetRelocatable()
 	if ok {
-		return inner_relocatable.RelocateAddress(relocationTable), nil
+		felt_value := lambdaworks.FeltFromUint64(uint64(inner_relocatable.RelocateAddress(relocationTable)))
+		return felt_value, nil
 	}
 
-	return 0, errors.New(fmt.Sprintf("Unexpected type %T", m.inner))
+	return lambdaworks.FeltFromUint64(0), errors.New(fmt.Sprintf("Unexpected type %T", m.inner))
 }

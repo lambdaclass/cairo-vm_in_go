@@ -73,7 +73,7 @@ func TestInitializeRunnerNoBuiltinsNoProofModeEmptyProgram(t *testing.T) {
 func TestInitializeRunnerNoBuiltinsNoProofModeNonEmptyProgram(t *testing.T) {
 	// Create a Program with one fake instruction
 	program_data := make([]memory.MaybeRelocatable, 1)
-	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.From(1))
+	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1))
 	program := vm.Program{Data: program_data}
 	// Create CairoRunner
 	runner := runners.NewCairoRunner(program)
@@ -111,7 +111,7 @@ func TestInitializeRunnerNoBuiltinsNoProofModeNonEmptyProgram(t *testing.T) {
 		t.Errorf("Memory Get error in test: %s", err)
 	}
 	felt, ok := value.GetFelt()
-	if !ok || felt != lambdaworks.From(1) {
+	if !ok || felt != lambdaworks.FeltFromUint64(1) {
 		t.Errorf("Wrong value for address 0:0: %d", felt)
 	}
 
