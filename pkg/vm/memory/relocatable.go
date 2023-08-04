@@ -142,38 +142,34 @@ func (m *MaybeRelocatable) IsEqual(m1 *MaybeRelocatable) bool {
 
 func (m MaybeRelocatable) AddMaybeRelocatable(other MaybeRelocatable) (MaybeRelocatable, error) {
 	// check if they are felt
-	m_int, m_type := m.GetInt()
-	other_int, other_type := other.GetInt()
+	m_int, m_is_int := m.GetInt()
+	other_int, other_is_int := other.GetInt()
 
-	if m_type && other_type {
+	if m_is_int && other_is_int {
 		result := NewMaybeRelocatableInt(m_int.Felt.Add(other_int.Felt))
 		return *result, nil
 	}
+
 	// check if one is relocatable and the other int
 	m_rel, is_rel_m := m.GetRelocatable()
 	other_rel, is_rel_other := other.GetRelocatable()
 
 	if is_rel_m && !is_rel_other {
-
 		other_felt, _ := other.GetInt()
-		other_usize, err := other_felt.Felt.ToU64()
+		felt, err := m_rel.AddFelt(other_felt)
 		if err != nil {
-			return MaybeRelocatable{}, err
+			return MaybeRelocatable{}, nil
 		}
-		offset := m_rel.Offset
-		new_offset := uint64(offset) + other_usize
-		rel := NewRelocatable(m_rel.SegmentIndex, uint(new_offset))
-		res := NewMaybeRelocatableRelocatable(rel)
-		return *res, nil
+		return *NewMaybeRelocatableRelocatable(felt), nil
+
 	} else if !is_rel_m && is_rel_other {
 
 		m_felt, _ := m.GetInt()
-		m_usize, _ := m_felt.Felt.ToU64()
-		offset := other_rel.Offset
-		new_offset := uint64(offset) + m_usize
-		rel := NewRelocatable(other_rel.SegmentIndex, uint(new_offset))
-		res := NewMaybeRelocatableRelocatable(rel)
-		return *res, nil
+		felt, err := other_rel.AddFelt(m_felt)
+		if err != nil {
+			return MaybeRelocatable{}, err
+		}
+		return *NewMaybeRelocatableRelocatable(felt), nil
 	} else {
 		return MaybeRelocatable{}, errors.New("RelocatableAdd")
 	}
