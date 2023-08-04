@@ -1,5 +1,7 @@
 package memory
 
+import "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+
 // MemorySegmentManager manages the list of memory segments.
 // Also holds metadata useful for the relocation process of
 // the memory at the end of the VM run.
@@ -8,9 +10,9 @@ type MemorySegmentManager struct {
 	Memory       Memory
 }
 
-func NewMemorySegmentManager() *MemorySegmentManager {
+func NewMemorySegmentManager() MemorySegmentManager {
 	memory := NewMemory()
-	return &MemorySegmentManager{make(map[uint]uint), *memory}
+	return MemorySegmentManager{make(map[uint]uint), *memory}
 }
 
 // Adds a memory segment and returns the first address of the new segment
@@ -58,8 +60,8 @@ func (m *MemorySegmentManager) RelocateSegments() ([]uint, bool) {
 // Relocates the VM's memory, turning bidimensional indexes into contiguous numbers, and values
 // into Felt252s. Uses the relocation_table to asign each index a number according to the value
 // on its segment number.
-func (s *MemorySegmentManager) RelocateMemory(relocationTable *[]uint) (map[uint]uint, error) {
-	relocatedMemory := make(map[uint]uint, 0)
+func (s *MemorySegmentManager) RelocateMemory(relocationTable *[]uint) (map[lambdaworks.Felt]lambdaworks.Felt, error) {
+	relocatedMemory := make(map[lambdaworks.Felt]lambdaworks.Felt, 0)
 
 	for i := uint(0); i < s.Memory.NumSegments(); i++ {
 		for j := uint(0); j < s.SegmentSizes[i]; j++ {
@@ -71,6 +73,7 @@ func (s *MemorySegmentManager) RelocateMemory(relocationTable *[]uint) (map[uint
 				if err != nil {
 					return nil, err
 				}
+				// Todo: fix this, should be a felt
 				relocatedMemory[relocatedAddr] = value
 			}
 		}
