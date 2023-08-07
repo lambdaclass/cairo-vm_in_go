@@ -124,7 +124,7 @@ func (vm *VirtualMachine) ComputeRes(instruction Instruction, op0 memory.MaybeRe
 		return &op1, nil
 
 	case ResAdd:
-		maybe_rel, err := op0.AddMaybeRelocatable(op1)
+		maybe_rel, err := op0.Add(op1)
 		if err != nil {
 			return nil, err
 		}

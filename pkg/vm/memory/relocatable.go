@@ -158,7 +158,7 @@ func (m *MaybeRelocatable) IsEqual(m1 *MaybeRelocatable) bool {
 	}
 }
 
-func (m MaybeRelocatable) AddMaybeRelocatable(other MaybeRelocatable) (MaybeRelocatable, error) {
+func (m MaybeRelocatable) Add(other MaybeRelocatable) (MaybeRelocatable, error) {
 	// check if they are felt
 	m_int, m_is_int := m.GetFelt()
 	other_int, other_is_int := other.GetFelt()
