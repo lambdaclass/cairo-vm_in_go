@@ -60,7 +60,7 @@ func (r *CairoRunner) initializeState(entrypoint uint, stack *[]memory.MaybeRelo
 // (entrypoint)
 func (r *CairoRunner) initializeFunctionEntrypoint(entrypoint uint, stack *[]memory.MaybeRelocatable, return_fp memory.Relocatable) (memory.Relocatable, error) {
 	end := r.Vm.Segments.AddSegment()
-	*stack = append(*stack, *memory.NewMaybeRelocatableRelocatable(end), *memory.NewMaybeRelocatableRelocatable(return_fp))
+	*stack = append(*stack, *memory.NewMaybeRelocatableRelocatable(return_fp), *memory.NewMaybeRelocatableRelocatable(end))
 	r.initialFp = r.executionBase
 	r.initialFp.Offset += uint(len(*stack))
 	r.initialAp = r.initialFp

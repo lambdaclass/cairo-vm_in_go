@@ -274,15 +274,12 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 		return Operands{}, fmt.Errorf("FailedToComputeOp0Addr: %s", err)
 	}
 	op0, _ := vm.Segments.Memory.Get(op0_addr)
-	fmt.Printf("current step: %+v\n", vm.CurrentStep)
-	fmt.Printf("instruction: %+v\n", instruction)
 
 	op1_addr, err := vm.RunContext.ComputeOp1Addr(instruction, op0)
 	if err != nil {
 		return Operands{}, fmt.Errorf("FailedToComputeOp1Addr: %s", err)
 	}
 	op1, _ := vm.Segments.Memory.Get(op1_addr)
-	fmt.Printf("op1_addr: %+v op1: %+v\n", op1_addr, op1)
 
 	if op0 == nil {
 		deducedOp0, deducedRes, err := vm.DeduceOp0(&instruction, dst, op1)
