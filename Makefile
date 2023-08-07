@@ -44,5 +44,4 @@ clean:
 	rm cairo_programs/*.json
 	rm -r cairo-vm-env
 
-demo: $(COMPILED_TESTS)
-	go run .
+demo: $(COMPILED_TESTS) run
