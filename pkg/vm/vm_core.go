@@ -134,7 +134,7 @@ func (vm *VirtualMachine) DeduceOp1(instruction Instruction, dst *memory.MaybeRe
 		case ResMul:
 			dst_felt, dst_is_felt := dst.GetFelt()
 			op0_felt, op0_is_felt := op0.GetFelt()
-			if dst_is_felt && op0_is_felt  && !op0_felt.IsZero() {
+			if dst_is_felt && op0_is_felt && !op0_felt.IsZero() {
 				res := memory.NewMaybeRelocatableFelt(dst_felt.Div(op0_felt))
 				return res, dst, nil
 			}
