@@ -7,11 +7,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
-
-	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
-
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/cairo_run"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
 func TestDeduceOp0OpcodeRet(t *testing.T) {
@@ -28,13 +27,13 @@ func TestDeduceOp0OpcodeRet(t *testing.T) {
 func TestDeduceOp0OpcodeAssertEqResMulOk(t *testing.T) {
 	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResMul}
 	vm := vm.NewVirtualMachine()
-	dst := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(6))
-	op1 := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(3))
+	dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(6))
+	op1 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(3))
 	op0, res, err := vm.DeduceOp0(&instruction, dst, op1)
 	if err != nil {
 		t.Errorf("DeduceOp0 failed with error: %s", err)
 	}
-	if !reflect.DeepEqual(op0, memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(2))) || !reflect.DeepEqual(res, dst) {
+	if !reflect.DeepEqual(op0, memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2))) || !reflect.DeepEqual(res, dst) {
 		t.Errorf("Wrong values returned by DeduceOp0")
 	}
 }
@@ -42,8 +41,8 @@ func TestDeduceOp0OpcodeAssertEqResMulOk(t *testing.T) {
 func TestDeduceOp0OpcodeAssertEqResMulZeroDiv(t *testing.T) {
 	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResMul}
 	vm := vm.NewVirtualMachine()
-	dst := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(6))
-	op1 := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(0))
+	dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(6))
+	op1 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0))
 	_, _, err := vm.DeduceOp0(&instruction, dst, op1)
 	if err == nil {
 		t.Errorf("Expected DeduceOp0 to fail")
@@ -73,13 +72,13 @@ func TestDeduceOp0OpcodeAssertEqResMulNilValues(t *testing.T) {
 func TestDeduceOp0OpcodeAssertEqResAddOk(t *testing.T) {
 	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResAdd}
 	vm := vm.NewVirtualMachine()
-	dst := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(7))
-	op1 := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(5))
+	dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(7))
+	op1 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))
 	op0, res, err := vm.DeduceOp0(&instruction, dst, op1)
 	if err != nil {
 		t.Errorf("DeduceOp0 failed with error: %s", err)
 	}
-	if !reflect.DeepEqual(op0, memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(2))) || !reflect.DeepEqual(res, dst) {
+	if !reflect.DeepEqual(op0, memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2))) || !reflect.DeepEqual(res, dst) {
 		t.Errorf("Wrong values returned by DeduceOp0")
 	}
 }
@@ -114,6 +113,168 @@ func TestDeduceOp0OpcodeCall(t *testing.T) {
 	}
 	if !reflect.DeepEqual(op0, memory.NewMaybeRelocatableRelocatable(memory.Relocatable{SegmentIndex: 1, Offset: 8})) || res != nil {
 		t.Errorf("Wrong values returned by DeduceOp0")
+	}
+}
+
+func TestUpdateRegistersAllRegularNoImm(t *testing.T) {
+	instruction := vm.Instruction{FpUpdate: vm.FpUpdateRegular, ApUpdate: vm.ApUpdateRegular, PcUpdate: vm.PcUpdateRegular, Op1Addr: vm.Op1SrcAP}
+	operands := vm.Operands{}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateRegisters(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateResigters failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Fp, memory.Relocatable{SegmentIndex: 0, Offset: 0}) {
+		t.Errorf("Wrong fp value after registers update")
+	}
+	if !reflect.DeepEqual(vm.RunContext.Ap, memory.Relocatable{SegmentIndex: 0, Offset: 0}) {
+		t.Errorf("Wrong ap value after registers update")
+	}
+	if !reflect.DeepEqual(vm.RunContext.Pc, memory.Relocatable{SegmentIndex: 0, Offset: 1}) {
+		t.Errorf("Wrong pc value after registers update")
+	}
+}
+
+func TestUpdateRegistersMixedTypes(t *testing.T) {
+	instruction := vm.Instruction{FpUpdate: vm.FpUpdateDst, ApUpdate: vm.ApUpdateAdd2, PcUpdate: vm.PcUpdateJumpRel, Op1Addr: vm.Op1SrcAP}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(1, 11)), Res: memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(8))}
+	v := vm.NewVirtualMachine()
+	v.RunContext = vm.RunContext{Pc: memory.NewRelocatable(0, 4), Ap: memory.NewRelocatable(1, 5), Fp: memory.NewRelocatable(1, 6)}
+	err := v.UpdateRegisters(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateResigters failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(v.RunContext.Fp, memory.Relocatable{SegmentIndex: 1, Offset: 11}) {
+		t.Errorf("Wrong fp value after registers update")
+	}
+	if !reflect.DeepEqual(v.RunContext.Ap, memory.Relocatable{SegmentIndex: 1, Offset: 7}) {
+		t.Errorf("Wrong ap value after registers update")
+	}
+	if !reflect.DeepEqual(v.RunContext.Pc, memory.Relocatable{SegmentIndex: 0, Offset: 12}) {
+		t.Errorf("Wrong pc value after registers update")
+	}
+}
+func TestUpdateFpRegular(t *testing.T) {
+	instruction := vm.Instruction{FpUpdate: vm.FpUpdateRegular}
+	operands := vm.Operands{}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateFp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateFp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Fp, memory.Relocatable{SegmentIndex: 0, Offset: 0}) {
+		t.Errorf("Wrong value after fp update")
+	}
+}
+
+func TestUpdateFpDstInt(t *testing.T) {
+	instruction := vm.Instruction{FpUpdate: vm.FpUpdateDst}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(9))}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateFp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateFp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Fp, memory.Relocatable{SegmentIndex: 0, Offset: 9}) {
+		t.Errorf("Wrong value after fp update")
+	}
+}
+func TestUpdateFpDstRelocatable(t *testing.T) {
+	instruction := vm.Instruction{FpUpdate: vm.FpUpdateDst}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableRelocatable(memory.Relocatable{SegmentIndex: 0, Offset: 9})}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateFp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateFp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Fp, memory.Relocatable{SegmentIndex: 0, Offset: 9}) {
+		t.Errorf("Wrong value after fp update")
+	}
+}
+
+func TestUpdateFpApPlus2(t *testing.T) {
+	instruction := vm.Instruction{FpUpdate: vm.FpUpdateAPPlus2}
+	operands := vm.Operands{}
+	vm := vm.NewVirtualMachine()
+	// Change the value of Ap offset
+	vm.RunContext.Ap.Offset = 7
+	err := vm.UpdateFp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateFp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Fp, memory.Relocatable{SegmentIndex: 0, Offset: 9}) {
+		t.Errorf("Wrong value after fp update")
+	}
+}
+
+func TestUpdateApRegular(t *testing.T) {
+	instruction := vm.Instruction{ApUpdate: vm.ApUpdateRegular}
+	operands := vm.Operands{}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateAp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateAp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Ap, memory.Relocatable{SegmentIndex: 0, Offset: 0}) {
+		t.Errorf("Wrong value after ap update")
+	}
+}
+
+func TestUpdateApAdd2(t *testing.T) {
+	instruction := vm.Instruction{ApUpdate: vm.ApUpdateAdd2}
+	operands := vm.Operands{}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateAp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateAp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Ap, memory.Relocatable{SegmentIndex: 0, Offset: 2}) {
+		t.Errorf("Wrong value after ap update")
+	}
+}
+
+func TestUpdateApAdd1(t *testing.T) {
+	instruction := vm.Instruction{ApUpdate: vm.ApUpdateAdd1}
+	operands := vm.Operands{}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateAp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateAp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Ap, memory.Relocatable{SegmentIndex: 0, Offset: 1}) {
+		t.Errorf("Wrong value after ap update")
+	}
+}
+func TestUpdateApAddWithResInt(t *testing.T) {
+	instruction := vm.Instruction{ApUpdate: vm.ApUpdateAdd}
+	operands := vm.Operands{Res: memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateAp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateAp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Ap, memory.Relocatable{SegmentIndex: 0, Offset: 5}) {
+		t.Errorf("Wrong value after ap update")
+	}
+}
+
+func TestUpdateApAddWithResRel(t *testing.T) {
+	instruction := vm.Instruction{ApUpdate: vm.ApUpdateAdd}
+	operands := vm.Operands{Res: memory.NewMaybeRelocatableRelocatable(memory.Relocatable{})}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateAp(&instruction, &operands)
+	if err == nil {
+		t.Errorf("UpdateA should have failed")
+	}
+}
+
+func TestUpdateApAddWithoutRes(t *testing.T) {
+	instruction := vm.Instruction{ApUpdate: vm.ApUpdateAdd}
+	operands := vm.Operands{}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateAp(&instruction, &operands)
+	if err == nil {
+		t.Errorf("UpdateA should have failed")
 	}
 }
 
@@ -159,7 +320,7 @@ func TestUpdatePcJumpWithRelRes(t *testing.T) {
 
 func TestUpdatePcJumpWithIntRes(t *testing.T) {
 	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJump}
-	operands := vm.Operands{Res: memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(0))}
+	operands := vm.Operands{Res: memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0))}
 	vm := vm.NewVirtualMachine()
 	err := vm.UpdatePc(&instruction, &operands)
 	if err == nil {
@@ -180,7 +341,7 @@ func TestUpdatePcJumpWithoutRes(t *testing.T) {
 
 func TestUpdatePcJumpRelWithIntRes(t *testing.T) {
 	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJumpRel}
-	operands := vm.Operands{Res: memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(5))}
+	operands := vm.Operands{Res: memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))}
 	vm := vm.NewVirtualMachine()
 	err := vm.UpdatePc(&instruction, &operands)
 	if err != nil {
@@ -216,7 +377,7 @@ func TestUpdatePcJumpRelNoRes(t *testing.T) {
 
 func TestUpdatePcJnzDstIsZeroNoImm(t *testing.T) {
 	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJnz, Op1Addr: vm.Op1SrcAP}
-	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(0))}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0))}
 	vm := vm.NewVirtualMachine()
 	err := vm.UpdatePc(&instruction, &operands)
 	if err != nil {
@@ -229,7 +390,7 @@ func TestUpdatePcJnzDstIsZeroNoImm(t *testing.T) {
 
 func TestUpdatePcJnzDstIsZeroWithImm(t *testing.T) {
 	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJnz, Op1Addr: vm.Op1SrcImm}
-	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(0))}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0))}
 	vm := vm.NewVirtualMachine()
 	err := vm.UpdatePc(&instruction, &operands)
 	if err != nil {
@@ -242,7 +403,7 @@ func TestUpdatePcJnzDstIsZeroWithImm(t *testing.T) {
 
 func TestUpdatePcJnzDstNotZeroOp1Int(t *testing.T) {
 	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJnz}
-	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)), Op1: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(3))}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)), Op1: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(3))}
 	vm := vm.NewVirtualMachine()
 	err := vm.UpdatePc(&instruction, &operands)
 	if err != nil {
@@ -255,7 +416,7 @@ func TestUpdatePcJnzDstNotZeroOp1Int(t *testing.T) {
 
 func TestUpdatePcJnzDstNotZeroOp1Rel(t *testing.T) {
 	instruction := vm.Instruction{PcUpdate: vm.PcUpdateJnz}
-	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(1)), Op1: *memory.NewMaybeRelocatableRelocatable(memory.Relocatable{})}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)), Op1: *memory.NewMaybeRelocatableRelocatable(memory.Relocatable{})}
 	vm := vm.NewVirtualMachine()
 	err := vm.UpdatePc(&instruction, &operands)
 	if err == nil {
@@ -314,11 +475,11 @@ func TestComputeOperandsAddAp(t *testing.T) {
 	}
 
 	dst_addr := memory.NewRelocatable(1, 0)
-	dst_addr_value := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(5))
+	dst_addr_value := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))
 	op0_addr := memory.NewRelocatable(1, 1)
-	op0_addr_value := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(2))
+	op0_addr_value := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2))
 	op1_addr := memory.NewRelocatable(1, 2)
-	op1_addr_value := memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(3))
+	op1_addr_value := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(3))
 
 	vmachine.Segments.Memory.Insert(dst_addr, dst_addr_value)
 	vmachine.Segments.Memory.Insert(op0_addr, op0_addr_value)
@@ -358,7 +519,7 @@ func TestRelocateTraceOneEntry(t *testing.T) {
 		t.Errorf("Trace relocation error failed with test: %s", err)
 	}
 
-	expectedTrace := []vm.RelocatedTraceEntry{{Pc: 1, Ap: 4, Fp: 4}}
+	expectedTrace := []vm.RelocatedTraceEntry{{Pc: lambdaworks.FeltFromUint64(1), Ap: lambdaworks.FeltFromUint64(4), Fp: lambdaworks.FeltFromUint64(4)}}
 	actualTrace, err := virtualMachine.GetRelocatedTrace()
 	if err != nil {
 		t.Errorf("Trace relocation error failed with test: %s", err)
@@ -393,7 +554,7 @@ func TestWriteBinaryTraceFile(t *testing.T) {
 	}
 
 	var actualTraceBuffer bytes.Buffer
-	vm.WriteEncodedTrace(relocatedTrace, &actualTraceBuffer)
+	cairo_run.WriteEncodedTrace(relocatedTrace, &actualTraceBuffer)
 
 	if !reflect.DeepEqual(expectedTrace, actualTraceBuffer.Bytes()) {
 		t.Errorf("Written trace and expected trace are not the same")
@@ -405,7 +566,7 @@ func buildTestProgramMemory(virtualMachine *vm.VirtualMachine) {
 	for i := 0; i < 4; i++ {
 		virtualMachine.Segments.AddSegment()
 	}
-	virtualMachine.Segments.Memory.Insert(memory.NewRelocatable(0, 0), memory.NewMaybeRelocatableInt(lambdaworks.FeltFromUint64(2345108766317314046)))
+	virtualMachine.Segments.Memory.Insert(memory.NewRelocatable(0, 0), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2345108766317314046)))
 	virtualMachine.Segments.Memory.Insert(memory.NewRelocatable(1, 0), memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(2, 0)))
 	virtualMachine.Segments.Memory.Insert(memory.NewRelocatable(1, 1), memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(3, 0)))
 }

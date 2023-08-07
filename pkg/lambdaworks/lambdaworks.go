@@ -63,6 +63,15 @@ func FeltFromDecString(value string) Felt {
 	return fromC(result)
 }
 
+// turns a felt to usize
+func (felt Felt) ToU64() (uint64, error) {
+	if felt.limbs[0] == 0 && felt.limbs[1] == 0 && felt.limbs[2] == 0 {
+		return uint64(felt.limbs[3]), nil
+	} else {
+		return 0, errors.New("Cannot convert felt to u64")
+	}
+}
+
 // Gets a Felt representing 0.
 func FeltZero() Felt {
 	var result C.felt_t
@@ -75,7 +84,10 @@ func FeltOne() Felt {
 	var result C.felt_t
 	C.one(&result[0])
 	return fromC(result)
+}
 
+func (f Felt) IsZero() bool {
+	return f == FeltZero()
 }
 
 // Writes the result variable with the sum of a and b felts.
@@ -106,16 +118,6 @@ func (a Felt) Mul(b Felt) Felt {
 }
 
 // Writes the result variable with a / b.
-
-// turns a felt to usize
-func (felt Felt) ToU64() (uint64, error) {
-	if felt.limbs[0] == 0 && felt.limbs[1] == 0 && felt.limbs[2] == 0 {
-		return uint64(felt.limbs[3]), nil
-	} else {
-		return 0, errors.New("Cannot convert felt to u64")
-	}
-}
-
 func (a Felt) Div(b Felt) Felt {
 	var result C.felt_t
 	var a_c C.felt_t = a.toC()
