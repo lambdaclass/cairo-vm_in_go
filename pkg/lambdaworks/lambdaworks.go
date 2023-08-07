@@ -73,22 +73,21 @@ func (felt Felt) ToU64() (uint64, error) {
 }
 
 // Gets a Felt representing 0.
-func (f Felt) Zero() Felt {
+func FeltZero() Felt {
 	var result C.felt_t
 	C.zero(&result[0])
 	return fromC(result)
 }
 
 // Gets a Felt representing 1.
-func (f Felt) One() Felt {
+func FeltOne() Felt {
 	var result C.felt_t
 	C.one(&result[0])
 	return fromC(result)
 }
 
 func (f Felt) IsZero() bool {
-	var felt Felt
-	return f == felt.Zero()
+	return f == FeltZero()
 }
 
 // Writes the result variable with the sum of a and b felts.
