@@ -9,6 +9,8 @@ import "C"
 
 import (
 	"errors"
+	"fmt"
+	"math/bits"
 	"unsafe"
 )
 
@@ -135,4 +137,16 @@ func (a Felt) Shl(rhs uint32) Felt {
 		a.limbs[i] <<= rhs
 	}
 	return a
+}
+
+func (a Felt) Bits() int {
+	if a.IsZero() {
+		return 0
+	}
+	val_u64, err := a.ToU64()
+	if err != nil {
+		fmt.Println(err)
+	}
+	return bits.Len64(val_u64)
+
 }

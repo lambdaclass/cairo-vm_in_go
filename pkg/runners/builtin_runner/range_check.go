@@ -1,6 +1,7 @@
-package main
+package builtinrunner
 
 import (
+	"errors"
 	"math"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
@@ -12,10 +13,6 @@ const INNER_RC_BOUND_MASK = math.MaxUint16
 const CELLS_PER_RANGE_CHECK = 1
 
 const N_PARTS = 8
-
-type ValidationRule struct {
-	// Define the ValidationRule struct as needed.
-}
 
 type RangeCheckBuiltinRunner struct {
 	ratio                 *uint32
@@ -57,67 +54,45 @@ func NewRangeCheckBuiltinRunner(ratio *uint32, nParts uint32, included bool) *Ra
 	}
 }
 
-func (r *RangeCheckBuiltinRunner) initializeSegments(segments *memory.MemorySegmentManager) {
+func (r *RangeCheckBuiltinRunner) Base() int {
+	return r.base
+}
+
+func (r *RangeCheckBuiltinRunner) Name() string {
+	return "RangeCheck"
+}
+
+func (r *RangeCheckBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
 	r.base = segments.AddSegment().SegmentIndex
 }
 
-func (r *RangeCheckBuiltinRunner) initialStack() []memory.MaybeRelocatable {
+func (r *RangeCheckBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
 	if r.included {
-		stack := make([]memory.MaybeRelocatable, 1)
-		stack[0] = *memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(r.base, 0))
+		stack := []memory.MaybeRelocatable{*memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(r.base, 0))}
 		return stack
 	}
 	return []memory.MaybeRelocatable{}
 }
 
-func (r *RangeCheckBuiltinRunner) getMemorySegmentAddresses() (int, *int) {
-	return r.base, r.stopPtr
+func (r *RangeCheckBuiltinRunner) DeduceMemoryCell(addr memory.Relocatable, mem *memory.Memory) (*memory.MaybeRelocatable, error) {
+	return nil, nil
 }
 
-func (r *RangeCheckBuiltinRunner) getUsedCells(segments *memory.MemorySegmentManager) (uint, error) {
-	usedSize, ok := segments.SegmentSizes[uint(r.base)]
-	if !ok {
-		return 0, memory.MissingSegmentUsize
-	}
-	return usedSize, nil
-}
-
-func (r *RangeCheckBuiltinRunner) getRangeCheckUsage(checkedMemory *memory.Memory) (*struct{uint64, uint64}, error) {
-	rangeCheckSegment, err := checkedMemory.Get(memory.NewRelocatable(r.base, 0))
+func ValidationRule(mem *memory.Memory, address memory.Relocatable) ([]memory.Relocatable, error) {
+	res_val, err := mem.Get(address)
 	if err != nil {
-		return math.MaxUint64, 0, err
+		return nil, errors.New("RangeCheckFoundNonInt")
 	}
-	rcBounds := &struct{ min, max uint64 }{math.MaxInt, math.MinInt}
-
-	// Split value into nParts parts of less than INNER_RC_BOUND size.
-	for _, value := range rangeCheckSegment {
-		if value == nil || value.value == nil {
-			continue
-		}
-		num := value.value.getInteger()
-		if num == nil {
-			continue
-		}
-		if num.bits() <= N_PARTS*INNER_RC_BOUND_SHIFT {
-			for i := uint(0); i < N_PARTS; i++ {
-				x := (num.Uint64() >> (i * INNER_RC_BOUND_SHIFT)) & INNER_RC_BOUND_MASK
-				rcBounds.min = int(math.Min(float64(rcBounds.min), float64(x)))
-				rcBounds.max = int(math.Max(float64(rcBounds.max), float64(x)))
-			}
-		}
+	felt, is_felt := res_val.GetFelt()
+	if !is_felt {
+		return nil, errors.New("NotFeltElement")
 	}
-
-	return rcBounds
+	if felt.Bits() <= N_PARTS*INNER_RC_BOUND_SHIFT {
+		return []memory.Relocatable{address}, nil
+	}
+	return nil, errors.New("RangeCheckNumOutOfBounds")
 }
 
-// Implement other methods for RangeCheckBuiltinRunner similar to Rust code.
-
-func main() {
-	// Example usage of RangeCheckBuiltinRunner in Go.
-	ratio := uint32(10)
-	nParts := uint32(8)
-	included := true
-	builtin := NewRangeCheckBuiltinRunner(&ratio, nParts, included)
-	// Initialize segments using builtin.initializeSegments(segments *MemorySegmentManager)
-	// Use other methods as needed.
+func (r *RangeCheckBuiltinRunner) AddValidationRule(mem *memory.Memory) {
+	mem.AddValidationRule(uint(r.base), ValidationRule)
 }
