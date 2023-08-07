@@ -4,17 +4,40 @@ import (
 	"errors"
 )
 
+// A Set to store Relocatable values
+type AddressSet map[Relocatable]bool
+
+func NewAddressSet() AddressSet {
+	return make(map[Relocatable]bool)
+}
+
+func (set AddressSet) Add(element Relocatable) {
+	set[element] = true
+}
+
+func (set AddressSet) Contains(element Relocatable) bool {
+	return set[element]
+}
+
+// A function that validates a memory address and returns a list of validated addresses
+type ValidationRule func(*Memory, Relocatable) ([]Relocatable, error)
+
 // Memory represents the Cairo VM's memory.
 type Memory struct {
-	data         map[Relocatable]MaybeRelocatable
-	num_segments uint
+	data                map[Relocatable]MaybeRelocatable
+	num_segments        uint
+	validation_rules    map[uint]ValidationRule
+	validated_addresses AddressSet
 }
 
 var MissingSegmentUsize = errors.New("Segment effective sizes haven't been calculated.")
 
 func NewMemory() *Memory {
-	data := make(map[Relocatable]MaybeRelocatable)
-	return &Memory{data, 0}
+	return &Memory{
+		data:                make(map[Relocatable]MaybeRelocatable),
+		validated_addresses: NewAddressSet(),
+		validation_rules:    make(map[uint]ValidationRule),
+	}
 }
 
 func (m *Memory) NumSegments() uint {
@@ -41,8 +64,7 @@ func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
 		return errors.New("Memory is write-once, cannot overwrite memory value")
 	}
 	m.data[addr] = *val
-
-	return nil
+	return m.validateAddress(addr)
 }
 
 // Gets some value stored in the memory address `addr`.
@@ -66,4 +88,29 @@ func (m *Memory) Get(addr Relocatable) (*MaybeRelocatable, error) {
 	}
 
 	return &value, nil
+}
+
+// Adds a validation rule for a given segment
+func (m *Memory) AddValidationRule(segment_index uint, rule ValidationRule) {
+	m.validation_rules[segment_index] = rule
+}
+
+// Applies the validation rule for the addr's segment if any
+// Skips validation if the address is temporary or if it has been previously validated
+func (m *Memory) validateAddress(addr Relocatable) error {
+	if addr.SegmentIndex < 0 || m.validated_addresses.Contains(addr) {
+		return nil
+	}
+	rule, ok := m.validation_rules[uint(addr.SegmentIndex)]
+	if !ok {
+		return nil
+	}
+	validated_addresses, error := rule(m, addr)
+	if error != nil {
+		return error
+	}
+	for _, validated_address := range validated_addresses {
+		m.validated_addresses.Add(validated_address)
+	}
+	return nil
 }

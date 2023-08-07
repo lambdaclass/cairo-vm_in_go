@@ -13,6 +13,168 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
+func TestUpdateRegistersAllRegularNoImm(t *testing.T) {
+	instruction := vm.Instruction{FpUpdate: vm.FpUpdateRegular, ApUpdate: vm.ApUpdateRegular, PcUpdate: vm.PcUpdateRegular, Op1Addr: vm.Op1SrcAP}
+	operands := vm.Operands{}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateRegisters(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateResigters failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Fp, memory.Relocatable{SegmentIndex: 0, Offset: 0}) {
+		t.Errorf("Wrong fp value after registers update")
+	}
+	if !reflect.DeepEqual(vm.RunContext.Ap, memory.Relocatable{SegmentIndex: 0, Offset: 0}) {
+		t.Errorf("Wrong ap value after registers update")
+	}
+	if !reflect.DeepEqual(vm.RunContext.Pc, memory.Relocatable{SegmentIndex: 0, Offset: 1}) {
+		t.Errorf("Wrong pc value after registers update")
+	}
+}
+
+func TestUpdateRegistersMixedTypes(t *testing.T) {
+	instruction := vm.Instruction{FpUpdate: vm.FpUpdateDst, ApUpdate: vm.ApUpdateAdd2, PcUpdate: vm.PcUpdateJumpRel, Op1Addr: vm.Op1SrcAP}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(1, 11)), Res: memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(8))}
+	v := vm.NewVirtualMachine()
+	v.RunContext = vm.RunContext{Pc: memory.NewRelocatable(0, 4), Ap: memory.NewRelocatable(1, 5), Fp: memory.NewRelocatable(1, 6)}
+	err := v.UpdateRegisters(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateResigters failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(v.RunContext.Fp, memory.Relocatable{SegmentIndex: 1, Offset: 11}) {
+		t.Errorf("Wrong fp value after registers update")
+	}
+	if !reflect.DeepEqual(v.RunContext.Ap, memory.Relocatable{SegmentIndex: 1, Offset: 7}) {
+		t.Errorf("Wrong ap value after registers update")
+	}
+	if !reflect.DeepEqual(v.RunContext.Pc, memory.Relocatable{SegmentIndex: 0, Offset: 12}) {
+		t.Errorf("Wrong pc value after registers update")
+	}
+}
+func TestUpdateFpRegular(t *testing.T) {
+	instruction := vm.Instruction{FpUpdate: vm.FpUpdateRegular}
+	operands := vm.Operands{}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateFp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateFp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Fp, memory.Relocatable{SegmentIndex: 0, Offset: 0}) {
+		t.Errorf("Wrong value after fp update")
+	}
+}
+
+func TestUpdateFpDstInt(t *testing.T) {
+	instruction := vm.Instruction{FpUpdate: vm.FpUpdateDst}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(9))}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateFp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateFp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Fp, memory.Relocatable{SegmentIndex: 0, Offset: 9}) {
+		t.Errorf("Wrong value after fp update")
+	}
+}
+func TestUpdateFpDstRelocatable(t *testing.T) {
+	instruction := vm.Instruction{FpUpdate: vm.FpUpdateDst}
+	operands := vm.Operands{Dst: *memory.NewMaybeRelocatableRelocatable(memory.Relocatable{SegmentIndex: 0, Offset: 9})}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateFp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateFp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Fp, memory.Relocatable{SegmentIndex: 0, Offset: 9}) {
+		t.Errorf("Wrong value after fp update")
+	}
+}
+
+func TestUpdateFpApPlus2(t *testing.T) {
+	instruction := vm.Instruction{FpUpdate: vm.FpUpdateAPPlus2}
+	operands := vm.Operands{}
+	vm := vm.NewVirtualMachine()
+	// Change the value of Ap offset
+	vm.RunContext.Ap.Offset = 7
+	err := vm.UpdateFp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateFp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Fp, memory.Relocatable{SegmentIndex: 0, Offset: 9}) {
+		t.Errorf("Wrong value after fp update")
+	}
+}
+
+func TestUpdateApRegular(t *testing.T) {
+	instruction := vm.Instruction{ApUpdate: vm.ApUpdateRegular}
+	operands := vm.Operands{}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateAp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateAp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Ap, memory.Relocatable{SegmentIndex: 0, Offset: 0}) {
+		t.Errorf("Wrong value after ap update")
+	}
+}
+
+func TestUpdateApAdd2(t *testing.T) {
+	instruction := vm.Instruction{ApUpdate: vm.ApUpdateAdd2}
+	operands := vm.Operands{}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateAp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateAp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Ap, memory.Relocatable{SegmentIndex: 0, Offset: 2}) {
+		t.Errorf("Wrong value after ap update")
+	}
+}
+
+func TestUpdateApAdd1(t *testing.T) {
+	instruction := vm.Instruction{ApUpdate: vm.ApUpdateAdd1}
+	operands := vm.Operands{}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateAp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateAp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Ap, memory.Relocatable{SegmentIndex: 0, Offset: 1}) {
+		t.Errorf("Wrong value after ap update")
+	}
+}
+func TestUpdateApAddWithResInt(t *testing.T) {
+	instruction := vm.Instruction{ApUpdate: vm.ApUpdateAdd}
+	operands := vm.Operands{Res: memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateAp(&instruction, &operands)
+	if err != nil {
+		t.Errorf("UpdateAp failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(vm.RunContext.Ap, memory.Relocatable{SegmentIndex: 0, Offset: 5}) {
+		t.Errorf("Wrong value after ap update")
+	}
+}
+
+func TestUpdateApAddWithResRel(t *testing.T) {
+	instruction := vm.Instruction{ApUpdate: vm.ApUpdateAdd}
+	operands := vm.Operands{Res: memory.NewMaybeRelocatableRelocatable(memory.Relocatable{})}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateAp(&instruction, &operands)
+	if err == nil {
+		t.Errorf("UpdateA should have failed")
+	}
+}
+
+func TestUpdateApAddWithoutRes(t *testing.T) {
+	instruction := vm.Instruction{ApUpdate: vm.ApUpdateAdd}
+	operands := vm.Operands{}
+	vm := vm.NewVirtualMachine()
+	err := vm.UpdateAp(&instruction, &operands)
+	if err == nil {
+		t.Errorf("UpdateA should have failed")
+	}
+}
+
 func TestUpdatePcRegularNoImm(t *testing.T) {
 	instruction := vm.Instruction{PcUpdate: vm.PcUpdateRegular, Op1Addr: vm.Op1SrcAP}
 	operands := vm.Operands{}
