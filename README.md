@@ -18,6 +18,8 @@ Go needs to be installed. For mac computers, run
 brew install go
 ```
 
+We also use [pyenv](https://github.com/pyenv/pyenv) to install testing-related dependencies
+
 ## Compiling, running, testing
 
 To compile, run:
@@ -32,9 +34,16 @@ To run the main example file, run:
 make run
 ```
 
-To run all tests, run:
+Before running the tests, install the testing dependencies:
+
+```
+make deps
+```
+
+To run all tests, activate the venv created by make deps and run the test target:
 
 ```shell
+. cairo-vm-env/bin/activate
 make test
 ```
 
