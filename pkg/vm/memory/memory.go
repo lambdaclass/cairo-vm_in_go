@@ -24,24 +24,20 @@ type ValidationRule func(*Memory, Relocatable) ([]Relocatable, error)
 
 // Memory represents the Cairo VM's memory.
 type Memory struct {
-	data                map[Relocatable]MaybeRelocatable
-	num_segments        uint
-	validation_rules    map[uint]ValidationRule
-	validated_addresses AddressSet
+	Data              map[Relocatable]MaybeRelocatable
+	NumSegments       uint
+	ValidationRules   map[uint]ValidationRule
+	ValidatedAdresses AddressSet
 }
 
 var MissingSegmentUsize = errors.New("Segment effective sizes haven't been calculated.")
 
 func NewMemory() *Memory {
 	return &Memory{
-		data:                make(map[Relocatable]MaybeRelocatable),
-		validated_addresses: NewAddressSet(),
-		validation_rules:    make(map[uint]ValidationRule),
+		Data:              make(map[Relocatable]MaybeRelocatable),
+		ValidatedAdresses: NewAddressSet(),
+		ValidationRules:   make(map[uint]ValidationRule),
 	}
-}
-
-func (m *Memory) NumSegments() uint {
-	return m.num_segments
 }
 
 // Inserts a value in some memory address, given by a Relocatable value.
@@ -54,17 +50,17 @@ func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
 	}
 
 	// Check that insertions are preformed within the memory bounds
-	if addr.SegmentIndex >= int(m.num_segments) {
+	if addr.SegmentIndex >= int(m.NumSegments) {
 		return errors.New("Error: Inserting into a non allocated segment")
 	}
 
 	// Check for possible overwrites
-	prev_elem, ok := m.data[addr]
+	prev_elem, ok := m.Data[addr]
 	if ok && prev_elem != *val {
 		return errors.New("Memory is write-once, cannot overwrite memory value")
 	}
-	m.data[addr] = *val
-	return m.validateAddress(addr)
+	m.Data[addr] = *val
+	return m.ValidateAddress(addr)
 }
 
 // Gets some value stored in the memory address `addr`.
@@ -81,7 +77,7 @@ func (m *Memory) Get(addr Relocatable) (*MaybeRelocatable, error) {
 	// check if the value is a `Relocatable` with a negative
 	// segment index. Again, these are edge cases so not important
 	// right now. See cairo-vm code for details.
-	value, ok := m.data[addr]
+	value, ok := m.Data[addr]
 
 	if !ok {
 		return nil, errors.New("Memory Get: Value not found")
@@ -92,16 +88,16 @@ func (m *Memory) Get(addr Relocatable) (*MaybeRelocatable, error) {
 
 // Adds a validation rule for a given segment
 func (m *Memory) AddValidationRule(segment_index uint, rule ValidationRule) {
-	m.validation_rules[segment_index] = rule
+	m.ValidationRules[segment_index] = rule
 }
 
 // Applies the validation rule for the addr's segment if any
 // Skips validation if the address is temporary or if it has been previously validated
-func (m *Memory) validateAddress(addr Relocatable) error {
-	if addr.SegmentIndex < 0 || m.validated_addresses.Contains(addr) {
+func (m *Memory) ValidateAddress(addr Relocatable) error {
+	if addr.SegmentIndex < 0 || m.ValidatedAdresses.Contains(addr) {
 		return nil
 	}
-	rule, ok := m.validation_rules[uint(addr.SegmentIndex)]
+	rule, ok := m.ValidationRules[uint(addr.SegmentIndex)]
 	if !ok {
 		return nil
 	}
@@ -110,7 +106,7 @@ func (m *Memory) validateAddress(addr Relocatable) error {
 		return error
 	}
 	for _, validated_address := range validated_addresses {
-		m.validated_addresses.Add(validated_address)
+		m.ValidatedAdresses.Add(validated_address)
 	}
 	return nil
 }
