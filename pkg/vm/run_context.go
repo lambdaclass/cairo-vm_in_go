@@ -13,6 +13,9 @@ type RunContext struct {
 	Ap memory.Relocatable
 	Fp memory.Relocatable
 }
+func (run_context RunContext) GetFp() memory.Relocatable {
+	return run_context.Fp
+}
 
 func (run_context RunContext) ComputeDstAddr(instruction Instruction) (memory.Relocatable, error) {
 	var base_addr memory.Relocatable
