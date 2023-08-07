@@ -3,6 +3,7 @@ package runners_test
 import (
 	"testing"
 
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/runners"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
@@ -11,7 +12,7 @@ import (
 func TestNewCairoRunnerInvalidBuiltin(t *testing.T) {
 	// Create a Program with one fake instruction
 	program_data := make([]memory.MaybeRelocatable, 1)
-	program_data[0] = *memory.NewMaybeRelocatableInt(1)
+	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(uint64(1)))
 	program := vm.Program{Data: program_data, Builtins: []string{"fake_builtin"}}
 	// Create CairoRunner
 	_, err := runners.NewCairoRunner(program)
@@ -86,7 +87,7 @@ func TestInitializeRunnerNoBuiltinsNoProofModeEmptyProgram(t *testing.T) {
 func TestInitializeRunnerNoBuiltinsNoProofModeNonEmptyProgram(t *testing.T) {
 	// Create a Program with one fake instruction
 	program_data := make([]memory.MaybeRelocatable, 1)
-	program_data[0] = *memory.NewMaybeRelocatableInt(1)
+	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(uint64(1)))
 	program := vm.Program{Data: program_data}
 	// Create CairoRunner
 	runner, err := runners.NewCairoRunner(program)
@@ -126,8 +127,8 @@ func TestInitializeRunnerNoBuiltinsNoProofModeNonEmptyProgram(t *testing.T) {
 	if err != nil {
 		t.Errorf("Memory Get error in test: %s", err)
 	}
-	int, ok := value.GetInt()
-	if !ok || int.Felt != 1 {
+	int, ok := value.GetFelt()
+	if !ok || int != lambdaworks.FeltFromUint64(1) {
 		t.Errorf("Wrong value for address 0:0: %d", int)
 	}
 

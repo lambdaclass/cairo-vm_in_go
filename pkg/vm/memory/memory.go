@@ -38,6 +38,10 @@ func NewMemory() *Memory {
 	}
 }
 
+func (m *Memory) NumSegments() uint {
+	return m.num_segments
+}
+
 // Inserts a value in some memory address, given by a Relocatable value.
 func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
 	// FIXME: There should be a special handling if the key
@@ -57,7 +61,6 @@ func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
 	if ok && prev_elem != *val {
 		return errors.New("Memory is write-once, cannot overwrite memory value")
 	}
-
 	m.data[addr] = *val
 	return m.validateAddress(addr)
 }
