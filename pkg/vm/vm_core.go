@@ -20,7 +20,7 @@ func (e *VirtualMachineError) Error() string {
 // Runs Cairo assembly and produces an execution trace.
 type VirtualMachine struct {
 	RunContext     RunContext
-	currentStep    uint
+	CurrentStep    uint
 	Segments       memory.MemorySegmentManager
 	BuiltinRunners []builtins.BuiltinRunner
 	Trace          []TraceEntry

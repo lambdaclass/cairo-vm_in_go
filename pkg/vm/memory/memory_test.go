@@ -30,7 +30,7 @@ func TestMemoryInsertWithValidationRulesOk(t *testing.T) {
 	// Instantiate the address where we want to insert and the value.
 	// We will insert the value Int(5) in segment 1, offset 0
 	key := memory.NewRelocatable(0, 0)
-	val := memory.NewMaybeRelocatableInt(5)
+	val := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))
 
 	// Make the insertion
 	err := mem.Insert(key, val)
@@ -59,7 +59,7 @@ func TestMemoryInsertWithValidationRulesErr(t *testing.T) {
 	// Instantiate the address where we want to insert and the value.
 	// We will insert the value Int(5) in segment 1, offset 0
 	key := memory.NewRelocatable(0, 0)
-	val := memory.NewMaybeRelocatableInt(5)
+	val := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))
 
 	// Make the insertion
 	err := mem.Insert(key, val)
