@@ -24,9 +24,10 @@ func CairoRun(programPath string) (runners.CairoRunner, error) {
 	compiledProgram := parser.Parse(programPath)
 	programJson := vm.DeserializeProgramJson(compiledProgram)
 	cairoRunner := runners.NewCairoRunner(programJson)
-	_, err := cairoRunner.Initialize()
-	//err = cairoRunner.RunUntilPC()
-	//cairoRunner.relocate(vm, cairoRunConfig.RelocateMem)
+	end, err := cairoRunner.Initialize()
+	err = cairoRunner.RunUntilPC(end)
+	println("Done!")
+	// cairoRunner.relocate(vm, cairoRunConfig.RelocateMem)
 	return *cairoRunner, err
 }
 

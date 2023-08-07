@@ -7,7 +7,8 @@ import (
 )
 
 type Program struct {
-	Data []memory.MaybeRelocatable
+	Data        []memory.MaybeRelocatable
+	Identifiers *map[string]parser.Identifier
 }
 
 func DeserializeProgramJson(compiledProgram parser.CompiledJson) Program {
@@ -18,5 +19,8 @@ func DeserializeProgramJson(compiledProgram parser.CompiledJson) Program {
 		felt := lambdaworks.FeltFromHex(hexVal)
 		program.Data = append(program.Data, *memory.NewMaybeRelocatableFelt(felt))
 	}
+
+	program.Identifiers = &compiledProgram.Identifiers
+
 	return program
 }

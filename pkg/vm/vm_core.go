@@ -35,6 +35,48 @@ func NewVirtualMachine() *VirtualMachine {
 	return &VirtualMachine{Segments: segments, BuiltinRunners: builtin_runners, Trace: trace, RelocatedTrace: relocatedTrace}
 }
 
+func (v *VirtualMachine) Step() error {
+	encoded_instruction, err := v.Segments.Memory.Get(v.RunContext.Pc)
+	if err != nil {
+		return err
+	}
+
+	encoded_instruction_felt, ok := encoded_instruction.GetFelt()
+	if !ok {
+		return errors.New("Wrong instruction encoding")
+	}
+
+	encoded_instruction_uint, err := encoded_instruction_felt.ToU64()
+	if err != nil {
+		return err
+	}
+
+	instruction, err := DecodeInstruction(encoded_instruction_uint)
+	if err != nil {
+		return err
+	}
+
+	return v.RunInstruction(&instruction)
+}
+
+func (v *VirtualMachine) RunInstruction(instruction *Instruction) error {
+	operands, err := v.ComputeOperands(*instruction)
+	if err != nil {
+		return err
+	}
+
+	// TODO: Add deduce operands
+
+	err = v.OpcodeAssertions(*instruction, operands)
+	if err != nil {
+		return err
+	}
+
+	v.Trace = append(v.Trace, TraceEntry{Pc: v.RunContext.Pc, Ap: v.RunContext.Ap, Fp: v.RunContext.Fp})
+
+	return v.UpdateRegisters(instruction, &operands)
+}
+
 // Relocates the VM's trace, turning relocatable registers to numbered ones
 func (v *VirtualMachine) RelocateTrace(relocationTable *[]uint) error {
 	if len(*relocationTable) < 2 {
@@ -209,10 +251,6 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 		Res: res,
 	}
 	return operands, nil
-}
-
-func (vm VirtualMachine) run_instrucion(instruction Instruction) {
-	fmt.Println("hello from instruction")
 }
 
 // Updates the values of the RunContext's registers according to the executed instruction
