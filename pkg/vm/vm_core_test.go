@@ -208,7 +208,7 @@ func TestDeduceOp1OpcodeAssertEqResAddWithOptionals(t *testing.T) {
 	dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(3))
 	op0 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2))
 
-	expected_dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1))
+	expected_dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltOne())
 	expected_op0 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(3))
 
 	m1, m2, err := vm.DeduceOp1(instruction, dst, op0)

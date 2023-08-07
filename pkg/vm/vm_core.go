@@ -30,7 +30,7 @@ type VirtualMachine struct {
 
 func NewVirtualMachine() *VirtualMachine {
 	segments := memory.NewMemorySegmentManager()
-	builtin_runners := make([]builtins.BuiltinRunner, 0, 9)
+	builtin_runners := make([]builtins.BuiltinRunner, 0, 9) // There will be at most 9 builtins
 	trace := make([]TraceEntry, 0)
 	relocatedTrace := make([]RelocatedTraceEntry, 0)
 	return &VirtualMachine{Segments: segments, BuiltinRunners: builtin_runners, Trace: trace, RelocatedTrace: relocatedTrace}
@@ -136,7 +136,7 @@ func (vm *VirtualMachine) DeduceOp1(instruction Instruction, dst *memory.MaybeRe
 			dst_felt, dst_is_felt := dst.GetFelt()
 			op0_felt, op0_is_felt := op0.GetFelt()
 			if dst_is_felt && op0_is_felt {
-				if op0_felt != lambdaworks.FeltFromUint64(0) {
+				if op0_felt != lambdaworks.FeltZero() {
 					res := memory.NewMaybeRelocatableFelt(dst_felt.Div(op0_felt))
 					return res, dst, nil
 				}
