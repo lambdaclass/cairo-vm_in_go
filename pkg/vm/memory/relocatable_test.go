@@ -43,6 +43,36 @@ func TestMaybeRelocatableAddFelt(t *testing.T) {
 	}
 }
 
+func TestRelocatableSubOk(t *testing.T) {
+	a := memory.Relocatable{1, 7}
+	b := memory.Relocatable{1, 5}
+	res, err := a.Sub(b)
+	if err != nil {
+		t.Errorf("Relocatable.Sub failed with error: %s", err)
+	}
+	if res != 2 {
+		t.Errorf("Got wrong value from Relocatable.Sub")
+	}
+}
+
+func TestRelocatableSubDiffIndex(t *testing.T) {
+	a := memory.Relocatable{1, 7}
+	b := memory.Relocatable{2, 5}
+	_, err := a.Sub(b)
+	if err == nil {
+		t.Errorf("Relocatable.Sub should have failed")
+	}
+}
+
+func TestRelocatableSubNegativeDifference(t *testing.T) {
+	a := memory.Relocatable{1, 7}
+	b := memory.Relocatable{1, 9}
+	_, err := a.Sub(b)
+	if err == nil {
+		t.Errorf("Relocatable.Sub should have failed")
+	}
+}
+
 func TestMaybeRelocatableSubFelt(t *testing.T) {
 	felt := lambdaworks.FeltFromUint64(5)
 	rel := memory.Relocatable{1, 7}
