@@ -59,25 +59,16 @@ func (r *Relocatable) AddMaybeRelocatable(other MaybeRelocatable) (Relocatable, 
 	return r.AddFelt(felt)
 }
 
-// Subtracts other from offset if Felt value, returns distance if relocatable
-// Fails if other is a Relocatable of a different segment index
-func (r *Relocatable) SubMaybeRelocatable(other MaybeRelocatable) (Relocatable, error) {
-	felt, ok := other.GetFelt()
-	if !ok {
-		rel, _ := other.GetRelocatable()
-		return r.Sub(rel)
-	}
-	return r.AddFelt(felt)
-}
-
-func (r *Relocatable) Sub(other Relocatable) (Relocatable, error) {
+// Returns the distance between two relocatable values (aka the difference between their offsets)
+// Fails if they have different segment indexes or if the difference is negative
+func (r *Relocatable) Sub(other Relocatable) (uint, error) {
 	if r.SegmentIndex != other.SegmentIndex {
-		return Relocatable{}, errors.New("Cant subtract two relocatables with different segment indexes")
+		return 0, errors.New("Cant subtract two relocatables with different segment indexes")
 	}
 	if r.Offset < other.Offset {
-		return Relocatable{}, errors.New("Relocatable subtraction yields relocatable with negative offset")
+		return 0, errors.New("Relocatable subtraction yields relocatable with negative offset")
 	}
-	return Relocatable{r.SegmentIndex, r.Offset - other.Offset}, nil
+	return r.Offset - other.Offset, nil
 }
 
 func (r *Relocatable) IsEqual(r1 *Relocatable) bool {
@@ -224,11 +215,11 @@ func (m MaybeRelocatable) Sub(other MaybeRelocatable) (MaybeRelocatable, error) 
 		return *NewMaybeRelocatableRelocatable(relocatable), nil
 
 	} else if is_rel_m && is_rel_other {
-		relocatable, err := m_rel.Sub(other_rel)
+		offset_diff, err := m_rel.Sub(other_rel)
 		if err != nil {
-			return MaybeRelocatable{}, err
+			return *NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0)), err
 		}
-		return *NewMaybeRelocatableRelocatable(relocatable), nil
+		return *NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(uint64(offset_diff))), nil
 	} else {
 		return *NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0)), errors.New("Cant sub Relocatable from Felt")
 	}

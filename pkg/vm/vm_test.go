@@ -86,11 +86,14 @@ func TestDeduceOp0OpcodeAssertEqResAddOk(t *testing.T) {
 func TestDeduceOp0OpcodeAssertEqResAddRelValues(t *testing.T) {
 	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResAdd}
 	vm := vm.NewVirtualMachine()
-	dst := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{})
-	op1 := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{})
-	_, _, err := vm.DeduceOp0(&instruction, dst, op1)
-	if err == nil {
-		t.Errorf("DeduceOp0 should have failed")
+	dst := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{SegmentIndex: 1, Offset: 6})
+	op1 := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{SegmentIndex: 1, Offset: 2})
+	op0, res, err := vm.DeduceOp0(&instruction, dst, op1)
+	if err != nil {
+		t.Errorf("DeduceOp0 failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(op0, memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(4))) || !reflect.DeepEqual(res, dst) {
+		t.Errorf("Wrong values returned by DeduceOp0")
 	}
 }
 
