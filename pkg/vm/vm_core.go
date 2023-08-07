@@ -118,7 +118,6 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 	return nil
 }
 
-
 func (vm *VirtualMachine) DeduceDst(instruction Instruction, res *memory.MaybeRelocatable) *memory.MaybeRelocatable {
 	switch instruction.Opcode {
 	case AssertEq:
@@ -129,7 +128,6 @@ func (vm *VirtualMachine) DeduceDst(instruction Instruction, res *memory.MaybeRe
 	}
 	return nil
 }
-
 
 // Deduces the value of op0 if possible (based on dst and op1). Otherwise, returns nil.
 // If res is deduced in the process returns its deduced value as well.
@@ -162,7 +160,6 @@ func (vm *VirtualMachine) DeduceOp0(instruction *Instruction, dst *memory.MaybeR
 	}
 	return nil, nil, nil
 }
-
 
 func (vm *VirtualMachine) DeduceOp1(instruction Instruction, dst *memory.MaybeRelocatable, op0 *memory.MaybeRelocatable) (*memory.MaybeRelocatable, *memory.MaybeRelocatable, error) {
 	if instruction.Opcode == AssertEq {

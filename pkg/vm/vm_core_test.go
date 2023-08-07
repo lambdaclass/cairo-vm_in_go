@@ -397,7 +397,6 @@ func TestDeduceOp1OpcodeAssertEqResOp1WithDst(t *testing.T) {
 	}
 }
 
-
 func TestDeduceDstOpcodeAssertEqWithRes(t *testing.T) {
 	instruction := Instruction{
 		OffOp0:   1,
@@ -448,4 +447,3 @@ func TestDeduceDstOpcodeAssertEqWithoutRes(t *testing.T) {
 		t.Error("Different Res value")
 	}
 }
-
