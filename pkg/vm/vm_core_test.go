@@ -173,10 +173,18 @@ func TestDeduceOp1OpcodeCall(t *testing.T) {
 
 	vm := NewVirtualMachine()
 
-	_, _, err := vm.DeduceOp1(instruction, nil, nil)
+	m1, m2, err := vm.DeduceOp1(instruction, nil, nil)
 
 	if err != nil {
 		t.Error(err)
+	}
+
+	if m1 != nil {
+		t.Error("maybe relocatable of deduced operand is not nil")
+	}
+
+	if m2 != nil {
+		t.Error("maybe relocatable of deduced operand is not nil")
 	}
 }
 
@@ -234,10 +242,18 @@ func TestDeduceOp1OpcodeAssertEqResAddWithoutOptionals(t *testing.T) {
 
 	vm := NewVirtualMachine()
 
-	_, _, err := vm.DeduceOp1(instruction, nil, nil)
+	m1, m2, err := vm.DeduceOp1(instruction, nil, nil)
 
 	if err != nil {
 		t.Error(err)
+	}
+
+	if m1 != nil {
+		t.Error("maybe relocatable of deduced operand is not nil")
+	}
+
+	if m2 != nil {
+		t.Error("maybe relocatable of deduced operand is not nil")
 	}
 }
 func TestDeduceOp1OpcodeAssertEqResMulNonZeroOp0(t *testing.T) {
@@ -297,10 +313,18 @@ func TestDeduceOp1OpcodeAssertEqResMulZeroOp0(t *testing.T) {
 	dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(4))
 	op0 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0))
 
-	_, _, err := vm.DeduceOp1(instruction, dst, op0)
+	m1, m2, err := vm.DeduceOp1(instruction, dst, op0)
 
 	if err != nil {
 		t.Error(err)
+	}
+
+	if m1 != nil {
+		t.Error("maybe relocatable of deduced operand is not nil")
+	}
+
+	if m2 != nil {
+		t.Error("maybe relocatable of deduced operand is not nil")
 	}
 }
 
@@ -323,10 +347,18 @@ func TestDeduceOp1OpcodeAssertEqResOp1WithoutDst(t *testing.T) {
 
 	op0 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0))
 
-	_, _, err := vm.DeduceOp1(instruction, nil, op0)
+	m1, m2, err := vm.DeduceOp1(instruction, nil, op0)
 
 	if err != nil {
 		t.Error(err)
+	}
+
+	if m1 != nil {
+		t.Error("maybe relocatable of deduced operand is not nil")
+	}
+
+	if m2 != nil {
+		t.Error("maybe relocatable of deduced operand is not nil")
 	}
 }
 func TestDeduceOp1OpcodeAssertEqResOp1WithDst(t *testing.T) {

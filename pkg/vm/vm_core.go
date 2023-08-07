@@ -30,7 +30,7 @@ type VirtualMachine struct {
 
 func NewVirtualMachine() *VirtualMachine {
 	segments := memory.NewMemorySegmentManager()
-	builtin_runners := make([builtins.BuiltinRunner, 0, 9])
+	builtin_runners := make([]builtins.BuiltinRunner, 0, 9)
 	trace := make([]TraceEntry, 0)
 	relocatedTrace := make([]RelocatedTraceEntry, 0)
 	return &VirtualMachine{Segments: segments, BuiltinRunners: builtin_runners, Trace: trace, RelocatedTrace: relocatedTrace}
@@ -243,8 +243,6 @@ func (vm VirtualMachine) run_instrucion(instruction Instruction) {
 	fmt.Println("hello from instruction")
 }
 
-
-
 // Updates the values of the RunContext's registers according to the executed instruction
 func (vm *VirtualMachine) UpdateRegisters(instruction *Instruction, operands *Operands) error {
 	if err := vm.UpdateFp(instruction, operands); err != nil {
@@ -255,7 +253,6 @@ func (vm *VirtualMachine) UpdateRegisters(instruction *Instruction, operands *Op
 	}
 	return vm.UpdatePc(instruction, operands)
 }
-
 
 // Updates the value of PC according to the executed instruction
 func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands) error {
