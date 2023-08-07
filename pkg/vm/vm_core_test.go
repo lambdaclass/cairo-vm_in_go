@@ -498,4 +498,3 @@ func TestDeduceDstOpcodeRet(t *testing.T) {
 		t.Error("Different Res value than nil")
 	}
 }
-
