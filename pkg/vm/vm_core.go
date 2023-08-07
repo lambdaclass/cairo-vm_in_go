@@ -322,7 +322,11 @@ func (vm *VirtualMachine) DeduceOp0(instruction *Instruction, dst *memory.MaybeR
 		switch instruction.ResLogic {
 		case ResAdd:
 			if dst != nil && op1 != nil {
-				return dst.Sub(*op1), dst, nil
+				deduced_op0, err := dst.Sub(*op1)
+				if err != nil {
+					return nil, nil, err
+				}
+				return &deduced_op0, dst, nil
 			}
 		case ResMul:
 			if dst != nil && op1 != nil {
