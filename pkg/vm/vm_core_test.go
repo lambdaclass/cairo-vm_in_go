@@ -475,7 +475,6 @@ func TestDeduceDstOpcodeCall(t *testing.T) {
 	}
 }
 
-
 func TestDeduceDstOpcodeRet(t *testing.T) {
 	instruction := Instruction{
 		OffOp0:   1,
