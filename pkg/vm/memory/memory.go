@@ -10,6 +10,8 @@ type Memory struct {
 	num_segments uint
 }
 
+var MissingSegmentUsize = errors.New("Segment effective sizes haven't been calculated.")
+
 func NewMemory() *Memory {
 	data := make(map[Relocatable]MaybeRelocatable)
 	return &Memory{data, 0}

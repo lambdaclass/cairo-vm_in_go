@@ -12,12 +12,14 @@ import (
 	"unsafe"
 )
 
+const N_LIMBS_IN_FELT = 4
+
 // Go representation of a single limb (unsigned integer with 64 bits).
 type Limb C.limb_t
 
 // Go representation of a 256 bit prime field element (felt).
 type Felt struct {
-	limbs [4]Limb
+	limbs [N_LIMBS_IN_FELT]Limb
 }
 
 // Converts a Go Felt to a C felt_t.
@@ -31,7 +33,7 @@ func (f Felt) toC() C.felt_t {
 
 // Converts a C felt_t to a Go Felt.
 func fromC(result C.felt_t) Felt {
-	var limbs [4]Limb
+	var limbs [N_LIMBS_IN_FELT]Limb
 	for i, limb := range result {
 		limbs[i] = Limb(limb)
 	}
@@ -125,4 +127,12 @@ func (a Felt) Div(b Felt) Felt {
 	var b_c C.felt_t = b.toC()
 	C.lw_div(&a_c[0], &b_c[0], &result[0])
 	return fromC(result)
+}
+
+// Writes the result variable with a << rhs.
+func (a Felt) Shl(rhs uint32) Felt {
+	for i := 0; i < N_LIMBS_IN_FELT; i++ {
+		a.limbs[i] <<= rhs
+	}
+	return a
 }
