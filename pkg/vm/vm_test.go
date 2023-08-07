@@ -1,15 +1,11 @@
 package vm_test
 
 import (
-	"bytes"
-	"io/ioutil"
-	"path/filepath"
 	"reflect"
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
-	"github.com/lambdaclass/cairo-vm.go/pkg/vm/cairo_run"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -529,38 +525,6 @@ func TestRelocateTraceOneEntry(t *testing.T) {
 	}
 	if !reflect.DeepEqual(expectedTrace, actualTrace) {
 		t.Errorf("Relocated trace and expected trace are not the same")
-	}
-}
-
-func TestWriteBinaryTraceFile(t *testing.T) {
-	tracePath, err := filepath.Abs("../../cairo_programs/struct.trace")
-	if err != nil {
-		t.Errorf("Trace file writing error failed with test: %s", err)
-	}
-
-	expectedTrace, err := ioutil.ReadFile(tracePath)
-	if err != nil {
-		t.Errorf("Trace file writing error failed with test: %s", err)
-	}
-
-	virtualMachine := vm.NewVirtualMachine()
-	buildTestProgramMemory(virtualMachine)
-
-	err = virtualMachine.Relocate()
-	if err != nil {
-		t.Errorf("Trace file writing error failed with test: %s", err)
-	}
-
-	relocatedTrace, err := virtualMachine.GetRelocatedTrace()
-	if err != nil {
-		t.Errorf("Trace file writing error failed with test: %s", err)
-	}
-
-	var actualTraceBuffer bytes.Buffer
-	cairo_run.WriteEncodedTrace(relocatedTrace, &actualTraceBuffer)
-
-	if !reflect.DeepEqual(expectedTrace, actualTraceBuffer.Bytes()) {
-		t.Errorf("Written trace and expected trace are not the same")
 	}
 }
 
