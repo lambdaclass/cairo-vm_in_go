@@ -447,3 +447,55 @@ func TestDeduceDstOpcodeAssertEqWithoutRes(t *testing.T) {
 		t.Error("Different Res value")
 	}
 }
+
+func TestDeduceDstOpcodeCall(t *testing.T) {
+	instruction := Instruction{
+		OffOp0:   1,
+		OffOp1:   2,
+		OffDst:   3,
+		DstReg:   FP,
+		Op0Reg:   AP,
+		Op1Addr:  Op1SrcAP,
+		ResLogic: ResUnconstrained,
+		PcUpdate: PcUpdateJump,
+		ApUpdate: ApUpdateRegular,
+		FpUpdate: FpUpdateRegular,
+		Opcode:   Call,
+	}
+
+	vm := NewVirtualMachine()
+	vm.RunContext.Fp = memory.NewRelocatable(1, 0)
+
+	result_res := vm.DeduceDst(instruction, nil)
+	mr := memory.NewRelocatable(1, 0)
+	expected_res := memory.NewMaybeRelocatableRelocatable(mr)
+
+	if *result_res != *expected_res {
+		t.Error("Different Res value")
+	}
+}
+
+
+func TestDeduceDstOpcodeRet(t *testing.T) {
+	instruction := Instruction{
+		OffOp0:   1,
+		OffOp1:   2,
+		OffDst:   3,
+		DstReg:   FP,
+		Op0Reg:   AP,
+		Op1Addr:  Op1SrcAP,
+		ResLogic: ResUnconstrained,
+		PcUpdate: PcUpdateJump,
+		ApUpdate: ApUpdateRegular,
+		FpUpdate: FpUpdateRegular,
+		Opcode:   Ret,
+	}
+
+	vm := NewVirtualMachine()
+
+	result_res := vm.DeduceDst(instruction, nil)
+
+	if result_res != nil {
+		t.Error("Different Res value than nil")
+	}
+}
