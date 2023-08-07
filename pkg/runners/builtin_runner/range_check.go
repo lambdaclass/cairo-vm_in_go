@@ -27,8 +27,8 @@ type RangeCheckBuiltinRunner struct {
 }
 
 func NewRangeCheckBuiltinRunner(ratio *uint32, nParts uint32, included bool) *RangeCheckBuiltinRunner {
-	var felt lambdaworks.Felt
-	bound := felt.One().Shl(16 * nParts)
+	f_one := lambdaworks.FeltFromUint64(0)
+	bound := f_one.Shl(16 * nParts)
 	if nParts != 0 && bound.IsZero() {
 		return &RangeCheckBuiltinRunner{
 			ratio:                 ratio,
