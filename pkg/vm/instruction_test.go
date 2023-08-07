@@ -256,13 +256,13 @@ func TestDecodeOffsetNegative(t *testing.T) {
 	if err != nil {
 		t.Errorf("Instruction decoding failed with error %s", err)
 	}
-	if instruction.OffOp0 != -1 {
+	if instruction.Off1 != -1 {
 		t.Error("Wrong Instruction Offset 0")
 	}
-	if instruction.OffOp1 != 0 {
+	if instruction.Off2 != 0 {
 		t.Error("Wrong Instruction Offset 1")
 	}
-	if instruction.OffDst != 1 {
+	if instruction.Off0 != 1 {
 		t.Error("Wrong Instruction Offset destination")
 	}
 }

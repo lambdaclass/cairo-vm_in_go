@@ -26,6 +26,7 @@ func CairoRun(programPath string) (runners.CairoRunner, error) {
 	cairoRunner := runners.NewCairoRunner(programJson)
 	end, err := cairoRunner.Initialize()
 	err = cairoRunner.RunUntilPC(end)
+	fmt.Printf("end: %+v\n", end)
 	println("Done!")
 	// cairoRunner.relocate(vm, cairoRunConfig.RelocateMem)
 	return *cairoRunner, err
