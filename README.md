@@ -168,6 +168,11 @@ TODO: explain the components of an instruction (`dst_reg`, `op0_reg`, etc), what
 
 Felts, or Field Elements, are cairo's basic integer type. Every variable in a cairo vm that is not a pointer is a felt. From our point of view we could say a felt in cairo is an unsigned integer in the range [0, CAIRO_PRIME). This means that all operations are done modulo CAIRO_PRIME. The CAIRO_PRIME is 0x800000000000011000000000000000000000000000000000000000000000001, which means felts can be quite big (up to 252 bits), luckily, we have the [Lambdaworks](https://github.com/lambdaclass/lambdaworks) library to help with handling these big integer values and providing fast and efficient modular arithmetic.
 
+### Lambdaworks library wrapper 
+
+[Lambdaworks](https://github.com/lambdaclass/lambdaworks) is a custom performance-focused library that aims to ease programming for developers. It provides essential mathematical and cryptographic methods required for this project, enabling arithmetic operations between `felts` and type conversions efficiently.
+We've developed a C wrapper to expose the library's functions and enable easy usage from Go. This allows seamless integration of the library's features within Go projects, enhancing performance and functionality.
+
 ### More on memory
 
 The cairo memory is made up of contiguous segments of variable length identified by their index. The first segment (index 0) is the program segment, which stores the instructions of a cairo program. The following segment (index 1) is the execution segment, which holds the values that are created along the execution of the vm, for example, when we call a function, a pointer to the next instruction after the call instruction will be stored in the execution segment which will then be used to find the next instruction after the function returns. The following group of segments are the builtin segments, one for each builtin used by the program, and which hold values used by the builtin runners. The last group of segments are the user segments, which represent data structures created by the user, for example, when creating an array on a cairo program, that array will be represented in memory as its own segment.
@@ -218,15 +223,15 @@ For example, if we have this memory represented by address, value pairs:
 
 Step 1: Calculate segment sizes:
 
-    0 -> 3
-    1 -> 5
-    2 -> 1
+    0 --(has size)--> 3
+    1 --(has size)--> 5
+    2 --(has size)--> 1
 
 Step 2: Assign a base to each segment:
 
-    0 -> 1
-    1 -> 4 (1 + 3)
-    2 -> 9 (4 + 5)
+    0 --(has base value)--> 1
+    1 --(has base value)--> 4 (that is: 1 + 3)
+    2 --(has base value)--> 9 (that is: 4 + 5)
 
 Step 3: Convert relocatables to integers
 
@@ -234,14 +239,33 @@ Step 3: Convert relocatables to integers
     2 (base[0] + 1) -> 4
     3 (base[0] + 2) -> 7
     4 (base[1] + 0) -> 8
-    5 (base[1] + 1) -> 3 (base[0] + 2)
+    5 (base[1] + 1) -> 3 (that is: base[0] + 2)
     .... (memory gaps)
-    8 (base[1] + 4) -> 2 (base[0] + 1)
+    8 (base[1] + 4) -> 2 (that is: base[0] + 1)
     9 (base[2] + 0) -> 1
 
 ### Program parsing
 
-Go through the main parts of a compiled program `Json` file. `data` field with instructions, identifiers, program entrypoint, etc.
+The input of the Virtual Machine is a compiled Cairo program in Json format. The main part of the file are listed below:
+
+- data: List of hexadecimal values that represent the instructions and immediate values defined in the cairo program. Each hexadecimal value is stored as a maybe_relocatable element in memory, but they can only be felts because the decoder has to be able to get the instruction fields in its bit representation.
+
+- debug_info: This field provides information about the instructions defined in the data list. Each one is identified with its index inside the data list. For each one it contains information about the cairo variables in scope, the hints executed before that instruction if any, and its location inside the cairo program.
+
+- hints: All the hints used in the program, ordered by the pc offset at which they should be executed.
+
+- identifiers: User-defined symbols in the Cairo code representing variables, functions, classes, etc. with unique names. The expected offset, type and its corresponding information is provided for each identifier
+
+    For example, the identifier representing the main function (usually the entrypoint of the program) is of `function` type, and a list of decorators wrappers (if there are any) are provided as additional information.
+    Another example is a user defined struct, is of `struct` type, it provides its size, the members it contains (with its information) and more.
+
+- main_scope: Usually something like __main__. All the identifiers associated with main function will be identified as __main__.identifier_name. Useful to identify the entrypoint of the program.
+
+- prime: The cairo prime in hexadecimal format. As explained above, all arithmetic operations are done over a base field, modulo this primer number.
+
+- reference_manager: Contains information about cairo variables. This information is useful to access to variables when executing cairo hints.
+
+In this project, we use a C++ library called [simdjson](https://github.com/simdjson/simdjson), the json is stored in a custom structure  which the vm can use to run the program and create a trace of its execution.
 
 ### Code walkthrough/Write your own Cairo VM
 
@@ -434,6 +458,132 @@ type VirtualMachine struct {
 ```
 
 To begin coding the basic execution functionality of our VM, we only need these basic fields, we will be adding more fields as we dive deeper into this guide.
+
+### Instruction Decoding and Execution
+
+### CairoRunner
+
+Now that can can execute cairo steps, lets look at the VM's initialization step.
+We will begin by creating our `CairoRunner`:
+
+```go
+type CairoRunner struct {
+	Program       vm.Program
+	Vm            vm.VirtualMachine
+	ProgramBase   memory.Relocatable
+	executionBase memory.Relocatable
+	initialPc     memory.Relocatable
+	initialAp     memory.Relocatable
+	initialFp     memory.Relocatable
+	finalPc       memory.Relocatable
+	mainOffset    uint
+}
+
+func NewCairoRunner(program vm.Program) *CairoRunner {
+    // TODO line below is fake
+	main_offset := program.identifiers["__main__.main"]
+	return &CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
+
+}
+```
+
+Now we will create our `Initialize` method step by step:
+
+```go
+// Performs the initialization step, returns the end pointer (pc upon which execution should stop)
+func (r *CairoRunner) Initialize() (memory.Relocatable, error) {
+	r.initializeSegments()
+	end, err := r.initializeMainEntrypoint()
+	r.initializeVM()
+	return end, err
+}
+```
+
+*InitializeSegments*
+
+This method will create our program and execution segments
+
+```go
+func (r *CairoRunner) initializeSegments() {
+	// Program Segment
+	r.ProgramBase = r.Vm.Segments.AddSegment()
+	// Execution Segment
+	r.executionBase = r.Vm.Segments.AddSegment()
+}
+```
+
+*initializeMainEntrypoint*
+
+This method will initialize the memory and initial register values to begin execution from the main entrypoint, and return the final pc
+
+```go
+func (r *CairoRunner) initializeMainEntrypoint() (memory.Relocatable, error) {
+	stack := make([]memory.MaybeRelocatable, 0, 2)
+	return_fp := r.Vm.Segments.AddSegment()
+	return r.initializeFunctionEntrypoint(r.mainOffset, &stack, return_fp)
+}
+```
+
+*initializeFunctionEntrypoint*
+
+This method will initialize the memory and initial register values to execute a cairo function given its offset within the program segment (aka entrypoint) and return the final pc. In our case, this function will be the main entrypoint, but later on we will be able to use this method to run starknet contract entrypoints. 
+The stack will then be loaded into the execution segment in the next method. For now, the stack will be empty, but later on it will contain the builtin bases (which are the arguments for the main function), and the function arguments when running a function from a starknet contract.
+
+```go
+func (r *CairoRunner) initializeFunctionEntrypoint(entrypoint uint, stack *[]memory.MaybeRelocatable, return_fp memory.Relocatable) (memory.Relocatable, error) {
+	end := r.Vm.Segments.AddSegment()
+	*stack = append(*stack, *memory.NewMaybeRelocatableRelocatable(end), *memory.NewMaybeRelocatableRelocatable(return_fp))
+	r.initialFp = r.executionBase
+	r.initialFp.Offset += uint(len(*stack))
+	r.initialAp = r.initialFp
+	r.finalPc = end
+	return end, r.initializeState(entrypoint, stack)
+}
+```
+
+*InitializeState*
+
+This method will be in charge of loading the program data into the program segment and the stack into the execution segment
+
+```go
+func (r *CairoRunner) initializeState(entrypoint uint, stack *[]memory.MaybeRelocatable) error {
+	r.initialPc = r.ProgramBase
+	r.initialPc.Offset += entrypoint
+	// Load program data
+	_, err := r.Vm.Segments.LoadData(r.ProgramBase, &r.Program.Data)
+	if err == nil {
+		_, err = r.Vm.Segments.LoadData(r.executionBase, stack)
+	}
+	return err
+}
+```
+
+*initializeVm*
+
+This method will set the values of the VM's `RunContext` with our `CairoRunner`'s initial values
+
+```go
+func (r *CairoRunner) initializeVM() {
+	r.Vm.RunContext.Ap = r.initialAp
+	r.Vm.RunContext.Fp = r.initialFp
+	r.Vm.RunContext.Pc = r.initialPc
+}
+```
+
+With `CairoRunner.Initialize()` now complete we can move on to the execution step:
+
+*RunUntilPc*
+
+This method will continuously execute cairo steps until the end pc, returned by 'CairoRunner.Initialize()' is reached
+
+```go
+    //TODO
+```
+
+Once we are done executing, we can relocate our memory & trace and output them into files
+
+### Memory Relocation
+TODO
 
 ### Builtins
 

@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -74,9 +75,9 @@ func TestMemoryInsert(t *testing.T) {
 	mem := &mem_manager.Memory
 
 	// Instantiate the address where we want to insert and the value.
-	// We will insert the value Int(5) in segment 1, offset 0
+	// We will insert the value Felt(5) in segment 1, offset 0
 	key := memory.NewRelocatable(1, 0)
-	val := memory.NewMaybeRelocatableInt(5)
+	val := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))
 
 	// Make the insertion
 	err := mem.Insert(key, val)
@@ -103,9 +104,9 @@ func TestMemoryInsertWithHoles(t *testing.T) {
 	mem := &mem_manager.Memory
 
 	// Instantiate the address where we want to insert and the value.
-	// We will insert the MaybeRelocatable Int(7) in segment 1, offset 2
+	// We will insert the MaybeRelocatable Felt(7) in segment 1, offset 2
 	key := memory.NewRelocatable(1, 2)
-	val := memory.NewMaybeRelocatableInt(7)
+	val := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))
 
 	// Make the insertion
 	err := mem.Insert(key, val)
@@ -129,9 +130,9 @@ func TestMemoryInsertOverWriteSameValue(t *testing.T) {
 	mem_manager := memory.NewMemorySegmentManager()
 	mem := &mem_manager.Memory
 
-	// We will insert the MaybeRelocatable Int(7) in segment 0, offset 0
+	// We will insert the MaybeRelocatable Felt(7) in segment 0, offset 0
 	key := mem_manager.AddSegment()
-	val := memory.NewMaybeRelocatableInt(7)
+	val := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(7))
 
 	// Make the insertion
 	err := mem.Insert(key, val)
@@ -150,9 +151,9 @@ func TestMemoryInsertOverWriteValue(t *testing.T) {
 	mem_manager := memory.NewMemorySegmentManager()
 	mem := &mem_manager.Memory
 
-	// We will insert the MaybeRelocatable Int(7) in segment 0, offset 0
+	// We will insert the MaybeRelocatable Felt(7) in segment 0, offset 0
 	key := mem_manager.AddSegment()
-	val := memory.NewMaybeRelocatableInt(7)
+	val := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(7))
 
 	// Make the insertion
 	err := mem.Insert(key, val)
@@ -161,7 +162,7 @@ func TestMemoryInsertOverWriteValue(t *testing.T) {
 	}
 
 	// Insert another value into the same address and check that it fails
-	val2 := memory.NewMaybeRelocatableInt(8)
+	val2 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(8))
 	err2 := mem.Insert(key, val2)
 	if err2 == nil {
 		t.Errorf("Overwritting memory value should fail")
@@ -173,9 +174,9 @@ func TestMemoryInsertUnallocatedSegment(t *testing.T) {
 	mem := &mem_manager.Memory
 
 	// Instantiate the address where we want to insert and the value.
-	// We will insert the value Int(5) in segment 1, offset 0
+	// We will insert the value Felt(5) in segment 1, offset 0
 	key := memory.NewRelocatable(1, 0)
-	val := memory.NewMaybeRelocatableInt(5)
+	val := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))
 
 	// Make the insertion
 	err := mem.Insert(key, val)
@@ -188,7 +189,7 @@ func TestMemorySegmentsLoadDataUnallocatedSegment(t *testing.T) {
 	mem_manager := memory.NewMemorySegmentManager()
 
 	ptr := memory.NewRelocatable(1, 0)
-	data := []memory.MaybeRelocatable{*memory.NewMaybeRelocatableInt(5)}
+	data := []memory.MaybeRelocatable{*memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))}
 
 	// Load Data
 	_, err := mem_manager.LoadData(ptr, &data)
@@ -202,7 +203,7 @@ func TestMemorySegmentsLoadDataOneElement(t *testing.T) {
 	mem_manager.AddSegment()
 
 	ptr := memory.NewRelocatable(0, 0)
-	val := memory.NewMaybeRelocatableInt(5)
+	val := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))
 	data := []memory.MaybeRelocatable{*val}
 
 	// Load Data
@@ -234,8 +235,8 @@ func TestMemorySegmentsLoadDataTwoElements(t *testing.T) {
 	mem_manager.AddSegment()
 
 	ptr := memory.NewRelocatable(0, 0)
-	val := memory.NewMaybeRelocatableInt(5)
-	val2 := memory.NewMaybeRelocatableInt(5)
+	val := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))
+	val2 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))
 	data := []memory.MaybeRelocatable{*val, *val2}
 
 	// Load Data
