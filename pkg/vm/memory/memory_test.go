@@ -1,12 +1,72 @@
 package memory_test
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
+
+// Misc validation rules for testing purposes
+func rule_always_ok(mem *memory.Memory, ptr memory.Relocatable) ([]memory.Relocatable, error) {
+	return []memory.Relocatable{ptr}, nil
+
+}
+
+func rule_always_err(mem *memory.Memory, ptr memory.Relocatable) ([]memory.Relocatable, error) {
+	return nil, errors.New("Validation Failed")
+
+}
+
+func TestMemoryInsertWithValidationRulesOk(t *testing.T) {
+	mem_manager := memory.NewMemorySegmentManager()
+	mem_manager.AddSegment()
+	mem := &mem_manager.Memory
+	// Add a validation rule for segment 0
+	mem.AddValidationRule(0, rule_always_ok)
+
+	// Instantiate the address where we want to insert and the value.
+	// We will insert the value Int(5) in segment 1, offset 0
+	key := memory.NewRelocatable(0, 0)
+	val := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))
+
+	// Make the insertion
+	err := mem.Insert(key, val)
+	if err != nil {
+		t.Errorf("Insert error in test: %s", err)
+	}
+
+	// Get the value from the address back
+	res_val, err := mem.Get(key)
+	if err != nil {
+		t.Errorf("Get error in test: %s", err)
+	}
+
+	// Check that the original and the retrieved values are the same
+	if !reflect.DeepEqual(res_val, val) {
+		t.Errorf("Inserted value and original value are not the same")
+	}
+}
+func TestMemoryInsertWithValidationRulesErr(t *testing.T) {
+	mem_manager := memory.NewMemorySegmentManager()
+	mem_manager.AddSegment()
+	mem := &mem_manager.Memory
+	// Add a validation rule for segment 0
+	mem.AddValidationRule(0, rule_always_err)
+
+	// Instantiate the address where we want to insert and the value.
+	// We will insert the value Int(5) in segment 1, offset 0
+	key := memory.NewRelocatable(0, 0)
+	val := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))
+
+	// Make the insertion
+	err := mem.Insert(key, val)
+	if err == nil {
+		t.Errorf("Insertion should have failed due to validation rule")
+	}
+}
 
 func TestMemoryInsert(t *testing.T) {
 	mem_manager := memory.NewMemorySegmentManager()
