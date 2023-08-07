@@ -139,7 +139,7 @@ func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (lambdaworks.F
 		return inner_relocatable.RelocateAddress(relocationTable), nil
 	}
 
-	return lambdaworks.FeltFromUint64(0), errors.New(fmt.Sprintf("Unexpected type %T", m.inner))
+	return lambdaworks.FeltZero(), errors.New(fmt.Sprintf("Unexpected type %T", m.inner))
 }
 
 func (m *MaybeRelocatable) IsEqual(m1 *MaybeRelocatable) bool {
@@ -176,7 +176,7 @@ func (m MaybeRelocatable) Add(other MaybeRelocatable) (MaybeRelocatable, error) 
 		other_felt, _ := other.GetFelt()
 		relocatable, err := m_rel.AddFelt(other_felt)
 		if err != nil {
-			return *NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0)), err
+			return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
 		}
 		return *NewMaybeRelocatableRelocatable(relocatable), nil
 
@@ -185,11 +185,11 @@ func (m MaybeRelocatable) Add(other MaybeRelocatable) (MaybeRelocatable, error) 
 		m_felt, _ := m.GetFelt()
 		relocatable, err := other_rel.AddFelt(m_felt)
 		if err != nil {
-			return *NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0)), err
+			return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
 		}
 		return *NewMaybeRelocatableRelocatable(relocatable), nil
 	} else {
-		return *NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0)), errors.New("RelocatableAdd")
+		return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), errors.New("RelocatableAdd")
 	}
 }
 
@@ -216,17 +216,17 @@ func (m MaybeRelocatable) Sub(other MaybeRelocatable) (MaybeRelocatable, error) 
 	if is_rel_m && !is_rel_other {
 		relocatable, err := m_rel.SubFelt(other_felt)
 		if err != nil {
-			return *NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0)), err
+			return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
 		}
 		return *NewMaybeRelocatableRelocatable(relocatable), nil
 
 	} else if is_rel_m && is_rel_other {
 		offset_diff, err := m_rel.Sub(other_rel)
 		if err != nil {
-			return *NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0)), err
+			return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
 		}
 		return *NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(uint64(offset_diff))), nil
 	} else {
-		return *NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0)), errors.New("Cant sub Relocatable from Felt")
+		return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), errors.New("Cant sub Relocatable from Felt")
 	}
 }
