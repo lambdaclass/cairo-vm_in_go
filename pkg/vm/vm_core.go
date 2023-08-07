@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -22,15 +23,17 @@ type VirtualMachine struct {
 	RunContext     RunContext
 	CurrentStep    uint
 	Segments       memory.MemorySegmentManager
+	BuiltinRunners []builtins.BuiltinRunner
 	Trace          []TraceEntry
 	RelocatedTrace []RelocatedTraceEntry
 }
 
 func NewVirtualMachine() *VirtualMachine {
 	segments := memory.NewMemorySegmentManager()
+	builtin_runners := make([]builtins.BuiltinRunner, 0, 9) // There will be at most 9 builtins
 	trace := make([]TraceEntry, 0)
 	relocatedTrace := make([]RelocatedTraceEntry, 0)
-	return &VirtualMachine{Segments: segments, Trace: trace, RelocatedTrace: relocatedTrace}
+	return &VirtualMachine{Segments: segments, BuiltinRunners: builtin_runners, Trace: trace, RelocatedTrace: relocatedTrace}
 }
 
 // Relocates the VM's trace, turning relocatable registers to numbered ones
@@ -148,6 +151,7 @@ func (vm *VirtualMachine) DeduceOp1(instruction Instruction, dst *memory.MaybeRe
 	}
 }
 
+
 func (vm *VirtualMachine) ComputeRes(instruction Instruction, op0 memory.MaybeRelocatable, op1 memory.MaybeRelocatable) (*memory.MaybeRelocatable, error) {
 	switch instruction.ResLogic {
 	case ResOp1:
@@ -245,6 +249,17 @@ func (vm VirtualMachine) run_instrucion(instruction Instruction) {
 	fmt.Println("hello from instruction")
 }
 
+// Updates the values of the RunContext's registers according to the executed instruction
+func (vm *VirtualMachine) UpdateRegisters(instruction *Instruction, operands *Operands) error {
+	if err := vm.UpdateFp(instruction, operands); err != nil {
+		return err
+	}
+	if err := vm.UpdateAp(instruction, operands); err != nil {
+		return err
+	}
+	return vm.UpdatePc(instruction, operands)
+}
+
 // Updates the value of PC according to the executed instruction
 func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands) error {
 	switch instruction.PcUpdate {
@@ -285,17 +300,6 @@ func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands)
 
 	}
 	return nil
-}
-
-// Updates the values of the RunContext's registers according to the executed instruction
-func (vm *VirtualMachine) UpdateRegisters(instruction *Instruction, operands *Operands) error {
-	if err := vm.UpdateFp(instruction, operands); err != nil {
-		return err
-	}
-	if err := vm.UpdateAp(instruction, operands); err != nil {
-		return err
-	}
-	return vm.UpdatePc(instruction, operands)
 }
 
 // Updates the value of AP according to the executed instruction
