@@ -43,9 +43,9 @@ func TestDeduceOp0OpcodeAssertEqResMulZeroDiv(t *testing.T) {
 	vm := vm.NewVirtualMachine()
 	dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(6))
 	op1 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0))
-	_, _, err := vm.DeduceOp0(&instruction, dst, op1)
-	if err == nil {
-		t.Errorf("Expected DeduceOp0 to fail")
+	op0, res, err := vm.DeduceOp0(&instruction, dst, op1)
+	if op0 != nil || res != nil || err != nil {
+		t.Errorf("Wrong values returned by DeduceOp0")
 	}
 }
 
@@ -54,18 +54,18 @@ func TestDeduceOp0OpcodeAssertEqResMulRelValues(t *testing.T) {
 	vm := vm.NewVirtualMachine()
 	dst := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{})
 	op1 := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{})
-	_, _, err := vm.DeduceOp0(&instruction, dst, op1)
-	if err == nil {
-		t.Errorf("Expected DeduceOp0 to fail")
+	op0, res, err := vm.DeduceOp0(&instruction, dst, op1)
+	if op0 != nil || res != nil || err != nil {
+		t.Errorf("Wrong values returned by DeduceOp0")
 	}
 }
 
 func TestDeduceOp0OpcodeAssertEqResMulNilValues(t *testing.T) {
 	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResAdd}
 	vm := vm.NewVirtualMachine()
-	_, _, err := vm.DeduceOp0(&instruction, nil, nil)
-	if err == nil {
-		t.Errorf("Expected DeduceOp0 to fail")
+	op0, res, err := vm.DeduceOp0(&instruction, nil, nil)
+	if op0 != nil || res != nil || err != nil {
+		t.Errorf("Wrong values returned by DeduceOp0")
 	}
 }
 
@@ -90,16 +90,16 @@ func TestDeduceOp0OpcodeAssertEqResAddRelValues(t *testing.T) {
 	op1 := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{})
 	_, _, err := vm.DeduceOp0(&instruction, dst, op1)
 	if err == nil {
-		t.Errorf("Expected DeduceOp0 to fail")
+		t.Errorf("DeduceOp0 should have failed")
 	}
 }
 
 func TestDeduceOp0OpcodeAssertEqResAddNilValues(t *testing.T) {
 	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResAdd}
 	vm := vm.NewVirtualMachine()
-	_, _, err := vm.DeduceOp0(&instruction, nil, nil)
-	if err == nil {
-		t.Errorf("Expected DeduceOp0 to fail")
+	op0, res, err := vm.DeduceOp0(&instruction, nil, nil)
+	if op0 != nil || res != nil || err != nil {
+		t.Errorf("Wrong values returned by DeduceOp0")
 	}
 }
 
@@ -264,7 +264,7 @@ func TestUpdateApAddWithResRel(t *testing.T) {
 	vm := vm.NewVirtualMachine()
 	err := vm.UpdateAp(&instruction, &operands)
 	if err == nil {
-		t.Errorf("UpdateA should have failed")
+		t.Errorf("UpdateAp should have failed")
 	}
 }
 
@@ -274,7 +274,7 @@ func TestUpdateApAddWithoutRes(t *testing.T) {
 	vm := vm.NewVirtualMachine()
 	err := vm.UpdateAp(&instruction, &operands)
 	if err == nil {
-		t.Errorf("UpdateA should have failed")
+		t.Errorf("UpdateAp should have failed")
 	}
 }
 
