@@ -17,14 +17,14 @@ CAIRO_GO_MEM:=$(patsubst $(TEST_DIR)/%.json, $(TEST_DIR)/%.go.memory, $(COMPILED
 CAIRO_GO_TRACE:=$(patsubst $(TEST_DIR)/%.json, $(TEST_DIR)/%.go.trace, $(COMPILED_TESTS))
 
 $(TEST_DIR)/%.rs.trace $(TEST_DIR)/%.rs.memory: $(TEST_DIR)/%.json $(CAIRO_VM_CLI)
-	$(CAIRO_VM_CLI) --layout all_cairo $< --trace_file $@ --memory_file $(@D)/$(*F).rs.memory
+	$(CAIRO_VM_CLI) --layout all_cairo $< --trace_file $(@D)/$(*F).rs.trace --memory_file $(@D)/$(*F).rs.memory
 
 # TODO: Uses cairo-lang as placeholder, should use cairo-vm.go
 $(TEST_DIR)/%.go.trace $(TEST_DIR)/%.go.memory: $(TEST_DIR)/%.json
-	cairo-run --layout starknet_with_keccak --program $< --trace_file $@ --memory_file $(@D)/$(*F).go.memory
+	cairo-run --layout starknet_with_keccak --program $< --trace_file $(@D)/$(*F).go.trace --memory_file $(@D)/$(*F).go.memory
 
 $(TEST_DIR)/%.json: $(TEST_DIR)/%.cairo
-	cairo-compile --cairo_path="$(TEST_DIR):$(BENCH_DIR)" $< --output $@
+	cairo-compile --cairo_path="$(TEST_DIR)" $< --output $@
 
 # Creates a pyenv and installs cairo-lang
 deps:
