@@ -120,7 +120,7 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 }
 
 func (vm *VirtualMachine) DeduceOp1(instruction Instruction, dst *memory.MaybeRelocatable, op0 *memory.MaybeRelocatable) (*memory.MaybeRelocatable, *memory.MaybeRelocatable, error) {
-	if instruction.ResLogic == instruction.ResLogic {
+	if instruction.Opcode == AssertEq {
 		switch instruction.ResLogic {
 		case ResOp1:
 			return dst, dst, nil
