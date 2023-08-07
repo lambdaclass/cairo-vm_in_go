@@ -120,6 +120,17 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 //  virtual machines funcs
 // ------------------------
 
+func (vm *VirtualMachine) DeduceDst(instruction Instruction, res *memory.MaybeRelocatable) *memory.MaybeRelocatable {
+	switch instruction.Opcode {
+	case AssertEq:
+		return res
+	case Call:
+		return memory.NewMaybeRelocatableRelocatable(vm.RunContext.GetFp())
+
+	}
+	return nil
+}
+
 func (vm *VirtualMachine) DeduceOp1(instruction Instruction, dst *memory.MaybeRelocatable, op0 *memory.MaybeRelocatable) (*memory.MaybeRelocatable, *memory.MaybeRelocatable, error) {
 	if instruction.ResLogic == instruction.ResLogic {
 		switch instruction.ResLogic {
