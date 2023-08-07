@@ -43,6 +43,27 @@ func TestMaybeRelocatableAddFelt(t *testing.T) {
 	}
 }
 
+func TestMaybeRelocatableSubFelt(t *testing.T) {
+	felt := lambdaworks.FeltFromUint64(5)
+	rel := memory.Relocatable{1, 7}
+	res, err := rel.SubFelt(felt)
+	if err != nil {
+		t.Errorf("SubFelt failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(res, memory.Relocatable{1, 2}) {
+		t.Errorf("Got wrong value from Relocatable.SubFelt")
+	}
+}
+
+func TestMaybeRelocatableSubFeltOutOfRange(t *testing.T) {
+	felt := lambdaworks.FeltFromUint64(5)
+	rel := memory.Relocatable{}
+	_, err := rel.SubFelt(felt)
+	if err == nil {
+		t.Errorf("SubFelt should have failed")
+	}
+}
+
 func TestMaybeRelocatableAddMaybeRelocatableInt(t *testing.T) {
 	mr := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))
 	rel := memory.Relocatable{}
