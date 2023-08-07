@@ -261,3 +261,55 @@ func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands)
 	}
 	return nil
 }
+
+// Updates the values of the RunContext's registers according to the executed instruction
+func (vm *VirtualMachine) UpdateRegisters(instruction *Instruction, operands *Operands) error {
+	if err := vm.UpdateFp(instruction, operands); err != nil {
+		return err
+	}
+	if err := vm.UpdateAp(instruction, operands); err != nil {
+		return err
+	}
+	return vm.UpdatePc(instruction, operands)
+}
+
+// Updates the value of AP according to the executed instruction
+func (vm *VirtualMachine) UpdateAp(instruction *Instruction, operands *Operands) error {
+	switch instruction.ApUpdate {
+	case ApUpdateAdd:
+		if operands.Res == nil {
+			return errors.New("Res.UNCONSTRAINED cannot be used with ApUpdate.ADD")
+		}
+		new_ap, err := vm.RunContext.Ap.AddMaybeRelocatable(*operands.Res)
+		if err != nil {
+			return err
+		}
+		vm.RunContext.Ap = new_ap
+	case ApUpdateAdd1:
+		vm.RunContext.Ap.Offset += 1
+	case ApUpdateAdd2:
+		vm.RunContext.Ap.Offset += 2
+	}
+	return nil
+}
+
+// Updates the value of FP according to the executed instruction
+func (vm *VirtualMachine) UpdateFp(instruction *Instruction, operands *Operands) error {
+	switch instruction.FpUpdate {
+	case FpUpdateAPPlus2:
+		vm.RunContext.Fp.Offset = vm.RunContext.Ap.Offset + 2
+	case FpUpdateDst:
+		rel, ok := operands.Dst.GetRelocatable()
+		if ok {
+			vm.RunContext.Fp = rel
+		} else {
+			felt, _ := operands.Dst.GetFelt()
+			new_fp, err := vm.RunContext.Fp.AddFelt(felt)
+			if err != nil {
+				return err
+			}
+			vm.RunContext.Fp = new_fp
+		}
+	}
+	return nil
+}
