@@ -124,7 +124,7 @@ func (vm *VirtualMachine) DeduceDst(instruction Instruction, res *memory.MaybeRe
 	case AssertEq:
 		return res
 	case Call:
-		return memory.NewMaybeRelocatableRelocatable(vm.RunContext.GetFp())
+		return memory.NewMaybeRelocatableRelocatable(vm.RunContext.Fp)
 
 	}
 	return nil
