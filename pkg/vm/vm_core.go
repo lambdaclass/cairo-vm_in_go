@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -21,15 +22,17 @@ type VirtualMachine struct {
 	RunContext     RunContext
 	CurrentStep    uint
 	Segments       memory.MemorySegmentManager
+	BuiltinRunners []builtins.BuiltinRunner
 	Trace          []TraceEntry
 	RelocatedTrace []RelocatedTraceEntry
 }
 
 func NewVirtualMachine() *VirtualMachine {
 	segments := memory.NewMemorySegmentManager()
+	builtin_runners := make([]builtins.BuiltinRunner, 0, 9) // There will be at most 9 builtins
 	trace := make([]TraceEntry, 0)
 	relocatedTrace := make([]RelocatedTraceEntry, 0)
-	return &VirtualMachine{Segments: segments, Trace: trace, RelocatedTrace: relocatedTrace}
+	return &VirtualMachine{Segments: segments, BuiltinRunners: builtin_runners, Trace: trace, RelocatedTrace: relocatedTrace}
 }
 
 // Relocates the VM's trace, turning relocatable registers to numbered ones
@@ -85,10 +88,6 @@ type Operands struct {
 	Op1 memory.MaybeRelocatable
 }
 
-// ------------------------
-//  Deduced Operands funcs
-// ------------------------
-
 func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Operands) error {
 	switch instruction.Opcode {
 	case AssertEq:
@@ -118,10 +117,6 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 
 	return nil
 }
-
-//------------------------
-//  virtual machines funcs
-// ------------------------
 
 func (vm *VirtualMachine) ComputeRes(instruction Instruction, op0 memory.MaybeRelocatable, op1 memory.MaybeRelocatable) (*memory.MaybeRelocatable, error) {
 	switch instruction.ResLogic {
@@ -220,6 +215,17 @@ func (vm VirtualMachine) run_instrucion(instruction Instruction) {
 	fmt.Println("hello from instruction")
 }
 
+// Updates the values of the RunContext's registers according to the executed instruction
+func (vm *VirtualMachine) UpdateRegisters(instruction *Instruction, operands *Operands) error {
+	if err := vm.UpdateFp(instruction, operands); err != nil {
+		return err
+	}
+	if err := vm.UpdateAp(instruction, operands); err != nil {
+		return err
+	}
+	return vm.UpdatePc(instruction, operands)
+}
+
 // Updates the value of PC according to the executed instruction
 func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands) error {
 	switch instruction.PcUpdate {
@@ -258,6 +264,47 @@ func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands)
 			vm.RunContext.Pc = new_pc
 		}
 
+	}
+	return nil
+}
+
+// Updates the value of AP according to the executed instruction
+func (vm *VirtualMachine) UpdateAp(instruction *Instruction, operands *Operands) error {
+	switch instruction.ApUpdate {
+	case ApUpdateAdd:
+		if operands.Res == nil {
+			return errors.New("Res.UNCONSTRAINED cannot be used with ApUpdate.ADD")
+		}
+		new_ap, err := vm.RunContext.Ap.AddMaybeRelocatable(*operands.Res)
+		if err != nil {
+			return err
+		}
+		vm.RunContext.Ap = new_ap
+	case ApUpdateAdd1:
+		vm.RunContext.Ap.Offset += 1
+	case ApUpdateAdd2:
+		vm.RunContext.Ap.Offset += 2
+	}
+	return nil
+}
+
+// Updates the value of FP according to the executed instruction
+func (vm *VirtualMachine) UpdateFp(instruction *Instruction, operands *Operands) error {
+	switch instruction.FpUpdate {
+	case FpUpdateAPPlus2:
+		vm.RunContext.Fp.Offset = vm.RunContext.Ap.Offset + 2
+	case FpUpdateDst:
+		rel, ok := operands.Dst.GetRelocatable()
+		if ok {
+			vm.RunContext.Fp = rel
+		} else {
+			felt, _ := operands.Dst.GetFelt()
+			new_fp, err := vm.RunContext.Fp.AddFelt(felt)
+			if err != nil {
+				return err
+			}
+			vm.RunContext.Fp = new_fp
+		}
 	}
 	return nil
 }
