@@ -396,3 +396,54 @@ func TestDeduceOp1OpcodeAssertEqResOp1WithDst(t *testing.T) {
 		t.Error("Different op0 value")
 	}
 }
+
+func TestDeduceDstOpcodeAssertEqWithRes(t *testing.T) {
+	instruction := Instruction{
+		OffOp0:   1,
+		OffOp1:   2,
+		OffDst:   3,
+		DstReg:   FP,
+		Op0Reg:   AP,
+		Op1Addr:  Op1SrcAP,
+		ResLogic: ResUnconstrained,
+		PcUpdate: PcUpdateJump,
+		ApUpdate: ApUpdateRegular,
+		FpUpdate: FpUpdateRegular,
+		Opcode:   AssertEq,
+	}
+
+	vm := NewVirtualMachine()
+
+	res := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(7))
+	expected_res := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(7))
+
+	result_res := vm.DeduceDst(instruction, res)
+
+	if *expected_res != *result_res {
+		t.Error("Different Res value")
+	}
+}
+
+func TestDeduceDstOpcodeAssertEqWithoutRes(t *testing.T) {
+	instruction := Instruction{
+		OffOp0:   1,
+		OffOp1:   2,
+		OffDst:   3,
+		DstReg:   FP,
+		Op0Reg:   AP,
+		Op1Addr:  Op1SrcAP,
+		ResLogic: ResUnconstrained,
+		PcUpdate: PcUpdateJump,
+		ApUpdate: ApUpdateRegular,
+		FpUpdate: FpUpdateRegular,
+		Opcode:   AssertEq,
+	}
+
+	vm := NewVirtualMachine()
+
+	result_res := vm.DeduceDst(instruction, nil)
+
+	if result_res != nil {
+		t.Error("Different Res value")
+	}
+}
