@@ -118,6 +118,31 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 	return nil
 }
 
+func (vm *VirtualMachine) DeduceOp1(instruction Instruction, dst *memory.MaybeRelocatable, op0 *memory.MaybeRelocatable) (*memory.MaybeRelocatable, *memory.MaybeRelocatable, error) {
+	if instruction.Opcode == AssertEq {
+		switch instruction.ResLogic {
+		case ResOp1:
+			return dst, dst, nil
+		case ResAdd:
+			if op0 != nil && dst != nil {
+				dst_rel, err := dst.Sub(*op0)
+				if err != nil {
+					return nil, nil, err
+				}
+				return &dst_rel, dst, nil
+			}
+		case ResMul:
+			dst_felt, dst_is_felt := dst.GetFelt()
+			op0_felt, op0_is_felt := op0.GetFelt()
+			if dst_is_felt && op0_is_felt && !op0_felt.IsZero() {
+				res := memory.NewMaybeRelocatableFelt(dst_felt.Div(op0_felt))
+				return res, dst, nil
+			}
+		}
+	}
+	return nil, nil, nil
+}
+
 func (vm *VirtualMachine) ComputeRes(instruction Instruction, op0 memory.MaybeRelocatable, op1 memory.MaybeRelocatable) (*memory.MaybeRelocatable, error) {
 	switch instruction.ResLogic {
 	case ResOp1:
