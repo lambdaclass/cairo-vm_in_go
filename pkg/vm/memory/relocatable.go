@@ -38,6 +38,18 @@ func (r *Relocatable) AddFelt(other lambdaworks.Felt) (Relocatable, error) {
 	return NewRelocatable(r.SegmentIndex, uint(new_offset)), nil
 }
 
+// Substracts a Felt value from a Relocatable
+// Performs the initial substraction considering the offset as a Felt
+// Fails if the new offset exceeds the size of a uint
+func (r *Relocatable) SubFelt(other lambdaworks.Felt) (Relocatable, error) {
+	new_offset_felt := lambdaworks.FeltFromUint64(uint64(r.Offset)).Sub(other)
+	new_offset, err := new_offset_felt.ToU64()
+	if err != nil {
+		return *r, err
+	}
+	return NewRelocatable(r.SegmentIndex, uint(new_offset)), nil
+}
+
 // Performs additions if other contains a Felt value, fails otherwise
 func (r *Relocatable) AddMaybeRelocatable(other MaybeRelocatable) (Relocatable, error) {
 	felt, ok := other.GetFelt()
@@ -45,6 +57,27 @@ func (r *Relocatable) AddMaybeRelocatable(other MaybeRelocatable) (Relocatable, 
 		return Relocatable{}, errors.New("Can't add two relocatable values")
 	}
 	return r.AddFelt(felt)
+}
+
+// Subtracts other from offset if Felt value, returns distance if relocatable
+// Fails if other is a Relocatable of a different segment index
+func (r *Relocatable) SubMaybeRelocatable(other MaybeRelocatable) (Relocatable, error) {
+	felt, ok := other.GetFelt()
+	if !ok {
+		rel, _ := other.GetRelocatable()
+		return r.Sub(rel)
+	}
+	return r.AddFelt(felt)
+}
+
+func (r *Relocatable) Sub(other Relocatable) (Relocatable, error) {
+	if r.SegmentIndex != other.SegmentIndex {
+		return Relocatable{}, errors.New("Cant subtract two relocatables with different segment indexes")
+	}
+	if r.Offset < other.Offset {
+		return Relocatable{}, errors.New("Relocatable subtraction yields relocatable with negative offset")
+	}
+	return Relocatable{r.SegmentIndex, r.Offset - other.Offset}, nil
 }
 
 func (r *Relocatable) IsEqual(r1 *Relocatable) bool {
