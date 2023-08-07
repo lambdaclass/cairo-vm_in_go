@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
@@ -22,15 +23,17 @@ type VirtualMachine struct {
 	RunContext     RunContext
 	CurrentStep    uint
 	Segments       memory.MemorySegmentManager
+	BuiltinRunners []builtins.BuiltinRunner
 	Trace          []TraceEntry
 	RelocatedTrace []RelocatedTraceEntry
 }
 
 func NewVirtualMachine() *VirtualMachine {
 	segments := memory.NewMemorySegmentManager()
+	builtin_runners := make([builtins.BuiltinRunner, 0, 9])
 	trace := make([]TraceEntry, 0)
 	relocatedTrace := make([]RelocatedTraceEntry, 0)
-	return &VirtualMachine{Segments: segments, Trace: trace, RelocatedTrace: relocatedTrace}
+	return &VirtualMachine{Segments: segments, BuiltinRunners: builtin_runners, Trace: trace, RelocatedTrace: relocatedTrace}
 }
 
 // Relocates the VM's trace, turning relocatable registers to numbered ones
@@ -116,10 +119,6 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 	return nil
 }
 
-//-------------------------
-//  virtual machines funcs
-// ------------------------
-
 func (vm *VirtualMachine) DeduceOp1(instruction Instruction, dst *memory.MaybeRelocatable, op0 *memory.MaybeRelocatable) (*memory.MaybeRelocatable, *memory.MaybeRelocatable, error) {
 	if instruction.ResLogic == instruction.ResLogic {
 		switch instruction.ResLogic {
@@ -142,11 +141,8 @@ func (vm *VirtualMachine) DeduceOp1(instruction Instruction, dst *memory.MaybeRe
 					return res, dst, nil
 				}
 			}
-		default:
-			return nil, nil, nil
 		}
 	}
-
 	return nil, nil, nil
 }
 

@@ -185,7 +185,7 @@ func (m MaybeRelocatable) SubMaybeRelocatable(other MaybeRelocatable) (MaybeRelo
 			felt := lambdaworks.FeltFromUint64(uint64(m_rel.Offset - other_rel.Offset))
 			return *NewMaybeRelocatableFelt(felt), nil
 		} else {
-			return MaybeRelocatable{}, errors.New("RelocatableSubDiffIndex")
+			return MaybeRelocatable{}, errors.New("Can't substract two relocatable values with different segment indexes")
 		}
 	}
 
@@ -198,6 +198,6 @@ func (m MaybeRelocatable) SubMaybeRelocatable(other MaybeRelocatable) (MaybeRelo
 		rel := NewRelocatable(m_rel.SegmentIndex, uint(new_offset))
 		return *NewMaybeRelocatableRelocatable(rel), nil
 	} else {
-		return MaybeRelocatable{}, errors.New("SubRelocatableFromFelt")
+		return MaybeRelocatable{}, errors.New("Can't substract a relocatable value from an integer")
 	}
 }
