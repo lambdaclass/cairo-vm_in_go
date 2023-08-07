@@ -277,32 +277,33 @@ func TestDeduceOp1OpcodeAssertEqResMulNonZeroOp0(t *testing.T) {
 	}
 }
 
-// func TestDeduceOp1OpcodeAssertEqResMulZeroOp0(t *testing.T) {
-// 	instruction := Instruction{
-// 		OffOp0:   1,
-// 		OffOp1:   2,
-// 		OffDst:   3,
-// 		DstReg:   FP,
-// 		Op0Reg:   AP,
-// 		Op1Addr:  Op1SrcAP,
-// 		ResLogic: ResMul,
-// 		PcUpdate: PcUpdateJump,
-// 		ApUpdate: ApUpdateRegular,
-// 		FpUpdate: FpUpdateRegular,
-// 		Opcode:   AssertEq,
-// 	}
+func TestDeduceOp1OpcodeAssertEqResMulZeroOp0(t *testing.T) {
+	instruction := Instruction{
+		OffOp0:   1,
+		OffOp1:   2,
+		OffDst:   3,
+		DstReg:   FP,
+		Op0Reg:   AP,
+		Op1Addr:  Op1SrcAP,
+		ResLogic: ResMul,
+		PcUpdate: PcUpdateJump,
+		ApUpdate: ApUpdateRegular,
+		FpUpdate: FpUpdateRegular,
+		Opcode:   AssertEq,
+	}
 
-// 	vm := NewVirtualMachine()
+	vm := NewVirtualMachine()
 
-// 	dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(4))
-// 	op0 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0))
+	dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(4))
+	op0 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0))
 
-// 	_, _, err := vm.DeduceOp1(instruction, dst, op0)
+	_, _, err := vm.DeduceOp1(instruction, dst, op0)
 
-//		if err != nil {
-//			t.Error(err)
-//		}
-//	}
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func TestDeduceOp1OpcodeAssertEqResOp1WithoutDst(t *testing.T) {
 	instruction := Instruction{
 		OffOp0:   1,
