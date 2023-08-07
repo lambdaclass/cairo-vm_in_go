@@ -138,7 +138,7 @@ func (vm *VirtualMachine) DeduceOp1(instruction Instruction, dst *memory.MaybeRe
 			return dst, dst, nil
 		case ResAdd:
 			if op0 != nil && dst != nil {
-				dst_rel, err := dst.SubMaybeRelocatable(*op0)
+				dst_rel, err := dst.Sub(*op0)
 				if err != nil {
 					return nil, nil, err
 				}
