@@ -114,3 +114,48 @@ func TestMaybeRelocatableAddMaybeRelocatableRelocatable(t *testing.T) {
 		t.Errorf("Addition between relocatable values should fail")
 	}
 }
+
+func TestMaybeRelocatableSubBothFelts(t *testing.T) {
+	a := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(7))
+	b := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))
+	res, err := a.Sub(*b)
+	if err != nil {
+		t.Errorf("MaybeRelocatable.Sub failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(res, *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2))) {
+		t.Errorf("Got wrong value from Relocatable.MaybeRelocatable.Sub")
+	}
+}
+
+func TestMaybeRelocatableSubBothRelocatable(t *testing.T) {
+	a := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{1, 7})
+	b := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{1, 5})
+	res, err := a.Sub(*b)
+	if err != nil {
+		t.Errorf("MaybeRelocatable.Sub failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(res, *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2))) {
+		t.Errorf("Got wrong value from Relocatable.MaybeRelocatable.Sub")
+	}
+}
+
+func TestMaybeRelocatableSubFeltFromRelocatable(t *testing.T) {
+	a := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{1, 7})
+	b := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))
+	res, err := a.Sub(*b)
+	if err != nil {
+		t.Errorf("MaybeRelocatable.Sub failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(res, *memory.NewMaybeRelocatableRelocatable(memory.Relocatable{1, 2})) {
+		t.Errorf("Got wrong value from Relocatable.MaybeRelocatable.Sub")
+	}
+}
+
+func TestMaybeRelocatableSubRelFromFelt(t *testing.T) {
+	a := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(7))
+	b := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{})
+	_, err := a.Sub(*b)
+	if err == nil {
+		t.Errorf("Subtraction of relocatable from felt should fail")
+	}
+}
