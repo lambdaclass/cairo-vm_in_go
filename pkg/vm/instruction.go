@@ -23,9 +23,9 @@ import (
 // Some instructions spread over two words when they use an immediate value, so
 // representing the first one with this struct is enougth.
 type Instruction struct {
-	OffDst   int
-	OffOp0   int
-	OffOp1   int
+	Off0     int
+	Off1     int
+	Off2     int
 	DstReg   Register
 	Op0Reg   Register
 	Op1Addr  Op1Src
@@ -242,9 +242,9 @@ func DecodeInstruction(encodedInstruction uint64) (Instruction, error) {
 	}
 
 	return Instruction{
-		OffOp0:   offset0,
-		OffOp1:   offset1,
-		OffDst:   offset2,
+		Off0:     offset0,
+		Off1:     offset1,
+		Off2:     offset2,
 		DstReg:   dstRegister,
 		Op0Reg:   op0Register,
 		Op1Addr:  op1Src,

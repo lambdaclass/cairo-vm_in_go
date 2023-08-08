@@ -1,4 +1,5 @@
-.PHONY: deps deps-macos run test build fmt check_fmt clean build_cairo_vm_cli compare_trace_memory compare_trace compare_memory $(CAIRO_VM_CLI)
+.PHONY: deps deps-macos run test build fmt check_fmt clean clean_files build_cairo_vm_cli compare_trace_memory compare_trace compare_memory \
+ demo_fib demo_factorial $(CAIRO_VM_CLI)
 
 CAIRO_VM_CLI:=cairo-vm/target/release/cairo-vm-cli
 
@@ -19,9 +20,8 @@ CAIRO_GO_TRACE:=$(patsubst $(TEST_DIR)/%.json, $(TEST_DIR)/%.go.trace, $(COMPILE
 $(TEST_DIR)/%.rs.trace $(TEST_DIR)/%.rs.memory: $(TEST_DIR)/%.json $(CAIRO_VM_CLI)
 	$(CAIRO_VM_CLI) --layout all_cairo $< --trace_file $(@D)/$(*F).rs.trace --memory_file $(@D)/$(*F).rs.memory
 
-# TODO: Uses cairo-lang as placeholder, should use cairo-vm.go
 $(TEST_DIR)/%.go.trace $(TEST_DIR)/%.go.memory: $(TEST_DIR)/%.json
-	cairo-run --layout starknet_with_keccak --program $< --trace_file $(@D)/$(*F).go.trace --memory_file $(@D)/$(*F).go.memory
+	go run cmd/cli/main.go $(@D)/$(*F).json
 
 $(TEST_DIR)/%.json: $(TEST_DIR)/%.cairo
 	cairo-compile --cairo_path="$(TEST_DIR)" $< --output $@
@@ -35,7 +35,7 @@ deps:
 
 # Creates a pyenv and installs cairo-lang
 deps-macos:
-	brew install gmp
+	brew install gmp pyenv
 	pyenv install -s 3.9.15
 	PYENV_VERSION=3.9.15 python -m venv cairo-vm-env
 	. cairo-vm-env/bin/activate ; \
@@ -64,6 +64,17 @@ clean:
 	rm -f $(TEST_DIR)/*.trace
 	rm -rf cairo-vm
 	rm -r cairo-vm-env
+
+clean_files:
+	rm -f $(TEST_DIR)/*.json
+	rm -f $(TEST_DIR)/*.memory
+	rm -f $(TEST_DIR)/*.trace
+
+demo_fib: $(COMPILED_TESTS)
+	@go run cmd/cli/main.go cairo_programs/fibonacci.json
+
+demo_factorial: $(COMPILED_TESTS)
+	@go run cmd/cli/main.go cairo_programs/factorial.json
 
 build_cairo_vm_cli: | $(CAIRO_VM_CLI)
 
