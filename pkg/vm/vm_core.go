@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -273,30 +274,19 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 	if err != nil {
 		return Operands{}, fmt.Errorf("FailedToComputeOp0Addr: %s", err)
 	}
-	op0, _ := vm.Segments.Memory.Get(op0_addr)
+	op0_op, _ := vm.Segments.Memory.Get(op0_addr)
 
-	op1_addr, err := vm.RunContext.ComputeOp1Addr(instruction, op0)
+	op1_addr, err := vm.RunContext.ComputeOp1Addr(instruction, op0_op)
 	if err != nil {
 		return Operands{}, fmt.Errorf("FailedToComputeOp1Addr: %s", err)
 	}
 	op1, _ := vm.Segments.Memory.Get(op1_addr)
 
-	if op0 == nil {
-		op0, err = vm.DeduceMemoryCell(op0_addr)
-		if err != nil {
-			return Operands{}, err
-		}
-		if op0 == nil {
-			op0, res, err = vm.DeduceOp0(&instruction, dst, op1)
-			if err != nil {
-				return Operands{}, err
-			}
-		}
-		if op0 != nil {
-			vm.Segments.Memory.Insert(op0_addr, op0)
-		} else {
-			return Operands{}, errors.New("Failed to compute or deduce op0")
-		}
+	var op0 memory.MaybeRelocatable
+	if op0_op != nil {
+		op0 = *op0_op
+	} else {
+		op0, res, err = vm.ComputeOp0Deductions(op0_addr, &instruction, dst, op1)
 	}
 
 	if op1 == nil {
@@ -306,7 +296,7 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 		}
 		if op1 == nil {
 			var deducedRes *memory.MaybeRelocatable
-			op1, deducedRes, err = vm.DeduceOp1(instruction, dst, op0)
+			op1, deducedRes, err = vm.DeduceOp1(instruction, dst, &op0)
 			if err != nil {
 				return Operands{}, err
 			}
@@ -322,7 +312,7 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 	}
 
 	if res == nil {
-		res, err = vm.ComputeRes(instruction, *op0, *op1)
+		res, err = vm.ComputeRes(instruction, op0, *op1)
 
 		if err != nil {
 			return Operands{}, err
@@ -339,11 +329,32 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 
 	operands := Operands{
 		Dst: *dst,
-		Op0: *op0,
+		Op0: op0,
 		Op1: *op1,
 		Res: res,
 	}
 	return operands, nil
+}
+
+// Runs deductions for Op0, first runs builtin deductions, if this fails, attempts to deduce it based on dst and op1
+// Fails if Op0 was not deduced or if an error arised in the process
+func (vm *VirtualMachine) ComputeOp0Deductions(op0_addr memory.Relocatable, instruction *Instruction, dst *memory.MaybeRelocatable, op1 *memory.MaybeRelocatable) (deduced_op0 memory.MaybeRelocatable, deduced_res *memory.MaybeRelocatable, err error) {
+	op0, err := vm.DeduceMemoryCell(op0_addr)
+	if err != nil {
+		return *memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero()), nil, err
+	}
+	if op0 == nil {
+		op0, deduced_res, err = vm.DeduceOp0(instruction, dst, op1)
+		if err != nil {
+			return *memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero()), nil, err
+		}
+	}
+	if op0 != nil {
+		vm.Segments.Memory.Insert(op0_addr, op0)
+	} else {
+		return *memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero()), nil, errors.New("Failed to compute or deduce op0")
+	}
+	return *op0, deduced_res, nil
 }
 
 // Updates the values of the RunContext's registers according to the executed instruction
