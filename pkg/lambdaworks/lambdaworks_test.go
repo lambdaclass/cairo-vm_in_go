@@ -128,7 +128,7 @@ func TestBits(t *testing.T) {
 	if f_zero.Bits() != 0 {
 		t.Errorf("TestBits failed. Expected: %d, Got: %d", 1, f_zero.Bits())
 	}
-	f_one := lambdaworks.FeltFromUint64(1)
+	f_one := lambdaworks.FeltOne()
 	if f_one.Bits() != 1 {
 		t.Errorf("TestBits failed. Expected: %d, Got: %d", 1, f_one.Bits())
 	}
