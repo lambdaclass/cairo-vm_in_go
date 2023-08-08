@@ -580,7 +580,6 @@ func TestDeduceDstOpcodeRet(t *testing.T) {
 		Opcode:   vm.Ret,
 	}
 
-
 	vm := vm.NewVirtualMachine()
 
 	result_dst := vm.DeduceDst(instruction, nil)

@@ -447,4 +447,3 @@ func TestDeduceDstOpcodeAssertEqWithoutRes(t *testing.T) {
 		t.Error("Different Res value")
 	}
 }
-
