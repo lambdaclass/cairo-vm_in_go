@@ -38,11 +38,27 @@ func TestFromNegDecString(t *testing.T) {
 	}
 }
 
-func TestToLeBytes(t *testing.T) {
+func TestToLeBytesFeltOne(t *testing.T) {
 	expected := [32]uint8{
 		1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	}
 	actual := *lambdaworks.FeltOne().ToLeBytes()
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Errorf("TestToLeBytes failed. Expected: %v, Got: %v", expected, actual)
+	}
+}
+
+func TestToLeBytes(t *testing.T) {
+	expected := [32]uint8{
+		16, 50, 84, 118, 16, 50, 84, 118, 16, 50, 84, 118, 16, 50, 84, 118, 16, 50, 84, 118, 16, 50, 84, 118, 103, 69, 35, 1, 103, 69, 35, 1,
+	}
+	actual := *lambdaworks.FeltFromHex(
+		"0123456701234567" +
+			"7654321076543210" +
+			"7654321076543210" +
+			"7654321076543210",
+	).ToLeBytes()
 
 	if !reflect.DeepEqual(expected, actual) {
 		t.Errorf("TestToLeBytes failed. Expected: %v, Got: %v", expected, actual)
