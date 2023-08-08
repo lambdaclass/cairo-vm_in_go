@@ -40,3 +40,6 @@ jobs:
 
     - name: format
       run: make check_fmt
+
+    - name: Compare trace & memory with cairo-vm
+      run: make compare_trace_memory
