@@ -194,7 +194,7 @@ TODO: explain the components of an instruction (`dst_reg`, `op0_reg`, etc), what
 
 Felts, or Field Elements, are cairo's basic integer type. Every variable in a cairo vm that is not a pointer is a felt. From our point of view we could say a felt in cairo is an unsigned integer in the range [0, CAIRO_PRIME). This means that all operations are done modulo CAIRO_PRIME. The CAIRO_PRIME is 0x800000000000011000000000000000000000000000000000000000000000001, which means felts can be quite big (up to 252 bits), luckily, we have the [Lambdaworks](https://github.com/lambdaclass/lambdaworks) library to help with handling these big integer values and providing fast and efficient modular arithmetic.
 
-### Lambdaworks library wrapper 
+### Lambdaworks library wrapper
 
 [Lambdaworks](https://github.com/lambdaclass/lambdaworks) is a custom performance-focused library that aims to ease programming for developers. It provides essential mathematical and cryptographic methods required for this project, enabling arithmetic operations between `felts` and type conversions efficiently.
 We've developed a C wrapper to expose the library's functions and enable easy usage from Go. This allows seamless integration of the library's features within Go projects, enhancing performance and functionality.
@@ -836,6 +836,29 @@ func (m *Memory) ValidateExistingMemory() error {
 		}
 	}
 	return nil
+}
+```
+
+Now we will dive deeper into how `auto-deduction` rules come into play during execution:
+
+Before builtins, the basic flow for computing the value of an operand was to first compute its address, and then if we couldn't find it in memory, we would deduce its value based on the other operands.
+With the introduction of builtins and their auto-deduction rules, this flow changes a bit. Now we compute the address, use it to fetch the value from memory, if we can't find it in memory we try to use the builtin's auto deduction rules, and if we can't deduce it via builtins we will then deduce it based on the other operands's.
+But what does it mean to use the builtin's auto deduction rules to deduce the value of an operand?
+
+*DeduceMemoryCell*
+
+This method will iterate over the builtin runners and try to find a builtin who's base's segment index matches the operand to be deduced's address. That is to say, it checks if the address' belongs to a builtin's segment. If a match is found, it uses the builtin's `DeduceMemoryCell` method to run the builtin's auto-deduction rules and calculare the value of the operand
+
+```go
+// Applies the corresponding builtin's deduction rules if addr's segment index corresponds to a builtin segment
+// Returns nil if there is no deduction for the address
+func (vm *VirtualMachine) DeduceMemoryCell(addr memory.Relocatable) (*memory.MaybeRelocatable, error) {
+	for i := range vm.BuiltinRunners {
+		if vm.BuiltinRunners[i].Base().SegmentIndex == addr.SegmentIndex {
+			return vm.BuiltinRunners[i].DeduceMemoryCell(addr, &vm.Segments.Memory)
+		}
+	}
+	return nil, nil
 }
 ```
 
