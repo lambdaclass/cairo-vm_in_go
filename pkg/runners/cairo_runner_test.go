@@ -10,13 +10,28 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
+func TestNewCairoRunnerInvalidBuiltin(t *testing.T) {
+	// Create a Program with one fake instruction
+	program_data := make([]memory.MaybeRelocatable, 1)
+	empty_identifiers := make(map[string]parser.Identifier, 0)
+	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltOne())
+	program := vm.Program{Data: program_data, Builtins: []string{"fake_builtin"}, Identifiers: &empty_identifiers}
+	// Create CairoRunner
+	_, err := runners.NewCairoRunner(program)
+	if err == nil {
+		t.Errorf("Expected creating a CairoRunner with fake builtin to fail")
+	}
+}
 func TestInitializeRunnerNoBuiltinsNoProofModeEmptyProgram(t *testing.T) {
 	// Create a Program with empty data
 	program_data := make([]memory.MaybeRelocatable, 0)
 	empty_identifiers := make(map[string]parser.Identifier, 0)
 	program := vm.Program{Data: program_data, Identifiers: &empty_identifiers}
 	// Create CairoRunner
-	runner := runners.NewCairoRunner(program)
+	runner, err := runners.NewCairoRunner(program)
+	if err != nil {
+		t.Errorf("NewCairoRunner error in test: %s", err)
+	}
 	// Initialize the runner
 	end_ptr, err := runner.Initialize()
 	if err != nil {
@@ -79,7 +94,10 @@ func TestInitializeRunnerNoBuiltinsNoProofModeNonEmptyProgram(t *testing.T) {
 	empty_identifiers := make(map[string]parser.Identifier, 0)
 	program := vm.Program{Data: program_data, Identifiers: &empty_identifiers}
 	// Create CairoRunner
-	runner := runners.NewCairoRunner(program)
+	runner, err := runners.NewCairoRunner(program)
+	if err != nil {
+		t.Errorf("NewCairoRunner error in test: %s", err)
+	}
 	// Initialize the runner
 	end_ptr, err := runner.Initialize()
 	if err != nil {
