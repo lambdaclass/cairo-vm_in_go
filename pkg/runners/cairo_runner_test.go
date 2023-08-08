@@ -14,7 +14,7 @@ func TestNewCairoRunnerInvalidBuiltin(t *testing.T) {
 	// Create a Program with one fake instruction
 	program_data := make([]memory.MaybeRelocatable, 1)
 	empty_identifiers := make(map[string]parser.Identifier, 0)
-	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(uint64(1)))
+	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltOne())
 	program := vm.Program{Data: program_data, Builtins: []string{"fake_builtin"}, Identifiers: &empty_identifiers}
 	// Create CairoRunner
 	_, err := runners.NewCairoRunner(program)
