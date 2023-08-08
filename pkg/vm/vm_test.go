@@ -507,6 +507,15 @@ func TestComputeOperandsAddAp(t *testing.T) {
 	}
 }
 
+func DeduceMemoryCellNoBuiltins(t *testing.T) {
+	vm := vm.NewVirtualMachine()
+	addr := memory.Relocatable{}
+	val, err := vm.DeduceMemoryCell(addr)
+	if val != nil || err != nil {
+		t.Errorf(" DeduceMemoryCell with no builtins present should return a nil value and no error")
+	}
+}
+
 func TestRelocateTraceOneEntry(t *testing.T) {
 	virtualMachine := vm.NewVirtualMachine()
 	buildTestProgramMemory(virtualMachine)
