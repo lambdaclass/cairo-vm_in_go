@@ -848,11 +848,11 @@ func (m *Memory) ValidateExistingMemory() error {
 
 *Range check* 
 
-When working with field elements within the range [0, 2^128), it's important to ensure that these values remain within the specified bounds to prevent unexpected behavior and errors. Wer perform range checks and comparisons using the following approach:
+When working with field elements within the range [0, 2^128), it's important to ensure that these values remain within the specified bounds to prevent unexpected behavior and errors. We perform range checks and comparisons using the following approach:
 
 Once we have a RangeCheckRunner that implements the basic builtin interface methods, let's see how this implementation is done:  
 
-We have to getters functions just to obtain information about the builtin. The `Name` method is used when iterating through all the builtins of the program so we can switch to the correct execution. 
+We have getters functions just to obtain information about the builtin. The `Name` method is used when iterating through all the builtins of the program so we can switch to the correct execution. 
 
 ```go
 func (r *RangeCheckBuiltinRunner) Base() memory.Relocatable {
@@ -864,7 +864,7 @@ func (r *RangeCheckBuiltinRunner) Name() string {
 }
 ```
 
-For the `InitializeSegments` we just add a segment to the memory and store in the base attribute the first adress of the segment. 
+For the `InitializeSegments` we just add a segment to the memory and store in the base attribute, the first adress of the segment. 
 
 ```go
 func (r *RangeCheckBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
@@ -896,11 +896,11 @@ And finally we have the `AddValidationRule` and the `ValidationRule` methods.
 
 *AddValidationRule* 
 
-Receives the memory and it adds to it a new validation rule for the builtin segment. 
+Receives the memory and adds to it a new validation rule for the builtin segment. 
 
 *ValidationRule*
 
-Recives the memory and an adress and it checks multiple things. First checks if the value is a `felt` and then if it's inside the range. To do so, it checks that the necessary number of bits for representing the felt is not greater than the bits for representing the upper bound of the range. If it fits in this range, it returns an `Relocatable` array with the address appended. Otherwise returns error. 
+Receives the memory and an adress and it checks multiple things. First checks if the value in that address is a `felt` and then if it's inside the range. To do so, it checks that the necessary number of bits for representing the felt is not greater than the bits for representing the upper bound of the range. If it fits in this range, it returns an `Relocatable` array with the address appended. Otherwise returns error. 
 
 ```go 
 func ValidationRule(mem *memory.Memory, address memory.Relocatable) ([]memory.Relocatable, error) {
