@@ -50,7 +50,9 @@ make test
 ## Running the demo
 
 This project currently has two demo targets, one for running a fibonacci programs and one for running a factorial program. Both of them output their corresponding trace files.
-To run the fiboncacci demo:
+The demo uses cairo_lang to compile both cairo programs, you can install it by running `make deps` (or `make deps-macos` if you are on macos)
+
+To run the fibonacci demo:
 
 ```shell
     make demo_fib
