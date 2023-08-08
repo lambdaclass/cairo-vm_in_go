@@ -64,7 +64,7 @@ func (r *RangeCheckBuiltinRunner) Name() string {
 }
 
 func (r *RangeCheckBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
-	r.base = segments.AddSegment().SegmentIndex
+	r.base = segments.AddSegment()
 }
 
 func (r *RangeCheckBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
