@@ -448,9 +448,9 @@ func VmNew(run_context vm.RunContext, current_step uint, segments_manager memory
 
 func TestComputeOperandsAddAp(t *testing.T) {
 	instruction := vm.Instruction{
-		OffDst:   0,
-		OffOp0:   1,
-		OffOp1:   2,
+		Off0:     0,
+		Off1:     1,
+		Off2:     2,
 		DstReg:   vm.AP,
 		Op0Reg:   vm.FP,
 		Op1Addr:  vm.Op1SrcAP,
