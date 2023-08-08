@@ -1,4 +1,3 @@
-#include <_types/_uint8_t.h>
 #include <stdint.h>
 
 typedef uint64_t limb_t;
