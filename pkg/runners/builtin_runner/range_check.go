@@ -52,7 +52,7 @@ func (r *RangeCheckBuiltinRunner) DeduceMemoryCell(addr memory.Relocatable, mem 
 func ValidationRule(mem *memory.Memory, address memory.Relocatable) ([]memory.Relocatable, error) {
 	res_val, err := mem.Get(address)
 	if err != nil {
-		return nil, errors.New("RangeCheckFoundNonInt")
+		return nil, err
 	}
 	felt, is_felt := res_val.GetFelt()
 	if !is_felt {
