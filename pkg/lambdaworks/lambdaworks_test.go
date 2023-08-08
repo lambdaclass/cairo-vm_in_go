@@ -38,9 +38,8 @@ func TestFromNegDecString(t *testing.T) {
 }
 
 func TestFeltSub(t *testing.T) {
-	var felt lambdaworks.Felt
-	f_one := felt.One()
-	expected := felt.Zero()
+	f_one := lambdaworks.FeltOne()
+	expected := lambdaworks.FeltZero()
 
 	result := f_one.Sub(f_one)
 	if result != expected {
@@ -49,10 +48,9 @@ func TestFeltSub(t *testing.T) {
 }
 
 func TestFeltAdd(t *testing.T) {
-	var felt lambdaworks.Felt
-	f_zero := felt.Zero()
-	f_one := felt.One()
-	expected := felt.One()
+	f_zero := lambdaworks.FeltZero()
+	f_one := lambdaworks.FeltOne()
+	expected := lambdaworks.FeltOne()
 
 	result := f_zero.Add(f_one)
 	if result != expected {
@@ -61,9 +59,8 @@ func TestFeltAdd(t *testing.T) {
 }
 
 func TestFeltMul1(t *testing.T) {
-	var felt lambdaworks.Felt
-	f_one := felt.One()
-	expected := felt.One()
+	f_one := lambdaworks.FeltOne()
+	expected := lambdaworks.FeltOne()
 
 	result := f_one.Mul(f_one)
 	if result != expected {
@@ -72,10 +69,9 @@ func TestFeltMul1(t *testing.T) {
 }
 
 func TestFeltMul0(t *testing.T) {
-	var felt lambdaworks.Felt
-	f_one := felt.One()
-	f_zero := felt.Zero()
-	expected := felt.Zero()
+	f_one := lambdaworks.FeltOne()
+	f_zero := lambdaworks.FeltZero()
+	expected := lambdaworks.FeltZero()
 
 	result := f_zero.Mul(f_one)
 	if result != expected {

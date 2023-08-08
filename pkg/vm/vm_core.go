@@ -118,13 +118,81 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 	return nil
 }
 
+func (vm *VirtualMachine) DeduceDst(instruction Instruction, res *memory.MaybeRelocatable) *memory.MaybeRelocatable {
+	switch instruction.Opcode {
+	case AssertEq:
+		return res
+	case Call:
+		return memory.NewMaybeRelocatableRelocatable(vm.RunContext.Fp)
+
+	}
+	return nil
+}
+
+// Deduces the value of op0 if possible (based on dst and op1). Otherwise, returns nil.
+// If res is deduced in the process returns its deduced value as well.
+func (vm *VirtualMachine) DeduceOp0(instruction *Instruction, dst *memory.MaybeRelocatable, op1 *memory.MaybeRelocatable) (deduced_op0 *memory.MaybeRelocatable, deduced_res *memory.MaybeRelocatable, error error) {
+	switch instruction.Opcode {
+	case Call:
+		deduced_op0 := vm.RunContext.Pc
+		deduced_op0.Offset += instruction.Size()
+		return memory.NewMaybeRelocatableRelocatable(deduced_op0), nil, nil
+	case AssertEq:
+		switch instruction.ResLogic {
+		case ResAdd:
+			if dst != nil && op1 != nil {
+				deduced_op0, err := dst.Sub(*op1)
+				if err != nil {
+					return nil, nil, err
+				}
+				return &deduced_op0, dst, nil
+			}
+		case ResMul:
+			if dst != nil && op1 != nil {
+				dst_felt, dst_is_felt := dst.GetFelt()
+				op1_felt, op1_is_felt := op1.GetFelt()
+				if dst_is_felt && op1_is_felt && !op1_felt.IsZero() {
+					return memory.NewMaybeRelocatableFelt(dst_felt.Div(op1_felt)), dst, nil
+
+				}
+			}
+		}
+	}
+	return nil, nil, nil
+}
+
+func (vm *VirtualMachine) DeduceOp1(instruction Instruction, dst *memory.MaybeRelocatable, op0 *memory.MaybeRelocatable) (*memory.MaybeRelocatable, *memory.MaybeRelocatable, error) {
+	if instruction.Opcode == AssertEq {
+		switch instruction.ResLogic {
+		case ResOp1:
+			return dst, dst, nil
+		case ResAdd:
+			if op0 != nil && dst != nil {
+				dst_rel, err := dst.Sub(*op0)
+				if err != nil {
+					return nil, nil, err
+				}
+				return &dst_rel, dst, nil
+			}
+		case ResMul:
+			dst_felt, dst_is_felt := dst.GetFelt()
+			op0_felt, op0_is_felt := op0.GetFelt()
+			if dst_is_felt && op0_is_felt && !op0_felt.IsZero() {
+				res := memory.NewMaybeRelocatableFelt(dst_felt.Div(op0_felt))
+				return res, dst, nil
+			}
+		}
+	}
+	return nil, nil, nil
+}
+
 func (vm *VirtualMachine) ComputeRes(instruction Instruction, op0 memory.MaybeRelocatable, op1 memory.MaybeRelocatable) (*memory.MaybeRelocatable, error) {
 	switch instruction.ResLogic {
 	case ResOp1:
 		return &op1, nil
 
 	case ResAdd:
-		maybe_rel, err := op0.AddMaybeRelocatable(op1)
+		maybe_rel, err := op0.Add(op1)
 		if err != nil {
 			return nil, err
 		}
