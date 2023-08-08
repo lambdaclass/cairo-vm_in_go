@@ -18,6 +18,8 @@ Go needs to be installed. For mac computers, run
 brew install go
 ```
 
+We also use [pyenv](https://github.com/pyenv/pyenv) to install testing-related dependencies
+
 ## Compiling, running, testing
 
 To compile, run:
@@ -32,10 +34,34 @@ To run the main example file, run:
 make run
 ```
 
-To run all tests, run:
+Before running the tests, install the testing dependencies:
+
+```
+make deps
+```
+
+To run all tests, activate the venv created by make deps and run the test target:
 
 ```shell
+. cairo-vm-env/bin/activate
 make test
+```
+
+## Running the demo
+
+This project currently has two demo targets, one for running a fibonacci programs and one for running a factorial program. Both of them output their corresponding trace files.
+The demo uses cairo_lang to compile both cairo programs, you can install it by running `make deps` (or `make deps-macos` if you are on macos)
+
+To run the fibonacci demo:
+
+```shell
+    make demo_fib
+```
+
+To run the factorial demo:
+
+```shell
+    make demo_factorial
 ```
 
 ## Project Guidelines

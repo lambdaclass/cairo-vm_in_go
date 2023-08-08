@@ -22,3 +22,9 @@ go.work
 
 # VS code configs
 .vscode
+
+# Compiled cairo programs
+*.json
+
+# python env
+cairo-vm-env

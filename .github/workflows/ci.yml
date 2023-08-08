@@ -10,7 +10,9 @@ jobs:
   test_and_format:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
 
     - name: Setup Go
       uses: actions/setup-go@v2
@@ -22,6 +24,14 @@ jobs:
       with:
         toolchain: stable
 
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install cairo-lang and deps
+      run: pip install -r requirements.txt
+
     - name: build
       run: make build
 
@@ -30,3 +40,6 @@ jobs:
 
     - name: format
       run: make check_fmt
+
+    - name: Compare trace & memory with cairo-vm
+      run: make compare_trace_memory

@@ -97,8 +97,7 @@ func (f Felt) One() Felt {
 }
 
 func (f Felt) IsZero() bool {
-	var felt Felt
-	return f == felt.Zero()
+	return f == FeltZero()
 }
 
 // Writes the result variable with the sum of a and b felts.

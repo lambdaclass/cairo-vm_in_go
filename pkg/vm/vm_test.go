@@ -1,17 +1,119 @@
 package vm_test
 
 import (
-	"bytes"
-	"io/ioutil"
-	"path/filepath"
 	"reflect"
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
-	"github.com/lambdaclass/cairo-vm.go/pkg/vm/cairo_run"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
+
+func TestDeduceOp0OpcodeRet(t *testing.T) {
+	instruction := vm.Instruction{Opcode: vm.Ret}
+	vm := vm.NewVirtualMachine()
+	op0, res, err := vm.DeduceOp0(&instruction, nil, nil)
+	if err != nil {
+		t.Errorf("DeduceOp0 failed with error: %s", err)
+	}
+	if op0 != nil || res != nil {
+		t.Errorf("Wrong values returned by DeduceOp0")
+	}
+}
+func TestDeduceOp0OpcodeAssertEqResMulOk(t *testing.T) {
+	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResMul}
+	vm := vm.NewVirtualMachine()
+	dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(6))
+	op1 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(3))
+	op0, res, err := vm.DeduceOp0(&instruction, dst, op1)
+	if err != nil {
+		t.Errorf("DeduceOp0 failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(op0, memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2))) || !reflect.DeepEqual(res, dst) {
+		t.Errorf("Wrong values returned by DeduceOp0")
+	}
+}
+
+func TestDeduceOp0OpcodeAssertEqResMulZeroDiv(t *testing.T) {
+	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResMul}
+	vm := vm.NewVirtualMachine()
+	dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(6))
+	op1 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0))
+	op0, res, err := vm.DeduceOp0(&instruction, dst, op1)
+	if op0 != nil || res != nil || err != nil {
+		t.Errorf("Wrong values returned by DeduceOp0")
+	}
+}
+
+func TestDeduceOp0OpcodeAssertEqResMulRelValues(t *testing.T) {
+	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResMul}
+	vm := vm.NewVirtualMachine()
+	dst := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{})
+	op1 := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{})
+	op0, res, err := vm.DeduceOp0(&instruction, dst, op1)
+	if op0 != nil || res != nil || err != nil {
+		t.Errorf("Wrong values returned by DeduceOp0")
+	}
+}
+
+func TestDeduceOp0OpcodeAssertEqResMulNilValues(t *testing.T) {
+	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResAdd}
+	vm := vm.NewVirtualMachine()
+	op0, res, err := vm.DeduceOp0(&instruction, nil, nil)
+	if op0 != nil || res != nil || err != nil {
+		t.Errorf("Wrong values returned by DeduceOp0")
+	}
+}
+
+func TestDeduceOp0OpcodeAssertEqResAddOk(t *testing.T) {
+	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResAdd}
+	vm := vm.NewVirtualMachine()
+	dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(7))
+	op1 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))
+	op0, res, err := vm.DeduceOp0(&instruction, dst, op1)
+	if err != nil {
+		t.Errorf("DeduceOp0 failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(op0, memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2))) || !reflect.DeepEqual(res, dst) {
+		t.Errorf("Wrong values returned by DeduceOp0")
+	}
+}
+
+func TestDeduceOp0OpcodeAssertEqResAddRelValues(t *testing.T) {
+	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResAdd}
+	vm := vm.NewVirtualMachine()
+	dst := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{SegmentIndex: 1, Offset: 6})
+	op1 := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{SegmentIndex: 1, Offset: 2})
+	op0, res, err := vm.DeduceOp0(&instruction, dst, op1)
+	if err != nil {
+		t.Errorf("DeduceOp0 failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(op0, memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(4))) || !reflect.DeepEqual(res, dst) {
+		t.Errorf("Wrong values returned by DeduceOp0")
+	}
+}
+
+func TestDeduceOp0OpcodeAssertEqResAddNilValues(t *testing.T) {
+	instruction := vm.Instruction{Opcode: vm.AssertEq, ResLogic: vm.ResAdd}
+	vm := vm.NewVirtualMachine()
+	op0, res, err := vm.DeduceOp0(&instruction, nil, nil)
+	if op0 != nil || res != nil || err != nil {
+		t.Errorf("Wrong values returned by DeduceOp0")
+	}
+}
+
+func TestDeduceOp0OpcodeCall(t *testing.T) {
+	instruction := vm.Instruction{Opcode: vm.Call, Op1Addr: vm.Op1SrcAP}
+	vm := vm.NewVirtualMachine()
+	vm.RunContext.Pc = memory.Relocatable{SegmentIndex: 1, Offset: 7}
+	op0, res, err := vm.DeduceOp0(&instruction, nil, nil)
+	if err != nil {
+		t.Errorf("DeduceOp0 failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(op0, memory.NewMaybeRelocatableRelocatable(memory.Relocatable{SegmentIndex: 1, Offset: 8})) || res != nil {
+		t.Errorf("Wrong values returned by DeduceOp0")
+	}
+}
 
 func TestUpdateRegistersAllRegularNoImm(t *testing.T) {
 	instruction := vm.Instruction{FpUpdate: vm.FpUpdateRegular, ApUpdate: vm.ApUpdateRegular, PcUpdate: vm.PcUpdateRegular, Op1Addr: vm.Op1SrcAP}
@@ -161,7 +263,7 @@ func TestUpdateApAddWithResRel(t *testing.T) {
 	vm := vm.NewVirtualMachine()
 	err := vm.UpdateAp(&instruction, &operands)
 	if err == nil {
-		t.Errorf("UpdateA should have failed")
+		t.Errorf("UpdateAp should have failed")
 	}
 }
 
@@ -171,7 +273,7 @@ func TestUpdateApAddWithoutRes(t *testing.T) {
 	vm := vm.NewVirtualMachine()
 	err := vm.UpdateAp(&instruction, &operands)
 	if err == nil {
-		t.Errorf("UpdateA should have failed")
+		t.Errorf("UpdateAp should have failed")
 	}
 }
 
@@ -346,9 +448,9 @@ func VmNew(run_context vm.RunContext, current_step uint, segments_manager memory
 
 func TestComputeOperandsAddAp(t *testing.T) {
 	instruction := vm.Instruction{
-		OffDst:   0,
-		OffOp0:   1,
-		OffOp1:   2,
+		Off0:     0,
+		Off1:     1,
+		Off2:     2,
 		DstReg:   vm.AP,
 		Op0Reg:   vm.FP,
 		Op1Addr:  vm.Op1SrcAP,
@@ -423,38 +525,6 @@ func TestRelocateTraceOneEntry(t *testing.T) {
 	}
 	if !reflect.DeepEqual(expectedTrace, actualTrace) {
 		t.Errorf("Relocated trace and expected trace are not the same")
-	}
-}
-
-func TestWriteBinaryTraceFile(t *testing.T) {
-	tracePath, err := filepath.Abs("../../cairo_programs/struct.trace")
-	if err != nil {
-		t.Errorf("Trace file writing error failed with test: %s", err)
-	}
-
-	expectedTrace, err := ioutil.ReadFile(tracePath)
-	if err != nil {
-		t.Errorf("Trace file writing error failed with test: %s", err)
-	}
-
-	virtualMachine := vm.NewVirtualMachine()
-	buildTestProgramMemory(virtualMachine)
-
-	err = virtualMachine.Relocate()
-	if err != nil {
-		t.Errorf("Trace file writing error failed with test: %s", err)
-	}
-
-	relocatedTrace, err := virtualMachine.GetRelocatedTrace()
-	if err != nil {
-		t.Errorf("Trace file writing error failed with test: %s", err)
-	}
-
-	var actualTraceBuffer bytes.Buffer
-	cairo_run.WriteEncodedTrace(relocatedTrace, &actualTraceBuffer)
-
-	if !reflect.DeepEqual(expectedTrace, actualTraceBuffer.Bytes()) {
-		t.Errorf("Written trace and expected trace are not the same")
 	}
 }
 
