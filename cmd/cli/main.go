@@ -25,7 +25,7 @@ func main() {
 	defer traceFile.Close()
 
 	memoryFilePath := strings.Replace(programPath, ".json", ".go.memory", 1)
-	memoryFile, err := os.Open(memoryFilePath)
+	memoryFile, err := os.OpenFile(memoryFilePath, os.O_RDWR|os.O_CREATE, 0644)
 	defer memoryFile.Close()
 
 	cairo_run.WriteEncodedTrace(cairoRunner.Vm.RelocatedTrace, traceFile)
