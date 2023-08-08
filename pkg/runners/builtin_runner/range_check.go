@@ -15,15 +15,8 @@ const CELLS_PER_RANGE_CHECK = 1
 const N_PARTS = 8
 
 type RangeCheckBuiltinRunner struct {
-	ratio                 *uint32
-	base                  int
-	stopPtr               *int
-	cellsPerInstance      uint32
-	nInputCells           uint32
-	_bound                *lambdaworks.Felt
-	included              bool
-	nParts                uint32
-	instancesPerComponent uint32
+	base     int
+	included bool
 }
 
 func NewRangeCheckBuiltinRunner(ratio *uint32, nParts uint32, included bool) *RangeCheckBuiltinRunner {
@@ -31,27 +24,13 @@ func NewRangeCheckBuiltinRunner(ratio *uint32, nParts uint32, included bool) *Ra
 	bound := f_one.Shl(16 * nParts)
 	if nParts != 0 && bound.IsZero() {
 		return &RangeCheckBuiltinRunner{
-			ratio:                 ratio,
-			base:                  0,
-			stopPtr:               nil,
-			cellsPerInstance:      CELLS_PER_RANGE_CHECK,
-			nInputCells:           CELLS_PER_RANGE_CHECK,
-			_bound:                nil,
-			included:              included,
-			nParts:                nParts,
-			instancesPerComponent: 1,
+			base:     0,
+			included: included,
 		}
 	}
 	return &RangeCheckBuiltinRunner{
-		ratio:                 ratio,
-		base:                  0,
-		stopPtr:               nil,
-		cellsPerInstance:      CELLS_PER_RANGE_CHECK,
-		nInputCells:           CELLS_PER_RANGE_CHECK,
-		_bound:                &bound,
-		included:              included,
-		nParts:                nParts,
-		instancesPerComponent: 1,
+		base:     0,
+		included: included,
 	}
 }
 
