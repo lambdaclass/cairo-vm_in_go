@@ -8,8 +8,8 @@ import (
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
-	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/cairo_run"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
 func TestDeduceOp0OpcodeRet(t *testing.T) {
