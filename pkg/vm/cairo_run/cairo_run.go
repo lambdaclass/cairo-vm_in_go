@@ -20,15 +20,21 @@ type CairoRunConfig struct {
 	MemoryFile *string
 }
 
-func CairoRun(programPath string) (runners.CairoRunner, error) {
+func CairoRun(programPath string) (*runners.CairoRunner, error) {
 	compiledProgram := parser.Parse(programPath)
 	programJson := vm.DeserializeProgramJson(compiledProgram)
 
 	cairoRunner := runners.NewCairoRunner(programJson)
 	end, err := cairoRunner.Initialize()
+	if err != nil {
+		return nil, err
+	}
 	err = cairoRunner.RunUntilPC(end)
-	cairoRunner.Vm.Relocate()
-	return *cairoRunner, err
+	if err != nil {
+		return nil, err
+	}
+	err = cairoRunner.Vm.Relocate()
+	return cairoRunner, err
 }
 
 // Writes the trace binary representation.
