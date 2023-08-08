@@ -537,3 +537,55 @@ func buildTestProgramMemory(virtualMachine *vm.VirtualMachine) {
 	virtualMachine.Segments.Memory.Insert(memory.NewRelocatable(1, 0), memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(2, 0)))
 	virtualMachine.Segments.Memory.Insert(memory.NewRelocatable(1, 1), memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(3, 0)))
 }
+
+func TestDeduceDstOpcodeCall(t *testing.T) {
+	instruction := vm.Instruction{
+		Off0:     1,
+		Off1:     2,
+		Off2:     3,
+		DstReg:   vm.FP,
+		Op0Reg:   vm.AP,
+		Op1Addr:  vm.Op1SrcAP,
+		ResLogic: vm.ResUnconstrained,
+		PcUpdate: vm.PcUpdateJump,
+		ApUpdate: vm.ApUpdateRegular,
+		FpUpdate: vm.FpUpdateRegular,
+		Opcode:   vm.Call,
+	}
+
+	vm := vm.NewVirtualMachine()
+	vm.RunContext.Fp = memory.NewRelocatable(1, 0)
+
+	result_dst := vm.DeduceDst(instruction, nil)
+	mr := memory.NewRelocatable(1, 0)
+	expected_dst := memory.NewMaybeRelocatableRelocatable(mr)
+
+	if *result_dst != *expected_dst {
+		t.Error("Different Dst value")
+	}
+}
+
+func TestDeduceDstOpcodeRet(t *testing.T) {
+	instruction := vm.Instruction{
+		Off0:     1,
+		Off1:     2,
+		Off2:     3,
+		DstReg:   vm.FP,
+		Op0Reg:   vm.AP,
+		Op1Addr:  vm.Op1SrcAP,
+		ResLogic: vm.ResUnconstrained,
+		PcUpdate: vm.PcUpdateJump,
+		ApUpdate: vm.ApUpdateRegular,
+		FpUpdate: vm.FpUpdateRegular,
+		Opcode:   vm.Ret,
+	}
+
+
+	vm := vm.NewVirtualMachine()
+
+	result_dst := vm.DeduceDst(instruction, nil)
+
+	if result_dst != nil {
+		t.Error("Different Dst value than nil")
+	}
+}
