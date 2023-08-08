@@ -2,8 +2,6 @@ package vm_test
 
 import (
 	"bytes"
-	"os"
-	"path/filepath"
 
 	"reflect"
 	"testing"
