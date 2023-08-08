@@ -450,9 +450,9 @@ func TestDeduceDstOpcodeAssertEqWithoutRes(t *testing.T) {
 
 func TestDeduceDstOpcodeCall(t *testing.T) {
 	instruction := Instruction{
-		Off0:   1,
-		Off1:   2,
-		Off2:   3,
+		Off0:     1,
+		Off1:     2,
+		Off2:     3,
 		DstReg:   FP,
 		Op0Reg:   AP,
 		Op1Addr:  Op1SrcAP,
@@ -477,9 +477,9 @@ func TestDeduceDstOpcodeCall(t *testing.T) {
 
 func TestDeduceDstOpcodeRet(t *testing.T) {
 	instruction := Instruction{
-		Off0:   1,
-		Off1:   2,
-		Off2:   3,
+		Off0:     1,
+		Off1:     2,
+		Off2:     3,
 		DstReg:   FP,
 		Op0Reg:   AP,
 		Op1Addr:  Op1SrcAP,
