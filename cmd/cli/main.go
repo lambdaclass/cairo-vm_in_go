@@ -24,8 +24,6 @@ func main() {
 	traceFile, err := os.OpenFile(traceFilePath, os.O_RDWR|os.O_CREATE, 0644)
 	defer traceFile.Close()
 
-	// Dirty trick
-	// TODO: Remove once WriteEncodedmemory is merged
 	memoryFilePath := strings.Replace(programPath, ".json", ".go.memory", 1)
 	memoryFile, err := os.Open(memoryFilePath)
 	defer memoryFile.Close()
