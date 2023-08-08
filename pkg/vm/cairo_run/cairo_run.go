@@ -107,10 +107,6 @@ func WriteEncodedMemory(relocatedMemory map[uint]lambdaworks.Felt, dest io.Write
 	// iterate over the `relocatedMemory` map in sorted key order
 	for _, k := range keysMap {
 
-		// get relocatedMemory[k]
-		value := relocatedMemory[k]
-		fmt.Printf("key[%d] = %d\n", k, value)
-
 		// write the key
 		keyArray := make([]byte, 8)
 		binary.LittleEndian.PutUint64(keyArray, uint64(k))
@@ -120,14 +116,9 @@ func WriteEncodedMemory(relocatedMemory map[uint]lambdaworks.Felt, dest io.Write
 		}
 
 		// write the value
-		valueArray := make([]byte, 8)
-		val, err := value.ToU64()
-		if err != nil {
-			return encodeMemoryError(uint(val), err)
-		}
+		valueArray := relocatedMemory[k].ToLeBytes()
 
-		binary.LittleEndian.PutUint64(valueArray, uint64(val))
-		_, err = dest.Write(valueArray)
+		_, err = dest.Write(valueArray[:])
 		if err != nil {
 			return encodeMemoryError(k, err)
 		}
