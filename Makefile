@@ -1,4 +1,5 @@
-.PHONY: deps deps-macos run test build fmt check_fmt clean clean_files build_cairo_vm_cli compare_trace_memory compare_trace compare_memory demo_fib $(CAIRO_VM_CLI)
+.PHONY: deps deps-macos run test build fmt check_fmt clean clean_files build_cairo_vm_cli compare_trace_memory compare_trace compare_memory \
+ demo_fib demo_factorial $(CAIRO_VM_CLI)
 
 CAIRO_VM_CLI:=cairo-vm/target/release/cairo-vm-cli
 
@@ -71,6 +72,9 @@ clean_files:
 
 demo_fib: $(COMPILED_TESTS)
 	@go run cmd/cli/main.go cairo_programs/fibonacci.json
+
+demo_factorial: $(COMPILED_TESTS)
+	@go run cmd/cli/main.go cairo_programs/factorial.json
 
 build_cairo_vm_cli: | $(CAIRO_VM_CLI)
 
