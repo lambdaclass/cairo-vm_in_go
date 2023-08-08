@@ -32,4 +32,5 @@ void mul(felt_t a, felt_t b, felt_t result);
 /* Writes the result variable with a / b. */
 void lw_div(felt_t a, felt_t b, felt_t result);
 
+/* Returns the minimum number of bits needed to represent the felt */
 limb_t bits(felt_t a);

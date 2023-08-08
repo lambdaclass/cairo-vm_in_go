@@ -137,14 +137,7 @@ func (a Felt) Div(b Felt) Felt {
 	return fromC(result)
 }
 
-// Writes the result variable with a << rhs.
-func (a Felt) Shl(rhs uint32) Felt {
-	for i := 0; i < N_LIMBS_IN_FELT; i++ {
-		a.limbs[i] <<= rhs
-	}
-	return a
-}
-
+// Returns the number of bits needed to represent the felt
 func (a Felt) Bits() C.limb_t {
 	if a.IsZero() {
 		return 0
