@@ -80,13 +80,13 @@ What we have:
 - Parsing of `json` programs
 - Decoding of instructions
 - Memory relocation
+- Instruction execution.
+- Writing of the trace into files with the correct format.
+- Make the fibonacci and factorial tests pass, comparing our own trace with the Rust VM one, making sure they match.
 
 What we need to finish this milestone:
-- Instruction execution.
-- Writing of the trace and memory into files with the correct format.
-- Make the fibonacci test pass, comparing our own trace with the Rust VM one, making sure they match.
-- Make the factorial test pass, same as above.
-
+- Writing of the memory into files with the correct format.
+- Make the fibonacci and factorial tests pass, comparing our own memory with the Rust VM one, making sure they match.
 
 ## Cairo 0/Cairo 1
 
