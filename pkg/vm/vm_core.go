@@ -300,16 +300,24 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 	}
 
 	if op1 == nil {
-		deducedOp1, deducedRes, err := vm.DeduceOp1(instruction, dst, op0)
+		op1, err = vm.DeduceMemoryCell(op1_addr)
 		if err != nil {
 			return Operands{}, err
 		}
-		op1 = deducedOp1
+		if op1 == nil {
+			var deducedRes *memory.MaybeRelocatable
+			op1, deducedRes, err = vm.DeduceOp1(instruction, dst, op0)
+			if err != nil {
+				return Operands{}, err
+			}
+			if res == nil {
+				res = deducedRes
+			}
+		}
 		if op1 != nil {
 			vm.Segments.Memory.Insert(op1_addr, op1)
-		}
-		if res == nil {
-			res = deducedRes
+		} else {
+			return Operands{}, errors.New("Failed to compute or deduce op1")
 		}
 	}
 
