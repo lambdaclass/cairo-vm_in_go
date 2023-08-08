@@ -15,7 +15,7 @@ const CELLS_PER_RANGE_CHECK = 1
 const N_PARTS = 8
 
 type RangeCheckBuiltinRunner struct {
-	base     int
+	base     memory.Relocatable
 	included bool
 }
 
@@ -24,17 +24,17 @@ func NewRangeCheckBuiltinRunner(ratio *uint32, nParts uint32, included bool) *Ra
 	bound := f_one.Shl(16 * nParts)
 	if nParts != 0 && bound.IsZero() {
 		return &RangeCheckBuiltinRunner{
-			base:     0,
+			base:     memory.NewRelocatable(0, 0),
 			included: included,
 		}
 	}
 	return &RangeCheckBuiltinRunner{
-		base:     0,
+		base:     memory.NewRelocatable(0, 0),
 		included: included,
 	}
 }
 
-func (r *RangeCheckBuiltinRunner) Base() int {
+func (r *RangeCheckBuiltinRunner) Base() memory.Relocatable {
 	return r.base
 }
 
@@ -43,12 +43,12 @@ func (r *RangeCheckBuiltinRunner) Name() string {
 }
 
 func (r *RangeCheckBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
-	r.base = segments.AddSegment().SegmentIndex
+	r.base = segments.AddSegment()
 }
 
 func (r *RangeCheckBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
 	if r.included {
-		stack := []memory.MaybeRelocatable{*memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(r.base, 0))}
+		stack := []memory.MaybeRelocatable{*memory.NewMaybeRelocatableRelocatable(r.base)}
 		return stack
 	}
 	return []memory.MaybeRelocatable{}
@@ -74,5 +74,5 @@ func ValidationRule(mem *memory.Memory, address memory.Relocatable) ([]memory.Re
 }
 
 func (r *RangeCheckBuiltinRunner) AddValidationRule(mem *memory.Memory) {
-	mem.AddValidationRule(uint(r.base), ValidationRule)
+	mem.AddValidationRule(uint(r.base.SegmentIndex), ValidationRule)
 }

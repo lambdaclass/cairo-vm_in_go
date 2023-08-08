@@ -87,8 +87,8 @@ func (m *Memory) Get(addr Relocatable) (*MaybeRelocatable, error) {
 }
 
 // Adds a validation rule for a given segment
-func (m *Memory) AddValidationRule(segment_index uint, rule ValidationRule) {
-	m.ValidationRules[segment_index] = rule
+func (m *Memory) AddValidationRule(SegmentIndex uint, rule ValidationRule) {
+	m.ValidationRules[SegmentIndex] = rule
 }
 
 // Applies the validation rule for the addr's segment if any
