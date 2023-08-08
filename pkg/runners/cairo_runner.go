@@ -1,6 +1,8 @@
 package runners
 
 import (
+	"errors"
+
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
@@ -17,20 +19,33 @@ type CairoRunner struct {
 	mainOffset    uint
 }
 
-func NewCairoRunner(program vm.Program) *CairoRunner {
+func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 	mainIdentifier, ok := (*program.Identifiers)["__main__.main"]
 	main_offset := uint(0)
 	if ok {
 		main_offset = uint(mainIdentifier.PC)
 	}
-	return &CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
+	runner := CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
+	for _, builtin_name := range program.Builtins {
+		switch builtin_name {
+		// Add a case for each builtin here, example:
+		// case "range_check":
+		// 	runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, RangeCheckBuiltin{})
+		default:
+			return nil, errors.New("Invalid builtin")
+		}
+	}
+
+	return &runner, nil
 }
 
 // Performs the initialization step, returns the end pointer (pc upon which execution should stop)
 func (r *CairoRunner) Initialize() (memory.Relocatable, error) {
 	r.initializeSegments()
 	end, err := r.initializeMainEntrypoint()
-	r.initializeVM()
+	if err == nil {
+		err = r.initializeVM()
+	}
 	return end, err
 }
 
@@ -40,7 +55,10 @@ func (r *CairoRunner) initializeSegments() {
 	r.ProgramBase = r.Vm.Segments.AddSegment()
 	// Execution Segment
 	r.executionBase = r.Vm.Segments.AddSegment()
-	// Initialize builtin segments
+	// Builtin Segments
+	for i := range r.Vm.BuiltinRunners {
+		r.Vm.BuiltinRunners[i].InitializeSegments(&r.Vm.Segments)
+	}
 }
 
 // Initializes the program segment & initial pc
@@ -73,18 +91,27 @@ func (r *CairoRunner) initializeMainEntrypoint() (memory.Relocatable, error) {
 	// When running from main entrypoint, only up to 11 values will be written (9 builtin bases + end + return_fp)
 	stack := make([]memory.MaybeRelocatable, 0, 11)
 	// Append builtins initial stack to stack
+	for i := range r.Vm.BuiltinRunners {
+		for _, val := range r.Vm.BuiltinRunners[i].InitialStack() {
+			stack = append(stack, val)
+		}
+	}
 	// Handle proof-mode specific behaviour
 	return_fp := r.Vm.Segments.AddSegment()
 	return r.initializeFunctionEntrypoint(r.mainOffset, &stack, return_fp)
 }
 
 // Initializes the vm's run_context, adds builtin validation rules & validates memory
-func (r *CairoRunner) initializeVM() {
+func (r *CairoRunner) initializeVM() error {
 	r.Vm.RunContext.Ap = r.initialAp
 	r.Vm.RunContext.Fp = r.initialFp
 	r.Vm.RunContext.Pc = r.initialPc
 	// Add validation rules
+	for i := range r.Vm.BuiltinRunners {
+		r.Vm.BuiltinRunners[i].AddValidationRule(&r.Vm.Segments.Memory)
+	}
 	// Apply validation rules to memory
+	return r.Vm.Segments.Memory.ValidateExistingMemory()
 }
 
 func (r *CairoRunner) RunUntilPC(end memory.Relocatable) error {

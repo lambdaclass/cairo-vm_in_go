@@ -112,3 +112,15 @@ func (m *Memory) validateAddress(addr Relocatable) error {
 	}
 	return nil
 }
+
+// Applies validation_rules to every memory address, if applicatble
+// Skips validation if the address is temporary or if it has been previously validated
+func (m *Memory) ValidateExistingMemory() error {
+	for addr := range m.data {
+		err := m.validateAddress(addr)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
