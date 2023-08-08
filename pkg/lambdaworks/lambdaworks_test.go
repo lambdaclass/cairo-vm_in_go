@@ -124,7 +124,7 @@ func TestFeltDiv4Error(t *testing.T) {
 }
 
 func TestBits(t *testing.T) {
-	f_zero := lambdaworks.FeltFromUint64(0)
+	f_zero := lambdaworks.FeltZero()
 	if f_zero.Bits() != 0 {
 		t.Errorf("TestBits failed. Expected: %d, Got: %d", 1, f_zero.Bits())
 	}
