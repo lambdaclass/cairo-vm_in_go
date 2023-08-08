@@ -23,8 +23,8 @@ func NewRelocatable(segment_idx int, offset uint) Relocatable {
 
 }
 
-func (r *Relocatable) RelocateAddress(relocationTable *[]uint) lambdaworks.Felt {
-	return lambdaworks.FeltFromUint64(uint64((*relocationTable)[r.SegmentIndex] + r.Offset))
+func (r *Relocatable) RelocateAddress(relocationTable *[]uint) uint {
+	return (*relocationTable)[r.SegmentIndex] + r.Offset
 }
 
 // Adds a Felt value to a Relocatable
@@ -136,7 +136,7 @@ func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (lambdaworks.F
 
 	inner_relocatable, ok := m.GetRelocatable()
 	if ok {
-		return inner_relocatable.RelocateAddress(relocationTable), nil
+		return lambdaworks.FeltFromUint64(uint64(inner_relocatable.RelocateAddress(relocationTable))), nil
 	}
 
 	return lambdaworks.FeltZero(), errors.New(fmt.Sprintf("Unexpected type %T", m.inner))
