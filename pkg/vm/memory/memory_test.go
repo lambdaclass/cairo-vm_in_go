@@ -276,3 +276,47 @@ func TestMemorySegmentsLoadDataTwoElements(t *testing.T) {
 		t.Errorf("Inserted value and original value are not the same")
 	}
 }
+
+func TestMemoryValidateExistingMemoryOk(t *testing.T) {
+	mem_manager := memory.NewMemorySegmentManager()
+	mem_manager.AddSegment()
+	mem := &mem_manager.Memory
+	// Load Values to memory
+	for i := uint(0); i < 15; i++ {
+		key := memory.NewRelocatable(0, i)
+		val := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(uint64(i)))
+		err := mem.Insert(key, val)
+		if err != nil {
+			t.Errorf("Insert error in test: %s", err)
+		}
+	}
+	// Add a validation rule for segment 0
+	mem.AddValidationRule(0, rule_always_ok)
+	// Run ValidateExistingMemory
+	err := mem.ValidateExistingMemory()
+	if err != nil {
+		t.Errorf("ValidateExistingMemory error in test: %s", err)
+	}
+}
+
+func TestMemoryValidateExistingMemoryErr(t *testing.T) {
+	mem_manager := memory.NewMemorySegmentManager()
+	mem_manager.AddSegment()
+	mem := &mem_manager.Memory
+	// Load Values to memory
+	for i := uint(0); i < 15; i++ {
+		key := memory.NewRelocatable(0, i)
+		val := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(uint64(i)))
+		err := mem.Insert(key, val)
+		if err != nil {
+			t.Errorf("Insert error in test: %s", err)
+		}
+	}
+	// Add a validation rule for segment 0
+	mem.AddValidationRule(0, rule_always_err)
+	// Run ValidateExistingMemory
+	err := mem.ValidateExistingMemory()
+	if err == nil {
+		t.Errorf("ValidateExistingMemory should have failed")
+	}
+}

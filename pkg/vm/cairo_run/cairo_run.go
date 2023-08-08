@@ -26,7 +26,10 @@ func CairoRun(programPath string) (*runners.CairoRunner, error) {
 	compiledProgram := parser.Parse(programPath)
 	programJson := vm.DeserializeProgramJson(compiledProgram)
 
-	cairoRunner := runners.NewCairoRunner(programJson)
+	cairoRunner, err := runners.NewCairoRunner(programJson)
+	if err != nil {
+		return nil, err
+	}
 	end, err := cairoRunner.Initialize()
 	if err != nil {
 		return nil, err
