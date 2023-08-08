@@ -466,12 +466,12 @@ func TestDeduceDstOpcodeCall(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.RunContext.Fp = memory.NewRelocatable(1, 0)
 
-	result_res := vm.DeduceDst(instruction, nil)
+	result_dst := vm.DeduceDst(instruction, nil)
 	mr := memory.NewRelocatable(1, 0)
-	expected_res := memory.NewMaybeRelocatableRelocatable(mr)
+	expected_dst := memory.NewMaybeRelocatableRelocatable(mr)
 
-	if *result_res != *expected_res {
-		t.Error("Different Res value")
+	if *result_dst != *expected_dst {
+		t.Error("Different Dst value")
 	}
 }
 
@@ -492,9 +492,9 @@ func TestDeduceDstOpcodeRet(t *testing.T) {
 
 	vm := NewVirtualMachine()
 
-	result_res := vm.DeduceDst(instruction, nil)
+	result_dst := vm.DeduceDst(instruction, nil)
 
-	if result_res != nil {
-		t.Error("Different Res value than nil")
+	if result_dst != nil {
+		t.Error("Different Dst value than nil")
 	}
 }
