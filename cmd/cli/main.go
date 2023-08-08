@@ -11,7 +11,8 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Printf("Wrong argument count: Use go run cmd/cli/main.go COMPILED_JSON")
+		fmt.Println("Wrong argument count: Use go run cmd/cli/main.go COMPILED_JSON")
+		return
 	}
 	cli_args := os.Args[1:]
 	programPath := cli_args[0]
