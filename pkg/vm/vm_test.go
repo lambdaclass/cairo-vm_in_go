@@ -537,3 +537,444 @@ func buildTestProgramMemory(virtualMachine *vm.VirtualMachine) {
 	virtualMachine.Segments.Memory.Insert(memory.NewRelocatable(1, 0), memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(2, 0)))
 	virtualMachine.Segments.Memory.Insert(memory.NewRelocatable(1, 1), memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(3, 0)))
 }
+
+func TestOpcodeAssertionsResUnconstrained(t *testing.T) {
+	instruction := vm.Instruction{
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
+		DstReg:   vm.FP,
+		Op0Reg:   vm.AP,
+		Op1Addr:  vm.Op1SrcAP,
+		ResLogic: vm.ResAdd,
+		PcUpdate: vm.PcUpdateRegular,
+		ApUpdate: vm.ApUpdateRegular,
+		FpUpdate: vm.FpUpdateAPPlus2,
+		Opcode:   vm.AssertEq,
+	}
+
+	operands := vm.Operands{
+		Dst: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(8)),
+		Res: nil,
+		Op0: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(9)),
+		Op1: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(10)),
+	}
+
+	testVm := vm.NewVirtualMachine()
+
+	err := testVm.OpcodeAssertions(instruction, operands)
+	if err.Error() != "UnconstrainedResAssertEq" {
+		t.Error("Assertion should error out with UnconstrainedResAssertEq")
+	}
+}
+
+func TestOpcodeAssertionsInstructionFailed(t *testing.T) {
+	instruction := vm.Instruction{
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
+		DstReg:   vm.FP,
+		Op0Reg:   vm.AP,
+		Op1Addr:  vm.Op1SrcAP,
+		ResLogic: vm.ResAdd,
+		PcUpdate: vm.PcUpdateRegular,
+		ApUpdate: vm.ApUpdateRegular,
+		FpUpdate: vm.FpUpdateAPPlus2,
+		Opcode:   vm.AssertEq,
+	}
+
+	operands := vm.Operands{
+		Dst: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(9)),
+		Res: memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(8)),
+		Op0: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(9)),
+		Op1: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(10)),
+	}
+
+	testVm := vm.NewVirtualMachine()
+	err := testVm.OpcodeAssertions(instruction, operands)
+	if err.Error() != "DiffAssertValues" {
+		t.Error("Assertion should error out with DiffAssertValues")
+	}
+
+}
+
+func TestOpcodeAssertionsInstructionFailedRelocatables(t *testing.T) {
+	instruction := vm.Instruction{
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
+		DstReg:   vm.FP,
+		Op0Reg:   vm.AP,
+		Op1Addr:  vm.Op1SrcAP,
+		ResLogic: vm.ResAdd,
+		PcUpdate: vm.PcUpdateRegular,
+		ApUpdate: vm.ApUpdateRegular,
+		FpUpdate: vm.FpUpdateAPPlus2,
+		Opcode:   vm.AssertEq,
+	}
+
+	operands := vm.Operands{
+		Dst: *memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(1, 1)),
+		Res: memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(1, 2)),
+		Op0: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(9)),
+		Op1: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(10)),
+	}
+
+	testVm := vm.NewVirtualMachine()
+	err := testVm.OpcodeAssertions(instruction, operands)
+	if err.Error() != "DiffAssertValues" {
+		t.Error("Assertion should error out with DiffAssertValues")
+	}
+}
+
+func TestOpcodeAssertionsInconsistentOp0(t *testing.T) {
+	instruction := vm.Instruction{
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
+		DstReg:   vm.FP,
+		Op0Reg:   vm.AP,
+		Op1Addr:  vm.Op1SrcAP,
+		ResLogic: vm.ResAdd,
+		PcUpdate: vm.PcUpdateRegular,
+		ApUpdate: vm.ApUpdateRegular,
+		FpUpdate: vm.FpUpdateAPPlus2,
+		Opcode:   vm.Call,
+	}
+
+	operands := vm.Operands{
+		Dst: *memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(0, 8)),
+		Res: memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(8)),
+		Op0: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(9)),
+		Op1: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(10)),
+	}
+
+	testVm := vm.NewVirtualMachine()
+	testVm.RunContext.Pc = memory.NewRelocatable(0, 4)
+	err := testVm.OpcodeAssertions(instruction, operands)
+	if err.Error() != "CantWriteReturnPc" {
+		t.Error("Assertion should error out with CantWriteReturnPc")
+	}
+}
+
+func TestOpcodeAssertionsInconsistentDst(t *testing.T) {
+	instruction := vm.Instruction{
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
+		DstReg:   vm.FP,
+		Op0Reg:   vm.AP,
+		Op1Addr:  vm.Op1SrcAP,
+		ResLogic: vm.ResAdd,
+		PcUpdate: vm.PcUpdateRegular,
+		ApUpdate: vm.ApUpdateRegular,
+		FpUpdate: vm.FpUpdateAPPlus2,
+		Opcode:   vm.Call,
+	}
+
+	operands := vm.Operands{
+		Dst: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(8)),
+		Res: memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(8)),
+		Op0: *memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(0, 1)),
+		Op1: *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(10)),
+	}
+
+	testVm := vm.NewVirtualMachine()
+	testVm.RunContext.Fp = memory.NewRelocatable(1, 6)
+	err := testVm.OpcodeAssertions(instruction, operands)
+	if err.Error() != "CantWriteReturnFp" {
+		t.Error("Assertion should error out with CantWriteReturnFp")
+	}
+}
+
+func TestDeduceOp1OpcodeCall(t *testing.T) {
+	instruction := vm.Instruction{
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
+		DstReg:   vm.FP,
+		Op0Reg:   vm.AP,
+		Op1Addr:  vm.Op1SrcAP,
+		ResLogic: vm.ResAdd,
+		PcUpdate: vm.PcUpdateJump,
+		ApUpdate: vm.ApUpdateRegular,
+		FpUpdate: vm.FpUpdateRegular,
+		Opcode:   vm.Call,
+	}
+
+	vm := vm.NewVirtualMachine()
+
+	m1, m2, err := vm.DeduceOp1(instruction, nil, nil)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if m1 != nil {
+		t.Error("maybe relocatable of deduced operand is not nil")
+	}
+
+	if m2 != nil {
+		t.Error("maybe relocatable of deduced operand is not nil")
+	}
+}
+
+func TestDeduceOp1OpcodeAssertEqResAddWithOptionals(t *testing.T) {
+	instruction := vm.Instruction{
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
+		DstReg:   vm.FP,
+		Op0Reg:   vm.AP,
+		Op1Addr:  vm.Op1SrcAP,
+		ResLogic: vm.ResAdd,
+		PcUpdate: vm.PcUpdateJump,
+		ApUpdate: vm.ApUpdateRegular,
+		FpUpdate: vm.FpUpdateRegular,
+		Opcode:   vm.AssertEq,
+	}
+
+	vm := vm.NewVirtualMachine()
+
+	dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(3))
+	op0 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2))
+
+	expected_dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltOne())
+	expected_op0 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(3))
+
+	m1, m2, err := vm.DeduceOp1(instruction, dst, op0)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if *m1 != *expected_dst {
+		t.Error("Different dst value")
+	}
+	if *m2 != *expected_op0 {
+		t.Error("Different op0 value")
+	}
+}
+
+func TestDeduceOp1OpcodeAssertEqResAddWithoutOptionals(t *testing.T) {
+	instruction := vm.Instruction{
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
+		DstReg:   vm.FP,
+		Op0Reg:   vm.AP,
+		Op1Addr:  vm.Op1SrcAP,
+		ResLogic: vm.ResAdd,
+		PcUpdate: vm.PcUpdateJump,
+		ApUpdate: vm.ApUpdateRegular,
+		FpUpdate: vm.FpUpdateRegular,
+		Opcode:   vm.AssertEq,
+	}
+
+	vm := vm.NewVirtualMachine()
+
+	m1, m2, err := vm.DeduceOp1(instruction, nil, nil)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if m1 != nil {
+		t.Error("maybe relocatable of deduced operand is not nil")
+	}
+
+	if m2 != nil {
+		t.Error("maybe relocatable of deduced operand is not nil")
+	}
+}
+func TestDeduceOp1OpcodeAssertEqResMulNonZeroOp0(t *testing.T) {
+	instruction := vm.Instruction{
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
+		DstReg:   vm.FP,
+		Op0Reg:   vm.AP,
+		Op1Addr:  vm.Op1SrcAP,
+		ResLogic: vm.ResMul,
+		PcUpdate: vm.PcUpdateJump,
+		ApUpdate: vm.ApUpdateRegular,
+		FpUpdate: vm.FpUpdateRegular,
+		Opcode:   vm.AssertEq,
+	}
+
+	vm := vm.NewVirtualMachine()
+
+	dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(4))
+	op0 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2))
+
+	expected_dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2))
+	expected_op0 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(4))
+
+	m1, m2, err := vm.DeduceOp1(instruction, dst, op0)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if *m1 != *expected_dst {
+		t.Error("Different dst value")
+	}
+	if *m2 != *expected_op0 {
+		t.Error("Different op0 value")
+	}
+}
+
+func TestDeduceOp1OpcodeAssertEqResMulZeroOp0(t *testing.T) {
+	instruction := vm.Instruction{
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
+		DstReg:   vm.FP,
+		Op0Reg:   vm.AP,
+		Op1Addr:  vm.Op1SrcAP,
+		ResLogic: vm.ResMul,
+		PcUpdate: vm.PcUpdateJump,
+		ApUpdate: vm.ApUpdateRegular,
+		FpUpdate: vm.FpUpdateRegular,
+		Opcode:   vm.AssertEq,
+	}
+
+	vm := vm.NewVirtualMachine()
+
+	dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(4))
+	op0 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0))
+
+	m1, m2, err := vm.DeduceOp1(instruction, dst, op0)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if m1 != nil {
+		t.Error("maybe relocatable of deduced operand is not nil")
+	}
+
+	if m2 != nil {
+		t.Error("maybe relocatable of deduced operand is not nil")
+	}
+}
+
+func TestDeduceOp1OpcodeAssertEqResOp1WithoutDst(t *testing.T) {
+	instruction := vm.Instruction{
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
+		DstReg:   vm.FP,
+		Op0Reg:   vm.AP,
+		Op1Addr:  vm.Op1SrcAP,
+		ResLogic: vm.ResOp1,
+		PcUpdate: vm.PcUpdateJump,
+		ApUpdate: vm.ApUpdateRegular,
+		FpUpdate: vm.FpUpdateRegular,
+		Opcode:   vm.AssertEq,
+	}
+
+	vm := vm.NewVirtualMachine()
+
+	op0 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0))
+
+	m1, m2, err := vm.DeduceOp1(instruction, nil, op0)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if m1 != nil {
+		t.Error("maybe relocatable of deduced operand is not nil")
+	}
+
+	if m2 != nil {
+		t.Error("maybe relocatable of deduced operand is not nil")
+	}
+}
+func TestDeduceOp1OpcodeAssertEqResOp1WithDst(t *testing.T) {
+	instruction := vm.Instruction{
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
+		DstReg:   vm.FP,
+		Op0Reg:   vm.AP,
+		Op1Addr:  vm.Op1SrcAP,
+		ResLogic: vm.ResOp1,
+		PcUpdate: vm.PcUpdateJump,
+		ApUpdate: vm.ApUpdateRegular,
+		FpUpdate: vm.FpUpdateRegular,
+		Opcode:   vm.AssertEq,
+	}
+
+	vm := vm.NewVirtualMachine()
+
+	dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(7))
+
+	expected_dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(7))
+	expected_op0 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(7))
+
+	m1, m2, err := vm.DeduceOp1(instruction, dst, nil)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if *m1 != *expected_dst {
+		t.Error("Different dst value")
+	}
+	if *m2 != *expected_op0 {
+		t.Error("Different op0 value")
+	}
+}
+
+func TestDeduceDstOpcodeAssertEqWithRes(t *testing.T) {
+	instruction := vm.Instruction{
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
+		DstReg:   vm.FP,
+		Op0Reg:   vm.AP,
+		Op1Addr:  vm.Op1SrcAP,
+		ResLogic: vm.ResUnconstrained,
+		PcUpdate: vm.PcUpdateJump,
+		ApUpdate: vm.ApUpdateRegular,
+		FpUpdate: vm.FpUpdateRegular,
+		Opcode:   vm.AssertEq,
+	}
+
+	vm := vm.NewVirtualMachine()
+
+	res := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(7))
+	expected_res := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(7))
+
+	result_res := vm.DeduceDst(instruction, res)
+
+	if *expected_res != *result_res {
+		t.Error("Different Res value")
+	}
+}
+
+func TestDeduceDstOpcodeAssertEqWithoutRes(t *testing.T) {
+	instruction := vm.Instruction{
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
+		DstReg:   vm.FP,
+		Op0Reg:   vm.AP,
+		Op1Addr:  vm.Op1SrcAP,
+		ResLogic: vm.ResUnconstrained,
+		PcUpdate: vm.PcUpdateJump,
+		ApUpdate: vm.ApUpdateRegular,
+		FpUpdate: vm.FpUpdateRegular,
+		Opcode:   vm.AssertEq,
+	}
+
+	vm := vm.NewVirtualMachine()
+
+	result_res := vm.DeduceDst(instruction, nil)
+
+	if result_res != nil {
+		t.Error("Different Res value")
+	}
+}
