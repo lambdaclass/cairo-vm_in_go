@@ -1,4 +1,4 @@
-.PHONY: deps deps-macos run test build fmt check_fmt clean build_cairo_vm_cli compare_trace_memory compare_trace compare_memory $(CAIRO_VM_CLI)
+.PHONY: deps deps-macos run test build fmt check_fmt clean clean_files build_cairo_vm_cli compare_trace_memory compare_trace compare_memory $(CAIRO_VM_CLI)
 
 CAIRO_VM_CLI:=cairo-vm/target/release/cairo-vm-cli
 
@@ -21,7 +21,7 @@ $(TEST_DIR)/%.rs.trace $(TEST_DIR)/%.rs.memory: $(TEST_DIR)/%.json $(CAIRO_VM_CL
 
 # TODO: Uses cairo-lang as placeholder, should use cairo-vm.go
 $(TEST_DIR)/%.go.trace $(TEST_DIR)/%.go.memory: $(TEST_DIR)/%.json
-	cairo-run --layout starknet_with_keccak --program $< --trace_file $(@D)/$(*F).go.trace --memory_file $(@D)/$(*F).go.memory
+	go run cmd/cli/main.go $(@D)/$(*F).json
 
 $(TEST_DIR)/%.json: $(TEST_DIR)/%.cairo
 	cairo-compile --cairo_path="$(TEST_DIR)" $< --output $@
@@ -64,6 +64,11 @@ clean:
 	rm -f $(TEST_DIR)/*.trace
 	rm -rf cairo-vm
 	rm -r cairo-vm-env
+
+clean_files:
+	rm -f $(TEST_DIR)/*.json
+	rm -f $(TEST_DIR)/*.memory
+	rm -f $(TEST_DIR)/*.trace
 
 demo: $(COMPILED_TESTS) run
 
