@@ -2,8 +2,9 @@ package vm
 
 import (
 	"errors"
-	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	"math"
+
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
 // RunContext containts the register states of the
@@ -23,10 +24,10 @@ func (run_context RunContext) ComputeDstAddr(instruction Instruction) (memory.Re
 		base_addr = run_context.Fp
 	}
 
-	if instruction.OffOp0 < 0 {
-		return base_addr.SubUint(uint(math.Abs(float64(instruction.OffDst))))
+	if instruction.Off0 < 0 {
+		return base_addr.SubUint(uint(math.Abs(float64(instruction.Off0))))
 	} else {
-		return base_addr.AddUint(uint(instruction.OffDst))
+		return base_addr.AddUint(uint(instruction.Off0))
 	}
 
 }
@@ -40,10 +41,10 @@ func (run_context RunContext) ComputeOp0Addr(instruction Instruction) (memory.Re
 		base_addr = run_context.Fp
 	}
 
-	if instruction.OffOp1 < 0 {
-		return base_addr.SubUint(uint(math.Abs(float64(instruction.OffOp0))))
+	if instruction.Off1 < 0 {
+		return base_addr.SubUint(uint(math.Abs(float64(instruction.Off1))))
 	} else {
-		return base_addr.AddUint(uint(instruction.OffOp0))
+		return base_addr.AddUint(uint(instruction.Off1))
 	}
 }
 
@@ -56,7 +57,7 @@ func (run_context RunContext) ComputeOp1Addr(instruction Instruction, op0 *memor
 	case Op1SrcAP:
 		base_addr = run_context.Ap
 	case Op1SrcImm:
-		if instruction.OffOp1 == 1 {
+		if instruction.Off2 == 1 {
 			base_addr = run_context.Pc
 		} else {
 			base_addr = memory.NewRelocatable(0, 0)
@@ -74,9 +75,9 @@ func (run_context RunContext) ComputeOp1Addr(instruction Instruction, op0 *memor
 		}
 	}
 
-	if instruction.OffOp1 < 0 {
-		return base_addr.SubUint(uint(math.Abs(float64(instruction.OffOp1))))
+	if instruction.Off2 < 0 {
+		return base_addr.SubUint(uint(math.Abs(float64(instruction.Off2))))
 	} else {
-		return base_addr.AddUint(uint(instruction.OffOp1))
+		return base_addr.AddUint(uint(instruction.Off2))
 	}
 }

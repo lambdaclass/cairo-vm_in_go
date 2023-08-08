@@ -1,11 +1,30 @@
-.PHONY: deps deps-macos run test build fmt check_fmt clean
+.PHONY: deps deps-macos run test build fmt check_fmt clean clean_files build_cairo_vm_cli compare_trace_memory compare_trace compare_memory \
+ demo_fib demo_factorial $(CAIRO_VM_CLI)
+
+CAIRO_VM_CLI:=cairo-vm/target/release/cairo-vm-cli
+
+$(CAIRO_VM_CLI):
+	git clone --depth 1 -b v0.8.5 https://github.com/lambdaclass/cairo-vm
+	cd cairo-vm; cargo b --release --bin cairo-vm-cli
 
 TEST_DIR=cairo_programs
 TEST_FILES:=$(wildcard $(TEST_DIR)/*.cairo)
 COMPILED_TESTS:=$(patsubst $(TEST_DIR)/%.cairo, $(TEST_DIR)/%.json, $(TEST_FILES))
 
+CAIRO_RS_MEM:=$(patsubst $(TEST_DIR)/%.json, $(TEST_DIR)/%.rs.memory, $(COMPILED_TESTS))
+CAIRO_RS_TRACE:=$(patsubst $(TEST_DIR)/%.json, $(TEST_DIR)/%.rs.trace, $(COMPILED_TESTS))
+
+CAIRO_GO_MEM:=$(patsubst $(TEST_DIR)/%.json, $(TEST_DIR)/%.go.memory, $(COMPILED_TESTS))
+CAIRO_GO_TRACE:=$(patsubst $(TEST_DIR)/%.json, $(TEST_DIR)/%.go.trace, $(COMPILED_TESTS))
+
+$(TEST_DIR)/%.rs.trace $(TEST_DIR)/%.rs.memory: $(TEST_DIR)/%.json $(CAIRO_VM_CLI)
+	$(CAIRO_VM_CLI) --layout all_cairo $< --trace_file $(@D)/$(*F).rs.trace --memory_file $(@D)/$(*F).rs.memory
+
+$(TEST_DIR)/%.go.trace $(TEST_DIR)/%.go.memory: $(TEST_DIR)/%.json
+	go run cmd/cli/main.go $(@D)/$(*F).json
+
 $(TEST_DIR)/%.json: $(TEST_DIR)/%.cairo
-	cairo-compile --cairo_path="$(TEST_DIR):$(BENCH_DIR)" $< --output $@
+	cairo-compile --cairo_path="$(TEST_DIR)" $< --output $@
 
 # Creates a pyenv and installs cairo-lang
 deps:
@@ -16,7 +35,7 @@ deps:
 
 # Creates a pyenv and installs cairo-lang
 deps-macos:
-	brew install gmp
+	brew install gmp pyenv
 	pyenv install -s 3.9.15
 	PYENV_VERSION=3.9.15 python -m venv cairo-vm-env
 	. cairo-vm-env/bin/activate ; \
@@ -40,6 +59,31 @@ check_fmt:
 	./check_fmt.sh
 
 clean:
-	rm cairo_programs/*.json
+	rm -f $(TEST_DIR)/*.json
+	rm -f $(TEST_DIR)/*.memory
+	rm -f $(TEST_DIR)/*.trace
+	rm -rf cairo-vm
 	rm -r cairo-vm-env
+
+clean_files:
+	rm -f $(TEST_DIR)/*.json
+	rm -f $(TEST_DIR)/*.memory
+	rm -f $(TEST_DIR)/*.trace
+
+demo_fib: $(COMPILED_TESTS)
+	@go run cmd/cli/main.go cairo_programs/fibonacci.json
+
+demo_factorial: $(COMPILED_TESTS)
+	@go run cmd/cli/main.go cairo_programs/factorial.json
+
+build_cairo_vm_cli: | $(CAIRO_VM_CLI)
+
+compare_trace_memory: build_cairo_vm_cli $(CAIRO_RS_MEM) $(CAIRO_RS_TRACE) $(CAIRO_GO_MEM) $(CAIRO_GO_TRACE)
+	cd scripts; sh compare_vm_state.sh trace memory
+
+compare_trace: build_cairo_vm_cli $(CAIRO_RS_TRACE) $(CAIRO_GO_TRACE)
+	cd scripts; sh compare_vm_state.sh trace
+
+compare_memory: build_cairo_vm_cli $(CAIRO_RS_MEM) $(CAIRO_GO_MEM)
+	cd scripts; sh compare_vm_state.sh memory
 

@@ -9,9 +9,9 @@ import (
 
 func TestOpcodeAssertionsResUnconstrained(t *testing.T) {
 	instruction := Instruction{
-		OffOp0:   1,
-		OffOp1:   2,
-		OffDst:   3,
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
 		DstReg:   FP,
 		Op0Reg:   AP,
 		Op1Addr:  Op1SrcAP,
@@ -39,9 +39,9 @@ func TestOpcodeAssertionsResUnconstrained(t *testing.T) {
 
 func TestOpcodeAssertionsInstructionFailed(t *testing.T) {
 	instruction := Instruction{
-		OffOp0:   1,
-		OffOp1:   2,
-		OffDst:   3,
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
 		DstReg:   FP,
 		Op0Reg:   AP,
 		Op1Addr:  Op1SrcAP,
@@ -69,9 +69,9 @@ func TestOpcodeAssertionsInstructionFailed(t *testing.T) {
 
 func TestOpcodeAssertionsInstructionFailedRelocatables(t *testing.T) {
 	instruction := Instruction{
-		OffOp0:   1,
-		OffOp1:   2,
-		OffDst:   3,
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
 		DstReg:   FP,
 		Op0Reg:   AP,
 		Op1Addr:  Op1SrcAP,
@@ -98,9 +98,9 @@ func TestOpcodeAssertionsInstructionFailedRelocatables(t *testing.T) {
 
 func TestOpcodeAssertionsInconsistentOp0(t *testing.T) {
 	instruction := Instruction{
-		OffOp0:   1,
-		OffOp1:   2,
-		OffDst:   3,
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
 		DstReg:   FP,
 		Op0Reg:   AP,
 		Op1Addr:  Op1SrcAP,
@@ -128,9 +128,9 @@ func TestOpcodeAssertionsInconsistentOp0(t *testing.T) {
 
 func TestOpcodeAssertionsInconsistentDst(t *testing.T) {
 	instruction := Instruction{
-		OffOp0:   1,
-		OffOp1:   2,
-		OffDst:   3,
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
 		DstReg:   FP,
 		Op0Reg:   AP,
 		Op1Addr:  Op1SrcAP,
@@ -158,9 +158,9 @@ func TestOpcodeAssertionsInconsistentDst(t *testing.T) {
 
 func TestDeduceOp1OpcodeCall(t *testing.T) {
 	instruction := Instruction{
-		OffOp0:   1,
-		OffOp1:   2,
-		OffDst:   3,
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
 		DstReg:   FP,
 		Op0Reg:   AP,
 		Op1Addr:  Op1SrcAP,
@@ -190,9 +190,9 @@ func TestDeduceOp1OpcodeCall(t *testing.T) {
 
 func TestDeduceOp1OpcodeAssertEqResAddWithOptionals(t *testing.T) {
 	instruction := Instruction{
-		OffOp0:   1,
-		OffOp1:   2,
-		OffDst:   3,
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
 		DstReg:   FP,
 		Op0Reg:   AP,
 		Op1Addr:  Op1SrcAP,
@@ -227,9 +227,9 @@ func TestDeduceOp1OpcodeAssertEqResAddWithOptionals(t *testing.T) {
 
 func TestDeduceOp1OpcodeAssertEqResAddWithoutOptionals(t *testing.T) {
 	instruction := Instruction{
-		OffOp0:   1,
-		OffOp1:   2,
-		OffDst:   3,
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
 		DstReg:   FP,
 		Op0Reg:   AP,
 		Op1Addr:  Op1SrcAP,
@@ -258,9 +258,9 @@ func TestDeduceOp1OpcodeAssertEqResAddWithoutOptionals(t *testing.T) {
 }
 func TestDeduceOp1OpcodeAssertEqResMulNonZeroOp0(t *testing.T) {
 	instruction := Instruction{
-		OffOp0:   1,
-		OffOp1:   2,
-		OffDst:   3,
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
 		DstReg:   FP,
 		Op0Reg:   AP,
 		Op1Addr:  Op1SrcAP,
@@ -295,9 +295,9 @@ func TestDeduceOp1OpcodeAssertEqResMulNonZeroOp0(t *testing.T) {
 
 func TestDeduceOp1OpcodeAssertEqResMulZeroOp0(t *testing.T) {
 	instruction := Instruction{
-		OffOp0:   1,
-		OffOp1:   2,
-		OffDst:   3,
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
 		DstReg:   FP,
 		Op0Reg:   AP,
 		Op1Addr:  Op1SrcAP,
@@ -330,9 +330,9 @@ func TestDeduceOp1OpcodeAssertEqResMulZeroOp0(t *testing.T) {
 
 func TestDeduceOp1OpcodeAssertEqResOp1WithoutDst(t *testing.T) {
 	instruction := Instruction{
-		OffOp0:   1,
-		OffOp1:   2,
-		OffDst:   3,
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
 		DstReg:   FP,
 		Op0Reg:   AP,
 		Op1Addr:  Op1SrcAP,
@@ -363,9 +363,9 @@ func TestDeduceOp1OpcodeAssertEqResOp1WithoutDst(t *testing.T) {
 }
 func TestDeduceOp1OpcodeAssertEqResOp1WithDst(t *testing.T) {
 	instruction := Instruction{
-		OffOp0:   1,
-		OffOp1:   2,
-		OffDst:   3,
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
 		DstReg:   FP,
 		Op0Reg:   AP,
 		Op1Addr:  Op1SrcAP,
@@ -399,9 +399,9 @@ func TestDeduceOp1OpcodeAssertEqResOp1WithDst(t *testing.T) {
 
 func TestDeduceDstOpcodeAssertEqWithRes(t *testing.T) {
 	instruction := Instruction{
-		OffOp0:   1,
-		OffOp1:   2,
-		OffDst:   3,
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
 		DstReg:   FP,
 		Op0Reg:   AP,
 		Op1Addr:  Op1SrcAP,
@@ -426,9 +426,9 @@ func TestDeduceDstOpcodeAssertEqWithRes(t *testing.T) {
 
 func TestDeduceDstOpcodeAssertEqWithoutRes(t *testing.T) {
 	instruction := Instruction{
-		OffOp0:   1,
-		OffOp1:   2,
-		OffDst:   3,
+		Off1:     1,
+		Off2:     2,
+		Off0:     3,
 		DstReg:   FP,
 		Op0Reg:   AP,
 		Op1Addr:  Op1SrcAP,

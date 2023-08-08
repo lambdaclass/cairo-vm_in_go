@@ -35,6 +35,52 @@ func NewVirtualMachine() *VirtualMachine {
 	return &VirtualMachine{Segments: segments, BuiltinRunners: builtin_runners, Trace: trace, RelocatedTrace: relocatedTrace}
 }
 
+func (v *VirtualMachine) Step() error {
+	encoded_instruction, err := v.Segments.Memory.Get(v.RunContext.Pc)
+	if err != nil {
+		return fmt.Errorf("Failed to fetch instruction at %+v", v.RunContext.Pc)
+	}
+
+	encoded_instruction_felt, ok := encoded_instruction.GetFelt()
+	if !ok {
+		return errors.New("Wrong instruction encoding")
+	}
+
+	encoded_instruction_uint, err := encoded_instruction_felt.ToU64()
+	if err != nil {
+		return err
+	}
+
+	instruction, err := DecodeInstruction(encoded_instruction_uint)
+	if err != nil {
+		return err
+	}
+
+	return v.RunInstruction(&instruction)
+}
+
+func (v *VirtualMachine) RunInstruction(instruction *Instruction) error {
+	operands, err := v.ComputeOperands(*instruction)
+	if err != nil {
+		return err
+	}
+
+	err = v.OpcodeAssertions(*instruction, operands)
+	if err != nil {
+		return err
+	}
+
+	v.Trace = append(v.Trace, TraceEntry{Pc: v.RunContext.Pc, Ap: v.RunContext.Ap, Fp: v.RunContext.Fp})
+
+	err = v.UpdateRegisters(instruction, &operands)
+	if err != nil {
+		return err
+	}
+
+	v.CurrentStep++
+	return nil
+}
+
 // Relocates the VM's trace, turning relocatable registers to numbered ones
 func (v *VirtualMachine) RelocateTrace(relocationTable *[]uint) error {
 	if len(*relocationTable) < 2 {
@@ -215,72 +261,75 @@ func (vm *VirtualMachine) ComputeRes(instruction Instruction, op0 memory.MaybeRe
 }
 
 func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, error) {
+	var res *memory.MaybeRelocatable
 
 	dst_addr, err := vm.RunContext.ComputeDstAddr(instruction)
 	if err != nil {
 		return Operands{}, errors.New("FailedToComputeDstAddr")
 	}
-	dst_op, dst_err := vm.Segments.Memory.Get(dst_addr)
-	if dst_err != nil {
-		return Operands{}, err
-	}
+	dst, _ := vm.Segments.Memory.Get(dst_addr)
 
 	op0_addr, err := vm.RunContext.ComputeOp0Addr(instruction)
 	if err != nil {
-		return Operands{}, errors.New("FailedToComputeOp0Addr")
+		return Operands{}, fmt.Errorf("FailedToComputeOp0Addr: %s", err)
 	}
-	op0_op, op_err := vm.Segments.Memory.Get(op0_addr)
-	// this should trigger deducde op1
-	if op_err != nil {
-		return Operands{}, err
-	}
+	op0, _ := vm.Segments.Memory.Get(op0_addr)
 
-	op1_addr, err := vm.RunContext.ComputeOp1Addr(instruction, op0_op)
+	op1_addr, err := vm.RunContext.ComputeOp1Addr(instruction, op0)
 	if err != nil {
-		return Operands{}, errors.New("FailedToComputeOp1Addr")
+		return Operands{}, fmt.Errorf("FailedToComputeOp1Addr: %s", err)
 	}
-	// this should trigger deducde op1
-	op1_op, op1_err := vm.Segments.Memory.Get(op1_addr)
-	if op1_err != nil {
-		return Operands{}, err
+	op1, _ := vm.Segments.Memory.Get(op1_addr)
+
+	if op0 == nil {
+		deducedOp0, deducedRes, err := vm.DeduceOp0(&instruction, dst, op1)
+		if err != nil {
+			return Operands{}, err
+		}
+		op0 = deducedOp0
+		if op0 != nil {
+			vm.Segments.Memory.Insert(op0_addr, op0)
+		}
+		res = deducedRes
 	}
 
-	res, err := vm.ComputeRes(instruction, *op0_op, *op1_op)
+	if op1 == nil {
+		deducedOp1, deducedRes, err := vm.DeduceOp1(instruction, dst, op0)
+		if err != nil {
+			return Operands{}, err
+		}
+		op1 = deducedOp1
+		if op1 != nil {
+			vm.Segments.Memory.Insert(op1_addr, op1)
+		}
+		if res == nil {
+			res = deducedRes
+		}
+	}
 
-	// uncomment once deduction functions are done
+	if res == nil {
+		res, err = vm.ComputeRes(instruction, *op0, *op1)
 
-	// var op0 memory.MaybeRelocatable
-	// if op0_err != nil {
-	// op0 = vm.compute_op0_deductions(op0_addr, res, instruction, &dst_op, &op1_op)
-	// } else {
-	// op0 = op0_op
-	// }
+		if err != nil {
+			return Operands{}, err
+		}
+	}
 
-	// var op1 memory.MaybeRelocatable
-	// if op1_err != nil {
-	// op1 = vm.compute_op1_deductions(op1_addr, res, instruction, &dst_op, &op0)
-	// } else {
-	// op1 = op1_op
-	// }
-
-	// var dst memory.MaybeRelocatable
-	// if dst_err != nil {
-	// dst = vm.compute_dst_deductions(instruction, &res)
-	// } else {
-	// dst = dst_op
-	// }
+	if dst == nil {
+		deducedDst := vm.DeduceDst(instruction, res)
+		dst = deducedDst
+		if dst != nil {
+			vm.Segments.Memory.Insert(dst_addr, dst)
+		}
+	}
 
 	operands := Operands{
-		Dst: *dst_op,
-		Op0: *op0_op,
-		Op1: *op1_op,
+		Dst: *dst,
+		Op0: *op0,
+		Op1: *op1,
 		Res: res,
 	}
 	return operands, nil
-}
-
-func (vm VirtualMachine) run_instrucion(instruction Instruction) {
-	fmt.Println("hello from instruction")
 }
 
 // Updates the values of the RunContext's registers according to the executed instruction
