@@ -425,3 +425,17 @@ func (vm *VirtualMachine) UpdateFp(instruction *Instruction, operands *Operands)
 	}
 	return nil
 }
+
+// Applies the corresponding builtin's deduction rules if addr's segment index corresponds to a builtin segment
+// Returns nil if there is no deduction for the address
+func (vm *VirtualMachine) DeduceMemoryCell(addr memory.Relocatable) (*memory.MaybeRelocatable, error) {
+	if addr.SegmentIndex < 0 {
+		return nil, nil
+	}
+	for i := range vm.BuiltinRunners {
+		if vm.BuiltinRunners[i].Base().SegmentIndex == addr.SegmentIndex {
+			return vm.BuiltinRunners[i].DeduceMemoryCell(addr, &vm.Segments.Memory)
+		}
+	}
+	return nil, nil
+}
