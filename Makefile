@@ -19,7 +19,6 @@ CAIRO_GO_TRACE:=$(patsubst $(TEST_DIR)/%.json, $(TEST_DIR)/%.go.trace, $(COMPILE
 $(TEST_DIR)/%.rs.trace $(TEST_DIR)/%.rs.memory: $(TEST_DIR)/%.json $(CAIRO_VM_CLI)
 	$(CAIRO_VM_CLI) --layout all_cairo $< --trace_file $(@D)/$(*F).rs.trace --memory_file $(@D)/$(*F).rs.memory
 
-# TODO: Uses cairo-lang as placeholder, should use cairo-vm.go
 $(TEST_DIR)/%.go.trace $(TEST_DIR)/%.go.memory: $(TEST_DIR)/%.json
 	go run cmd/cli/main.go $(@D)/$(*F).json
 
