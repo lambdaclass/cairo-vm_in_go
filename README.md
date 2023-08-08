@@ -862,8 +862,139 @@ func (vm *VirtualMachine) DeduceMemoryCell(addr memory.Relocatable) (*memory.May
 }
 ```
 
+Now we have to integrate this new method into our `VirtualMachine.ComputeOperands` method:
 
-[TODO (for builtins section): BuiltinRunners in Compute Operands]
+We will add two helper methods to make our code easier to follow with these new additions:
+Both of these methods will be ran fetching either op1 or op0 respectively yields a nil value, and will try to deduce them using both builtins and normal deductions, returning an error if both of these attempts fail
+
+*ComputeOp0Deductions*
+
+```go
+// Runs deductions for Op0, first runs builtin deductions, if this fails, attempts to deduce it based on dst and op1
+// Also returns res if it was also deduced in the process
+// Inserts the deduced operand
+// Fails if Op0 was not deduced or if an error arised in the process
+func (vm *VirtualMachine) ComputeOp0Deductions(op0_addr memory.Relocatable, instruction *Instruction, dst *memory.MaybeRelocatable, op1 *memory.MaybeRelocatable) (deduced_op0 memory.MaybeRelocatable, deduced_res *memory.MaybeRelocatable, err error) {
+	op0, err := vm.DeduceMemoryCell(op0_addr)
+	if err != nil {
+		return *memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero()), nil, err
+	}
+	if op0 == nil {
+		op0, deduced_res, err = vm.DeduceOp0(instruction, dst, op1)
+		if err != nil {
+			return *memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero()), nil, err
+		}
+	}
+	if op0 != nil {
+		vm.Segments.Memory.Insert(op0_addr, op0)
+	} else {
+		return *memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero()), nil, errors.New("Failed to compute or deduce op0")
+	}
+	return *op0, deduced_res, nil
+}
+```
+
+*ComputeOp1Deductions*
+
+```go
+// Runs deductions for Op1, first runs builtin deductions, if this fails, attempts to deduce it based on dst and op0
+// Also updates res if it was also deduced in the process
+// Inserts the deduced operand
+// Fails if Op1 was not deduced or if an error arised in the process
+func (vm *VirtualMachine) ComputeOp1Deductions(op1_addr memory.Relocatable, instruction *Instruction, dst *memory.MaybeRelocatable, op0 *memory.MaybeRelocatable, res *memory.MaybeRelocatable) (memory.MaybeRelocatable, error) {
+	op1, err := vm.DeduceMemoryCell(op1_addr)
+	if err != nil {
+		return *memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
+	}
+	if op1 == nil {
+		var deducedRes *memory.MaybeRelocatable
+		op1, deducedRes, err = vm.DeduceOp1(instruction, dst, op0)
+		if err != nil {
+			return *memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
+		}
+		if res == nil {
+			res = deducedRes
+		}
+	}
+	if op1 != nil {
+		vm.Segments.Memory.Insert(op1_addr, op1)
+	} else {
+		return *memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero()), errors.New("Failed to compute or deduce op1")
+	}
+	return *op1, nil
+}
+```
+
+Now we integrate these two new methods into our previous `ComputeOperands` method:
+
+```go
+func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, error) {
+	var res *memory.MaybeRelocatable
+
+	dst_addr, err := vm.RunContext.ComputeDstAddr(instruction)
+	if err != nil {
+		return Operands{}, errors.New("FailedToComputeDstAddr")
+	}
+	dst, _ := vm.Segments.Memory.Get(dst_addr)
+
+	op0_addr, err := vm.RunContext.ComputeOp0Addr(instruction)
+	if err != nil {
+		return Operands{}, fmt.Errorf("FailedToComputeOp0Addr: %s", err)
+	}
+	op0_op, _ := vm.Segments.Memory.Get(op0_addr)
+
+	op1_addr, err := vm.RunContext.ComputeOp1Addr(instruction, op0_op)
+	if err != nil {
+		return Operands{}, fmt.Errorf("FailedToComputeOp1Addr: %s", err)
+	}
+	op1_op, _ := vm.Segments.Memory.Get(op1_addr)
+
+    var op0 memory.MaybeRelocatable
+	if op0_op != nil {
+		op0 = *op0_op
+	} else {
+		op0, res, err = vm.ComputeOp0Deductions(op0_addr, &instruction, dst, op1_op)
+		if err != nil {
+			return Operands{}, err
+		}
+	}
+
+	var op1 memory.MaybeRelocatable
+	if op1_op != nil {
+		op1 = *op1_op
+	} else {
+		op1, err = vm.ComputeOp1Deductions(op1_addr, &instruction, dst, op0_op, res)
+		if err != nil {
+			return Operands{}, err
+		}
+	}
+    if res == nil {
+		res, err = vm.ComputeRes(instruction, op0, op1)
+
+		if err != nil {
+			return Operands{}, err
+		}
+	}
+
+	if dst == nil {
+		deducedDst := vm.DeduceDst(instruction, res)
+		dst = deducedDst
+		if dst != nil {
+			vm.Segments.Memory.Insert(dst_addr, dst)
+		}
+	}
+
+	operands := Operands{
+		Dst: *dst,
+		Op0: op0,
+		Op1: op1,
+		Res: res,
+	}
+	return operands, nil
+}
+```
+
+With all of our builtin logic integrated into the codebase, we can implement any builtin and use it in our cairo programs while worrying only about implementing the `BuiltinRunner` interface and creating the builtin in the `NewCairoRunner` function.
 
 [Next sections: Implementing each builtin runner]
 
