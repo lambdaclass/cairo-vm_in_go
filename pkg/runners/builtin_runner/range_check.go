@@ -60,7 +60,7 @@ func (r *RangeCheckBuiltinRunner) Base() int {
 }
 
 func (r *RangeCheckBuiltinRunner) Name() string {
-	return "RangeCheck"
+	return "range_check"
 }
 
 func (r *RangeCheckBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
