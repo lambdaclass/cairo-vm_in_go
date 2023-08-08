@@ -9,8 +9,6 @@ import "C"
 
 import (
 	"errors"
-	"fmt"
-	"math/bits"
 	"unsafe"
 )
 
@@ -147,14 +145,11 @@ func (a Felt) Shl(rhs uint32) Felt {
 	return a
 }
 
-func (a Felt) Bits() int {
+func (a Felt) Bits() C.limb_t {
 	if a.IsZero() {
 		return 0
 	}
-	val_u64, err := a.ToU64()
-	if err != nil {
-		fmt.Println(err)
-	}
-	return bits.Len64(val_u64)
+	var a_c = a.toC()
+	return C.bits(&a_c[0])
 
 }

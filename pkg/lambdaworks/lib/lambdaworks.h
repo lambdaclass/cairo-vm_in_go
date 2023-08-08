@@ -31,3 +31,5 @@ void mul(felt_t a, felt_t b, felt_t result);
 
 /* Writes the result variable with a / b. */
 void lw_div(felt_t a, felt_t b, felt_t result);
+
+limb_t bits(felt_t a);
