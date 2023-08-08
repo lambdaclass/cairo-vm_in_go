@@ -11,6 +11,10 @@
 # Test binary, built with `go test -c`
 *.test
 
+# Ignore traces and memory outputs of the trace
+**.trace
+**.memory
+
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
