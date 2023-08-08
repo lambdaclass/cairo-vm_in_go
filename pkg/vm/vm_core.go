@@ -282,15 +282,21 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 	op1, _ := vm.Segments.Memory.Get(op1_addr)
 
 	if op0 == nil {
-		deducedOp0, deducedRes, err := vm.DeduceOp0(&instruction, dst, op1)
+		op0, err = vm.DeduceMemoryCell(op0_addr)
 		if err != nil {
 			return Operands{}, err
 		}
-		op0 = deducedOp0
+		if op0 == nil {
+			op0, res, err = vm.DeduceOp0(&instruction, dst, op1)
+			if err != nil {
+				return Operands{}, err
+			}
+		}
 		if op0 != nil {
 			vm.Segments.Memory.Insert(op0_addr, op0)
+		} else {
+			return Operands{}, errors.New("Failed to compute or deduce op0")
 		}
-		res = deducedRes
 	}
 
 	if op1 == nil {
