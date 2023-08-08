@@ -532,10 +532,10 @@ func TestRelocateTraceOneEntry(t *testing.T) {
 }
 
 func TestWriteBinaryMemoryFile(t *testing.T) {
-	var relocatedMemory = make(map[uint]uint)
-	relocatedMemory[1] = 66
-	relocatedMemory[2] = 42
-	relocatedMemory[3] = 30
+	var relocatedMemory = make(map[uint]lambdaworks.Felt)
+	relocatedMemory[1] = lambdaworks.FeltFromUint64(66)
+	relocatedMemory[2] = lambdaworks.FeltFromUint64(42)
+	relocatedMemory[3] = lambdaworks.FeltFromUint64(30)
 
 	var actualMemoryBuffer bytes.Buffer
 	cairo_run.WriteEncodedMemory(relocatedMemory, &actualMemoryBuffer)

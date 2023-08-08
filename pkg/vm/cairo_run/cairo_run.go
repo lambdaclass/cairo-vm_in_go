@@ -7,6 +7,7 @@ import (
 	"io"
 	"sort"
 
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
 	"github.com/lambdaclass/cairo-vm.go/pkg/runners"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
@@ -90,7 +91,7 @@ func encodeTraceError(i int, err error) error {
 // The memory pairs (address, value) are encoded and concatenated:
 // * address -> 8-byte encoded
 // * value -> 32-byte encoded
-func WriteEncodedMemory(relocatedMemory map[uint]uint, dest io.Writer) error {
+func WriteEncodedMemory(relocatedMemory map[uint]lambdaworks.Felt, dest io.Writer) error {
 	// create a slice to store keys of the relocatedMemory map
 	keysMap := make([]uint, 0, len(relocatedMemory))
 	for k := range relocatedMemory {
@@ -117,7 +118,12 @@ func WriteEncodedMemory(relocatedMemory map[uint]uint, dest io.Writer) error {
 
 		// write the value
 		valueArray := make([]byte, 8)
-		binary.LittleEndian.PutUint64(valueArray, uint64(value))
+		val, err := value.ToU64()
+		if err != nil {
+			return encodeMemoryError(uint(val), err)
+		}
+
+		binary.LittleEndian.PutUint64(valueArray, uint64(val))
 		_, err = dest.Write(valueArray)
 		if err != nil {
 			return encodeMemoryError(k, err)
