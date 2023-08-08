@@ -39,7 +39,7 @@ func (r *RangeCheckBuiltinRunner) Base() memory.Relocatable {
 }
 
 func (r *RangeCheckBuiltinRunner) Name() string {
-	return "RangeCheck"
+	return "range_check"
 }
 
 func (r *RangeCheckBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
