@@ -194,7 +194,7 @@ TODO: explain the components of an instruction (`dst_reg`, `op0_reg`, etc), what
 
 Felts, or Field Elements, are cairo's basic integer type. Every variable in a cairo vm that is not a pointer is a felt. From our point of view we could say a felt in cairo is an unsigned integer in the range [0, CAIRO_PRIME). This means that all operations are done modulo CAIRO_PRIME. The CAIRO_PRIME is 0x800000000000011000000000000000000000000000000000000000000000001, which means felts can be quite big (up to 252 bits), luckily, we have the [Lambdaworks](https://github.com/lambdaclass/lambdaworks) library to help with handling these big integer values and providing fast and efficient modular arithmetic.
 
-### Lambdaworks library wrapper 
+### Lambdaworks library wrapper
 
 [Lambdaworks](https://github.com/lambdaclass/lambdaworks) is a custom performance-focused library that aims to ease programming for developers. It provides essential mathematical and cryptographic methods required for this project, enabling arithmetic operations between `felts` and type conversions efficiently.
 We've developed a C wrapper to expose the library's functions and enable easy usage from Go. This allows seamless integration of the library's features within Go projects, enhancing performance and functionality.
@@ -486,6 +486,63 @@ type VirtualMachine struct {
 To begin coding the basic execution functionality of our VM, we only need these basic fields, we will be adding more fields as we dive deeper into this guide.
 
 ### Instruction Decoding and Execution
+
+[TODO for Execution: Introduction, ComputeOperands]
+
+#### Updating Registers
+
+After we succesfully computed the value of the operands, its now time to update the value of the registers:
+
+*UpdatePc*
+
+As we already now, the pc (program counter) points to the next instruction in memory. When no jumps take place, the pc is updated to point to the next instruction, by adding the instruction size to it. The instruction size is 1 if there is no immediate value, and two if there is an immediate value following the instruction.
+Cairo also supports 3 different types of jumps. The first one is a regular jump, in which the pc takes the value of the res operand. The next one is a relative jump, in which the pc advances by a number of positions set by the res operand. And the last one is a jump not zero, which performs a relative jump, advancing the number of positions given by op1, if the value of the dst operand is not zero, or perfroms a regular update if the value of the dst operand is zero. The operand will only be zero if it is a Felt value which is zero, relocatable values are never zero.
+
+```go
+// Updates the value of PC according to the executed instruction
+func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands) error {
+	switch instruction.PcUpdate {
+	case PcUpdateRegular:
+		vm.RunContext.Pc.Offset += instruction.Size()
+	case PcUpdateJump:
+		if operands.Res == nil {
+			return errors.New("Res.UNCONSTRAINED cannot be used with PcUpdate.JUMP")
+		}
+		res, ok := operands.Res.GetRelocatable()
+		if !ok {
+			return errors.New("An integer value as Res cannot be used with PcUpdate.JUMP")
+		}
+		vm.RunContext.Pc = res
+	case PcUpdateJumpRel:
+		if operands.Res == nil {
+			return errors.New("Res.UNCONSTRAINED cannot be used with PcUpdate.JUMP_REL")
+		}
+		res, ok := operands.Res.GetFelt()
+		if !ok {
+			return errors.New("A relocatable value as Res cannot be used with PcUpdate.JUMP_REL")
+		}
+		new_pc, err := vm.RunContext.Pc.AddFelt(res)
+		if err != nil {
+			return err
+		}
+		vm.RunContext.Pc = new_pc
+    case PcUpdateJnz:
+		if operands.Dst.IsZero() {
+			vm.RunContext.Pc.Offset += instruction.Size()
+		} else {
+			new_pc, err := vm.RunContext.Pc.AddMaybeRelocatable(operands.Op1)
+			if err != nil {
+				return err
+			}
+			vm.RunContext.Pc = new_pc
+		}
+
+	}
+	return nil
+}
+```
+
+[TODO for Execution: Opcode Assertions, Run Instruction]
 
 ### CairoRunner
 
