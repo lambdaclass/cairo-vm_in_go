@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
 	"github.com/lambdaclass/cairo-vm.go/pkg/runners"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
@@ -12,7 +13,8 @@ import (
 func TestInitializeRunnerNoBuiltinsNoProofModeEmptyProgram(t *testing.T) {
 	// Create a Program with empty data
 	program_data := make([]memory.MaybeRelocatable, 0)
-	program := vm.Program{Data: program_data}
+	empty_identifiers := make(map[string]parser.Identifier, 0)
+	program := vm.Program{Data: program_data, Identifiers: &empty_identifiers}
 	// Create CairoRunner
 	runner := runners.NewCairoRunner(program)
 	// Initialize the runner
@@ -50,23 +52,23 @@ func TestInitializeRunnerNoBuiltinsNoProofModeEmptyProgram(t *testing.T) {
 	}
 
 	// Execution segment
-	// 1:0 end_ptr
+	// 1:0 return_fp
 	value, err = runner.Vm.Segments.Memory.Get(memory.Relocatable{SegmentIndex: 1, Offset: 0})
 	if err != nil {
 		t.Errorf("Memory Get error in test: %s", err)
 	}
 	rel, ok := value.GetRelocatable()
-	if !ok || rel.SegmentIndex != 3 || rel.Offset != 0 {
+	if !ok || rel.SegmentIndex != 2 || rel.Offset != 0 {
 		t.Errorf("Wrong value for address 1:0: %d", rel)
 	}
-	// 1:1 return_fp
+	// 1:1 end_ptr
 	value, err = runner.Vm.Segments.Memory.Get(memory.Relocatable{SegmentIndex: 1, Offset: 1})
 	if err != nil {
 		t.Errorf("Memory Get error in test: %s", err)
 	}
 	rel, ok = value.GetRelocatable()
-	if !ok || rel.SegmentIndex != 2 || rel.Offset != 0 {
-		t.Errorf("Wrong value for address 1:0: %d", rel)
+	if !ok || rel.SegmentIndex != 3 || rel.Offset != 0 {
+		t.Errorf("Wrong value for address 1:1: %d", rel)
 	}
 }
 
@@ -74,7 +76,8 @@ func TestInitializeRunnerNoBuiltinsNoProofModeNonEmptyProgram(t *testing.T) {
 	// Create a Program with one fake instruction
 	program_data := make([]memory.MaybeRelocatable, 1)
 	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1))
-	program := vm.Program{Data: program_data}
+	empty_identifiers := make(map[string]parser.Identifier, 0)
+	program := vm.Program{Data: program_data, Identifiers: &empty_identifiers}
 	// Create CairoRunner
 	runner := runners.NewCairoRunner(program)
 	// Initialize the runner
@@ -116,22 +119,22 @@ func TestInitializeRunnerNoBuiltinsNoProofModeNonEmptyProgram(t *testing.T) {
 	}
 
 	// Execution segment
-	// 1:0 end_ptr
+	// 1:0 return_fp
 	value, err = runner.Vm.Segments.Memory.Get(memory.Relocatable{SegmentIndex: 1, Offset: 0})
 	if err != nil {
 		t.Errorf("Memory Get error in test: %s", err)
 	}
 	rel, ok := value.GetRelocatable()
-	if !ok || rel.SegmentIndex != 3 || rel.Offset != 0 {
+	if !ok || rel.SegmentIndex != 2 || rel.Offset != 0 {
 		t.Errorf("Wrong value for address 1:0: %d", rel)
 	}
-	// 1:1 return_fp
+	// 1:1 end_ptr
 	value, err = runner.Vm.Segments.Memory.Get(memory.Relocatable{SegmentIndex: 1, Offset: 1})
 	if err != nil {
 		t.Errorf("Memory Get error in test: %s", err)
 	}
 	rel, ok = value.GetRelocatable()
-	if !ok || rel.SegmentIndex != 2 || rel.Offset != 0 {
-		t.Errorf("Wrong value for address 1:0: %d", rel)
+	if !ok || rel.SegmentIndex != 3 || rel.Offset != 0 {
+		t.Errorf("Wrong value for address 1:1: %d", rel)
 	}
 }
