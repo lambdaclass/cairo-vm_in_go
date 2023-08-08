@@ -26,7 +26,7 @@ func main() {
 
 	// Dirty trick
 	// TODO: Remove once WriteEncodedmemory is merged
-	memoryFilePath := strings.Replace(programPath, ".json", ".rs.memory", 1)
+	memoryFilePath := strings.Replace(programPath, ".json", ".go.memory", 1)
 	memoryFile, err := os.Open(memoryFilePath)
 	defer memoryFile.Close()
 
