@@ -76,18 +76,26 @@ func (felt Felt) ToU64() (uint64, error) {
 	}
 }
 
+// Gets a Felt representing 1.
+func FeltOne() Felt {
+	var result C.felt_t
+	C.one(&result[0])
+	return fromC(result)
+}
+
 // Gets a Felt representing 0.
-func (f Felt) Zero() Felt {
+func FeltZero() Felt {
 	var result C.felt_t
 	C.zero(&result[0])
 	return fromC(result)
 }
 
-// Gets a Felt representing 1.
+func (f Felt) Zero() Felt {
+	return FeltZero()
+}
+
 func (f Felt) One() Felt {
-	var result C.felt_t
-	C.one(&result[0])
-	return fromC(result)
+	return FeltOne()
 }
 
 func (f Felt) IsZero() bool {
