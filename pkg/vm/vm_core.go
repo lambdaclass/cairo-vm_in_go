@@ -337,6 +337,8 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 }
 
 // Runs deductions for Op0, first runs builtin deductions, if this fails, attempts to deduce it based on dst and op1
+// Also returns res if it was also deduced in the process
+// Inserts the deduced operand
 // Fails if Op0 was not deduced or if an error arised in the process
 func (vm *VirtualMachine) ComputeOp0Deductions(op0_addr memory.Relocatable, instruction *Instruction, dst *memory.MaybeRelocatable, op1 *memory.MaybeRelocatable) (deduced_op0 memory.MaybeRelocatable, deduced_res *memory.MaybeRelocatable, err error) {
 	op0, err := vm.DeduceMemoryCell(op0_addr)
