@@ -47,6 +47,21 @@ To run all tests, activate the venv created by make deps and run the test target
 make test
 ```
 
+## Running the demo
+
+This project currently has two demo targets, one for running a fibonacci programs and one for running a factorial program. Both of them output their corresponding trace files.
+To run the fiboncacci demo:
+
+```shell
+    make demo_fib
+```
+
+To run the factorial demo:
+
+```shell
+    make demo_factorial
+```
+
 ## Project Guidelines
 
 - PRs addressing performance are forbidden. We are currently concerned with making it work without bugs and nothing more.
