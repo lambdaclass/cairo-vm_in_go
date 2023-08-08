@@ -20,9 +20,11 @@ type CairoRunner struct {
 }
 
 func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
-	// TODO: Fetch main entrypoint offset from program identifiers
-	// Placeholder
+	mainIdentifier, ok := (*program.Identifiers)["__main__.main"]
 	main_offset := uint(0)
+	if ok {
+		main_offset = uint(mainIdentifier.PC)
+	}
 	runner := CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
 	for _, builtin_name := range program.Builtins {
 		switch builtin_name {
@@ -35,7 +37,6 @@ func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 	}
 
 	return &runner, nil
-
 }
 
 // Performs the initialization step, returns the end pointer (pc upon which execution should stop)
@@ -77,7 +78,7 @@ func (r *CairoRunner) initializeState(entrypoint uint, stack *[]memory.MaybeRelo
 // (entrypoint)
 func (r *CairoRunner) initializeFunctionEntrypoint(entrypoint uint, stack *[]memory.MaybeRelocatable, return_fp memory.Relocatable) (memory.Relocatable, error) {
 	end := r.Vm.Segments.AddSegment()
-	*stack = append(*stack, *memory.NewMaybeRelocatableRelocatable(end), *memory.NewMaybeRelocatableRelocatable(return_fp))
+	*stack = append(*stack, *memory.NewMaybeRelocatableRelocatable(return_fp), *memory.NewMaybeRelocatableRelocatable(end))
 	r.initialFp = r.executionBase
 	r.initialFp.Offset += uint(len(*stack))
 	r.initialAp = r.initialFp
@@ -111,4 +112,14 @@ func (r *CairoRunner) initializeVM() error {
 	}
 	// Apply validation rules to memory
 	return r.Vm.Segments.Memory.ValidateExistingMemory()
+}
+
+func (r *CairoRunner) RunUntilPC(end memory.Relocatable) error {
+	for r.Vm.RunContext.Pc != end {
+		err := r.Vm.Step()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

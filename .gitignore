@@ -25,3 +25,6 @@ go.work
 
 # Compiled cairo programs
 *.json
+
+# python env
+cairo-vm-env

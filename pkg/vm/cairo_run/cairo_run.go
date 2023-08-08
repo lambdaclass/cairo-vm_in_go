@@ -23,13 +23,20 @@ type CairoRunConfig struct {
 func CairoRun(programPath string) (*runners.CairoRunner, error) {
 	compiledProgram := parser.Parse(programPath)
 	programJson := vm.DeserializeProgramJson(compiledProgram)
+
 	cairoRunner, err := runners.NewCairoRunner(programJson)
 	if err != nil {
 		return nil, err
 	}
-	_, err = cairoRunner.Initialize()
-	//err = cairoRunner.RunUntilPC()
-	//cairoRunner.relocate(vm, cairoRunConfig.RelocateMem)
+	end, err := cairoRunner.Initialize()
+	if err != nil {
+		return nil, err
+	}
+	err = cairoRunner.RunUntilPC(end)
+	if err != nil {
+		return nil, err
+	}
+	err = cairoRunner.Vm.Relocate()
 	return cairoRunner, err
 }
 
