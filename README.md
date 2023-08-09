@@ -353,6 +353,32 @@ func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
 
 These will allow us to safely discern between `Felt` and `Relocatable` values later on.
 
+### MaybeRelocatable Operations
+
+Introducing the MaybeRelocatable type means wer will have to handle various arithmetic operations between Relocatable and MaybeRelocatable types.
+We will start by implementing Add and Sub operations for the `Relocatable` type:
+
+*Add*
+
+Addition between Relocatable values is not supported, so we don't implement it
+
+*AddFelt*
+
+This method adds a Felt value to the relocatable's offset by first converting the relocatable's offset to a Felt, performing felt addition between the offset and the felt value, and then converting the new offset to a uint value. This method retruns an error if the new offset exceeds the size of a uint.
+
+```go
+// Adds a Felt value to a Relocatable
+// Fails if the new offset exceeds the size of a uint
+func (r *Relocatable) AddFelt(other lambdaworks.Felt) (Relocatable, error) {
+	new_offset_felt := lambdaworks.FeltFromUint64(uint64(r.Offset)).Add(other)
+	new_offset, err := new_offset_felt.ToU64()
+	if err != nil {
+		return *r, err
+	}
+	return NewRelocatable(r.SegmentIndex, uint(new_offset)), nil
+}
+```
+
 #### Memory
 
 As we previously described, the memory is made up of a series of segments of variable length, each containing a continuous sequence of `MaybeRelocatable` elements. Memory is also immutable, which means that once we have written a value into memory, it can't be changed.
