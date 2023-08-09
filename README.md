@@ -356,16 +356,16 @@ func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
 
 These will allow us to safely discern between `Felt` and `Relocatable` values later on.
 
-### MaybeRelocatable Operations
+#### MaybeRelocatable Operations
 
 Introducing the MaybeRelocatable type means wer will have to handle various arithmetic operations between Relocatable and MaybeRelocatable types.
 We will start by implementing Add and Sub operations for the `Relocatable` type:
 
-*Add*
+##### Add
 
 Addition between Relocatable values is not supported, so we don't implement it
 
-*AddFelt*
+##### AddFelt
 
 This method adds a Felt value to the relocatable's offset by first converting the relocatable's offset to a Felt, performing felt addition between the offset and the felt value, and then converting the new offset to a uint value. This method retruns an error if the new offset exceeds the size of a uint.
 
@@ -382,7 +382,7 @@ func (r *Relocatable) AddFelt(other lambdaworks.Felt) (Relocatable, error) {
 }
 ```
 
-*Sub*
+##### Sub
 
 This method returns the distance between two relocatable values. It can only be performed between to relocatables of the same segment (aka relocatables with the same segment index), and it returns the difference between their offsets as a uint value. It fails if the segment indexes differ or if the difference would yield a negative value
 
@@ -400,7 +400,7 @@ func (r *Relocatable) Sub(other Relocatable) (uint, error) {
 }
 ```
 
-*SubFelt*
+##### SubFelt
 
 This method subtracts a Felt value to the relocatable's offset by first converting the relocatable's offset to a Felt, performing felt subtraction between the offset and the felt value, and then converting the new offset to a uint value. This method retruns an error if the new offset is negative or exceeds the size of a uint.
 
@@ -420,7 +420,7 @@ func (r *Relocatable) SubFelt(other lambdaworks.Felt) (Relocatable, error) {
 
 Now lets look at the operations between `MaybeRelocatable`s:
 
-*Add*
+##### Add
 
 There are four different cases to consider when adding two `MaybeRelocatable` values:
 I. Both values are `Felt`: We perform felt addition
@@ -465,7 +465,7 @@ func (m MaybeRelocatable) Add(other MaybeRelocatable) (MaybeRelocatable, error) 
 }
 ```
 
-*Sub*
+##### Sub
 
 There are four different cases to consider when adding two `MaybeRelocatable` values:
 I. Both values are `Felt`: We perform felt subtraction
