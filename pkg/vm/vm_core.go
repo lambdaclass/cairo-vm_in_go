@@ -20,12 +20,13 @@ func (e *VirtualMachineError) Error() string {
 // VirtualMachine represents the Cairo VM.
 // Runs Cairo assembly and produces an execution trace.
 type VirtualMachine struct {
-	RunContext     RunContext
-	CurrentStep    uint
-	Segments       memory.MemorySegmentManager
-	BuiltinRunners []builtins.BuiltinRunner
-	Trace          []TraceEntry
-	RelocatedTrace []RelocatedTraceEntry
+	RunContext      RunContext
+	CurrentStep     uint
+	Segments        memory.MemorySegmentManager
+	BuiltinRunners  []builtins.BuiltinRunner
+	Trace           []TraceEntry
+	RelocatedTrace  []RelocatedTraceEntry
+	RelocatedMemory map[uint]lambdaworks.Felt
 }
 
 func NewVirtualMachine() *VirtualMachine {
@@ -85,14 +86,14 @@ func (v *VirtualMachine) RunInstruction(instruction *Instruction) error {
 // Relocates the VM's trace, turning relocatable registers to numbered ones
 func (v *VirtualMachine) RelocateTrace(relocationTable *[]uint) error {
 	if len(*relocationTable) < 2 {
-		return errors.New("No relocation found for execution segment")
+		return errors.New("no relocation found for execution segment")
 	}
 
 	for _, entry := range v.Trace {
 		v.RelocatedTrace = append(v.RelocatedTrace, RelocatedTraceEntry{
-			Pc: entry.Pc.RelocateAddress(relocationTable),
-			Ap: entry.Ap.RelocateAddress(relocationTable),
-			Fp: entry.Fp.RelocateAddress(relocationTable),
+			Pc: lambdaworks.FeltFromUint64(uint64(entry.Pc.RelocateAddress(relocationTable))),
+			Ap: lambdaworks.FeltFromUint64(uint64(entry.Ap.RelocateAddress(relocationTable))),
+			Fp: lambdaworks.FeltFromUint64(uint64(entry.Fp.RelocateAddress(relocationTable))),
 		})
 	}
 
@@ -103,7 +104,7 @@ func (v *VirtualMachine) GetRelocatedTrace() ([]RelocatedTraceEntry, error) {
 	if len(v.RelocatedTrace) > 0 {
 		return v.RelocatedTrace, nil
 	} else {
-		return nil, errors.New("Trace not relocated")
+		return nil, errors.New("trace not relocated")
 	}
 }
 
@@ -119,12 +120,13 @@ func (v *VirtualMachine) Relocate() error {
 		return errors.New("ComputeEffectiveSizes called but RelocateSegments still returned error")
 	}
 
-	_, err := v.Segments.RelocateMemory(&relocationTable)
+	relocatedMemory, err := v.Segments.RelocateMemory(&relocationTable)
 	if err != nil {
 		return err
 	}
 
 	v.RelocateTrace(&relocationTable)
+	v.RelocatedMemory = relocatedMemory
 	return nil
 }
 
@@ -399,7 +401,7 @@ func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands)
 		}
 		res, ok := operands.Res.GetRelocatable()
 		if !ok {
-			return errors.New("An integer value as Res cannot be used with PcUpdate.JUMP")
+			return errors.New("an integer value as Res cannot be used with PcUpdate.JUMP")
 		}
 		vm.RunContext.Pc = res
 	case PcUpdateJumpRel:
@@ -408,7 +410,7 @@ func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands)
 		}
 		res, ok := operands.Res.GetFelt()
 		if !ok {
-			return errors.New("A relocatable value as Res cannot be used with PcUpdate.JUMP_REL")
+			return errors.New("a relocatable value as Res cannot be used with PcUpdate.JUMP_REL")
 		}
 		new_pc, err := vm.RunContext.Pc.AddFelt(res)
 		if err != nil {
