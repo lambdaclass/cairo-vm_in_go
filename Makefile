@@ -70,7 +70,7 @@ clean_files:
 	rm -f $(TEST_DIR)/*.memory
 	rm -f $(TEST_DIR)/*.trace
 
-demo_fibonacci: clean_files build_cairo_vm_cli
+demo_fibonacci: clean_files build_cairo_vm_cli build
 	@echo "Compiling fibonacci program..."
 	@cairo-compile --cairo_path="$(TEST_DIR)" cairo_programs/fibonacci.cairo --output cairo_programs/fibonacci.json
 	@echo "Running fibonacci program..."
@@ -89,7 +89,7 @@ demo_fibonacci: clean_files build_cairo_vm_cli
 	fi
 	@echo "Memory for fibonacci matches!"
 
-demo_factorial: clean_files build_cairo_vm_cli
+demo_factorial: clean_files build_cairo_vm_cli build
 	@echo "Compiling factorial program..."
 	@cairo-compile --cairo_path="$(TEST_DIR)" cairo_programs/factorial.cairo --output cairo_programs/factorial.json
 	@echo "Running factorial program..."
