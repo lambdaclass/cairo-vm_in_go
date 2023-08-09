@@ -495,7 +495,7 @@ After we succesfully computed the value of the operands, its now time to update 
 
 *UpdatePc*
 
-As we already now, the pc (program counter) points to the next instruction in memory. When no jumps take place, the pc is updated to point to the next instruction by adding the instruction size to it. The instruction size is 1 if there is no immediate value, and two if there is an immediate value following the instruction.
+As we already know, the pc (program counter) points to the next instruction in memory. When no jumps take place, the pc is updated to point to the next instruction by adding the instruction size to it. The instruction size is 1 if there is no immediate value, and two if there is an immediate value following the instruction.
 Cairo also supports 3 different types of jumps. The first one is a regular jump, in which the pc takes the value of the res operand. The next one is a relative jump, in which the pc advances by a number of positions set by the res operand. And the last one is a jump not zero, which performs a relative jump, advancing the number of positions given by op1, if the value of the dst operand is not zero, or perfroms a regular update if the value of the dst operand is zero. The operand will only be zero if it is a Felt value which is zero, relocatable values are never zero.
 
 ```go
@@ -567,6 +567,34 @@ Returns true if the value is a Felt that is zero, returns false otherwise
 	return is_int && felt.IsZero()
 }
 ```
+
+*UpdateFp*
+
+As we already know, the fp (frame pointer) points to the frame of the current function. It can be updated in 4 different ways. A regular fp update consists in no changes to the fp register. An ap plus 2 update consists on asigning the value op ap to fp and increasing it's offset by two (note: in the code below we only asign the offset, as fp and ap live on the execution segment and therefore have the same segment index). A dst fp update consists on performing either a direct or relative jump based on the value of the dst operand. If dst is a relocatable, fp will take the value of dst, if dst is a felt, fp's offset will be increased by the amount given by dst
+
+```go
+// Updates the value of FP according to the executed instruction
+func (vm *VirtualMachine) UpdateFp(instruction *Instruction, operands *Operands) error {
+	switch instruction.FpUpdate {
+	case FpUpdateAPPlus2:
+		vm.RunContext.Fp.Offset = vm.RunContext.Ap.Offset + 2
+	case FpUpdateDst:
+		rel, ok := operands.Dst.GetRelocatable()
+		if ok {
+			vm.RunContext.Fp = rel
+		} else {
+			felt, _ := operands.Dst.GetFelt()
+			new_fp, err := vm.RunContext.Fp.AddFelt(felt)
+			if err != nil {
+				return err
+			}
+			vm.RunContext.Fp = new_fp
+		}
+	}
+	return nil
+}
+```
+
 
 [TODO for Execution: Opcode Assertions, Run Instruction]
 
