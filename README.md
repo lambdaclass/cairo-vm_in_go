@@ -379,6 +379,24 @@ func (r *Relocatable) AddFelt(other lambdaworks.Felt) (Relocatable, error) {
 }
 ```
 
+*Sub*
+
+This method returns the distance between two relocatable values. It can only be performed between to relocatables of the same segment (aka relocatables with the same segment index), and it returns the difference between their offsets as a uint value. It fails if the segment indexes differ or if the difference would yield a negative value
+
+```go
+    // Returns the distance between two relocatable values (aka the difference between their offsets)
+// Fails if they have different segment indexes or if the difference is negative
+func (r *Relocatable) Sub(other Relocatable) (uint, error) {
+	if r.SegmentIndex != other.SegmentIndex {
+		return 0, errors.New("Cant subtract two relocatables with different segment indexes")
+	}
+	if r.Offset < other.Offset {
+		return 0, errors.New("Relocatable subtraction yields relocatable with negative offset")
+	}
+	return r.Offset - other.Offset, nil
+}
+```
+
 #### Memory
 
 As we previously described, the memory is made up of a series of segments of variable length, each containing a continuous sequence of `MaybeRelocatable` elements. Memory is also immutable, which means that once we have written a value into memory, it can't be changed.
