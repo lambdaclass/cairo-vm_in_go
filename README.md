@@ -912,12 +912,6 @@ This method will continuously execute cairo steps until the end pc, returned by 
     //TODO
 ```
 
-*Compute operands*
-
-```go
-    //TODO
-```
-
 *Opcode assertions*
 
 Once we have the instruction's operands to work with, we have to ensure the correctness of them. The first thing we need to differentiate is which type of instruction are we running, we do this by looking at the instruction's opcode. 
