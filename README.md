@@ -159,7 +159,7 @@ While this repo is only concerned with the second component, it's important to k
 
 Our virtual machine has a very simple flow:
 
-- Take a compiled cairo program as input. You can check out an example program [here](https://github.com/lambdaclass/cairo_vm.go/blob/main/cairo_programs/fibonacci.cairo), and its corresponding compiled version [here](https://github.com/lambdaclass/cairo_vm.go/blob/main/cairo_programs/fibonacci.json).
+- Take a compiled cairo program as input. You can check out an example program [here](https://github.com/lambdaclass/cairo_vm.go/blob/main/cairo_programs/fibonacci.cairo).
 - Run the bytecode from the compiled program, doing the usual `fetch->decode->execute` loop, running until program termination.
 - On every step of the execution, record the values of each register.
 - Take the register values and memory at every step and write them to a file, called the `execution trace`.
