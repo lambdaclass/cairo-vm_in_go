@@ -75,7 +75,9 @@ To run the factorial demo:
 
 ## First milestone: Fibonacci/Factorial
 
-What we have:
+The first milestone for Cairo VM in Go is completed! :tada:
+
+The milestone includes:
 
 - Parsing of `json` programs
 - Decoding of instructions
@@ -83,8 +85,6 @@ What we have:
 - Instruction execution.
 - Writing of the trace into files with the correct format.
 - Make the fibonacci and factorial tests pass, comparing our own trace with the Rust VM one, making sure they match.
-
-What we need to finish this milestone:
 - Writing of the memory into files with the correct format.
 - Make the fibonacci and factorial tests pass, comparing our own memory with the Rust VM one, making sure they match.
 
