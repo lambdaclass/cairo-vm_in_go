@@ -402,7 +402,7 @@ func (r *Relocatable) Sub(other Relocatable) (uint, error) {
 
 ##### Relocatable.SubFelt
 
-This method subtracts a Felt value to the relocatable's offset by first converting the relocatable's offset to a Felt, performing felt subtraction between the offset and the felt value, and then converting the new offset to a uint value. This method retruns an error if the new offset is negative or exceeds the size of a uint.
+This method subtracts a Felt value to the relocatable's offset by first converting the relocatable's offset to a Felt, performing felt subtraction between the offset and the felt value, and then converting the new offset to a uint value. This method returns an error if the new offset is negative or exceeds the size of a uint.
 
 ```go
 // Substracts a Felt value from a Relocatable
