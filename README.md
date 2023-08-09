@@ -706,8 +706,11 @@ type CairoRunner struct {
 }
 
 func NewCairoRunner(program vm.Program) *CairoRunner {
-    // TODO line below is fake
-    main_offset := program.identifiers["__main__.main"]
+    mainIdentifier, ok := (*program.Identifiers)["__main__.main"]
+	main_offset := uint(0)
+	if ok {
+		main_offset = uint(mainIdentifier.PC)
+	}
     return &CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
 
 }
@@ -975,7 +978,11 @@ Here we will have to iterate over the `Builtins` field of the `Program`, and add
 
 ```go
 func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
-    main_offset := program.identifiers["__main__.main"]
+    mainIdentifier, ok := (*program.Identifiers)["__main__.main"]
+	main_offset := uint(0)
+	if ok {
+		main_offset = uint(mainIdentifier.PC)
+	}
     runner := CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
     for _, builtin_name := range program.Builtins {
         switch builtin_name {
