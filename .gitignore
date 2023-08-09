@@ -11,6 +11,14 @@
 # Test binary, built with `go test -c`
 *.test
 
+# Ignore traces and memory outputs of the trace
+**.trace
+**.memory
+
+# Folder of the cairo-vm
+
+cairo-vm/
+
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
@@ -28,3 +36,6 @@ go.work
 
 # python env
 cairo-vm-env
+
+# generated trace files
+cairo_programs/*.trace
