@@ -17,8 +17,8 @@ func NewMemorySegmentManager() MemorySegmentManager {
 
 // Adds a memory segment and returns the first address of the new segment
 func (m *MemorySegmentManager) AddSegment() Relocatable {
-	ptr := Relocatable{int(m.Memory.num_segments), 0}
-	m.Memory.num_segments += 1
+	ptr := Relocatable{int(m.Memory.NumSegments), 0}
+	m.Memory.NumSegments += 1
 	return ptr
 }
 
@@ -26,7 +26,7 @@ func (m *MemorySegmentManager) AddSegment() Relocatable {
 func (m *MemorySegmentManager) ComputeEffectiveSizes() map[uint]uint {
 	if len(m.SegmentSizes) == 0 {
 
-		for ptr := range m.Memory.data {
+		for ptr := range m.Memory.Data {
 			segmentIndex := uint(ptr.SegmentIndex)
 			segmentMaxSize := m.SegmentSizes[segmentIndex]
 			segmentSize := ptr.Offset + 1
@@ -48,7 +48,7 @@ func (m *MemorySegmentManager) RelocateSegments() ([]uint, bool) {
 	first_addr := uint(1)
 	relocation_table := []uint{first_addr}
 
-	for i := uint(0); i < m.Memory.NumSegments(); i++ {
+	for i := uint(0); i < m.Memory.NumSegments; i++ {
 		new_addr := relocation_table[i] + m.SegmentSizes[i]
 		relocation_table = append(relocation_table, new_addr)
 	}
@@ -63,7 +63,7 @@ func (m *MemorySegmentManager) RelocateSegments() ([]uint, bool) {
 func (s *MemorySegmentManager) RelocateMemory(relocationTable *[]uint) (map[uint]lambdaworks.Felt, error) {
 	relocatedMemory := make(map[uint]lambdaworks.Felt, 0)
 
-	for i := uint(0); i < s.Memory.NumSegments(); i++ {
+	for i := uint(0); i < s.Memory.NumSegments; i++ {
 		for j := uint(0); j < s.SegmentSizes[i]; j++ {
 			ptr := NewRelocatable(int(i), j)
 			cell, err := s.Memory.Get(ptr)

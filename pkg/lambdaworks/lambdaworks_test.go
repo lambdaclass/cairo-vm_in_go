@@ -134,3 +134,27 @@ func TestFeltDiv4Error(t *testing.T) {
 		t.Errorf("TestFeltDiv4Error failed. Expected: %v, Got: %v", expected, result)
 	}
 }
+
+func TestBits(t *testing.T) {
+	f_zero := lambdaworks.FeltZero()
+	if f_zero.Bits() != 0 {
+		t.Errorf("TestBits failed. Expected: %d, Got: %d", 1, f_zero.Bits())
+	}
+	f_one := lambdaworks.FeltOne()
+	if f_one.Bits() != 1 {
+		t.Errorf("TestBits failed. Expected: %d, Got: %d", 1, f_one.Bits())
+	}
+	f_eight := lambdaworks.FeltFromUint64(8)
+	if f_eight.Bits() != 4 {
+		t.Errorf("TestBits failed. Expected: %d, Got: %d", 1, f_eight.Bits())
+	}
+	f_fifteen := lambdaworks.FeltFromUint64(15)
+	if f_fifteen.Bits() != 4 {
+		t.Errorf("TestBits failed. Expected: %d, Got: %d", 1, f_fifteen.Bits())
+	}
+
+	f_neg_one := lambdaworks.FeltFromDecString("-1")
+	if f_neg_one.Bits() != 252 {
+		t.Errorf("TestBits failed. Expected: %d, Got: %d", 1, f_neg_one.Bits())
+	}
+}
