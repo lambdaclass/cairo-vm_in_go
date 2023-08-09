@@ -23,6 +23,7 @@ func NewRelocatable(segment_idx int, offset uint) Relocatable {
 
 }
 
+// Returns the index in a relocated memory (uint) from a relocatable address
 func (r *Relocatable) RelocateAddress(relocationTable *[]uint) uint {
 	return (*relocationTable)[r.SegmentIndex] + r.Offset
 }

@@ -73,7 +73,6 @@ func (s *MemorySegmentManager) RelocateMemory(relocationTable *[]uint) (map[uint
 				if err != nil {
 					return nil, err
 				}
-				// Todo: fix this, should be a felt
 				relocatedMemory[relocatedAddr] = value
 			}
 		}
