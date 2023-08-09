@@ -638,7 +638,7 @@ The posible opcodes we want to perform assertions on are:
 	1. AssertEq instruction 
 	2. Call instruction 
 
-In the first option, we need to ensure the result operand is not null (nil in this case) and also that the result operand is equal to the destiny operand. If any of those things fail, we throw an error. 
+In the first option, we need to ensure the result operand is not null (nil in this case) and also that the result operand is equal to the dst operand. If any of those things fail, we throw an error. 
 
 On the other hand, the Call instruction, what we do first is define our return pc register, we do that adding the size of the instruction to the current pc. Then, we check our operand op0 is equal to the return pc and our dst operand is the same as the return fp register. If any of those things fail, we throw an error. 
 
