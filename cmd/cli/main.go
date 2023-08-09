@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"strings"
 
@@ -25,24 +24,12 @@ func main() {
 	traceFile, err := os.OpenFile(traceFilePath, os.O_RDWR|os.O_CREATE, 0644)
 	defer traceFile.Close()
 
-	// Dirty trick
-	// TODO: Remove once WriteEncodedmemory is merged
-	memoryFilePathRs := strings.Replace(programPath, ".json", ".rs.memory", 1)
-	memoryFileRs, err := os.Open(memoryFilePathRs)
-	defer memoryFileRs.Close()
-	if err == nil {
-		// We don't copy the file if it doesn't exist
-		memoryFilePathGo := strings.Replace(programPath, ".json", ".go.memory", 1)
-		memoryFileGo, err := os.Create(memoryFilePathGo)
-		defer memoryFileGo.Close()
-		if err != nil {
-			fmt.Printf("Failed with error: %s", err)
-			return
-		}
-		io.Copy(memoryFileGo, memoryFileRs)
-	}
+	memoryFilePath := strings.Replace(programPath, ".json", ".go.memory", 1)
+	memoryFile, err := os.OpenFile(memoryFilePath, os.O_RDWR|os.O_CREATE, 0644)
+	defer memoryFile.Close()
 
 	cairo_run.WriteEncodedTrace(cairoRunner.Vm.RelocatedTrace, traceFile)
+	cairo_run.WriteEncodedMemory(cairoRunner.Vm.RelocatedMemory, memoryFile)
 
 	println("Done!")
 }

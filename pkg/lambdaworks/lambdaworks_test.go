@@ -1,6 +1,7 @@
 package lambdaworks_test
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
@@ -34,6 +35,17 @@ func TestFromNegDecString(t *testing.T) {
 	result := lambdaworks.FeltFromDecString(s_one)
 	if result != expected {
 		t.Errorf("TestFromNegDecString failed. Expected: %v, Got: %v", expected, result)
+	}
+}
+
+func TestToLeBytes(t *testing.T) {
+	expected := [32]uint8{
+		1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	}
+	actual := *lambdaworks.FeltOne().ToLeBytes()
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Errorf("TestToLeBytes failed. Expected: %v, Got: %v", expected, actual)
 	}
 }
 
