@@ -62,6 +62,8 @@ clean:
 	rm -f $(TEST_DIR)/*.json
 	rm -f $(TEST_DIR)/*.memory
 	rm -f $(TEST_DIR)/*.trace
+	cd pkg/lambdaworks/lib/lambdaworks && cargo clean
+	rm pkg/lambdaworks/lib/liblambdaworks.a
 	rm -rf cairo-vm
 	rm -r cairo-vm-env
 
