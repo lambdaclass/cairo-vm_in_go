@@ -490,8 +490,8 @@ To begin coding the basic execution functionality of our VM, we only need these 
 
 *Compute operands*
 
-Once the instruction has been decoded, it is executed by the main loop `run_instruction` whose first function is compute operands. This function is in charge of
-calculating the addresses of the operands and fetch them from memory. If the function could not fetch them from the memory then they are deduced from the other operands and
+Once the instruction has been decoded, it is executed by `run_instruction` whose first function is compute operands. This function is in charge of
+calculating the addresses of the operands and fetching them from memory. If the function could not fetch them from the memory then they are deduced from the other operands and
 taking in consideration what kind of opcode is going to be executed. 
 
 ```go
@@ -569,7 +569,7 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 ```
 
 *ComputeDstAddr*
-The function `ComputeDstAddress` computes the address of value that will be stored in the Destination register. It checks which is the destination register (wether AP or FP) and gets the direction from the run_context then if the instruction offset is negativa it substract from the address the offset otherwise it adds the offset.
+The method `ComputeDstAddress` computes the address of value that will be stored in the Destination operand. It checks which register is the relative to (wether AP or FP) and gets the direction by adding the instruction's first offset(off0) to the corresponding register.
 
 ```go
 func (run_context RunContext) ComputeDstAddr(instruction Instruction) (memory.Relocatable, error) {
@@ -614,7 +614,7 @@ func (run_context RunContext) ComputeOp0Addr(instruction Instruction) (memory.Re
 
 *ComputeOp1Addr*
 
-It computes the address of `Op1` based on  the `Op0` register and the kind of Address the instruction has for `Op1`, If its address is `Op1SrcFp` it calcualtes the direction from Fp register, if it is `Op1SrcAp` then if calculates it if from Ap register. If it is an immediate then checks if the offset 2 is 1 and calculates it from the `Pc`. Finally if its an `Op1SrcOp0` it checks the `Op0` and calculates the direction from it. Then if performs and addition or a substraction if the `Off2` is negative or positive.
+It computes the address of `Op1` based on  the `Op0` operand and the kind of Address the instruction has for `Op1`, If its address is `Op1SrcFp` it calcualtes the direction from Fp register, if it is `Op1SrcAp` then if calculates it if from Ap register. If it is an immediate then checks if the offset 2 is 1 and calculates it from the `Pc`. Finally if its an `Op1SrcOp0` it checks the `Op0` and calculates the direction from it. Then if performs and addition or a substraction if the `Off2` is negative or positive.
 
 ```go
 func (run_context RunContext) ComputeOp1Addr(instruction Instruction, op0 *memory.MaybeRelocatable) (memory.Relocatable, error) {
@@ -758,8 +758,8 @@ func (vm *VirtualMachine) ComputeRes(instruction Instruction, op0 memory.MaybeRe
 
 *DeduceDst*
 
-if the destination value has not been calculated before then it is deduced based on the Res value. If the opcode is an `AssertEq` then dst is similar to res.
-If it is a `Call` then is value is calculated in base of the `Fp` register 
+if the destination value has not been calculated before then it is deduced based on the Res value. If the opcode is an `AssertEq` then dst is equal res.
+If it is a `Call` then is value is taken from the `Fp` register 
 
 ```go
 func (vm *VirtualMachine) DeduceDst(instruction Instruction, res *memory.MaybeRelocatable) *memory.MaybeRelocatable {
@@ -778,7 +778,7 @@ func (vm *VirtualMachine) DeduceDst(instruction Instruction, res *memory.MaybeRe
 ### CairoRunner
 
 Now that can can execute cairo steps, lets look at the VM's initialization step.
-We will begin by creating our `CairoRunnerc`:
+We will begin by creating our `CairoRunner`:
 
 ```go
 type CairoRunner struct {
