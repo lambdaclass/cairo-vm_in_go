@@ -9,7 +9,7 @@ type BitwiseBuiltinRunner struct {
 
 func NewBitwiseBuiltinRunner(included bool) BitwiseBuiltinRunner {
 	return BitwiseBuiltinRunner{
-		base:     memory.NewRelocatable(0.0),
+		base:     memory.NewRelocatable(0, 0),
 		included: included,
 	}
 }
