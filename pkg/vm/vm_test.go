@@ -1,11 +1,14 @@
 package vm_test
 
 import (
+	"bytes"
+
 	"reflect"
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/cairo_run"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -528,6 +531,16 @@ func TestRelocateTraceOneEntry(t *testing.T) {
 	}
 }
 
+func TestWriteBinaryMemoryFile(t *testing.T) {
+	var relocatedMemory = make(map[uint]lambdaworks.Felt)
+	relocatedMemory[1] = lambdaworks.FeltFromUint64(66)
+	relocatedMemory[2] = lambdaworks.FeltFromUint64(42)
+	relocatedMemory[3] = lambdaworks.FeltFromUint64(30)
+
+	var actualMemoryBuffer bytes.Buffer
+	cairo_run.WriteEncodedMemory(relocatedMemory, &actualMemoryBuffer)
+}
+
 func buildTestProgramMemory(virtualMachine *vm.VirtualMachine) {
 	virtualMachine.Trace = []vm.TraceEntry{{Pc: memory.NewRelocatable(0, 0), Ap: memory.NewRelocatable(2, 0), Fp: memory.NewRelocatable(2, 0)}}
 	for i := 0; i < 4; i++ {
@@ -955,6 +968,33 @@ func TestDeduceDstOpcodeAssertEqWithRes(t *testing.T) {
 	}
 }
 
+func TestDeduceDstOpcodeCall(t *testing.T) {
+	instruction := vm.Instruction{
+		Off0:     1,
+		Off1:     2,
+		Off2:     3,
+		DstReg:   vm.FP,
+		Op0Reg:   vm.AP,
+		Op1Addr:  vm.Op1SrcAP,
+		ResLogic: vm.ResUnconstrained,
+		PcUpdate: vm.PcUpdateJump,
+		ApUpdate: vm.ApUpdateRegular,
+		FpUpdate: vm.FpUpdateRegular,
+		Opcode:   vm.Call,
+	}
+
+	vm := vm.NewVirtualMachine()
+	vm.RunContext.Fp = memory.NewRelocatable(1, 0)
+
+	result_dst := vm.DeduceDst(instruction, nil)
+	mr := memory.NewRelocatable(1, 0)
+	expected_dst := memory.NewMaybeRelocatableRelocatable(mr)
+
+	if *result_dst != *expected_dst {
+		t.Error("Different Dst value")
+	}
+}
+
 func TestDeduceDstOpcodeAssertEqWithoutRes(t *testing.T) {
 	instruction := vm.Instruction{
 		Off1:     1,
@@ -971,10 +1011,33 @@ func TestDeduceDstOpcodeAssertEqWithoutRes(t *testing.T) {
 	}
 
 	vm := vm.NewVirtualMachine()
-
 	result_res := vm.DeduceDst(instruction, nil)
 
 	if result_res != nil {
 		t.Error("Different Res value")
+	}
+}
+
+func TestDeduceDstOpcodeRet(t *testing.T) {
+	instruction := vm.Instruction{
+		Off0:     1,
+		Off1:     2,
+		Off2:     3,
+		DstReg:   vm.FP,
+		Op0Reg:   vm.AP,
+		Op1Addr:  vm.Op1SrcAP,
+		ResLogic: vm.ResUnconstrained,
+		PcUpdate: vm.PcUpdateJump,
+		ApUpdate: vm.ApUpdateRegular,
+		FpUpdate: vm.FpUpdateRegular,
+		Opcode:   vm.Ret,
+	}
+
+	vm := vm.NewVirtualMachine()
+
+	result_dst := vm.DeduceDst(instruction, nil)
+
+	if result_dst != nil {
+		t.Error("Different Dst value than nil")
 	}
 }
