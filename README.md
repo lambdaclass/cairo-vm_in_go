@@ -474,12 +474,6 @@ III. First value is `Felt` and other in `Relocatable`: This operation is not sup
 VI. First value is `Relocatable` and other is `Felt`: We call `Relocatable.AddFelt`
 
 ```go
-// Subtracts two MaybeRelocatable values
-// Behaves as follows:
-// Felt - Felt : Performs felt subtraction
-// Relocatable - Felt : Subtracts the Felt value from the Relocatable's offset, fails if this subtraction results in a value bigger than uint
-// Relocatable - Relocatable : Returns the difference between the two offsets, fails if the difference is negative or if the segment indexes of the two relocatables don't match
-// Felt - Relocatable : Always fails, this is not supported
 func (m MaybeRelocatable) Sub(other MaybeRelocatable) (MaybeRelocatable, error) {
  // check if they are felt
  m_int, m_is_int := m.GetFelt()
