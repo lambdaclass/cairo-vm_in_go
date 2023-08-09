@@ -634,7 +634,7 @@ This method will continuously execute cairo steps until the end pc, returned by 
 
 Once we have the instruction's operands to work with, we have to ensure the correctness of them. The first thing we need to differentiate is which type of instruction are we running, we do this by looking at the instruction's opcode. 
 
-The posible options (for now) are: 
+The posible opcodes we want to perform assertions on are: 
 	1. AssertEq instruction 
 	2. Call instruction 
 
