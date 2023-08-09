@@ -1,0 +1,3 @@
+cargo:rerun-if-changed=build/main.rs
+cargo:rustc-env=TYPENUM_BUILD_CONSTS=/Users/federica/cairo_vm.go/pkg/starknet-crypto/lib/starknet-crypto/target/debug/build/typenum-f22195321a089e66/out/consts.rs
+cargo:rustc-env=TYPENUM_BUILD_OP=/Users/federica/cairo_vm.go/pkg/starknet-crypto/lib/starknet-crypto/target/debug/build/typenum-f22195321a089e66/out/op.rs

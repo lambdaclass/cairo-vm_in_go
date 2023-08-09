@@ -1,0 +1,11 @@
+/Users/federica/cairo_vm.go/pkg/starknet-crypto/lib/starknet-crypto/target/debug/deps/ark_serialize-b2e49a4672cf5e29.rmeta: /Users/federica/.cargo/registry/src/github.com-1ecc6299db9ec823/ark-serialize-0.4.2/src/lib.rs /Users/federica/.cargo/registry/src/github.com-1ecc6299db9ec823/ark-serialize-0.4.2/src/error.rs /Users/federica/.cargo/registry/src/github.com-1ecc6299db9ec823/ark-serialize-0.4.2/src/flags.rs /Users/federica/.cargo/registry/src/github.com-1ecc6299db9ec823/ark-serialize-0.4.2/src/impls.rs /Users/federica/.cargo/registry/src/github.com-1ecc6299db9ec823/ark-serialize-0.4.2/src/../README.md
+
+/Users/federica/cairo_vm.go/pkg/starknet-crypto/lib/starknet-crypto/target/debug/deps/libark_serialize-b2e49a4672cf5e29.rlib: /Users/federica/.cargo/registry/src/github.com-1ecc6299db9ec823/ark-serialize-0.4.2/src/lib.rs /Users/federica/.cargo/registry/src/github.com-1ecc6299db9ec823/ark-serialize-0.4.2/src/error.rs /Users/federica/.cargo/registry/src/github.com-1ecc6299db9ec823/ark-serialize-0.4.2/src/flags.rs /Users/federica/.cargo/registry/src/github.com-1ecc6299db9ec823/ark-serialize-0.4.2/src/impls.rs /Users/federica/.cargo/registry/src/github.com-1ecc6299db9ec823/ark-serialize-0.4.2/src/../README.md
+
+/Users/federica/cairo_vm.go/pkg/starknet-crypto/lib/starknet-crypto/target/debug/deps/ark_serialize-b2e49a4672cf5e29.d: /Users/federica/.cargo/registry/src/github.com-1ecc6299db9ec823/ark-serialize-0.4.2/src/lib.rs /Users/federica/.cargo/registry/src/github.com-1ecc6299db9ec823/ark-serialize-0.4.2/src/error.rs /Users/federica/.cargo/registry/src/github.com-1ecc6299db9ec823/ark-serialize-0.4.2/src/flags.rs /Users/federica/.cargo/registry/src/github.com-1ecc6299db9ec823/ark-serialize-0.4.2/src/impls.rs /Users/federica/.cargo/registry/src/github.com-1ecc6299db9ec823/ark-serialize-0.4.2/src/../README.md
+
+/Users/federica/.cargo/registry/src/github.com-1ecc6299db9ec823/ark-serialize-0.4.2/src/lib.rs:
+/Users/federica/.cargo/registry/src/github.com-1ecc6299db9ec823/ark-serialize-0.4.2/src/error.rs:
+/Users/federica/.cargo/registry/src/github.com-1ecc6299db9ec823/ark-serialize-0.4.2/src/flags.rs:
+/Users/federica/.cargo/registry/src/github.com-1ecc6299db9ec823/ark-serialize-0.4.2/src/impls.rs:
+/Users/federica/.cargo/registry/src/github.com-1ecc6299db9ec823/ark-serialize-0.4.2/src/../README.md:
