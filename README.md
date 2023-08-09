@@ -1168,7 +1168,7 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
  }
  op1_op, _ := vm.Segments.Memory.Get(op1_addr)
 
-    var op0 memory.MaybeRelocatable
+  var op0 memory.MaybeRelocatable
  if op0_op != nil {
   op0 = *op0_op
  } else {
