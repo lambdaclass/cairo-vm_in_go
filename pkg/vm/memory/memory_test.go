@@ -350,6 +350,8 @@ func TestValidateExistingMemoryForRangeCheckOutOfBoundsDiffSegment(t *testing.T)
 	err := segments.Memory.ValidateAddress(addr)
 	if err != nil {
 		t.Errorf("This test should not throw an error")
+	}
+}
 func TestMemoryValidateExistingMemoryOk(t *testing.T) {
 	mem_manager := memory.NewMemorySegmentManager()
 	mem_manager.AddSegment()
