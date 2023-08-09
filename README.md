@@ -894,7 +894,7 @@ func (r *CairoRunner) initializeSegments() {
 }
 ```
 
-##### initializeMainEntrypoint
+#### initializeMainEntrypoint
 
 This method will initialize the memory and initial register values to begin execution from the main entrypoint, and return the final pc
 
@@ -906,7 +906,7 @@ func (r *CairoRunner) initializeMainEntrypoint() (memory.Relocatable, error) {
 }
 ```
 
-##### initializeFunctionEntrypoint
+#### initializeFunctionEntrypoint
 
 This method will initialize the memory and initial register values to execute a cairo function given its offset within the program segment (aka entrypoint) and return the final pc. In our case, this function will be the main entrypoint, but later on we will be able to use this method to run starknet contract entrypoints.
 The stack will then be loaded into the execution segment in the next method. For now, the stack will be empty, but later on it will contain the builtin bases (which are the arguments for the main function), and the function arguments when running a function from a starknet contract.
@@ -923,7 +923,7 @@ func (r *CairoRunner) initializeFunctionEntrypoint(entrypoint uint, stack *[]mem
 }
 ```
 
-##### InitializeState
+#### InitializeState
 
 This method will be in charge of loading the program data into the program segment and the stack into the execution segment
 
@@ -940,7 +940,7 @@ func (r *CairoRunner) initializeState(entrypoint uint, stack *[]memory.MaybeRelo
 }
 ```
 
-##### initializeVm (CairoRunner)
+#### initializeVm
 
 This method will set the values of the VM's `RunContext` with our `CairoRunner`'s initial values
 
@@ -954,30 +954,20 @@ func (r *CairoRunner) initializeVM() {
 
 With `CairoRunner.Initialize()` now complete we can move on to the execution step:
 
-##### RunUntilPc
+#### RunUntilPc
 
 This method will continuously execute cairo steps until the end pc, returned by 'CairoRunner.Initialize()' is reached
 
 ```go
-    //TODO
-```
-
-##### Step
-
-```go
-    //TODO
-```
-
-##### Decode instruction
-
-```go
-    //TODO
-```
-
-##### Update registers
-
-```go
-    //TODO
+func (r *CairoRunner) RunUntilPC(end memory.Relocatable) error {
+ for r.Vm.RunContext.Pc != end {
+  err := r.Vm.Step()
+  if err != nil {
+   return err
+  }
+ }
+ return nil
+}
 ```
 
 Once we are done executing, we can relocate our memory & trace and output them into files
