@@ -29,7 +29,7 @@ for file in $(ls $tests_path | grep .cairo$ | sed -E 's/\.cairo$//'); do
     path_file="$tests_path/$file"
 
     if $trace; then
-        if ! diff -q $path_file.rs.trace $path_file.go.trace; then
+        if ! diff -q $path_file.go.trace $path_file.rs.trace; then
             echo "Traces for $file differ"
             exit_code=1
             failed_tests=$((failed_tests + 1))
@@ -39,7 +39,7 @@ for file in $(ls $tests_path | grep .cairo$ | sed -E 's/\.cairo$//'); do
     fi
 
     if $memory; then
-        if ! python memory_comparator.py $path_file.rs.memory $path_file.go.memory; then
+        if ! python memory_comparator.py $path_file.go.memory $path_file.rs.memory; then
             echo "Memory differs for $file"
             exit_code=1
             failed_tests=$((failed_tests + 1))
