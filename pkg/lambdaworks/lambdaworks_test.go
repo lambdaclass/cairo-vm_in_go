@@ -70,6 +70,71 @@ func TestFeltAdd(t *testing.T) {
 	}
 }
 
+func TestAndZero(t *testing.T) {
+	f_zero := lambdaworks.FeltZero()
+	f_one := lambdaworks.FeltOne()
+
+	expected := lambdaworks.FeltZero()
+
+	result := f_zero.And(f_one)
+
+	if result != expected {
+		t.Errorf("TestAndZero Failed, expecte: %v, got %v", expected, result)
+	}
+}
+
+func TestOrZeroOne(t *testing.T) {
+	f_zero := lambdaworks.FeltZero()
+	f_one := lambdaworks.FeltOne()
+
+	expected := lambdaworks.FeltOne()
+
+	result := f_zero.Or(f_one)
+
+	if result != expected {
+		t.Errorf("TestAndZero Failed, expecte: %v, got %v", expected, result)
+	}
+}
+
+func TestOrZero(t *testing.T) {
+	f_zero := lambdaworks.FeltZero()
+	f_one := lambdaworks.FeltZero()
+
+	expected := lambdaworks.FeltZero()
+
+	result := f_zero.Or(f_one)
+
+	if result != expected {
+		t.Errorf("TestAndZero Failed, expecte: %v, got %v", expected, result)
+	}
+}
+
+func TestAndOne(t *testing.T) {
+	f0 := lambdaworks.FeltOne()
+	f1 := lambdaworks.FeltOne()
+
+	expected := lambdaworks.FeltOne()
+
+	result := f0.And(f1)
+
+	if result != expected {
+		t.Errorf("TestAndZero Failed, expecte: %v, got %v", expected, result)
+	}
+}
+
+func TestOrOne(t *testing.T) {
+	f0 := lambdaworks.FeltOne()
+	f1 := lambdaworks.FeltOne()
+
+	expected := lambdaworks.FeltOne()
+
+	result := f0.Or(f1)
+
+	if result != expected {
+		t.Errorf("TestAndZero Failed, expecte: %v, got %v", expected, result)
+	}
+}
+
 func TestFeltMul1(t *testing.T) {
 	f_one := lambdaworks.FeltOne()
 	expected := lambdaworks.FeltOne()

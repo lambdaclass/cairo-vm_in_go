@@ -112,6 +112,27 @@ pub extern "C" fn bits(limbs: Limbs) -> u64 {
         let slice: &mut [u64] = std::slice::from_raw_parts_mut(limbs, 4);
         let array: [u64; 4] = slice.try_into().unwrap();
         let ui = UnsignedInteger::from_limbs(array);
-        return UnsignedInteger::bits_le(&ui).try_into().unwrap()
+        return UnsignedInteger::bits_le(&ui).try_into().unwrap();
     }
 }
+
+#[no_mangle]
+pub extern "C" fn felt_and(a: Limbs, b: Limbs, result: Limbs) {
+    let felt_a = limbs_to_felt(a).representative();
+    let felt_b = limbs_to_felt(b).representative();
+    let res = felt_a & felt_b;
+    felt_to_limbs(Felt::from(&res), result)
+}
+
+#[no_mangle]
+pub extern "C" fn felt_or(a: Limbs, b: Limbs, result: Limbs) {
+    let felt_a = limbs_to_felt(a).representative();
+    let felt_b = limbs_to_felt(b).representative();
+    let res = felt_a | felt_b;
+    felt_to_limbs(Felt::from(&res), result)
+}
+
+// #[no_mangle]
+// pub extern "C" fn pow(a: Limbs, b: Limbs, result: Limbs) {
+// felt_to_limbs(limbs_to_felt(a).pow(&limbs_to_felt(b)), result)
+// }
