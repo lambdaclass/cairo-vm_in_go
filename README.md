@@ -97,7 +97,7 @@ The above will work for Cairo 0 programs. Cairo 1 has the following extra issues
 - There is no `Json` representation of a Cairo 1 Program, so we can only run contracts. This means we will have to add functions to run cairo contracts (aka implement run_from_entrypoint).
 - Cairo 1 contracts use the `range_check` builtin by default, so we need to implement it.
 
-## Full VM implementation
+### Full VM implementation
 
 To have a full implementation, we will need the following:
 
@@ -235,9 +235,9 @@ Other operations:
 
 During execution, the memory consists of segments of varying length, and they can be accessed by indicating their segment index, and the offset within that segment. When the run is finished, a relocation process takes place, which transforms this segmented memory into a contiguous list of values. The relocation process works as follows:
 
-1- The size of each segment is calculated (The size is equal to the highest offset within the segment + 1, and not the amount of `maybe_relocatable` values, as there can be gaps)
-2- A base is assigned to each segment by accumulating the size of the previous segment. The first segment's base is set to 1.
-3- All `relocatable` values are converted into a single integer by adding their `offset` value to their segment's base calculated in the previous step
+1. The size of each segment is calculated (The size is equal to the highest offset within the segment + 1, and not the amount of `maybe_relocatable` values, as there can be gaps)
+2. A base is assigned to each segment by accumulating the size of the previous segment. The first segment's base is set to 1.
+3. All `relocatable` values are converted into a single integer by adding their `offset` value to their segment's base calculated in the previous step
 
 For example, if we have this memory represented by address, value pairs:
 
@@ -425,10 +425,11 @@ Now lets look at the operations between `MaybeRelocatable`s:
 ##### MaybeRelocatable.Add
 
 There are four different cases to consider when adding two `MaybeRelocatable` values:
-I. Both values are `Felt`: We perform felt addition
-II. Both values are `Relocatable`: This operation is not supported so we return an error
-III. First value is `Felt` and other in `Relocatable`: This operation is not supported so we return an error
-VI. First value is `Relocatable` and other is `Felt`: We call `Relocatable.AddFelt`
+
+1. Both values are `Felt`: We perform felt addition
+2. Both values are `Relocatable`: This operation is not supported so we return an error
+3. First value is `Felt` and other in `Relocatable`: This operation is not supported so we return an error
+4. First value is `Relocatable` and other is `Felt`: We call `Relocatable.AddFelt`
 
 ```go
 func (m MaybeRelocatable) Add(other MaybeRelocatable) (MaybeRelocatable, error) {
@@ -470,10 +471,11 @@ func (m MaybeRelocatable) Add(other MaybeRelocatable) (MaybeRelocatable, error) 
 ##### MaybeRelocatable.Sub
 
 There are four different cases to consider when adding two `MaybeRelocatable` values:
-I. Both values are `Felt`: We perform felt subtraction
-II. Both values are `Relocatable`: We call `Relocatable.Sub`
-III. First value is `Felt` and other in `Relocatable`: This operation is not supported so we return an error
-VI. First value is `Relocatable` and other is `Felt`: We call `Relocatable.SubFelt`
+
+1. Both values are `Felt`: We perform felt subtraction
+2. Both values are `Relocatable`: We call `Relocatable.Sub`
+3. First value is `Felt` and other in `Relocatable`: This operation is not supported so we return an error
+4. First value is `Relocatable` and other is `Felt`: We call `Relocatable.SubFelt`
 
 ```go
 func (m MaybeRelocatable) Sub(other MaybeRelocatable) (MaybeRelocatable, error) {
@@ -860,10 +862,10 @@ type CairoRunner struct {
 
 func NewCairoRunner(program vm.Program) *CairoRunner {
     mainIdentifier, ok := (*program.Identifiers)["__main__.main"]
-	main_offset := uint(0)
-	if ok {
-		main_offset = uint(mainIdentifier.PC)
-	}
+ main_offset := uint(0)
+ if ok {
+  main_offset = uint(mainIdentifier.PC)
+ }
     return &CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
 
 }
@@ -1122,10 +1124,10 @@ Here we will have to iterate over the `Builtins` field of the `Program`, and add
 ```go
 func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
     mainIdentifier, ok := (*program.Identifiers)["__main__.main"]
-	main_offset := uint(0)
-	if ok {
-		main_offset = uint(mainIdentifier.PC)
-	}
+ main_offset := uint(0)
+ if ok {
+  main_offset = uint(mainIdentifier.PC)
+ }
     runner := CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
     for _, builtin_name := range program.Builtins {
         switch builtin_name {
