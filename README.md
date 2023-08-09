@@ -373,12 +373,12 @@ This method adds a Felt value to the relocatable's offset by first converting th
 // Adds a Felt value to a Relocatable
 // Fails if the new offset exceeds the size of a uint
 func (r *Relocatable) AddFelt(other lambdaworks.Felt) (Relocatable, error) {
-	new_offset_felt := lambdaworks.FeltFromUint64(uint64(r.Offset)).Add(other)
-	new_offset, err := new_offset_felt.ToU64()
-	if err != nil {
-		return *r, err
-	}
-	return NewRelocatable(r.SegmentIndex, uint(new_offset)), nil
+ new_offset_felt := lambdaworks.FeltFromUint64(uint64(r.Offset)).Add(other)
+ new_offset, err := new_offset_felt.ToU64()
+ if err != nil {
+  return *r, err
+ }
+ return NewRelocatable(r.SegmentIndex, uint(new_offset)), nil
 }
 ```
 
@@ -390,13 +390,13 @@ This method returns the distance between two relocatable values. It can only be 
     // Returns the distance between two relocatable values (aka the difference between their offsets)
 // Fails if they have different segment indexes or if the difference is negative
 func (r *Relocatable) Sub(other Relocatable) (uint, error) {
-	if r.SegmentIndex != other.SegmentIndex {
-		return 0, errors.New("Cant subtract two relocatables with different segment indexes")
-	}
-	if r.Offset < other.Offset {
-		return 0, errors.New("Relocatable subtraction yields relocatable with negative offset")
-	}
-	return r.Offset - other.Offset, nil
+ if r.SegmentIndex != other.SegmentIndex {
+  return 0, errors.New("Cant subtract two relocatables with different segment indexes")
+ }
+ if r.Offset < other.Offset {
+  return 0, errors.New("Relocatable subtraction yields relocatable with negative offset")
+ }
+ return r.Offset - other.Offset, nil
 }
 ```
 
@@ -409,12 +409,12 @@ This method subtracts a Felt value to the relocatable's offset by first converti
 // Performs the initial substraction considering the offset as a Felt
 // Fails if the new offset exceeds the size of a uint
 func (r *Relocatable) SubFelt(other lambdaworks.Felt) (Relocatable, error) {
-	new_offset_felt := lambdaworks.FeltFromUint64(uint64(r.Offset)).Sub(other)
-	new_offset, err := new_offset_felt.ToU64()
-	if err != nil {
-		return *r, err
-	}
-	return NewRelocatable(r.SegmentIndex, uint(new_offset)), nil
+ new_offset_felt := lambdaworks.FeltFromUint64(uint64(r.Offset)).Sub(other)
+ new_offset, err := new_offset_felt.ToU64()
+ if err != nil {
+  return *r, err
+ }
+ return NewRelocatable(r.SegmentIndex, uint(new_offset)), nil
 }
 ```
 
@@ -430,38 +430,38 @@ VI. First value is `Relocatable` and other is `Felt`: We call `Relocatable.AddFe
 
 ```go
 func (m MaybeRelocatable) Add(other MaybeRelocatable) (MaybeRelocatable, error) {
-	// check if they are felt
-	m_int, m_is_int := m.GetFelt()
-	other_int, other_is_int := other.GetFelt()
+ // check if they are felt
+ m_int, m_is_int := m.GetFelt()
+ other_int, other_is_int := other.GetFelt()
 
-	if m_is_int && other_is_int {
-		result := NewMaybeRelocatableFelt(m_int.Add(other_int))
-		return *result, nil
-	}
+ if m_is_int && other_is_int {
+  result := NewMaybeRelocatableFelt(m_int.Add(other_int))
+  return *result, nil
+ }
 
-	// check if one is relocatable and the other int
-	m_rel, is_rel_m := m.GetRelocatable()
-	other_rel, is_rel_other := other.GetRelocatable()
+ // check if one is relocatable and the other int
+ m_rel, is_rel_m := m.GetRelocatable()
+ other_rel, is_rel_other := other.GetRelocatable()
 
-	if is_rel_m && !is_rel_other {
-		other_felt, _ := other.GetFelt()
-		relocatable, err := m_rel.AddFelt(other_felt)
-		if err != nil {
-			return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
-		}
-		return *NewMaybeRelocatableRelocatable(relocatable), nil
+ if is_rel_m && !is_rel_other {
+  other_felt, _ := other.GetFelt()
+  relocatable, err := m_rel.AddFelt(other_felt)
+  if err != nil {
+   return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
+  }
+  return *NewMaybeRelocatableRelocatable(relocatable), nil
 
-	} else if !is_rel_m && is_rel_other {
+ } else if !is_rel_m && is_rel_other {
 
-		m_felt, _ := m.GetFelt()
-		relocatable, err := other_rel.AddFelt(m_felt)
-		if err != nil {
-			return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
-		}
-		return *NewMaybeRelocatableRelocatable(relocatable), nil
-	} else {
-		return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), errors.New("RelocatableAdd")
-	}
+  m_felt, _ := m.GetFelt()
+  relocatable, err := other_rel.AddFelt(m_felt)
+  if err != nil {
+   return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
+  }
+  return *NewMaybeRelocatableRelocatable(relocatable), nil
+ } else {
+  return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), errors.New("RelocatableAdd")
+ }
 }
 ```
 
@@ -473,7 +473,7 @@ II. Both values are `Relocatable`: We call `Relocatable.Sub`
 III. First value is `Felt` and other in `Relocatable`: This operation is not supported so we return an error
 VI. First value is `Relocatable` and other is `Felt`: We call `Relocatable.AddFelt`
 
-```
+```go
 // Subtracts two MaybeRelocatable values
 // Behaves as follows:
 // Felt - Felt : Performs felt subtraction
@@ -481,35 +481,35 @@ VI. First value is `Relocatable` and other is `Felt`: We call `Relocatable.AddFe
 // Relocatable - Relocatable : Returns the difference between the two offsets, fails if the difference is negative or if the segment indexes of the two relocatables don't match
 // Felt - Relocatable : Always fails, this is not supported
 func (m MaybeRelocatable) Sub(other MaybeRelocatable) (MaybeRelocatable, error) {
-	// check if they are felt
-	m_int, m_is_int := m.GetFelt()
-	other_felt, other_is_felt := other.GetFelt()
+ // check if they are felt
+ m_int, m_is_int := m.GetFelt()
+ other_felt, other_is_felt := other.GetFelt()
 
-	if m_is_int && other_is_felt {
-		result := NewMaybeRelocatableFelt(m_int.Sub(other_felt))
-		return *result, nil
-	}
+ if m_is_int && other_is_felt {
+  result := NewMaybeRelocatableFelt(m_int.Sub(other_felt))
+  return *result, nil
+ }
 
-	// check if one is relocatable and the other int
-	m_rel, is_rel_m := m.GetRelocatable()
-	other_rel, is_rel_other := other.GetRelocatable()
+ // check if one is relocatable and the other int
+ m_rel, is_rel_m := m.GetRelocatable()
+ other_rel, is_rel_other := other.GetRelocatable()
 
-	if is_rel_m && !is_rel_other {
-		relocatable, err := m_rel.SubFelt(other_felt)
-		if err != nil {
-			return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
-		}
-		return *NewMaybeRelocatableRelocatable(relocatable), nil
+ if is_rel_m && !is_rel_other {
+  relocatable, err := m_rel.SubFelt(other_felt)
+  if err != nil {
+   return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
+  }
+  return *NewMaybeRelocatableRelocatable(relocatable), nil
 
-	} else if is_rel_m && is_rel_other {
-		offset_diff, err := m_rel.Sub(other_rel)
-		if err != nil {
-			return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
-		}
-		return *NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(uint64(offset_diff))), nil
-	} else {
-		return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), errors.New("Cant sub Relocatable from Felt")
-	}
+ } else if is_rel_m && is_rel_other {
+  offset_diff, err := m_rel.Sub(other_rel)
+  if err != nil {
+   return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
+  }
+  return *NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(uint64(offset_diff))), nil
+ } else {
+  return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), errors.New("Cant sub Relocatable from Felt")
+ }
 }
 ```
 
