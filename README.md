@@ -55,13 +55,13 @@ The demo uses cairo_lang to compile both cairo programs, you can install it by r
 To run the fibonacci demo:
 
 ```shell
-    make demo_fib
+make demo_fibonacci
 ```
 
 To run the factorial demo:
 
 ```shell
-    make demo_factorial
+make demo_factorial
 ```
 
 ## Project Guidelines
@@ -71,7 +71,7 @@ To run the factorial demo:
 - To check for security and other types of bugs, the code will be fuzzed extensively.
 - PRs must be accompanied by its corresponding documentation. A book will be written documenting the entire inner workings of it, so anyone can dive in to a Cairo VM codebase and follow it along.
 
-## Roadmap
+## Milestones
 
 ### First milestone: Fibonacci/Factorial
 
@@ -79,16 +79,18 @@ The first milestone for Cairo VM in Go is completed! :tada:
 
 The milestone includes:
 
-- Parsing of `json` programs
-- Decoding of instructions
-- Memory relocation
+- Parsing of `json` programs.
+- Decoding of instructions.
+- Memory relocation.
 - Instruction execution.
 - Writing of the trace into files with the correct format.
 - Make the fibonacci and factorial tests pass, comparing our own trace with the Rust VM one, making sure they match.
 - Writing of the memory into files with the correct format.
 - Make the fibonacci and factorial tests pass, comparing our own memory with the Rust VM one, making sure they match.
 
-## Cairo 0/Cairo 1
+## Roadmap
+
+### Cairo 0/Cairo 1
 
 The above will work for Cairo 0 programs. Cairo 1 has the following extra issues to address:
 
