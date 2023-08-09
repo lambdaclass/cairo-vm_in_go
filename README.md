@@ -1066,7 +1066,7 @@ But what does it mean to use the builtin's auto deduction rules to deduce the va
 
 ##### DeduceMemoryCell
 
-This method will iterate over the builtin runners and try to find a builtin who's base's segment index matches the operand to be deduced's address. That is to say, it checks if the address' belongs to a builtin's segment. If a match is found, it uses the builtin's `DeduceMemoryCell` method to run the builtin's auto-deduction rules and calculare the value of the operand
+This method will iterate over the builtin runners and try to find a builtin who's base's segment index matches the operand to be deduced's address. That is to say, it checks if the address' belongs to a builtin's segment. If a match is found, it uses the builtin's `DeduceMemoryCell` method to run the builtin's auto-deduction rules and calculate the value of the operand
 
 ```go
 // Applies the corresponding builtin's deduction rules if addr's segment index corresponds to a builtin segment
