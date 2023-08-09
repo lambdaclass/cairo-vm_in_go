@@ -358,7 +358,7 @@ These will allow us to safely discern between `Felt` and `Relocatable` values la
 
 #### MaybeRelocatable Operations
 
-Introducing the MaybeRelocatable type means we will have to handle various arithmetic operations between Relocatable, Felt and  MaybeRelocatable types.
+Introducing the MaybeRelocatable type means we will have to handle various arithmetic operations between Relocatable, Felt and MaybeRelocatable types.
 We will start by implementing Add and Sub operations for the `Relocatable` type:
 
 ##### Relocatable.Add
