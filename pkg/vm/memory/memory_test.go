@@ -298,24 +298,21 @@ func TestValidateExistingMemoryForRangeCheckWithinBounds(t *testing.T) {
 
 }
 
-// func TestValidateExistingMemoryForRangeCheckOutsideBounds(t *testing.T) {
-// 	ratio := uint32(8)
-// 	builtin := builtinrunner.NewRangeCheckBuiltinRunner(&ratio, 8, true)
-// 	segments := memory.NewMemorySegmentManager()
-// 	builtin.InitializeSegments(&segments)
-// 	builtin.AddValidationRule(&segments.Memory)
-
-// 	for i := 0; i < 3; i++ {
-// 		segments.AddSegment()
-// 	}
-// 	addr := memory.NewRelocatable(1, 0)
-// 	val := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("5"))
-// 	segments.Memory.Insert(addr, val)
-// 	err := segments.Memory.ValidateAddress(addr)
-// 	if err.Error() != "RangeCheckNumOutOfBounds" {
-// 		t.Error("Should fail with RangeCheckNumOutOfBounds")
-// 	}
-// }
+func TestValidateExistingMemoryForRangeCheckOutsideBounds(t *testing.T) {
+	ratio := uint32(8)
+	builtin := builtinrunner.NewRangeCheckBuiltinRunner(&ratio, 8, true)
+	segments := memory.NewMemorySegmentManager()
+	segments.AddSegment()
+	builtin.InitializeSegments(&segments)
+	addr := memory.NewRelocatable(1, 0)
+	val := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("-10"))
+	segments.Memory.Insert(addr, val)
+	builtin.AddValidationRule(&segments.Memory)
+	err := segments.Memory.ValidateAddress(addr)
+	if err.Error() != "RangeCheckNumOutOfBounds" {
+		t.Error("Should fail with RangeCheckNumOutOfBounds")
+	}
+}
 
 func TestValidateExistingMemoryForRangeCheckRelocatableValue(t *testing.T) {
 	ratio := uint32(8)
