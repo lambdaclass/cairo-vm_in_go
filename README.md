@@ -97,7 +97,7 @@ The above will work for Cairo 0 programs. Cairo 1 has the following extra issues
 - There is no `Json` representation of a Cairo 1 Program, so we can only run contracts. This means we will have to add functions to run cairo contracts (aka implement run_from_entrypoint).
 - Cairo 1 contracts use the `range_check` builtin by default, so we need to implement it.
 
-## Full VM implementation
+### Full VM implementation
 
 To have a full implementation, we will need the following:
 
