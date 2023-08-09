@@ -190,6 +190,65 @@ There are only three registers in the Cairo VM:
 
 TODO: explain the components of an instruction (`dst_reg`, `op0_reg`, etc), what each one is used for and how they're encoded/decoded.
 
+##### Run instruction
+
+```go
+    //TODO
+```
+
+##### Compute operands
+
+```go
+    //TODO
+```
+
+##### Opcode assertions
+
+Once we have the instruction's operands to work with, we have to ensure the correctness of them. The first thing we need to differentiate is which type of instruction are we running, we do this by looking at the instruction's opcode.
+
+The posible opcodes we want to perform assertions on are:
+
+  1. AssertEq instruction
+  2. Call instruction
+
+In the first option, we need to ensure the result operand is not null (nil in this case) and also that the result operand is equal to the dst operand. If any of those things fail, we throw an error.
+
+On the other hand, the Call instruction, what we do first is define our return pc register, we do that adding the size of the instruction to the current pc. Then, we check our operand op0 is equal to the return pc and our dst operand is the same as the return fp register. If any of those things fail, we throw an error.
+
+If this method returns a nil error, it means operands were computed correctly and we are good to go!
+
+```go
+func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Operands) error {
+    switch instruction.Opcode {
+    case AssertEq:
+        if operands.Res == nil {
+            return &VirtualMachineError{"UnconstrainedResAssertEq"}
+        }
+        if !operands.Res.IsEqual(&operands.Dst) {
+            return &VirtualMachineError{"DiffAssertValues"}
+        }
+    case Call:
+        new_rel, err := vm.RunContext.Pc.AddUint(instruction.Size())
+        if err != nil {
+            return err
+        }
+        returnPC := memory.NewMaybeRelocatableRelocatable(new_rel)
+
+        if !operands.Op0.IsEqual(returnPC) {
+            return &VirtualMachineError{"CantWriteReturnPc"}
+        }
+
+        returnFP := vm.RunContext.Fp
+        dstRelocatable, _ := operands.Dst.GetRelocatable()
+        if !returnFP.IsEqual(&dstRelocatable) {
+            return &VirtualMachineError{"CantWriteReturnFp"}
+        }
+    }
+
+    return nil
+}
+```
+
 #### Felts
 
 Felts, or Field Elements, are cairo's basic integer type. Every variable in a cairo vm that is not a pointer is a felt. From our point of view we could say a felt in cairo is an unsigned integer in the range [0, CAIRO_PRIME). This means that all operations are done modulo CAIRO_PRIME. The CAIRO_PRIME is 0x800000000000011000000000000000000000000000000000000000000000001, which means felts can be quite big (up to 252 bits), luckily, we have the [Lambdaworks](https://github.com/lambdaclass/lambdaworks) library to help with handling these big integer values and providing fast and efficient modular arithmetic.
@@ -757,65 +816,6 @@ This method will continuously execute cairo steps until the end pc, returned by 
 
 ```go
     //TODO
-```
-
-##### Run instruction
-
-```go
-    //TODO
-```
-
-##### Compute operands
-
-```go
-    //TODO
-```
-
-##### Opcode assertions
-
-Once we have the instruction's operands to work with, we have to ensure the correctness of them. The first thing we need to differentiate is which type of instruction are we running, we do this by looking at the instruction's opcode.
-
-The posible opcodes we want to perform assertions on are:
-
-  1. AssertEq instruction
-  2. Call instruction
-
-In the first option, we need to ensure the result operand is not null (nil in this case) and also that the result operand is equal to the dst operand. If any of those things fail, we throw an error.
-
-On the other hand, the Call instruction, what we do first is define our return pc register, we do that adding the size of the instruction to the current pc. Then, we check our operand op0 is equal to the return pc and our dst operand is the same as the return fp register. If any of those things fail, we throw an error.
-
-If this method returns a nil error, it means operands were computed correctly and we are good to go!
-
-```go
-func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Operands) error {
-    switch instruction.Opcode {
-    case AssertEq:
-        if operands.Res == nil {
-            return &VirtualMachineError{"UnconstrainedResAssertEq"}
-        }
-        if !operands.Res.IsEqual(&operands.Dst) {
-            return &VirtualMachineError{"DiffAssertValues"}
-        }
-    case Call:
-        new_rel, err := vm.RunContext.Pc.AddUint(instruction.Size())
-        if err != nil {
-            return err
-        }
-        returnPC := memory.NewMaybeRelocatableRelocatable(new_rel)
-
-        if !operands.Op0.IsEqual(returnPC) {
-            return &VirtualMachineError{"CantWriteReturnPc"}
-        }
-
-        returnFP := vm.RunContext.Fp
-        dstRelocatable, _ := operands.Dst.GetRelocatable()
-        if !returnFP.IsEqual(&dstRelocatable) {
-            return &VirtualMachineError{"CantWriteReturnFp"}
-        }
-    }
-
-    return nil
-}
 ```
 
 ##### Update registers
