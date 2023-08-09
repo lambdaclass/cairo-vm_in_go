@@ -570,7 +570,7 @@ Returns true if the value is a Felt that is zero, returns false otherwise
 
 *UpdateFp*
 
-As we already know, the fp (frame pointer) points to the frame of the current function. It can be updated in 4 different ways. A regular fp update means changes to the fp register. An ap plus 2 update consists on asigning the value op ap to fp and increasing it's offset by two (note: in the code below we only asign the offset, as fp and ap live on the execution segment and therefore have the same segment index). A dst fp update consists on performing either a direct or relative jump based on the value of the dst operand. If dst is a relocatable, fp will take the value of dst, if dst is a felt, fp's offset will be increased by the amount given by dst
+As we already know, the fp (frame pointer) points to the frame of the current function. It can be updated in 4 different ways. A regular fp update means no changes to the fp register. An ap plus 2 update consists on asigning the value of ap to fp and increasing it's offset by two (note: in the code below we only assign the offset, as fp and ap live on the execution segment and therefore have the same segment index). A dst fp update consists in performing either a direct or relative jump based on the value of the dst operand. If dst is a relocatable, fp will take the value of dst, if dst is a felt, fp's offset will be increased by the amount given by dst
 
 ```go
 // Updates the value of FP according to the executed instruction
