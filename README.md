@@ -471,7 +471,7 @@ There are four different cases to consider when adding two `MaybeRelocatable` va
 I. Both values are `Felt`: We perform felt subtraction
 II. Both values are `Relocatable`: We call `Relocatable.Sub`
 III. First value is `Felt` and other in `Relocatable`: This operation is not supported so we return an error
-VI. First value is `Relocatable` and other is `Felt`: We call `Relocatable.AddFelt`
+VI. First value is `Relocatable` and other is `Felt`: We call `Relocatable.SubFelt`
 
 ```go
 func (m MaybeRelocatable) Sub(other MaybeRelocatable) (MaybeRelocatable, error) {
