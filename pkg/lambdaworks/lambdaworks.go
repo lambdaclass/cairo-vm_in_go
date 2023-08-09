@@ -88,14 +88,6 @@ func FeltZero() Felt {
 	return fromC(result)
 }
 
-func (f Felt) Zero() Felt {
-	return FeltZero()
-}
-
-func (f Felt) One() Felt {
-	return FeltOne()
-}
-
 func (f Felt) IsZero() bool {
 	return f == FeltZero()
 }

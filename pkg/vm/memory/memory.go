@@ -30,7 +30,7 @@ type Memory struct {
 	ValidatedAdresses AddressSet
 }
 
-var MissingSegmentUsize = errors.New("Segment effective sizes haven't been calculated.")
+var ErrMissingSegmentUsize = errors.New("segment effective sizes haven't been calculated")
 
 func NewMemory() *Memory {
 	return &Memory{
@@ -46,7 +46,7 @@ func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
 	// segment index is negative. This is an edge
 	// case, so for now let's raise an error.
 	if addr.SegmentIndex < 0 {
-		return errors.New("Segment index of key is negative - unimplemented")
+		return errors.New("segment index of key is negative - unimplemented")
 	}
 
 	// Check that insertions are preformed within the memory bounds
@@ -69,7 +69,7 @@ func (m *Memory) Get(addr Relocatable) (*MaybeRelocatable, error) {
 	// segment index is negative. This is an edge
 	// case, so for now let's raise an error.
 	if addr.SegmentIndex < 0 {
-		return nil, errors.New("Segment index of key is negative - unimplemented")
+		return nil, errors.New("segment index of key is negative - unimplemented")
 	}
 
 	// FIXME: We should create a function for this value,
