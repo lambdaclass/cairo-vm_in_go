@@ -495,7 +495,7 @@ After we succesfully computed the value of the operands, its now time to update 
 
 *UpdatePc*
 
-As we already now, the pc (program counter) points to the next instruction in memory. When no jumps take place, the pc is updated to point to the next instruction, by adding the instruction size to it. The instruction size is 1 if there is no immediate value, and two if there is an immediate value following the instruction.
+As we already now, the pc (program counter) points to the next instruction in memory. When no jumps take place, the pc is updated to point to the next instruction by adding the instruction size to it. The instruction size is 1 if there is no immediate value, and two if there is an immediate value following the instruction.
 Cairo also supports 3 different types of jumps. The first one is a regular jump, in which the pc takes the value of the res operand. The next one is a relative jump, in which the pc advances by a number of positions set by the res operand. And the last one is a jump not zero, which performs a relative jump, advancing the number of positions given by op1, if the value of the dst operand is not zero, or perfroms a regular update if the value of the dst operand is zero. The operand will only be zero if it is a Felt value which is zero, relocatable values are never zero.
 
 ```go
@@ -539,6 +539,32 @@ func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands)
 
 	}
 	return nil
+}
+```
+
+Some auxiliary methods were added for this method:
+
+*Instruction.Size*
+
+Returns 1 if the instruction has no immediate value or 2 if it has. We can tell that an instruction has an immediate value if the op1 address is given by the immediate value.
+
+```go
+func (i *Instruction) Size() uint {
+	if i.Op1Addr == Op1SrcImm {
+		return 2
+	}
+	return 1
+}
+```
+
+*MaybeRelocatable.IsZero()*
+
+Returns true if the value is a Felt that is zero, returns false otherwise
+
+```go
+    func (m *MaybeRelocatable) IsZero() bool {
+	felt, is_int := m.GetFelt()
+	return is_int && felt.IsZero()
 }
 ```
 
