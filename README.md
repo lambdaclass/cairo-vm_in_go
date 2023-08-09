@@ -640,7 +640,7 @@ The posible opcodes we want to perform assertions on are:
 
 In the first option, we need to ensure the result operand is not null (nil in this case) and also that the result operand is equal to the destiny operand. If any of those things fail, we throw an error. 
 
-On the other hand, the Call instruction, what we do first is define our return PC register, we do that adding the size of the instruction to the current PC. Then, we check our operand OP0 is equal to the return PC and our destiny operand is the same as the return FP register. If any of those things fail, we throw an error. 
+On the other hand, the Call instruction, what we do first is define our return pc register, we do that adding the size of the instruction to the current pc. Then, we check our operand op0 is equal to the return pc and our dst operand is the same as the return fp register. If any of those things fail, we throw an error. 
 
 If this method returns a nil error, it means operands were computed correctly and we are good to go!
 
