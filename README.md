@@ -397,6 +397,24 @@ func (r *Relocatable) Sub(other Relocatable) (uint, error) {
 }
 ```
 
+*SubFelt*
+
+This method subtracts a Felt value to the relocatable's offset by first converting the relocatable's offset to a Felt, performing felt subtraction between the offset and the felt value, and then converting the new offset to a uint value. This method retruns an error if the new offset is negative or exceeds the size of a uint.
+
+```go
+// Substracts a Felt value from a Relocatable
+// Performs the initial substraction considering the offset as a Felt
+// Fails if the new offset exceeds the size of a uint
+func (r *Relocatable) SubFelt(other lambdaworks.Felt) (Relocatable, error) {
+	new_offset_felt := lambdaworks.FeltFromUint64(uint64(r.Offset)).Sub(other)
+	new_offset, err := new_offset_felt.ToU64()
+	if err != nil {
+		return *r, err
+	}
+	return NewRelocatable(r.SegmentIndex, uint(new_offset)), nil
+}
+```
+
 #### Memory
 
 As we previously described, the memory is made up of a series of segments of variable length, each containing a continuous sequence of `MaybeRelocatable` elements. Memory is also immutable, which means that once we have written a value into memory, it can't be changed.
