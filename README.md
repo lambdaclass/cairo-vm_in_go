@@ -496,7 +496,7 @@ After we succesfully computed the value of the operands, it's now time to update
 *UpdatePc*
 
 As we already know, the pc (program counter) points to the next instruction in memory. When no jumps take place, the pc is updated to point to the next instruction by adding the instruction size to it. The instruction size is 1 if there is no immediate value, and 2 if there is an immediate value following the instruction.
-Cairo also supports 3 different types of jumps. The first one is a regular jump, in which the pc takes the value of the res operand. The next one is a relative jump, in which the pc advances by a number of positions set by the res operand. And the last one is a jump not zero, which performs a relative jump, advancing the number of positions given by op1, if the value of the dst operand is not zero, or perfroms a regular update if the value of the dst operand is zero. The operand will only be zero if it is a Felt value which is zero, relocatable values are never zero.
+Cairo also supports 3 different types of jumps. The first one is a regular jump, in which the pc takes the value of the res operand. The next one is a relative jump, in which the pc advances by a number of positions set by the res operand. And the last one is a jump not zero, which performs a relative jump, advancing the number of positions given by op1, if the value of the dst operand is not zero, or performs a regular update if the value of the dst operand is zero. The operand will only be zero if it is a Felt value which is zero, relocatable values are never zero.
 
 ```go
 // Updates the value of PC according to the executed instruction
