@@ -978,7 +978,11 @@ Once we are done executing, we can relocate our memory & trace and output them i
 
 #### Memory Relocation - function
 
-TODO
+#### Trace Relocation
+
+#### Writing trace into a file
+
+#### Writing memory into a file
 
 #### Builtins
 
