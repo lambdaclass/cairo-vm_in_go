@@ -19,6 +19,8 @@ type CairoRunner struct {
 	mainOffset    uint
 }
 
+var ErrInvalidBuiltin = errors.New("invalid builtin")
+
 func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 	mainIdentifier, ok := (*program.Identifiers)["__main__.main"]
 	main_offset := uint(0)
@@ -32,7 +34,7 @@ func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 		// case "range_check":
 		// 	runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, RangeCheckBuiltin{})
 		default:
-			return nil, errors.New("Invalid builtin")
+			return nil, ErrInvalidBuiltin
 		}
 	}
 

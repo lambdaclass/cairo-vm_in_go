@@ -20,6 +20,8 @@ type Felt struct {
 	limbs [4]Limb
 }
 
+var ErrConversionFeltToUint64 = errors.New("cannot convert felt to u64")
+
 // Converts a Go Felt to a C felt_t.
 func (f Felt) toC() C.felt_t {
 	var result C.felt_t
@@ -68,7 +70,7 @@ func (felt Felt) ToU64() (uint64, error) {
 	if felt.limbs[0] == 0 && felt.limbs[1] == 0 && felt.limbs[2] == 0 {
 		return uint64(felt.limbs[3]), nil
 	} else {
-		return 0, errors.New("Cannot convert felt to u64")
+		return 0, ErrConversionFeltToUint64
 	}
 }
 

@@ -15,6 +15,9 @@ type RunContext struct {
 	Fp memory.Relocatable
 }
 
+var ErrUnknownOp0 = errors.New("unkonwn op0")
+var ErrAddressNotRelocatable = errors.New("AddressNotRelocatable")
+
 func (run_context RunContext) ComputeDstAddr(instruction Instruction) (memory.Relocatable, error) {
 	var base_addr memory.Relocatable
 	switch instruction.DstReg {
@@ -65,13 +68,13 @@ func (run_context RunContext) ComputeOp1Addr(instruction Instruction, op0 *memor
 		}
 	case Op1SrcOp0:
 		if op0 == nil {
-			return memory.Relocatable{}, errors.New("Unknown Op0")
+			return memory.Relocatable{}, ErrUnknownOp0
 		}
 		rel, is_rel := op0.GetRelocatable()
 		if is_rel {
 			base_addr = rel
 		} else {
-			return memory.Relocatable{}, errors.New("AddressNotRelocatable")
+			return memory.Relocatable{}, ErrAddressNotRelocatable
 		}
 	}
 

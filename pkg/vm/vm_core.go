@@ -12,6 +12,13 @@ type VirtualMachineError struct {
 	Msg string
 }
 
+var ErrWrongInstructionEncoding = errors.New("wrong instruction encoding")
+var ErrFailedToFetchInstruction = errors.New("failed to fetch instruction in address")
+var ErrNoRelocationFoundSegment = errors.New("no relocation found for execution segment")
+var ErrTraceNotRelocated = errors.New("trace not relocated")
+var ErrUnconstraintRes = errors.New("UnconstrainedRes")
+var ErrDiffAssertValues = errors.New("diff assert values")
+
 func (e *VirtualMachineError) Error() string {
 	return fmt.Sprintf(e.Msg)
 }
@@ -38,12 +45,12 @@ func NewVirtualMachine() *VirtualMachine {
 func (v *VirtualMachine) Step() error {
 	encoded_instruction, err := v.Segments.Memory.Get(v.RunContext.Pc)
 	if err != nil {
-		return fmt.Errorf("Failed to fetch instruction at %+v", v.RunContext.Pc)
+		return ErrFailedToFetchInstruction
 	}
 
 	encoded_instruction_felt, ok := encoded_instruction.GetFelt()
 	if !ok {
-		return errors.New("Wrong instruction encoding")
+		return ErrWrongInstructionEncoding
 	}
 
 	encoded_instruction_uint, err := encoded_instruction_felt.ToU64()
@@ -84,7 +91,7 @@ func (v *VirtualMachine) RunInstruction(instruction *Instruction) error {
 // Relocates the VM's trace, turning relocatable registers to numbered ones
 func (v *VirtualMachine) RelocateTrace(relocationTable *[]uint) error {
 	if len(*relocationTable) < 2 {
-		return errors.New("No relocation found for execution segment")
+		return ErrNoRelocationFoundSegment
 	}
 
 	for _, entry := range v.Trace {
@@ -102,7 +109,7 @@ func (v *VirtualMachine) GetRelocatedTrace() ([]RelocatedTraceEntry, error) {
 	if len(v.RelocatedTrace) > 0 {
 		return v.RelocatedTrace, nil
 	} else {
-		return nil, errors.New("Trace not relocated")
+		return nil, ErrTraceNotRelocated
 	}
 }
 
@@ -138,10 +145,10 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 	switch instruction.Opcode {
 	case AssertEq:
 		if operands.Res == nil {
-			return &VirtualMachineError{"UnconstrainedResAssertEq"}
+			return ErrUnconstraintRes
 		}
 		if !operands.Res.IsEqual(&operands.Dst) {
-			return &VirtualMachineError{"DiffAssertValues"}
+			return ErrDiffAssertValues
 		}
 	case Call:
 		new_rel, err := vm.RunContext.Pc.AddUint(instruction.Size())
@@ -151,12 +158,14 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 		returnPC := memory.NewMaybeRelocatableRelocatable(new_rel)
 
 		if !operands.Op0.IsEqual(returnPC) {
+			return ErrCantWriteReturnPC
 			return &VirtualMachineError{"CantWriteReturnPc"}
 		}
 
 		returnFP := vm.RunContext.Fp
 		dstRelocatable, _ := operands.Dst.GetRelocatable()
 		if !returnFP.IsEqual(&dstRelocatable) {
+			return ErrCantWriteReturnFP
 			return &VirtualMachineError{"CantWriteReturnFp"}
 		}
 	}
@@ -251,6 +260,7 @@ func (vm *VirtualMachine) ComputeRes(instruction Instruction, op0 memory.MaybeRe
 			result := memory.NewMaybeRelocatableFelt(num_op0.Mul(num_op1))
 			return result, nil
 		} else {
+			return nil, ErrComputeResRelocatableMul
 			return nil, errors.New("ComputeResRelocatableMul")
 		}
 
@@ -265,18 +275,21 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 
 	dst_addr, err := vm.RunContext.ComputeDstAddr(instruction)
 	if err != nil {
+		return Operands{}, ErrFailedToComputeOperandAddress
 		return Operands{}, errors.New("FailedToComputeDstAddr")
 	}
 	dst, _ := vm.Segments.Memory.Get(dst_addr)
 
 	op0_addr, err := vm.RunContext.ComputeOp0Addr(instruction)
 	if err != nil {
+		return Operands{}, ErrFailedToComputeOperandAddress
 		return Operands{}, fmt.Errorf("FailedToComputeOp0Addr: %s", err)
 	}
 	op0, _ := vm.Segments.Memory.Get(op0_addr)
 
 	op1_addr, err := vm.RunContext.ComputeOp1Addr(instruction, op0)
 	if err != nil {
+		return Operands{}, ErrFailedToComputeOperandAddress
 		return Operands{}, fmt.Errorf("FailedToComputeOp1Addr: %s", err)
 	}
 	op1, _ := vm.Segments.Memory.Get(op1_addr)
