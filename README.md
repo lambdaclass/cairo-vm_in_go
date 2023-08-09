@@ -36,7 +36,7 @@ make run
 
 Before running the tests, install the testing dependencies:
 
-```
+```shell
 make deps
 ```
 
@@ -71,9 +71,9 @@ To run the factorial demo:
 - To check for security and other types of bugs, the code will be fuzzed extensively.
 - PRs must be accompanied by its corresponding documentation. A book will be written documenting the entire inner workings of it, so anyone can dive in to a Cairo VM codebase and follow it along.
 
-# Roadmap
+## Roadmap
 
-## First milestone: Fibonacci/Factorial
+### First milestone: Fibonacci/Factorial
 
 What we have:
 
@@ -85,6 +85,7 @@ What we have:
 - Make the fibonacci and factorial tests pass, comparing our own trace with the Rust VM one, making sure they match.
 
 What we need to finish this milestone:
+
 - Writing of the memory into files with the correct format.
 - Make the fibonacci and factorial tests pass, comparing our own memory with the Rust VM one, making sure they match.
 
@@ -100,42 +101,42 @@ The above will work for Cairo 0 programs. Cairo 1 has the following extra issues
 To have a full implementation, we will need the following:
 
 - Builtins. Add the `BuiltinRunner` logic, then implement each builtin:
-    - `Range check (RC)`
-    - `Output`
-    - `Bitwise`
-    - `Ec_op`
-    - `Pedersen`
-    - `Keccak`
-    - `Poseidon`
-    - `Signature`
-    - `Segment Arena`
+  - `Range check (RC)`
+  - `Output`
+  - `Bitwise`
+  - `Ec_op`
+  - `Pedersen`
+  - `Keccak`
+  - `Poseidon`
+  - `Signature`
+  - `Segment Arena`
 - Memory layouts. This is related to builtins but we will do it after implementing them.
 - Hints. Add the `HintProcessor` logic, then implement each hint. Hints need to be documented extensively, implementing them is super easy since it's just porting code; what's not so clear is what they are used for. Having explanations and examples for each is important. List of hints below:
-    - Parsing of references https://github.com/lambdaclass/cairo-vm/tree/main/docs/references_parsing
-    - `CommonLib` https://github.com/starkware-libs/cairo-lang/tree/master/src/starkware/cairo/common
-    - `Secp`
-    - `Vrf`
-    - `BigInt`
-    - `Blake2`
-    - `DictManager`
-    - `EcRecover`
-    - `Field Arithmetic`
-    - `Garaga`
-    - `set_add`
-    - `sha256 utils`
-    - `ECDSA verification`
-    - `uint384` and `uint384 extension`
-    - `uint512 utils`
-    - `Cairo 1` hints.
+  - [Parsing of references](https://github.com/lambdaclass/cairo-vm/tree/main/docs/references_parsing)
+  - [`CommonLib`](https://github.com/starkware-libs/cairo-lang/tree/master/src/starkware/cairo/common)
+  - `Secp`
+  - `Vrf`
+  - `BigInt`
+  - `Blake2`
+  - `DictManager`
+  - `EcRecover`
+  - `Field Arithmetic`
+  - `Garaga`
+  - `set_add`
+  - `sha256 utils`
+  - `ECDSA verification`
+  - `uint384` and `uint384 extension`
+  - `uint512 utils`
+  - `Cairo 1` hints.
 - Proof mode. It's important to explain in detail what this is when we do it. It's one of the most obscure parts of the VM in my experience.
 - Air Public inputs. (Tied to Proof-mode)
 - Temporary segments.
 - Program tests from Cairo VM in Rust.
 - Fuzzing/Differential fuzzing.
 
-# Documentation
+## Documentation
 
-## High Level Overview
+### High Level Overview
 
 The Cairo virtual machine is meant to be used in the context of STARK validity proofs. What this means is that the point of Cairo is not just to execute some code and get a result, but to *prove* to someone else that said execution was done correctly, without them having to re-execute the entire thing. The rough flow for it looks like this:
 
@@ -153,7 +154,7 @@ The main three components of this flow are:
 
 While this repo is only concerned with the second component, it's important to keep in mind the other two; especially important are the prover and verifier that this VM feeds its trace to, as a lot of its design decisions come from them. This virtual machine is designed to make proving and verifying both feasible and fast, and that makes it quite different from most other VMs you are probably used to.
 
-## Basic VM flow
+### Basic VM flow
 
 Our virtual machine has a very simple flow:
 
@@ -164,11 +165,11 @@ Our virtual machine has a very simple flow:
 
 Barring some simplifications we made, this is all the Cairo VM does. The two main things that stand out as radically different are the memory model and the use of `Field Elements` to perform arithmetic. Below we go into more detail on each step, and in the process explain the ommisions we made.
 
-## Architecture
+### Architecture
 
 The Cairo virtual machine uses a Von Neumann architecture with a Non-deterministic read-only memory. What this means, roughly, is that memory is immutable after you've written to it (i.e. you can only write to it once); this is to make the STARK proving easier, but we won't go into that here.
 
-### Memory Segments and Relocation
+#### Memory Segments and Relocation
 
 The process of memory allocation in a contiguous write-once memory region can get pretty complicated. Imagine you want to have a regular call stack, with a stack pointer pointing to the top of it and allocation and deallocation of stack frames and local variables happening throughout execution. Because memory is immutable, this cannot be done the usual way; once you allocate a new stack frame that memory is set, it can't be reused for another one later on.
 
@@ -178,7 +179,7 @@ Memory `cells` (i.e. values in memory) are identified by the index of the segmen
 
 Even though this segment model is extremely convenient for the VM's execution, the STARK prover needs to have the memory as just one contiguous region. Because of this, once execution of a Cairo program finishes, all the memory segments are collapsed into one; this process is called `Relocation`. We will go into more detail on all of this below.
 
-### Registers
+#### Registers
 
 There are only three registers in the Cairo VM:
 
@@ -186,20 +187,20 @@ There are only three registers in the Cairo VM:
 - The allocation pointer `ap`, pointing to the next unused memory cell.
 - The frame pointer `fp`, pointing to the base of the current stack frame. When a new function is called, `fp` is set to the current `ap`. When the function returns, `fp` goes back to its previous value. The VM creates new segments whenever dynamic allocation is needed, so for example the cairo analog to a Rust `Vec` will have its own segment. Relocation at the end meshes everything together.
 
-### Instruction Decoding/Execution
+#### Instruction Decoding/Execution
 
 TODO: explain the components of an instruction (`dst_reg`, `op0_reg`, etc), what each one is used for and how they're encoded/decoded.
 
-### Felts
+#### Felts
 
 Felts, or Field Elements, are cairo's basic integer type. Every variable in a cairo vm that is not a pointer is a felt. From our point of view we could say a felt in cairo is an unsigned integer in the range [0, CAIRO_PRIME). This means that all operations are done modulo CAIRO_PRIME. The CAIRO_PRIME is 0x800000000000011000000000000000000000000000000000000000000000001, which means felts can be quite big (up to 252 bits), luckily, we have the [Lambdaworks](https://github.com/lambdaclass/lambdaworks) library to help with handling these big integer values and providing fast and efficient modular arithmetic.
 
-### Lambdaworks library wrapper 
+#### Lambdaworks library wrapper
 
 [Lambdaworks](https://github.com/lambdaclass/lambdaworks) is a custom performance-focused library that aims to ease programming for developers. It provides essential mathematical and cryptographic methods required for this project, enabling arithmetic operations between `felts` and type conversions efficiently.
 We've developed a C wrapper to expose the library's functions and enable easy usage from Go. This allows seamless integration of the library's features within Go projects, enhancing performance and functionality.
 
-### More on memory
+#### More on memory
 
 The cairo memory is made up of contiguous segments of variable length identified by their index. The first segment (index 0) is the program segment, which stores the instructions of a cairo program. The following segment (index 1) is the execution segment, which holds the values that are created along the execution of the vm, for example, when we call a function, a pointer to the next instruction after the call instruction will be stored in the execution segment which will then be used to find the next instruction after the function returns. The following group of segments are the builtin segments, one for each builtin used by the program, and which hold values used by the builtin runners. The last group of segments are the user segments, which represent data structures created by the user, for example, when creating an array on a cairo program, that array will be represented in memory as its own segment.
 
@@ -209,13 +210,13 @@ As the cairo memory can hold both felts and pointers, the basic memory unit is a
 
 While memory is continous, some gaps may be present. These gaps can be created on purpose by the user, for example by running:
 
-```
+```text
 [ap + 1] = 2;
 ```
 
 Where a gap is created at ap. But they may also be created indireclty by diverging branches, as for example one branch may declare a variable that the other branch doesn't, as memory needs to be allocated for both cases if the second case is ran then a gap is left where the variable should have been written.
 
-#### Memory API
+##### Memory API
 
 The memory can perform the following basic operations:
 
@@ -229,7 +230,7 @@ Other operations:
 
 - `memory_load_data`: This is a convenience method, which takes an array of `maybe_relocatable` and inserts them contiguosuly in memory by calling `memory_insert` and advancing the pointer by one after each insertion. Returns a pointer to the next free memory slot after the inserted data.
 
-#### Memory Relocation
+##### Memory Relocation
 
 During execution, the memory consists of segments of varying length, and they can be accessed by indicating their segment index, and the offset within that segment. When the run is finished, a relocation process takes place, which transforms this segmented memory into a contiguous list of values. The relocation process works as follows:
 
@@ -239,6 +240,7 @@ During execution, the memory consists of segments of varying length, and they ca
 
 For example, if we have this memory represented by address, value pairs:
 
+```text
     0:0 -> 1
     0:1 -> 4
     0:2 -> 7
@@ -246,21 +248,27 @@ For example, if we have this memory represented by address, value pairs:
     1:1 -> 0:2
     1:4 -> 0:1
     2:0 -> 1
+```
 
 Step 1: Calculate segment sizes:
 
+```text
     0 --(has size)--> 3
     1 --(has size)--> 5
     2 --(has size)--> 1
+```
 
 Step 2: Assign a base to each segment:
 
+```text
     0 --(has base value)--> 1
     1 --(has base value)--> 4 (that is: 1 + 3)
     2 --(has base value)--> 9 (that is: 4 + 5)
+```
 
 Step 3: Convert relocatables to integers
 
+```text
     1 (base[0] + 0) -> 1
     2 (base[0] + 1) -> 4
     3 (base[0] + 2) -> 7
@@ -269,69 +277,65 @@ Step 3: Convert relocatables to integers
     .... (memory gaps)
     8 (base[1] + 4) -> 2 (that is: base[0] + 1)
     9 (base[2] + 0) -> 1
+```
 
-### Program parsing
+#### Program parsing
 
 The input of the Virtual Machine is a compiled Cairo program in Json format. The main part of the file are listed below:
 
-- data: List of hexadecimal values that represent the instructions and immediate values defined in the cairo program. Each hexadecimal value is stored as a maybe_relocatable element in memory, but they can only be felts because the decoder has to be able to get the instruction fields in its bit representation.
-
-- debug_info: This field provides information about the instructions defined in the data list. Each one is identified with its index inside the data list. For each one it contains information about the cairo variables in scope, the hints executed before that instruction if any, and its location inside the cairo program.
-
-- hints: All the hints used in the program, ordered by the pc offset at which they should be executed.
-
-- identifiers: User-defined symbols in the Cairo code representing variables, functions, classes, etc. with unique names. The expected offset, type and its corresponding information is provided for each identifier
+- **data:** List of hexadecimal values that represent the instructions and immediate values defined in the cairo program. Each hexadecimal value is stored as a maybe_relocatable element in memory, but they can only be felts because the decoder has to be able to get the instruction fields in its bit representation.
+- **debug_info:** This field provides information about the instructions defined in the data list. Each one is identified with its index inside the data list. For each one it contains information about the cairo variables in scope, the hints executed before that instruction if any, and its location inside the cairo program.
+- **hints:** All the hints used in the program, ordered by the pc offset at which they should be executed.
+- **identifiers:** User-defined symbols in the Cairo code representing variables, functions, classes, etc. with unique names. The expected offset, type and its corresponding information is provided for each identifier
 
     For example, the identifier representing the main function (usually the entrypoint of the program) is of `function` type, and a list of decorators wrappers (if there are any) are provided as additional information.
     Another example is a user defined struct, is of `struct` type, it provides its size, the members it contains (with its information) and more.
 
-- main_scope: Usually something like __main__. All the identifiers associated with main function will be identified as __main__.identifier_name. Useful to identify the entrypoint of the program.
-
-- prime: The cairo prime in hexadecimal format. As explained above, all arithmetic operations are done over a base field, modulo this primer number.
-
-- reference_manager: Contains information about cairo variables. This information is useful to access to variables when executing cairo hints.
+- **main_scope:** Usually something like `__main__`. All the identifiers associated with main function will be identified as `__main__`.identifier_name. Useful to identify the entrypoint of the program.
+- **prime:** The cairo prime in hexadecimal format. As explained above, all arithmetic operations are done over a base field, modulo this primer number.
+- **reference_manager:** Contains information about cairo variables. This information is useful to access to variables when executing cairo hints.
 
 In this project, we use a C++ library called [simdjson](https://github.com/simdjson/simdjson), the json is stored in a custom structure  which the vm can use to run the program and create a trace of its execution.
 
-### Code walkthrough/Write your own Cairo VM
+#### Code walkthrough/Write your own Cairo VM
 
 Let's begin by creating the basic types and structures for our VM:
 
-### Felt
+#### Felt
 
 As anyone who has ever written a cairo program will know, everything in cairo is a Felt. We can think of it as our unsigned integer. In this project, we use the `Lambdaworks` library to abstract ourselves from modular arithmetic.
 
 TODO: Instructions on how to use Lambdaworks felt from Go
 
-### Relocatable
+#### Relocatable
 
 This is how cairo represents pointers, they are made up of `SegmentIndex`, which segment the variable is in, and `Offset`, how many values exist between the start of a segment and the variable. We represent them like this:
 
 ```go
 type Relocatable struct {
-	SegmentIndex int
-	Offset       uint
+    SegmentIndex int
+    Offset       uint
 }
 ```
 
-### MaybeRelocatable
+#### MaybeRelocatable
 
 As the cairo memory can hold both felts and relocatables, we need a data type that can represent both in order to represent a basic memory unit.
 We would normally use enums or unions to represent this type, but as go lacks both, we will instead hold a non-typed inner value and rely on the api to make sure we can only create MaybeRelocatable values with either Felt or Relocatable as inner type.
 
 ```go
 type MaybeRelocatable struct {
-	inner any
+    inner any
 }
 
 // Creates a new MaybeRelocatable with an Int inner value
 func NewMaybeRelocatableInt(felt uint) *MaybeRelocatable {
-	return &MaybeRelocatable{inner: Int{felt}}
+    return &MaybeRelocatable{inner: Int{felt}}
 }
 
 // Creates a new MaybeRelocatable with a Relocatable inner value
 func NewMaybeRelocatableRelocatable(relocatable Relocatable) *MaybeRelocatable {
-	return &MaybeRelocatable{inner: relocatable}
+    return &MaybeRelocatable{inner: relocatable}
 }
 ```
 
@@ -340,14 +344,14 @@ We will also add some methods that will allow us access `MaybeRelocatable` inner
 ```go
 // If m is Int, returns the inner value + true, if not, returns zero + false
 func (m *MaybeRelocatable) GetInt() (Int, bool) {
-	int, is_type := m.inner.(Int)
-	return int, is_type
+    int, is_type := m.inner.(Int)
+    return int, is_type
 }
 
 // If m is Relocatable, returns the inner value + true, if not, returns zero + false
 func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
-	rel, is_type := m.inner.(Relocatable)
-	return rel, is_type
+    rel, is_type := m.inner.(Relocatable)
+    return rel, is_type
 }
 ```
 
@@ -361,100 +365,101 @@ As we don't have an actual representation of segments, we have to keep track of 
 
 ```go
 type Memory struct {
-	data         map[Relocatable]MaybeRelocatable
-	num_segments uint
+    data         map[Relocatable]MaybeRelocatable
+    num_segments uint
 }
 ```
 
 Now we can define the basic memory operations:
 
-*Insert*
+##### Insert
 
 Here we need to make perform some checks to make sure that the memory remains consistent with its rules:
+
 - We must check that insertions are performed on previously-allocated segments, by checking that the address's segment_index is lower than our segment counter
 - We must check that we are not mutating memory we have previously written, by checking that the memory doesn't already contain a value at that address that is not equal to the one we are inserting
 
 ```go
 func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
-	// Check that insertions are preformed within the memory bounds
-	if addr.segmentIndex >= int(m.num_segments) {
-		return errors.New("Error: Inserting into a non allocated segment")
-	}
+    // Check that insertions are preformed within the memory bounds
+    if addr.segmentIndex >= int(m.num_segments) {
+        return errors.New("Error: Inserting into a non allocated segment")
+    }
 
-	// Check for possible overwrites
-	prev_elem, ok := m.data[addr]
-	if ok && prev_elem != *val {
-		return errors.New("Memory is write-once, cannot overwrite memory value")
-	}
+    // Check for possible overwrites
+    prev_elem, ok := m.data[addr]
+    if ok && prev_elem != *val {
+        return errors.New("Memory is write-once, cannot overwrite memory value")
+    }
 
-	m.data[addr] = *val
+    m.data[addr] = *val
 
-	return nil
+    return nil
 }
 ```
 
-*Get*
+##### Get
 
 This is the easiest operation, as we only need to fetch the value from our map:
 
 ```go
 // Gets some value stored in the memory address `addr`.
 func (m *Memory) Get(addr Relocatable) (*MaybeRelocatable, error) {
-	value, ok := m.data[addr]
+    value, ok := m.data[addr]
 
-	if !ok {
-		return nil, errors.New("Memory Get: Value not found")
-	}
+    if !ok {
+        return nil, errors.New("Memory Get: Value not found")
+    }
 
-	return &value, nil
+    return &value, nil
 }
 ```
 
-### MemorySegmentManager
+#### MemorySegmentManager
 
 In our `Memory` implementation, it looks like we need to have segments allocated before performing any valid memory operation, but we can't do so from the `Memory` api. To do so, we need to use the `MemorySegmentManager`.
 The `MemorySegmentManager` is in charge of creating new segments and calculating their size during the relocation process, it has the following structure:
 
 ```go
 type MemorySegmentManager struct {
-	segmentSizes map[uint]uint
-	Memory       Memory
+    segmentSizes map[uint]uint
+    Memory       Memory
 }
 ```
 
 And the following methods:
 
-*Add Segment*
+##### Add Segment
 
 As we are using a map, we dont have to allocate memory for the new segment, so we only have to raise our segment counter and return the first address of the new segment:
 
 ```go
 func (m *MemorySegmentManager) AddSegment() Relocatable {
-	ptr := Relocatable{int(m.Memory.num_segments), 0}
-	m.Memory.num_segments += 1
-	return ptr
+    ptr := Relocatable{int(m.Memory.num_segments), 0}
+    m.Memory.num_segments += 1
+    return ptr
 }
 ```
 
-*Load Data*
+##### Load Data
 
 This method inserts a contiguous array of values starting from a certain addres in memory, and returns the next address after the inserted values. This is useful when inserting the program's instructions in memory.
 In order to perform this operation, we only need to iterate over the array, inserting each value at the address indicated by `ptr` while advancing the ptr with each iteration and then return the final ptr.
 
 ```go
 func (m *MemorySegmentManager) LoadData(ptr Relocatable, data *[]MaybeRelocatable) (Relocatable, error) {
-	for _, val := range *data {
-		err := m.Memory.Insert(ptr, &val)
-		if err != nil {
-			return Relocatable{0, 0}, err
-		}
-		ptr.offset += 1
-	}
-	return ptr, nil
+    for _, val := range *data {
+        err := m.Memory.Insert(ptr, &val)
+        if err != nil {
+            return Relocatable{0, 0}, err
+        }
+        ptr.offset += 1
+    }
+    return ptr, nil
 }
 ```
 
-### RunContext
+#### RunContext
 
 The RunContext keeps track of the vm's registers. Cairo VM only has 3 registers:
 
@@ -466,49 +471,50 @@ We can represent it like this:
 
 ```go
 type RunContext struct {
-	Pc memory.Relocatable
-	Ap memory.Relocatable
-	Fp memory.Relocatable
+    Pc memory.Relocatable
+    Ap memory.Relocatable
+    Fp memory.Relocatable
 }
 ```
 
-### VirtualMachine
+#### VirtualMachine
+
 With all of these types and structures defined, we can build our VM:
 
 ```go
 type VirtualMachine struct {
-	RunContext     RunContext
-	currentStep    uint
-	Segments       memory.MemorySegmentManager
+    RunContext     RunContext
+    currentStep    uint
+    Segments       memory.MemorySegmentManager
 }
 ```
 
 To begin coding the basic execution functionality of our VM, we only need these basic fields, we will be adding more fields as we dive deeper into this guide.
 
-### Instruction Decoding and Execution
+#### Instruction Decoding and Execution
 
-### CairoRunner
+#### CairoRunner
 
 Now that can can execute cairo steps, lets look at the VM's initialization step.
 We will begin by creating our `CairoRunner`:
 
 ```go
 type CairoRunner struct {
-	Program       vm.Program
-	Vm            vm.VirtualMachine
-	ProgramBase   memory.Relocatable
-	executionBase memory.Relocatable
-	initialPc     memory.Relocatable
-	initialAp     memory.Relocatable
-	initialFp     memory.Relocatable
-	finalPc       memory.Relocatable
-	mainOffset    uint
+    Program       vm.Program
+    Vm            vm.VirtualMachine
+    ProgramBase   memory.Relocatable
+    executionBase memory.Relocatable
+    initialPc     memory.Relocatable
+    initialAp     memory.Relocatable
+    initialFp     memory.Relocatable
+    finalPc       memory.Relocatable
+    mainOffset    uint
 }
 
 func NewCairoRunner(program vm.Program) *CairoRunner {
     // TODO line below is fake
-	main_offset := program.identifiers["__main__.main"]
-	return &CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
+    main_offset := program.identifiers["__main__.main"]
+    return &CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
 
 }
 ```
@@ -518,87 +524,87 @@ Now we will create our `Initialize` method step by step:
 ```go
 // Performs the initialization step, returns the end pointer (pc upon which execution should stop)
 func (r *CairoRunner) Initialize() (memory.Relocatable, error) {
-	r.initializeSegments()
-	end, err := r.initializeMainEntrypoint()
-	r.initializeVM()
-	return end, err
+    r.initializeSegments()
+    end, err := r.initializeMainEntrypoint()
+    r.initializeVM()
+    return end, err
 }
 ```
 
-*InitializeSegments*
+##### InitializeSegments
 
 This method will create our program and execution segments
 
 ```go
 func (r *CairoRunner) initializeSegments() {
-	// Program Segment
-	r.ProgramBase = r.Vm.Segments.AddSegment()
-	// Execution Segment
-	r.executionBase = r.Vm.Segments.AddSegment()
+    // Program Segment
+    r.ProgramBase = r.Vm.Segments.AddSegment()
+    // Execution Segment
+    r.executionBase = r.Vm.Segments.AddSegment()
 }
 ```
 
-*initializeMainEntrypoint*
+##### initializeMainEntrypoint
 
 This method will initialize the memory and initial register values to begin execution from the main entrypoint, and return the final pc
 
 ```go
 func (r *CairoRunner) initializeMainEntrypoint() (memory.Relocatable, error) {
-	stack := make([]memory.MaybeRelocatable, 0, 2)
-	return_fp := r.Vm.Segments.AddSegment()
-	return r.initializeFunctionEntrypoint(r.mainOffset, &stack, return_fp)
+    stack := make([]memory.MaybeRelocatable, 0, 2)
+    return_fp := r.Vm.Segments.AddSegment()
+    return r.initializeFunctionEntrypoint(r.mainOffset, &stack, return_fp)
 }
 ```
 
-*initializeFunctionEntrypoint*
+##### initializeFunctionEntrypoint
 
-This method will initialize the memory and initial register values to execute a cairo function given its offset within the program segment (aka entrypoint) and return the final pc. In our case, this function will be the main entrypoint, but later on we will be able to use this method to run starknet contract entrypoints. 
+This method will initialize the memory and initial register values to execute a cairo function given its offset within the program segment (aka entrypoint) and return the final pc. In our case, this function will be the main entrypoint, but later on we will be able to use this method to run starknet contract entrypoints.
 The stack will then be loaded into the execution segment in the next method. For now, the stack will be empty, but later on it will contain the builtin bases (which are the arguments for the main function), and the function arguments when running a function from a starknet contract.
 
 ```go
 func (r *CairoRunner) initializeFunctionEntrypoint(entrypoint uint, stack *[]memory.MaybeRelocatable, return_fp memory.Relocatable) (memory.Relocatable, error) {
-	end := r.Vm.Segments.AddSegment()
-	*stack = append(*stack, *memory.NewMaybeRelocatableRelocatable(end), *memory.NewMaybeRelocatableRelocatable(return_fp))
-	r.initialFp = r.executionBase
-	r.initialFp.Offset += uint(len(*stack))
-	r.initialAp = r.initialFp
-	r.finalPc = end
-	return end, r.initializeState(entrypoint, stack)
+    end := r.Vm.Segments.AddSegment()
+    *stack = append(*stack, *memory.NewMaybeRelocatableRelocatable(end), *memory.NewMaybeRelocatableRelocatable(return_fp))
+    r.initialFp = r.executionBase
+    r.initialFp.Offset += uint(len(*stack))
+    r.initialAp = r.initialFp
+    r.finalPc = end
+    return end, r.initializeState(entrypoint, stack)
 }
 ```
 
-*InitializeState*
+##### InitializeState
 
 This method will be in charge of loading the program data into the program segment and the stack into the execution segment
 
 ```go
 func (r *CairoRunner) initializeState(entrypoint uint, stack *[]memory.MaybeRelocatable) error {
-	r.initialPc = r.ProgramBase
-	r.initialPc.Offset += entrypoint
-	// Load program data
-	_, err := r.Vm.Segments.LoadData(r.ProgramBase, &r.Program.Data)
-	if err == nil {
-		_, err = r.Vm.Segments.LoadData(r.executionBase, stack)
-	}
-	return err
+    r.initialPc = r.ProgramBase
+    r.initialPc.Offset += entrypoint
+    // Load program data
+    _, err := r.Vm.Segments.LoadData(r.ProgramBase, &r.Program.Data)
+    if err == nil {
+        _, err = r.Vm.Segments.LoadData(r.executionBase, stack)
+    }
+    return err
 }
 ```
 
-*initializeVm*
+##### initializeVm (CairoRunner)
 
 This method will set the values of the VM's `RunContext` with our `CairoRunner`'s initial values
 
 ```go
 func (r *CairoRunner) initializeVM() {
-	r.Vm.RunContext.Ap = r.initialAp
-	r.Vm.RunContext.Fp = r.initialFp
-	r.Vm.RunContext.Pc = r.initialPc
+    r.Vm.RunContext.Ap = r.initialAp
+    r.Vm.RunContext.Fp = r.initialFp
+    r.Vm.RunContext.Pc = r.initialPc
 }
 ```
 
 With `CairoRunner.Initialize()` now complete we can move on to the execution step:
 
-*RunUntilPc*
+##### RunUntilPc
 
 This method will continuously execute cairo steps until the end pc, returned by 'CairoRunner.Initialize()' is reached
 
@@ -608,10 +614,11 @@ This method will continuously execute cairo steps until the end pc, returned by 
 
 Once we are done executing, we can relocate our memory & trace and output them into files
 
-### Memory Relocation
+#### Memory Relocation - function
+
 TODO
 
-### Builtins
+#### Builtins
 
 Now that we are able to run a basic fibonacci program, lets step up our game by adding builtins to our VM. A builtin is a low level optimization integrated into the core loop of the VM that allows otherwise expensive computation to be performed more efficiently. Builtins have two ways to operate: via validation rules and via auto-deduction rules. Validation rules are applied to every element that is inserted into a builtin's segment. For example, if I want to verify an ecdsa signature, I can insert it into the ecdsa builtin's segment and let a validation rule take care of verifying the signature. Auto-deduction rules take over during instruction execution, when we can't compute the value of an operand who's address belongs to a builtin segment, we can use that builtin's auto-deduction rule to calculate the value of the operand. For example, If I want to calculate the pedersen hash of two values, I can write the values into the pedersen builtin's segment and then ask for the next memory cell, without builtins, this instruction would have failed, as there is no value stored in that cell, but now we can use auto-deduction rules to calculate the hash and fill in that memory cell.
 
@@ -619,20 +626,20 @@ We will define a basic interface to generalize all of our builtin's behaviour:
 
 ```go
 type BuiltinRunner interface {
-	// Returns the first address of the builtin's memory segment
-	Base() memory.Relocatable
-	// Returns the name of the builtin
-	Name() string
-	// Creates a memory segment for the builtin and initializes its base
-	InitializeSegments(*memory.MemorySegmentManager)
-	// Returns the builtin's initial stack
-	InitialStack() []memory.MaybeRelocatable
-	// Attempts to deduce the value of a memory cell given by its address. Can return either a nil pointer and an error, if an error arises during the deduction,
-	// a valid pointer and nil if the deduction was succesful, or a nil pointer and nil if there is no deduction for the memory cell
-	DeduceMemoryCell(memory.Relocatable, *memory.Memory) (*memory.MaybeRelocatable, error)
-	// Adds a validation rule to the memory
-	// Validation rules are applied when a value is inserted into the builtin's segment
-	AddValidationRule(*memory.Memory)
+    // Returns the first address of the builtin's memory segment
+    Base() memory.Relocatable
+    // Returns the name of the builtin
+    Name() string
+    // Creates a memory segment for the builtin and initializes its base
+    InitializeSegments(*memory.MemorySegmentManager)
+    // Returns the builtin's initial stack
+    InitialStack() []memory.MaybeRelocatable
+    // Attempts to deduce the value of a memory cell given by its address. Can return either a nil pointer and an error, if an error arises during the deduction,
+    // a valid pointer and nil if the deduction was succesful, or a nil pointer and nil if there is no deduction for the memory cell
+    DeduceMemoryCell(memory.Relocatable, *memory.Memory) (*memory.MaybeRelocatable, error)
+    // Adds a validation rule to the memory
+    // Validation rules are applied when a value is inserted into the builtin's segment
+    AddValidationRule(*memory.Memory)
 }
 ```
 
@@ -644,16 +651,16 @@ We will add our builtin runners to the VM:
 
 ```go
 type VirtualMachine struct {
-	RunContext     RunContext
-	currentStep    uint
-	Segments       memory.MemorySegmentManager
-	BuiltinRunners []builtins.BuiltinRunner
+    RunContext     RunContext
+    currentStep    uint
+    Segments       memory.MemorySegmentManager
+    BuiltinRunners []builtins.BuiltinRunner
 }
 ```
 
 Then we will create two new types to handle validation rules in the `Memory`:
- 
-*ValidationRule* 
+
+##### ValidationRule
 
 This will represent our builtin's validation rules, they take a memory address and a referenece to the memory, and return a list of validated addresses, for most builtins, this list will contain the address it received if the validation was succesful, but some builtins may return additional addresses.
 
@@ -662,7 +669,7 @@ This will represent our builtin's validation rules, they take a memory address a
 type ValidationRule func(*Memory, Relocatable) ([]Relocatable, error)
 ```
 
-*AddressSet*
+##### AddressSet
 
 As go doesn't have a set type, we created our own really basic set for `Relocatable`s. This will hold the values returned by the validation rules, so that we don't have to run them more than once for each memory cell.
 
@@ -671,15 +678,15 @@ As go doesn't have a set type, we created our own really basic set for `Relocata
 type AddressSet map[Relocatable]bool
 
 func NewAddressSet() AddressSet {
-	return make(map[Relocatable]bool)
+    return make(map[Relocatable]bool)
 }
 
 func (set AddressSet) Add(element Relocatable) {
-	set[element] = true
+    set[element] = true
 }
 
 func (set AddressSet) Contains(element Relocatable) bool {
-	return set[element]
+    return set[element]
 }
 ```
 
@@ -687,10 +694,10 @@ And we will add them to our `Memory` stuct:
 
 ``` go
 type Memory struct {
-	data                map[Relocatable]MaybeRelocatable
-	num_segments        uint
-	validation_rules    map[uint]ValidationRule
-	validated_addresses AddressSet
+    data                map[Relocatable]MaybeRelocatable
+    num_segments        uint
+    validation_rules    map[uint]ValidationRule
+    validated_addresses AddressSet
 }
 ```
 
@@ -699,7 +706,7 @@ Now we only need to add a way to create this validation rules:
 ```go
 // Adds a validation rule for a given segment
 func (m *Memory) AddValidationRule(segment_index uint, rule ValidationRule) {
-	m.validation_rules[segment_index] = rule
+    m.validation_rules[segment_index] = rule
 }
 ```
 
@@ -709,21 +716,21 @@ And a method that runs validations on a memory address:
 // Applies the validation rule for the addr's segment if any
 // Skips validation if the address is temporary or if it has been previously validated
 func (m *Memory) validateAddress(addr Relocatable) error {
-	if addr.SegmentIndex < 0 || m.validated_addresses.Contains(addr) {
-		return nil
-	}
-	rule, ok := m.validation_rules[uint(addr.SegmentIndex)]
-	if !ok {
-		return nil
-	}
-	validated_addresses, error := rule(m, addr)
-	if error != nil {
-		return error
-	}
-	for _, validated_address := range validated_addresses {
-		m.validated_addresses.Add(validated_address)
-	}
-	return nil
+    if addr.SegmentIndex < 0 || m.validated_addresses.Contains(addr) {
+        return nil
+    }
+    rule, ok := m.validation_rules[uint(addr.SegmentIndex)]
+    if !ok {
+        return nil
+    }
+    validated_addresses, error := rule(m, addr)
+    if error != nil {
+        return error
+    }
+    for _, validated_address := range validated_addresses {
+        m.validated_addresses.Add(validated_address)
+    }
+    return nil
 }
 ```
 
@@ -732,96 +739,96 @@ And we are all set to integrate this new logic into our `Memory`'s `Insert` oper
 ```go
 // Inserts a value in some memory address, given by a Relocatable value.
 func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
-	// Check that insertions are preformed within the memory bounds
-	if addr.SegmentIndex >= int(m.num_segments) {
-		return errors.New("Error: Inserting into a non allocated segment")
-	}
-	// Check for possible overwrites
-	prev_elem, ok := m.data[addr]
-	if ok && prev_elem != *val {
-		return errors.New("Memory is write-once, cannot overwrite memory value")
-	}
+    // Check that insertions are preformed within the memory bounds
+    if addr.SegmentIndex >= int(m.num_segments) {
+        return errors.New("Error: Inserting into a non allocated segment")
+    }
+    // Check for possible overwrites
+    prev_elem, ok := m.data[addr]
+    if ok && prev_elem != *val {
+        return errors.New("Memory is write-once, cannot overwrite memory value")
+    }
 
-	m.data[addr] = *val
+    m.data[addr] = *val
 
-	return m.validateAddress(addr)
+    return m.validateAddress(addr)
 }
 ```
 
 Now we will initialize the builtins from our `CairoRunner`:
 
-*NewCairoRunner*
+##### NewCairoRunner
 
 Here we will have to iterate over the `Builtins` field of the `Program`, and add the corresponding builtin to the `VirtualMachine`'s `BuiltinRunner` field. We don't have any builtins yet, so we wil add a comment as placeholder and just leave a default case. As we implement more builtins, we will add a case for each of them.
 
 ```go
 func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
-	main_offset := program.identifiers["__main__.main"]
-	runner := CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
-	for _, builtin_name := range program.Builtins {
-		switch builtin_name {
-		// Add a case for each builtin here, example:
-		// case "range_check":
-		// 	runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, RangeCheckBuiltin{})
-		default:
-			return nil, errors.New("Invalid builtin")
-		}
-	}
-	return &runner, nil
+    main_offset := program.identifiers["__main__.main"]
+    runner := CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
+    for _, builtin_name := range program.Builtins {
+        switch builtin_name {
+        // Add a case for each builtin here, example:
+        // case "range_check":
+        //     runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, RangeCheckBuiltin{})
+        default:
+            return nil, errors.New("Invalid builtin")
+        }
+    }
+    return &runner, nil
 }
 ```
 
-*initializeSegments*
+##### initializeSegments
 
 Here we will also initialize the builtin segments by calling each builtin's `InitializeSegments` method
 
 ```go
 func (r *CairoRunner) initializeSegments() {
-	// Program Segment
-	r.ProgramBase = r.Vm.Segments.AddSegment()
-	// Execution Segment
-	r.executionBase = r.Vm.Segments.AddSegment()
-	// Builtin Segments
-	for i := range r.Vm.BuiltinRunners {
-		r.Vm.BuiltinRunners[i].InitializeSegments(&r.Vm.Segments)
-	}
+    // Program Segment
+    r.ProgramBase = r.Vm.Segments.AddSegment()
+    // Execution Segment
+    r.executionBase = r.Vm.Segments.AddSegment()
+    // Builtin Segments
+    for i := range r.Vm.BuiltinRunners {
+        r.Vm.BuiltinRunners[i].InitializeSegments(&r.Vm.Segments)
+    }
 }
 ```
 
-*InitializeMainEntryPoint*
+##### InitializeMainEntryPoint
 
 Here we will add the builtin's initial_stack to our stack. The builtin's initial_stack is generally made up of the builtin's base, and is what allows the main function to write into the builtin's segment.
 
 ```go
 func (r *CairoRunner) initializeMainEntrypoint() (memory.Relocatable, error) {
-	// When running from main entrypoint, only up to 11 values will be written (9 builtin bases + end + return_fp)
-	stack := make([]memory.MaybeRelocatable, 0, 11)
-	// Append builtins initial stack to stack
-	for i := range r.Vm.BuiltinRunners {
-		for _, val := range r.Vm.BuiltinRunners[i].InitialStack() {
-			stack = append(stack, val)
-		}
-	}
-	return_fp := r.Vm.Segments.AddSegment()
-	return r.initializeFunctionEntrypoint(r.mainOffset, &stack, return_fp)
+    // When running from main entrypoint, only up to 11 values will be written (9 builtin bases + end + return_fp)
+    stack := make([]memory.MaybeRelocatable, 0, 11)
+    // Append builtins initial stack to stack
+    for i := range r.Vm.BuiltinRunners {
+        for _, val := range r.Vm.BuiltinRunners[i].InitialStack() {
+            stack = append(stack, val)
+        }
+    }
+    return_fp := r.Vm.Segments.AddSegment()
+    return r.initializeFunctionEntrypoint(r.mainOffset, &stack, return_fp)
 }
 ```
 
-*initializeVm*
+##### initializeVm (Builtins)
 
 Here we will add our builtin's validation rules to the `Memory` and use them to validate the meory cells we loaded before
 
 ```go
 func (r *CairoRunner) initializeVM() error {
-	r.Vm.RunContext.Ap = r.initialAp
-	r.Vm.RunContext.Fp = r.initialFp
-	r.Vm.RunContext.Pc = r.initialPc
-	// Add validation rules
-	for i := range r.Vm.BuiltinRunners {
-		r.Vm.BuiltinRunners[i].AddValidationRule(&r.Vm.Segments.Memory)
-	}
-	// Apply validation rules to memory
-	return r.Vm.Segments.Memory.ValidateExistingMemory()
+    r.Vm.RunContext.Ap = r.initialAp
+    r.Vm.RunContext.Fp = r.initialFp
+    r.Vm.RunContext.Pc = r.initialPc
+    // Add validation rules
+    for i := range r.Vm.BuiltinRunners {
+        r.Vm.BuiltinRunners[i].AddValidationRule(&r.Vm.Segments.Memory)
+    }
+    // Apply validation rules to memory
+    return r.Vm.Segments.Memory.ValidateExistingMemory()
 }
 ```
 
@@ -829,21 +836,20 @@ For this we will add the method `Memory.ValidateExistingMemory`:
 
 ```go
 func (m *Memory) ValidateExistingMemory() error {
-	for addr := range m.data {
-		err := m.validateAddress(addr)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+    for addr := range m.data {
+        err := m.validateAddress(addr)
+        if err != nil {
+            return err
+        }
+    }
+    return nil
 }
 ```
-
 
 [TODO (for builtins section): BuiltinRunners in Compute Operands]
 
 [Next sections: Implementing each builtin runner]
 
-### Hints
+#### Hints
 
 TODO
