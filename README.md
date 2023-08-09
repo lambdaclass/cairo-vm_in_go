@@ -642,7 +642,7 @@ In the first option, we need to ensure the result operand is not null (nil in th
 
 On the other hand, the Call instruction, what we do first is define our return PC register, we do that adding the size of the instruction to the current PC. Then, we check our operand OP0 is equal to the return PC and our destiny operand is the same as the return FP register. If any of those things fail, we throw an error. 
 
-If this method returns nil, it means operands are correct and we are good to go!
+If this method returns a nil error, it means operands were computed correctly and we are good to go!
 
 ```go
 func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Operands) error {
