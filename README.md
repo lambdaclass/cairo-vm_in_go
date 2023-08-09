@@ -1007,7 +1007,7 @@ func (r *CairoRunner) initializeSegments() {
 }
 ```
 
-##### InitializeMainEntryPoint
+##### InitializeMainEntryPoint(Builtins)
 
 Here we will add the builtin's initial_stack to our stack. The builtin's initial_stack is generally made up of the builtin's base, and is what allows the main function to write into the builtin's segment.
 
