@@ -611,82 +611,82 @@ This method will continuously execute cairo steps until the end pc, returned by 
     //TODO
 ```
 
-*Step*
+##### Step
 
 ```go
     //TODO
 ```
 
-*Decode instruction*
+##### Decode instruction
 
 ```go
     //TODO
 ```
 
-*Run instruction*
+##### Run instruction
 
 ```go
     //TODO
 ```
 
-*Compute operands*
+##### Compute operands
 
 ```go
     //TODO
 ```
 
-*Opcode assertions*
+##### Opcode assertions
 
-Once we have the instruction's operands to work with, we have to ensure the correctness of them. The first thing we need to differentiate is which type of instruction are we running, we do this by looking at the instruction's opcode. 
+Once we have the instruction's operands to work with, we have to ensure the correctness of them. The first thing we need to differentiate is which type of instruction are we running, we do this by looking at the instruction's opcode.
 
-The posible opcodes we want to perform assertions on are: 
-	1. AssertEq instruction 
-	2. Call instruction 
+The posible opcodes we want to perform assertions on are:
 
-In the first option, we need to ensure the result operand is not null (nil in this case) and also that the result operand is equal to the dst operand. If any of those things fail, we throw an error. 
+  1. AssertEq instruction
+  2. Call instruction
 
-On the other hand, the Call instruction, what we do first is define our return pc register, we do that adding the size of the instruction to the current pc. Then, we check our operand op0 is equal to the return pc and our dst operand is the same as the return fp register. If any of those things fail, we throw an error. 
+In the first option, we need to ensure the result operand is not null (nil in this case) and also that the result operand is equal to the dst operand. If any of those things fail, we throw an error.
+
+On the other hand, the Call instruction, what we do first is define our return pc register, we do that adding the size of the instruction to the current pc. Then, we check our operand op0 is equal to the return pc and our dst operand is the same as the return fp register. If any of those things fail, we throw an error.
 
 If this method returns a nil error, it means operands were computed correctly and we are good to go!
 
 ```go
 func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Operands) error {
-	switch instruction.Opcode {
-	case AssertEq:
-		if operands.Res == nil {
-			return &VirtualMachineError{"UnconstrainedResAssertEq"}
-		}
-		if !operands.Res.IsEqual(&operands.Dst) {
-			return &VirtualMachineError{"DiffAssertValues"}
-		}
-	case Call:
-		new_rel, err := vm.RunContext.Pc.AddUint(instruction.Size())
-		if err != nil {
-			return err
-		}
-		returnPC := memory.NewMaybeRelocatableRelocatable(new_rel)
+    switch instruction.Opcode {
+    case AssertEq:
+        if operands.Res == nil {
+            return &VirtualMachineError{"UnconstrainedResAssertEq"}
+        }
+        if !operands.Res.IsEqual(&operands.Dst) {
+            return &VirtualMachineError{"DiffAssertValues"}
+        }
+    case Call:
+        new_rel, err := vm.RunContext.Pc.AddUint(instruction.Size())
+        if err != nil {
+            return err
+        }
+        returnPC := memory.NewMaybeRelocatableRelocatable(new_rel)
 
-		if !operands.Op0.IsEqual(returnPC) {
-			return &VirtualMachineError{"CantWriteReturnPc"}
-		}
+        if !operands.Op0.IsEqual(returnPC) {
+            return &VirtualMachineError{"CantWriteReturnPc"}
+        }
 
-		returnFP := vm.RunContext.Fp
-		dstRelocatable, _ := operands.Dst.GetRelocatable()
-		if !returnFP.IsEqual(&dstRelocatable) {
-			return &VirtualMachineError{"CantWriteReturnFp"}
-		}
-	}
+        returnFP := vm.RunContext.Fp
+        dstRelocatable, _ := operands.Dst.GetRelocatable()
+        if !returnFP.IsEqual(&dstRelocatable) {
+            return &VirtualMachineError{"CantWriteReturnFp"}
+        }
+    }
 
-	return nil
+    return nil
 }
 ```
 
-*Update registers*
+##### Update registers
 
 ```go
     //TODO
 ```
-
 
 Once we are done executing, we can relocate our memory & trace and output them into files
 
