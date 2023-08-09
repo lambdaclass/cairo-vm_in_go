@@ -542,7 +542,7 @@ func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands)
 }
 ```
 
-Some auxiliary methods where added for this method:
+Some auxiliary methods were added for this method:
 
 *Instruction.Size*
 
