@@ -387,7 +387,7 @@ func (r *Relocatable) AddFelt(other lambdaworks.Felt) (Relocatable, error) {
 This method returns the distance between two relocatable values. It can only be performed between to relocatables of the same segment (aka relocatables with the same segment index), and it returns the difference between their offsets as a uint value. It fails if the segment indexes differ or if the difference would yield a negative value
 
 ```go
-    // Returns the distance between two relocatable values (aka the difference between their offsets)
+// Returns the distance between two relocatable values (aka the difference between their offsets)
 // Fails if they have different segment indexes or if the difference is negative
 func (r *Relocatable) Sub(other Relocatable) (uint, error) {
  if r.SegmentIndex != other.SegmentIndex {
