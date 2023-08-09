@@ -363,7 +363,7 @@ We will start by implementing Add and Sub operations for the `Relocatable` type:
 
 ##### Relocatable.Add
 
-Addition between Relocatable values is not supported, so we don't implement it
+Addition between Relocatable values is not supported, so we don't implement it.
 
 ##### Relocatable.AddFelt
 
