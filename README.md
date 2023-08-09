@@ -969,7 +969,7 @@ func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
 
 Now we will initialize the builtins from our `CairoRunner`:
 
-##### NewCairoRunner
+##### NewCairoRunner (Builtins)
 
 Here we will have to iterate over the `Builtins` field of the `Program`, and add the corresponding builtin to the `VirtualMachine`'s `BuiltinRunner` field. We don't have any builtins yet, so we wil add a comment as placeholder and just leave a default case. As we implement more builtins, we will add a case for each of them.
 
