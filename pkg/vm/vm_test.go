@@ -507,7 +507,7 @@ func TestComputeOperandsAddAp(t *testing.T) {
 	}
 }
 
-func DeduceMemoryCellNoBuiltins(t *testing.T) {
+func TestDeduceMemoryCellNoBuiltins(t *testing.T) {
 	vm := vm.NewVirtualMachine()
 	addr := memory.Relocatable{}
 	val, err := vm.DeduceMemoryCell(addr)
