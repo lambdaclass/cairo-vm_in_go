@@ -73,40 +73,44 @@ clean_files:
 demo_fibonacci: clean_files build_cairo_vm_cli build
 	@echo "Compiling fibonacci program..."
 	@cairo-compile --cairo_path="$(TEST_DIR)" cairo_programs/fibonacci.cairo --output cairo_programs/fibonacci.json
-	@echo "Running fibonacci program..."
+	@echo "Running fibonacci program with Go implementation..."
 	@go run cmd/cli/main.go cairo_programs/fibonacci.json
-	@echo "Comparing fibonacci trace with Rust implementation..."
+	@echo "Running fibonacci program with Rust implementation..."
 	@$(CAIRO_VM_CLI) --layout all_cairo cairo_programs/fibonacci.json --trace_file cairo_programs/fibonacci.rs.trace --memory_file cairo_programs/fibonacci.rs.memory
+	@echo "Done!"
+	@echo "Comparing fibonacci trace with Rust implementation..."
 	@if ! diff -q cairo_programs/fibonacci.go.trace cairo_programs/fibonacci.rs.trace; then \
-		@echo "Traces for fibonacci differ"; \
+		@echo "\xE2\x9D\x8E Traces for fibonacci differ"; \
 		@exit 1; \
 	fi
-	@echo "Traces for fibonacci match!"
+	@echo "\xE2\x9C\x85 Traces for fibonacci match!"
 	@echo "Comparing fibonacci memory with Rust implementation..."
 	@if ! python scripts/memory_comparator.py cairo_programs/fibonacci.go.memory cairo_programs/fibonacci.rs.memory; then \
-		@echo "Memory for fibonacci differs"; \
+		@echo "\xE2\x9D\x8E Memory for fibonacci differs"; \
 		@exit 1; \
 	fi
-	@echo "Memory for fibonacci matches!"
+	@echo "\xE2\x9C\x85 Memory for fibonacci matches!"
 
 demo_factorial: clean_files build_cairo_vm_cli build
 	@echo "Compiling factorial program..."
 	@cairo-compile --cairo_path="$(TEST_DIR)" cairo_programs/factorial.cairo --output cairo_programs/factorial.json
-	@echo "Running factorial program..."
+	@echo "Running factorial program with Go implementation..."
 	@go run cmd/cli/main.go cairo_programs/factorial.json
-	@echo "Comparing factorial trace with Rust implementation..."
+	@echo "Running factorial program with Rust implementation..."
 	@$(CAIRO_VM_CLI) --layout all_cairo cairo_programs/factorial.json --trace_file cairo_programs/factorial.rs.trace --memory_file cairo_programs/factorial.rs.memory
+	@echo "Done!"
+	@echo "Comparing factorial trace with Rust implementation..."
 	@if ! diff -q cairo_programs/factorial.go.trace cairo_programs/factorial.rs.trace; then \
-		@echo "Traces for factorial differ"; \
+		@echo "\xE2\x9D\x8E Traces for factorial differ"; \
 		exit 1; \
 	fi
-	@echo "Traces for factorial match!"
+	@echo "\xE2\x9C\x85 Traces for factorial match!"
 	@echo "Comparing factorial memory with Rust implementation..."
 	@if ! python scripts/memory_comparator.py cairo_programs/factorial.go.memory cairo_programs/factorial.rs.memory; then \
-		@echo "Memory for factorial differs"; \
+		@echo "\xE2\x9D\x8E Memory for factorial differs"; \
 		exit 1; \
 	fi
-	@echo "Memory for factorial matches!"
+	@echo "\xE2\x9C\x85 Memory for factorial matches!"
 
 build_cairo_vm_cli: | $(CAIRO_VM_CLI)
 
