@@ -1,11 +1,14 @@
 package vm_test
 
 import (
+	"bytes"
+
 	"reflect"
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/cairo_run"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -526,6 +529,16 @@ func TestRelocateTraceOneEntry(t *testing.T) {
 	if !reflect.DeepEqual(expectedTrace, actualTrace) {
 		t.Errorf("Relocated trace and expected trace are not the same")
 	}
+}
+
+func TestWriteBinaryMemoryFile(t *testing.T) {
+	var relocatedMemory = make(map[uint]lambdaworks.Felt)
+	relocatedMemory[1] = lambdaworks.FeltFromUint64(66)
+	relocatedMemory[2] = lambdaworks.FeltFromUint64(42)
+	relocatedMemory[3] = lambdaworks.FeltFromUint64(30)
+
+	var actualMemoryBuffer bytes.Buffer
+	cairo_run.WriteEncodedMemory(relocatedMemory, &actualMemoryBuffer)
 }
 
 func buildTestProgramMemory(virtualMachine *vm.VirtualMachine) {

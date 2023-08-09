@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -32,12 +33,13 @@ func (e *VirtualMachineError) Error() string {
 // VirtualMachine represents the Cairo VM.
 // Runs Cairo assembly and produces an execution trace.
 type VirtualMachine struct {
-	RunContext     RunContext
-	CurrentStep    uint
-	Segments       memory.MemorySegmentManager
-	BuiltinRunners []builtins.BuiltinRunner
-	Trace          []TraceEntry
-	RelocatedTrace []RelocatedTraceEntry
+	RunContext      RunContext
+	CurrentStep     uint
+	Segments        memory.MemorySegmentManager
+	BuiltinRunners  []builtins.BuiltinRunner
+	Trace           []TraceEntry
+	RelocatedTrace  []RelocatedTraceEntry
+	RelocatedMemory map[uint]lambdaworks.Felt
 }
 
 func NewVirtualMachine() *VirtualMachine {
@@ -102,9 +104,9 @@ func (v *VirtualMachine) RelocateTrace(relocationTable *[]uint) error {
 
 	for _, entry := range v.Trace {
 		v.RelocatedTrace = append(v.RelocatedTrace, RelocatedTraceEntry{
-			Pc: entry.Pc.RelocateAddress(relocationTable),
-			Ap: entry.Ap.RelocateAddress(relocationTable),
-			Fp: entry.Fp.RelocateAddress(relocationTable),
+			Pc: lambdaworks.FeltFromUint64(uint64(entry.Pc.RelocateAddress(relocationTable))),
+			Ap: lambdaworks.FeltFromUint64(uint64(entry.Ap.RelocateAddress(relocationTable))),
+			Fp: lambdaworks.FeltFromUint64(uint64(entry.Fp.RelocateAddress(relocationTable))),
 		})
 	}
 
@@ -131,12 +133,13 @@ func (v *VirtualMachine) Relocate() error {
 		return errors.New("ComputeEffectiveSizes called but RelocateSegments still returned error")
 	}
 
-	_, err := v.Segments.RelocateMemory(&relocationTable)
+	relocatedMemory, err := v.Segments.RelocateMemory(&relocationTable)
 	if err != nil {
 		return err
 	}
 
 	v.RelocateTrace(&relocationTable)
+	v.RelocatedMemory = relocatedMemory
 	return nil
 }
 

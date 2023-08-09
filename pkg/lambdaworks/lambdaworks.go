@@ -74,6 +74,16 @@ func (felt Felt) ToU64() (uint64, error) {
 	}
 }
 
+func (felt Felt) ToLeBytes() *[32]byte {
+	var result_c [32]C.uint8_t
+	var value C.felt_t = felt.toC()
+	C.to_le_bytes(&result_c[0], &value[0])
+
+	result := (*[32]byte)(unsafe.Pointer(&result_c))
+
+	return result
+}
+
 // Gets a Felt representing 0.
 func FeltZero() Felt {
 	var result C.felt_t
