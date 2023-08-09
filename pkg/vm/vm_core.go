@@ -18,6 +18,12 @@ var ErrNoRelocationFoundSegment = errors.New("no relocation found for execution 
 var ErrTraceNotRelocated = errors.New("trace not relocated")
 var ErrUnconstraintRes = errors.New("UnconstrainedRes")
 var ErrDiffAssertValues = errors.New("diff assert values")
+var ErrCantWriteReturnPC = errors.New("can't write return pc")
+var ErrCantWriteReturnFP = errors.New("can't write return fp")
+var ErrFailedToComputeOperandAddress = errors.New("failed to compute operand address")
+var ErrNotRelocatableValue = errors.New("not a relocatable value")
+var ErrNotFeltValue = errors.New("not a felts value")
+var ErrComputeResRelocatableMul = errors.New("compute res relocatable mul")
 
 func (e *VirtualMachineError) Error() string {
 	return fmt.Sprintf(e.Msg)
@@ -159,14 +165,12 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 
 		if !operands.Op0.IsEqual(returnPC) {
 			return ErrCantWriteReturnPC
-			return &VirtualMachineError{"CantWriteReturnPc"}
 		}
 
 		returnFP := vm.RunContext.Fp
 		dstRelocatable, _ := operands.Dst.GetRelocatable()
 		if !returnFP.IsEqual(&dstRelocatable) {
 			return ErrCantWriteReturnFP
-			return &VirtualMachineError{"CantWriteReturnFp"}
 		}
 	}
 
@@ -261,7 +265,6 @@ func (vm *VirtualMachine) ComputeRes(instruction Instruction, op0 memory.MaybeRe
 			return result, nil
 		} else {
 			return nil, ErrComputeResRelocatableMul
-			return nil, errors.New("ComputeResRelocatableMul")
 		}
 
 	case ResUnconstrained:
@@ -276,21 +279,18 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 	dst_addr, err := vm.RunContext.ComputeDstAddr(instruction)
 	if err != nil {
 		return Operands{}, ErrFailedToComputeOperandAddress
-		return Operands{}, errors.New("FailedToComputeDstAddr")
 	}
 	dst, _ := vm.Segments.Memory.Get(dst_addr)
 
 	op0_addr, err := vm.RunContext.ComputeOp0Addr(instruction)
 	if err != nil {
 		return Operands{}, ErrFailedToComputeOperandAddress
-		return Operands{}, fmt.Errorf("FailedToComputeOp0Addr: %s", err)
 	}
 	op0, _ := vm.Segments.Memory.Get(op0_addr)
 
 	op1_addr, err := vm.RunContext.ComputeOp1Addr(instruction, op0)
 	if err != nil {
 		return Operands{}, ErrFailedToComputeOperandAddress
-		return Operands{}, fmt.Errorf("FailedToComputeOp1Addr: %s", err)
 	}
 	op1, _ := vm.Segments.Memory.Get(op1_addr)
 
@@ -363,20 +363,20 @@ func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands)
 		vm.RunContext.Pc.Offset += instruction.Size()
 	case PcUpdateJump:
 		if operands.Res == nil {
-			return errors.New("Res.UNCONSTRAINED cannot be used with PcUpdate.JUMP")
+			return ErrUnconstraintRes
 		}
 		res, ok := operands.Res.GetRelocatable()
 		if !ok {
-			return errors.New("An integer value as Res cannot be used with PcUpdate.JUMP")
+			return ErrNotRelocatableValue
 		}
 		vm.RunContext.Pc = res
 	case PcUpdateJumpRel:
 		if operands.Res == nil {
-			return errors.New("Res.UNCONSTRAINED cannot be used with PcUpdate.JUMP_REL")
+			return ErrUnconstraintRes
 		}
 		res, ok := operands.Res.GetFelt()
 		if !ok {
-			return errors.New("A relocatable value as Res cannot be used with PcUpdate.JUMP_REL")
+			return ErrNotFeltValue
 		}
 		new_pc, err := vm.RunContext.Pc.AddFelt(res)
 		if err != nil {
@@ -403,7 +403,7 @@ func (vm *VirtualMachine) UpdateAp(instruction *Instruction, operands *Operands)
 	switch instruction.ApUpdate {
 	case ApUpdateAdd:
 		if operands.Res == nil {
-			return errors.New("Res.UNCONSTRAINED cannot be used with ApUpdate.ADD")
+			return ErrUnconstraintRes
 		}
 		new_ap, err := vm.RunContext.Ap.AddMaybeRelocatable(*operands.Res)
 		if err != nil {

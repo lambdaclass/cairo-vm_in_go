@@ -32,7 +32,7 @@ func TestOpcodeAssertionsResUnconstrained(t *testing.T) {
 	testVm := NewVirtualMachine()
 
 	err := testVm.OpcodeAssertions(instruction, operands)
-	if err.Error() != "UnconstrainedResAssertEq" {
+	if err != ErrUnconstraintRes {
 		t.Error("Assertion should error out with UnconstrainedResAssertEq")
 	}
 }
@@ -61,7 +61,7 @@ func TestOpcodeAssertionsInstructionFailed(t *testing.T) {
 
 	testVm := NewVirtualMachine()
 	err := testVm.OpcodeAssertions(instruction, operands)
-	if err.Error() != "DiffAssertValues" {
+	if err != ErrDiffAssertValues {
 		t.Error("Assertion should error out with DiffAssertValues")
 	}
 
@@ -91,7 +91,7 @@ func TestOpcodeAssertionsInstructionFailedRelocatables(t *testing.T) {
 
 	testVm := NewVirtualMachine()
 	err := testVm.OpcodeAssertions(instruction, operands)
-	if err.Error() != "DiffAssertValues" {
+	if err != ErrDiffAssertValues {
 		t.Error("Assertion should error out with DiffAssertValues")
 	}
 }
@@ -121,7 +121,7 @@ func TestOpcodeAssertionsInconsistentOp0(t *testing.T) {
 	testVm := NewVirtualMachine()
 	testVm.RunContext.Pc = memory.NewRelocatable(0, 4)
 	err := testVm.OpcodeAssertions(instruction, operands)
-	if err.Error() != "CantWriteReturnPc" {
+	if err != ErrCantWriteReturnPC {
 		t.Error("Assertion should error out with CantWriteReturnPc")
 	}
 }
@@ -151,7 +151,7 @@ func TestOpcodeAssertionsInconsistentDst(t *testing.T) {
 	testVm := NewVirtualMachine()
 	testVm.RunContext.Fp = memory.NewRelocatable(1, 6)
 	err := testVm.OpcodeAssertions(instruction, operands)
-	if err.Error() != "CantWriteReturnFp" {
+	if err != ErrCantWriteReturnFP {
 		t.Error("Assertion should error out with CantWriteReturnFp")
 	}
 }
