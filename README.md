@@ -367,7 +367,7 @@ Addition between Relocatable values is not supported, so we don't implement it.
 
 ##### Relocatable.AddFelt
 
-This method adds a Felt value to the relocatable's offset by first converting the relocatable's offset to a Felt, performing felt addition between the offset and the felt value, and then converting the new offset to a uint value. This method retruns an error if the new offset exceeds the size of a uint.
+This method adds a Felt value to the relocatable's offset by first converting the relocatable's offset to a Felt, performing felt addition between the offset and the felt value, and then converting the new offset to a uint value. This method returns an error if the new offset exceeds the size of a uint.
 
 ```go
 // Adds a Felt value to a Relocatable
