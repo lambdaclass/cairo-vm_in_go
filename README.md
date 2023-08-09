@@ -632,7 +632,7 @@ This method will continuously execute cairo steps until the end pc, returned by 
 
 *Opcode assertions*
 
-Once we have the instruction's operands to work with, we have to ensure the correctness of them. The first thing we need to differenciate is which type of instruction are we running, we do this by switching the `opcode`. 
+Once we have the instruction's operands to work with, we have to ensure the correctness of them. The first thing we need to differentiate is which type of instruction are we running, we do this by looking at the instruction's opcode. 
 
 The posible options (for now) are: 
 	1. AssertEq instruction 
