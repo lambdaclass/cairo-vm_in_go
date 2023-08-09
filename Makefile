@@ -1,5 +1,5 @@
 .PHONY: deps deps-macos run test build fmt check_fmt clean clean_files build_cairo_vm_cli compare_trace_memory compare_trace compare_memory \
- demo_fib demo_factorial $(CAIRO_VM_CLI)
+ demo_fibonacci demo_factorial $(CAIRO_VM_CLI)
 
 CAIRO_VM_CLI:=cairo-vm/target/release/cairo-vm-cli
 
@@ -70,11 +70,35 @@ clean_files:
 	rm -f $(TEST_DIR)/*.memory
 	rm -f $(TEST_DIR)/*.trace
 
-demo_fib: $(COMPILED_TESTS)
+demo_fibonacci: clean_files build_cairo_vm_cli
+	cairo-compile --cairo_path="$(TEST_DIR)" cairo_programs/fibonacci.cairo --output cairo_programs/fibonacci.json
 	@go run cmd/cli/main.go cairo_programs/fibonacci.json
+	$(CAIRO_VM_CLI) --layout all_cairo cairo_programs/fibonacci.json --trace_file cairo_programs/fibonacci.rs.trace --memory_file cairo_programs/fibonacci.rs.memory
+	@if ! diff -q cairo_programs/fibonacci.go.trace cairo_programs/fibonacci.rs.trace; then \
+		echo "Traces for fibonacci differ"; \
+		exit 1; \
+	fi
+	@echo "Traces for fibonacci match!"
+	@if ! python scripts/memory_comparator.py cairo_programs/fibonacci.go.memory cairo_programs/fibonacci.rs.memory; then \
+		echo "Memory for fibonacci differs"; \
+		exit 1; \
+	fi
+	@echo "Memory for fibonacci matches!"
 
-demo_factorial: $(COMPILED_TESTS)
+demo_factorial: clean_files build_cairo_vm_cli
+	cairo-compile --cairo_path="$(TEST_DIR)" cairo_programs/factorial.cairo --output cairo_programs/factorial.json
 	@go run cmd/cli/main.go cairo_programs/factorial.json
+	$(CAIRO_VM_CLI) --layout all_cairo cairo_programs/factorial.json --trace_file cairo_programs/factorial.rs.trace --memory_file cairo_programs/factorial.rs.memory
+	@if ! diff -q cairo_programs/factorial.go.trace cairo_programs/factorial.rs.trace; then \
+		echo "Traces for factorial differ"; \
+		exit 1; \
+	fi
+	@echo "Traces for factorial match!"
+	@if ! python scripts/memory_comparator.py cairo_programs/factorial.go.memory cairo_programs/factorial.rs.memory; then \
+		echo "Memory for factorial differs"; \
+		exit 1; \
+	fi
+	@echo "Memory for factorial matches!"
 
 build_cairo_vm_cli: | $(CAIRO_VM_CLI)
 
