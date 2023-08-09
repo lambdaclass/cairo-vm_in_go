@@ -491,7 +491,7 @@ To begin coding the basic execution functionality of our VM, we only need these 
 
 #### Updating Registers
 
-After we succesfully computed the value of the operands, its now time to update the value of the registers, we will update each register according to the `PcUpdate`, `ApUpdate` and `FpUpdate` fields of the instruction respectively.
+After we succesfully computed the value of the operands, it's now time to update the value of the registers, we will update each register according to the `PcUpdate`, `ApUpdate` and `FpUpdate` fields of the instruction respectively.
 
 *UpdatePc*
 
