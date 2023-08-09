@@ -356,6 +356,157 @@ func (m *MaybeRelocatable) GetRelocatable() (Relocatable, bool) {
 
 These will allow us to safely discern between `Felt` and `Relocatable` values later on.
 
+#### MaybeRelocatable Operations
+
+Introducing the MaybeRelocatable type means we will have to handle various arithmetic operations between Relocatable, Felt and MaybeRelocatable types.
+We will start by implementing Add and Sub operations for the `Relocatable` type:
+
+##### Relocatable.Add
+
+Addition between Relocatable values is not supported, so we don't implement it.
+
+##### Relocatable.AddFelt
+
+This method adds a Felt value to the relocatable's offset by first converting the relocatable's offset to a Felt, performing felt addition between the offset and the felt value, and then converting the new offset to a uint value. This method returns an error if the new offset exceeds the size of a uint.
+
+```go
+// Adds a Felt value to a Relocatable
+// Fails if the new offset exceeds the size of a uint
+func (r *Relocatable) AddFelt(other lambdaworks.Felt) (Relocatable, error) {
+ new_offset_felt := lambdaworks.FeltFromUint64(uint64(r.Offset)).Add(other)
+ new_offset, err := new_offset_felt.ToU64()
+ if err != nil {
+  return *r, err
+ }
+ return NewRelocatable(r.SegmentIndex, uint(new_offset)), nil
+}
+```
+
+##### Relocatable.Sub
+
+This method returns the distance between two relocatable values. It can only be performed between to relocatables of the same segment (aka relocatables with the same segment index), and it returns the difference between their offsets as a uint value. It fails if the segment indexes differ or if the difference would yield a negative value
+
+```go
+// Returns the distance between two relocatable values (aka the difference between their offsets)
+// Fails if they have different segment indexes or if the difference is negative
+func (r *Relocatable) Sub(other Relocatable) (uint, error) {
+ if r.SegmentIndex != other.SegmentIndex {
+  return 0, errors.New("Cant subtract two relocatables with different segment indexes")
+ }
+ if r.Offset < other.Offset {
+  return 0, errors.New("Relocatable subtraction yields relocatable with negative offset")
+ }
+ return r.Offset - other.Offset, nil
+}
+```
+
+##### Relocatable.SubFelt
+
+This method subtracts a Felt value to the relocatable's offset by first converting the relocatable's offset to a Felt, performing felt subtraction between the offset and the felt value, and then converting the new offset to a uint value. This method returns an error if the new offset is negative or exceeds the size of a uint.
+
+```go
+// Substracts a Felt value from a Relocatable
+// Performs the initial substraction considering the offset as a Felt
+// Fails if the new offset exceeds the size of a uint
+func (r *Relocatable) SubFelt(other lambdaworks.Felt) (Relocatable, error) {
+ new_offset_felt := lambdaworks.FeltFromUint64(uint64(r.Offset)).Sub(other)
+ new_offset, err := new_offset_felt.ToU64()
+ if err != nil {
+  return *r, err
+ }
+ return NewRelocatable(r.SegmentIndex, uint(new_offset)), nil
+}
+```
+
+Now lets look at the operations between `MaybeRelocatable`s:
+
+##### MaybeRelocatable.Add
+
+There are four different cases to consider when adding two `MaybeRelocatable` values:
+I. Both values are `Felt`: We perform felt addition
+II. Both values are `Relocatable`: This operation is not supported so we return an error
+III. First value is `Felt` and other in `Relocatable`: This operation is not supported so we return an error
+VI. First value is `Relocatable` and other is `Felt`: We call `Relocatable.AddFelt`
+
+```go
+func (m MaybeRelocatable) Add(other MaybeRelocatable) (MaybeRelocatable, error) {
+ // check if they are felt
+ m_int, m_is_int := m.GetFelt()
+ other_int, other_is_int := other.GetFelt()
+
+ if m_is_int && other_is_int {
+  result := NewMaybeRelocatableFelt(m_int.Add(other_int))
+  return *result, nil
+ }
+
+ // check if one is relocatable and the other int
+ m_rel, is_rel_m := m.GetRelocatable()
+ other_rel, is_rel_other := other.GetRelocatable()
+
+ if is_rel_m && !is_rel_other {
+  other_felt, _ := other.GetFelt()
+  relocatable, err := m_rel.AddFelt(other_felt)
+  if err != nil {
+   return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
+  }
+  return *NewMaybeRelocatableRelocatable(relocatable), nil
+
+ } else if !is_rel_m && is_rel_other {
+
+  m_felt, _ := m.GetFelt()
+  relocatable, err := other_rel.AddFelt(m_felt)
+  if err != nil {
+   return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
+  }
+  return *NewMaybeRelocatableRelocatable(relocatable), nil
+ } else {
+  return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), errors.New("RelocatableAdd")
+ }
+}
+```
+
+##### MaybeRelocatable.Sub
+
+There are four different cases to consider when adding two `MaybeRelocatable` values:
+I. Both values are `Felt`: We perform felt subtraction
+II. Both values are `Relocatable`: We call `Relocatable.Sub`
+III. First value is `Felt` and other in `Relocatable`: This operation is not supported so we return an error
+VI. First value is `Relocatable` and other is `Felt`: We call `Relocatable.SubFelt`
+
+```go
+func (m MaybeRelocatable) Sub(other MaybeRelocatable) (MaybeRelocatable, error) {
+ // check if they are felt
+ m_int, m_is_int := m.GetFelt()
+ other_felt, other_is_felt := other.GetFelt()
+
+ if m_is_int && other_is_felt {
+  result := NewMaybeRelocatableFelt(m_int.Sub(other_felt))
+  return *result, nil
+ }
+
+ // check if one is relocatable and the other int
+ m_rel, is_rel_m := m.GetRelocatable()
+ other_rel, is_rel_other := other.GetRelocatable()
+
+ if is_rel_m && !is_rel_other {
+  relocatable, err := m_rel.SubFelt(other_felt)
+  if err != nil {
+   return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
+  }
+  return *NewMaybeRelocatableRelocatable(relocatable), nil
+
+ } else if is_rel_m && is_rel_other {
+  offset_diff, err := m_rel.Sub(other_rel)
+  if err != nil {
+   return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
+  }
+  return *NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(uint64(offset_diff))), nil
+ } else {
+  return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), errors.New("Cant sub Relocatable from Felt")
+ }
+}
+```
+
 #### Memory
 
 As we previously described, the memory is made up of a series of segments of variable length, each containing a continuous sequence of `MaybeRelocatable` elements. Memory is also immutable, which means that once we have written a value into memory, it can't be changed.
