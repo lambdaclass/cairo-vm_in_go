@@ -22,22 +22,24 @@ We also use [pyenv](https://github.com/pyenv/pyenv) to install testing-related d
 
 ## Compiling, running, testing
 
-To compile, run:
+First, install the testing dependencies:
 
-```shell
-make build
-```
-
-To run the main example file, run:
-
-```shell
-make run
-```
-
-Before running the tests, install the testing dependencies:
+- On Linux, run
 
 ```shell
 make deps
+```
+
+- On MacOS, run
+
+```shell
+make deps-macos
+```
+
+To build the project, run:
+
+```shell
+make build
 ```
 
 To run all tests, activate the venv created by make deps and run the test target:
@@ -75,7 +77,7 @@ make demo_factorial
 
 ### First milestone: Fibonacci/Factorial
 
-The first milestone for Cairo VM in Go is completed! :tada:
+The first milestone for Cairo VM in Go is completed! 🎉
 
 The milestone includes:
 
