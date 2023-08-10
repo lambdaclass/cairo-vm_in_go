@@ -43,10 +43,10 @@ func PoseidonPermuteComp(poseidon_state []lambdaworks.Felt) error {
 	third_state_felt := toC(poseidon_state[2])
 
 	// Compute hash using starknet-crypto C wrapper
-	C.poseidon_permute(first_state_felt, second_state_felt, third_state_felt)
+	C.poseidon_permute(&first_state_felt[0], &second_state_felt[0], &third_state_felt[0])
 	fmt.Println("C run success")
 	// convert result to Go representation
-	new_poseidon_state := make([]lambdaworks.Felt, 0, 3)
+	new_poseidon_state := make([]lambdaworks.Felt, 3)
 	new_poseidon_state[0] = fromC(first_state_felt)
 	new_poseidon_state[1] = fromC(second_state_felt)
 	new_poseidon_state[2] = fromC(third_state_felt)
