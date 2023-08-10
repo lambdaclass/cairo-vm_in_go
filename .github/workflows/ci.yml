@@ -36,18 +36,7 @@ jobs:
       run: make build
 
     - name: test
-      run: make test
-
-    - name: Update coverage report
-      uses: ncruces/go-coverage-report@v0
-      with:
-        report: 'true'
-        chart: 'true'
-        amend: 'false'
-      if: |
-        matrix.os == 'ubuntu-latest' &&
-        github.event_name == 'push'  
-      continue-on-error: true
+      run: make coverage
 
     - name: format
       run: make check_fmt
