@@ -19,3 +19,11 @@ func TestFibonacci(t *testing.T) {
 	}
 	fmt.Println(err)
 }
+
+func TestPoseidonBuiltin(t *testing.T) {
+	_, err := cairo_run.CairoRun("../../../cairo_programs/poseidon_builtin.json")
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+	fmt.Println(err)
+}
