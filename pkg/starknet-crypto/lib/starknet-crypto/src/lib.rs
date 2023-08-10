@@ -32,7 +32,7 @@ extern "C" fn poseidon_permute(first_state_felt: Limbs, second_state_felt: Limbs
     state_array[2] = field_element_from_limbs(third_state_felt);
     // Call poseidon permute comp
     poseidon_permute_comp(&mut state_array);
-    // Convert state from FieldElement to C representation
+    // Convert state from FieldElement back to C representation
     limbs_from_field_element(state_array[0], first_state_felt);
     limbs_from_field_element(state_array[1], second_state_felt);
     limbs_from_field_element(state_array[2], third_state_felt);
