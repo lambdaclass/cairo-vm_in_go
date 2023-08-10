@@ -60,8 +60,8 @@ func (m *MemorySegmentManager) RelocateSegments() ([]uint, bool) {
 // Relocates the VM's memory, turning bidimensional indexes into contiguous numbers, and values
 // into Felt252s. Uses the relocation_table to asign each index a number according to the value
 // on its segment number.
-func (s *MemorySegmentManager) RelocateMemory(relocationTable *[]uint) (map[lambdaworks.Felt]lambdaworks.Felt, error) {
-	relocatedMemory := make(map[lambdaworks.Felt]lambdaworks.Felt, 0)
+func (s *MemorySegmentManager) RelocateMemory(relocationTable *[]uint) (map[uint]lambdaworks.Felt, error) {
+	relocatedMemory := make(map[uint]lambdaworks.Felt, 0)
 
 	for i := uint(0); i < s.Memory.NumSegments; i++ {
 		for j := uint(0); j < s.SegmentSizes[i]; j++ {
@@ -73,7 +73,6 @@ func (s *MemorySegmentManager) RelocateMemory(relocationTable *[]uint) (map[lamb
 				if err != nil {
 					return nil, err
 				}
-				// Todo: fix this, should be a felt
 				relocatedMemory[relocatedAddr] = value
 			}
 		}

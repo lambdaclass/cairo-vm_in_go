@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"sort"
 
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
 	"github.com/lambdaclass/cairo-vm.go/pkg/runners"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
@@ -84,5 +86,47 @@ func WriteEncodedTrace(relocatedTrace []vm.RelocatedTraceEntry, dest io.Writer) 
 }
 
 func encodeTraceError(i int, err error) error {
-	return errors.New(fmt.Sprintf("Failed to encode trace at position %d, serialize error: %s", i, err))
+	return errors.New(fmt.Sprintf("failed to encode trace at position %d, serialize error: %s", i, err))
+}
+
+// Writes a binary representation of the relocated memory.
+//
+// The memory pairs (address, value) are encoded and concatenated:
+// * address -> 8-byte encoded
+// * value -> 32-byte encoded
+func WriteEncodedMemory(relocatedMemory map[uint]lambdaworks.Felt, dest io.Writer) error {
+	// create a slice to store keys of the relocatedMemory map
+	keysMap := make([]uint, 0, len(relocatedMemory))
+	for k := range relocatedMemory {
+		keysMap = append(keysMap, k)
+	}
+
+	// sort the keys
+	sort.Slice(keysMap, func(i, j int) bool { return keysMap[i] < keysMap[j] })
+
+	// iterate over the `relocatedMemory` map in sorted key order
+	for _, k := range keysMap {
+
+		// write the key
+		keyArray := make([]byte, 8)
+		binary.LittleEndian.PutUint64(keyArray, uint64(k))
+		_, err := dest.Write(keyArray)
+		if err != nil {
+			return encodeMemoryError(k, err)
+		}
+
+		// write the value
+		valueArray := relocatedMemory[k].ToLeBytes()
+
+		_, err = dest.Write(valueArray[:])
+		if err != nil {
+			return encodeMemoryError(k, err)
+		}
+	}
+
+	return nil
+}
+
+func encodeMemoryError(i uint, err error) error {
+	return fmt.Errorf("failed to encode trace at position %d, serialize error: %s", i, err)
 }
