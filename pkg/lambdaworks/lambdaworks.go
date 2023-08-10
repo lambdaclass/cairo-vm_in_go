@@ -17,7 +17,7 @@ type Limb C.limb_t
 
 // Go representation of a 256 bit prime field element (felt).
 type Felt struct {
-	limbs [4]uint64
+	limbs [4]Limb
 }
 
 // Converts a Go Felt to a C felt_t.
@@ -31,9 +31,9 @@ func (f Felt) toC() C.felt_t {
 
 // Converts a C felt_t to a Go Felt.
 func fromC(result C.felt_t) Felt {
-	var limbs [4]uint64
+	var limbs [4]Limb
 	for i, limb := range result {
-		limbs[i] = uint64(limb)
+		limbs[i] = Limb(limb)
 	}
 	return Felt{limbs: limbs}
 }
