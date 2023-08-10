@@ -800,21 +800,21 @@ Now, once everything is set up, we only have to retrive each field by getting it
 
     ```go
     func DecodeInstruction(encodedInstruction uint64) (Instruction, error) {
-	const HighBit uint64 = 1 << 63
-	const DstRegMask uint64 = 0x0001
-	const DstRegOff uint64 = 0
-	const Op0RegMask uint64 = 0x0002
-	const Op0RegOff uint64 = 1
-	const Op1SrcMask uint64 = 0x001C
-	const Op1SrcOff uint64 = 2
-	const ResLogicMask uint64 = 0x0060
-	const ResLogicOff uint64 = 5
-	const PcUpdateMask uint64 = 0x0380
-	const PcUpdateOff uint64 = 7
-	const ApUpdateMask uint64 = 0x0C00
-	const ApUpdateOff uint64 = 10
-	const OpcodeMask uint64 = 0x7000
-	const OpcodeOff uint64 = 12
+        const HighBit uint64 = 1 << 63
+        const DstRegMask uint64 = 0x0001
+        const DstRegOff uint64 = 0
+        const Op0RegMask uint64 = 0x0002
+        const Op0RegOff uint64 = 1
+        const Op1SrcMask uint64 = 0x001C
+        const Op1SrcOff uint64 = 2
+        const ResLogicMask uint64 = 0x0060
+        const ResLogicOff uint64 = 5
+        const PcUpdateMask uint64 = 0x0380
+        const PcUpdateOff uint64 = 7
+        const ApUpdateMask uint64 = 0x0C00
+        const ApUpdateOff uint64 = 10
+        const OpcodeMask uint64 = 0x7000
+        const OpcodeOff uint64 = 12
     ```
 
 2. Checking High Bit:
@@ -836,8 +836,8 @@ Now, once everything is set up, we only have to retrive each field by getting it
 
     -----------------------------------------------------------------------------------------
     func fromBiasedRepresentation(offset uint64) int {
-	var bias uint16 = 1 << 15
-	return int(int16(uint16(offset) - bias))    
+        var bias uint16 = 1 << 15
+        return int(int16(uint16(offset) - bias))    
     }
     ```
 
@@ -846,7 +846,7 @@ Now, once everything is set up, we only have to retrive each field by getting it
     
     ```go
     var flags = encodedInstruction >> 48
-    ``
+    ```
 
 5. Decoding Fields:
     Using the extracted flag section, the method decodes various fields like destination register, op0 register, op1 source, result logic, pc update, ap update, and opcode. These fields are decoded by extracting specific bits from the flag section and mapping them to their corresponding enum values.
@@ -882,81 +882,81 @@ Now, once everything is set up, we only have to retrive each field by getting it
 	}
 
 	switch op1SrcNum {
-	case 0:
-		op1Src = Op1SrcOp0
-	case 1:
-		op1Src = Op1SrcImm
-	case 2:
-		op1Src = Op1SrcFP
-	case 4:
-		op1Src = Op1SrcAP
-	default:
-		return Instruction{}, ErrInvalidOp1RegError
+        case 0:
+            op1Src = Op1SrcOp0
+        case 1:
+            op1Src = Op1SrcImm
+        case 2:
+            op1Src = Op1SrcFP
+        case 4:
+            op1Src = Op1SrcAP
+        default:
+            return Instruction{}, ErrInvalidOp1RegError
 	}
 
 	switch pcUpdateNum {
-	case 0:
-		pcUpdate = PcUpdateRegular
-	case 1:
-		pcUpdate = PcUpdateJump
-	case 2:
-		pcUpdate = PcUpdateJumpRel
-	case 4:
-		pcUpdate = PcUpdateJnz
-	default:
-		return Instruction{}, ErrInvalidPcUpdateError
+        case 0:
+            pcUpdate = PcUpdateRegular
+        case 1:
+            pcUpdate = PcUpdateJump
+        case 2:
+            pcUpdate = PcUpdateJumpRel
+        case 4:
+            pcUpdate = PcUpdateJnz
+        default:
+            return Instruction{}, ErrInvalidPcUpdateError
 	}
 
 	switch resLogicNum {
-	case 0:
-		if pcUpdate == PcUpdateJnz {
-			res = ResUnconstrained
-		} else {
-			res = ResOp1
-		}
-	case 1:
-		res = ResAdd
-	case 2:
-		res = ResMul
-	default:
-		return Instruction{}, ErrInvalidResError
+        case 0:
+            if pcUpdate == PcUpdateJnz {
+                res = ResUnconstrained
+            } else {
+                res = ResOp1
+            }
+        case 1:
+            res = ResAdd
+        case 2:
+            res = ResMul
+        default:
+            return Instruction{}, ErrInvalidResError
 	}
 
 	switch opCodeNum {
-	case 0:
-		opcode = NOp
-	case 1:
-		opcode = Call
-	case 2:
-		opcode = Ret
-	case 4:
-		opcode = AssertEq
-	default:
-		return Instruction{}, ErrInvalidOpcodeError
+        case 0:
+            opcode = NOp
+        case 1:
+            opcode = Call
+        case 2:
+            opcode = Ret
+        case 4:
+            opcode = AssertEq
+        default:
+            return Instruction{}, ErrInvalidOpcodeError
 	}
 
 	switch apUpdateNum {
-	case 0:
-		if opcode == Call {
-			apUpdate = ApUpdateAdd2
-		} else {
-			apUpdate = ApUpdateRegular
-		}
-	case 1:
-		apUpdate = ApUpdateAdd
-	case 2:
-		apUpdate = ApUpdateAdd1
-	default:
-		return Instruction{}, ErrInvalidApUpdateError
+        case 0:
+            if opcode == Call {
+                apUpdate = ApUpdateAdd2
+            } else {
+                apUpdate = ApUpdateRegular
+            }
+        case 1:
+            apUpdate = ApUpdateAdd
+        case 2:
+            apUpdate = ApUpdateAdd1
+        default:
+            return Instruction{}, ErrInvalidApUpdateError
 	}
 
 	switch opcode {
-	case Call:
-		fpUpdate = FpUpdateAPPlus2
-	case Ret:
-		fpUpdate = FpUpdateDst
-	default:
-		fpUpdate = FpUpdateRegular
+        case Call:
+            fpUpdate = FpUpdateAPPlus2
+        case Ret:
+            fpUpdate = FpUpdateDst
+        default:
+            fpUpdate = FpUpdateRegular
 	}
     ```
     
