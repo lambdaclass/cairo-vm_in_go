@@ -649,9 +649,10 @@ To begin coding the basic execution functionality of our VM, we only need these 
 
 #### Instruction Decoding and Execution
 
-We have to imagin running a program like running in real life, one `step` at a time for the whole run. 
+Cairo program execution is divided into steps, and in turn each step is divided into:
+  1. Instruction decoding
+  2. Instruction execution
 
-There are some things to do in each step, we will explain them more deeply just below. 
 
 #### Step 
 
@@ -688,7 +689,7 @@ func (v *VirtualMachine) Step() error {
 }
 ```
 
-#### Decode instruction 
+##### Decode instruction 
 
 ```go
 //  Structure of the 63-bit that form the first word of each instruction.
@@ -707,7 +708,7 @@ func (v *VirtualMachine) Step() error {
 // └─────┴─────┴───┴───┴───┴───┴───┴───┴───┴───┴────┴────┴────┴────┴────┴────┘
 ```
 
-As we can see in the picture above, all the information we need is present on the bits representation of the instruction. The first thing to do is create a structure that stores it. 
+As we can see in the chart above, all the information we need is present on the bits representation of the instruction. The first thing to do is create a structure that stores it. 
 
 ```go 
 type Instruction struct {
@@ -991,7 +992,7 @@ Now, once everything is set up, we only have to retrive each field by getting it
     ```
 #### Run instruction
 
-At this point, we have stored all the needed information of the instruction in our program's. Let's run it! 
+At this point, we have all the information we need from the instruction. Let's run it! 
 
 There are 5 steps to run an instruction, they will be explained in detail later.
 
