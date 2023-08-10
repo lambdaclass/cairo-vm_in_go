@@ -53,7 +53,7 @@ func (p *PoseidonBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem
 	}
 
 	input_start_addr, _ := address.SubUint(index)
-	output_start_address := address.AddUint(INPUT_CELLS_PER_INSTANCE)
+	output_start_address := input_start_addr.AddUint(INPUT_CELLS_PER_INSTANCE)
 
 	// Build the initial poseidon state
 	var poseidon_state [3]lambdaworks.Felt
