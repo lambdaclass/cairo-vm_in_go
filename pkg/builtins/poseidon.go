@@ -17,7 +17,7 @@ type PoseidonBuiltinRunner struct {
 }
 
 func NewPoseidonBuiltinRunner(included bool) *PoseidonBuiltinRunner {
-	return &PoseidonBuiltinRunner{included: included}
+	return &PoseidonBuiltinRunner{included: included, cache: make(map[memory.Relocatable]lambdaworks.Felt)}
 }
 
 func (p *PoseidonBuiltinRunner) Base() memory.Relocatable {
