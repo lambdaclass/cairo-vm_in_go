@@ -1371,7 +1371,7 @@ With all of our builtin logic integrated into the codebase, we can implement any
 
 [Next sections: Implementing each builtin runner]
 
-<<<<<<< HEAD
+
 ### Implementing each builtin runner 
 
 *Range check* 
