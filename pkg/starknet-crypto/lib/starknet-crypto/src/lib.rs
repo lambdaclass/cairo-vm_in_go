@@ -27,21 +27,15 @@ fn limbs_from_field_element(felt: FieldElement, limbs : Limbs) {
 }
 
 #[no_mangle]
-extern "C" fn poseidon_permute(state: PoseidonState) {
+extern "C" fn poseidon_permute(first_state_felt: Limbs, second_state_felt: Limbs, third_state_felt: Limbs) {
     // Convert state from C representation to FieldElement
-    let slice = unsafe {
-        let slice: &mut [Limbs] = std::slice::from_raw_parts_mut(state, 3);
-        slice
-    };
     let mut state_array =  [FieldElement::ZERO; 3];
-    for limbs in slice.iter().take(3_usize) {
-        state_array[0] = field_element_from_limbs(*limbs)
-    }
+    state_array[0] = field_element_from_limbs(first_state_felt);
+    state_array[1] = field_element_from_limbs(second_state_felt);
+    state_array[2] = field_element_from_limbs(third_state_felt);
     // Call poseidon permute comp
     // Convert state from FieldElement to C representation
-    for i in 0..3 {
-        unsafe {
-            limbs_from_field_element(state_array[i], *state.offset(i as isize))
-        }
-    }
+    limbs_from_field_element(state_array[0], first_state_felt);
+    limbs_from_field_element(state_array[1], second_state_felt);
+    limbs_from_field_element(state_array[2], third_state_felt);
 }

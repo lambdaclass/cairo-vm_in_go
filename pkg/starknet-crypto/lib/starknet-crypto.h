@@ -6,6 +6,5 @@ typedef uint64_t limb_t;
  */
 typedef limb_t felt_t[4];
 
-typedef felt_t poseidon_state_t[3];
 
-void poseidon_permute(poseidon_state_t);
+void poseidon_permute(felt_t, felt_t, felt_t);
