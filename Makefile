@@ -51,7 +51,6 @@ test: $(COMPILED_TESTS)
 
 coverage: $(COMPILED_TESTS)
 	@go test -coverprofile=c.out ./...
-	@go tool cover -html=c.out
 
 build:
 	@cd pkg/lambdaworks/lib/lambdaworks && cargo build --release
