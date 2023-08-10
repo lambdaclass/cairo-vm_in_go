@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
-	starknet_crypto "github.com/lambdaclass/cairo-vm.go/pkg/starknet-crypto"
+	starknet_crypto "github.com/lambdaclass/cairo-vm.go/pkg/starknet_crypto"
 )
 
 func TestPoseidonPermuteCompA(t *testing.T) {

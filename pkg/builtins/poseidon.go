@@ -2,7 +2,7 @@ package builtins
 
 import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
-	starknet_crypto "github.com/lambdaclass/cairo-vm.go/pkg/starknet-crypto"
+	starknet_crypto "github.com/lambdaclass/cairo-vm.go/pkg/starknet_crypto"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 

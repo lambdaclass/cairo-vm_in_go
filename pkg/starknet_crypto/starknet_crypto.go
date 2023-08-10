@@ -1,8 +1,8 @@
 package starknet_crypto
 
 /*
-#cgo LDFLAGS: pkg/starknet-crypto/lib/libstarknet_crypto.a -ldl
-#include "lib/starknet-crypto.h"
+#cgo LDFLAGS: pkg/starknet_crypto/lib/libstarknet_crypto.a -ldl
+#include "lib/starknet_crypto.h"
 #include <stdlib.h>
 */
 import "C"
@@ -35,7 +35,7 @@ func PoseidonPermuteComp(poseidon_state *[3]lambdaworks.Felt) {
 	second_state_felt := toC(state[1])
 	third_state_felt := toC(state[2])
 
-	// Compute hash using starknet-crypto C wrapper
+	// Compute hash using starknet_crypto C wrapper
 	C.poseidon_permute(&first_state_felt[0], &second_state_felt[0], &third_state_felt[0])
 	// Convert result to Go representation
 	var new_poseidon_state = [3]lambdaworks.Felt{
