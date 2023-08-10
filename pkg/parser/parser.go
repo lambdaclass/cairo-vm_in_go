@@ -12,7 +12,7 @@ type FlowTrackingData struct {
 	ReferenceIDS map[string]int `json:"reference_ids"`
 }
 
-type Instructions struct {
+type Location struct {
 	EndCol    int               `json:"end_col"`
 	EndLine   int               `json:"end_line"`
 	InputFile map[string]string `json:"input_file"`
@@ -23,8 +23,13 @@ type Instructions struct {
 type InstructionLocation struct {
 	AccessibleScopes []string         `json:"accessible_scopes"`
 	FlowTrackingData FlowTrackingData `json:"flow_tracking_data"`
-	Hints            []string         `json:"hints"`
-	Inst             Instructions     `json:"inst"`
+	Hints            string           `json:"hints"`
+	Inst             Location         `json:"inst"`
+}
+
+type HintLocation struct {
+	Location        Location `json:"location"`
+	NPrefixNewLines uint32   `json:"n_prefix_newlines"`
 }
 
 type DebugInfo struct {
