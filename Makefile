@@ -1,5 +1,5 @@
-.PHONY: deps deps-macos run test build fmt check_fmt clean clean_files build_cairo_vm_cli compare_trace_memory compare_trace compare_memory \
- demo_fibonacci demo_factorial $(CAIRO_VM_CLI)
+.PHONY: deps deps-macos run test coverage build fmt check_fmt clean clean_files build_cairo_vm_cli compare_trace_memory compare_trace \
+ compare_memory demo_fibonacci demo_factorial $(CAIRO_VM_CLI)
 
 CAIRO_VM_CLI:=cairo-vm/target/release/cairo-vm-cli
 
@@ -32,6 +32,7 @@ deps:
 	PYENV_VERSION=3.9.15 python -m venv cairo-vm-env
 	. cairo-vm-env/bin/activate ; \
 	pip install -r requirements.txt ; \
+	go get code.google.com/p/go.tools/cmd/cover
 
 # Creates a pyenv and installs cairo-lang
 deps-macos:
@@ -40,12 +41,19 @@ deps-macos:
 	PYENV_VERSION=3.9.15 python -m venv cairo-vm-env
 	. cairo-vm-env/bin/activate ; \
 	CFLAGS=-I/opt/homebrew/opt/gmp/include LDFLAGS=-L/opt/homebrew/opt/gmp/lib pip install -r requirements.txt ; \
+	go get code.google.com/p/go.tools/cmd/cover
 
 run:
 	@go run cmd/cli/main.go
 
 test: $(COMPILED_TESTS)
 	@go test -v ./...
+
+coverage: $(COMPILED_TESTS)
+	@go test -race -coverprofile=coverage.out -covermode=atomic ./...
+
+coverage_html: coverage
+	@go tool cover -html=coverage.out
 
 build:
 	@cd pkg/lambdaworks/lib/lambdaworks && cargo build --release
