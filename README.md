@@ -974,9 +974,9 @@ func fromBiasedRepresentation(offset uint64) int {
 	return int(int16(uint16(offset) - bias))
 }
 ```
-#### Run instruction
+### Run instruction
 
-At this point, we have stored all the needed information of the instruction in our program's instruction. Let's run it! 
+At this point, we have stored all the needed information of the instruction in our program's. Let's run it! 
 
 There are 5 steps to run an instruction, they will be explained in detail later.
 
