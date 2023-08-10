@@ -36,7 +36,10 @@ jobs:
       run: make build
 
     - name: test
-      run: make test
+      run: make coverage
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
 
     - name: format
       run: make check_fmt
