@@ -728,6 +728,8 @@ type Instruction struct {
 
 And the good thing about this, is every bits combination for each field is known, so we can code all the possible flags to work with. These flags are represented below. 
 
+The Register constants, there's two possible registers, ap and fp. The ap register (address pointer register) keeps track of memory addresses for data access. The fp register (frame pointer register) manages function call stack frames, local variables and parameter access.
+
 ```go 
 // x-----------------------------x
 // x----- Instruction flags -----x
@@ -739,7 +741,11 @@ const (
 	AP Register = 0
 	FP Register = 1
 )
+```
 
+The Op1Src constants define sources for an operation, including immediate values, registers (AP, FP), and an operation result.
+
+```go
 type Op1Src uint
 
 const (
@@ -748,7 +754,10 @@ const (
 	Op1SrcFP  Op1Src = 2
 	Op1SrcOp0 Op1Src = 4
 )
+```
+The ResLogic constants represent different types of results in a program, including operation results, addition, multiplication, and unconstrained values.
 
+```go
 type ResLogic uint
 
 const (
@@ -757,7 +766,11 @@ const (
 	ResMul           ResLogic = 2
 	ResUnconstrained ResLogic = 3
 )
+```
 
+The PcUpdate constants define different ways to update the program counter, including regular updates, jumps, relative jumps, and conditional jumps (jump if not zero).
+
+```go
 type PcUpdate uint
 
 const (
@@ -766,7 +779,11 @@ const (
 	PcUpdateJumpRel PcUpdate = 2
 	PcUpdateJnz     PcUpdate = 3
 )
+```
 
+The ApUpdate constants represent various ways of updating an address pointer, including regular updates, and different addition types.
+
+```go
 type ApUpdate uint
 
 const (
@@ -775,7 +792,11 @@ const (
 	ApUpdateAdd1    ApUpdate = 2
 	ApUpdateAdd2    ApUpdate = 3
 )
+```
 
+The FpUpdate constants define different ways of updating the frame pointer, including regular updates, addition with a specific offset, and destination updates.
+
+```go
 type FpUpdate uint
 
 const (
@@ -783,7 +804,11 @@ const (
 	FpUpdateAPPlus2 FpUpdate = 1
 	FpUpdateDst     FpUpdate = 2
 )
+```
 
+The Opcode constants represent different types of operations or instructions, including no operation, assertion checks, function calls, and returns.
+
+```go
 type Opcode uint
 
 const (
