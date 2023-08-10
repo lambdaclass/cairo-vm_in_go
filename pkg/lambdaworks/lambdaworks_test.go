@@ -135,6 +135,41 @@ func TestOrOne(t *testing.T) {
 	}
 }
 
+func TestPow2(t *testing.T) {
+	f0 := lambdaworks.FeltFromUint64(2)
+	pow := lambdaworks.FeltFromUint64(2)
+
+	expected := lambdaworks.FeltFromUint64(4)
+	result := f0.Pow(pow)
+
+	if expected != result {
+		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
+	}
+}
+
+func TestPow0(t *testing.T) {
+	f0 := lambdaworks.FeltFromUint64(2)
+	pow := lambdaworks.FeltFromUint64(0)
+
+	expected := lambdaworks.FeltFromUint64(1)
+	result := f0.Pow(pow)
+
+	if expected != result {
+		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
+	}
+}
+func TestPow3(t *testing.T) {
+	f0 := lambdaworks.FeltFromUint64(3)
+	pow := lambdaworks.FeltFromUint64(2)
+
+	expected := lambdaworks.FeltFromUint64(9)
+	result := f0.Pow(pow)
+
+	if expected != result {
+		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
+	}
+}
+
 func TestFeltMul1(t *testing.T) {
 	f_one := lambdaworks.FeltOne()
 	expected := lambdaworks.FeltOne()

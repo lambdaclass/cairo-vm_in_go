@@ -1,6 +1,7 @@
 package builtinrunner
 
 import "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+import "errors"
 
 type BitwiseInstanceDef struct {
 	Ratio      *uint
@@ -45,54 +46,54 @@ func (b *BitwiseBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
 	}
 }
 
-// func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segments *memory.Memory) (*memory.MaybeRelocatable, error) {
-// 	index := address.Offset % b.CellsPerInstance
-// 	if index < 1 {
-// 		return nil, nil
-// 	}
+func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segments *memory.Memory) (*memory.MaybeRelocatable, error) {
+	index := address.Offset % b.CellsPerInstance
+	if index < 1 {
+		return nil, nil
+	}
 
-// 	x_addr := memory.NewRelocatable(address.SegmentIndex, address.Offset-index)
-// 	y_addr, err := (x_addr.AddUint(1))
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	x_addr := memory.NewRelocatable(address.SegmentIndex, address.Offset-index)
+	y_addr, err := (x_addr.AddUint(1))
+	if err != nil {
+		return nil, err
+	}
 
-// 	num_x, err := segments.Get(x_addr)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	num_x, err := segments.Get(x_addr)
+	if err != nil {
+		return nil, err
+	}
 
-// 	num_y, err := segments.Get(y_addr)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	num_y, err := segments.Get(y_addr)
+	if err != nil {
+		return nil, err
+	}
 
-// 	num_x_felt, x_is_felt := num_x.GetFelt()
-// 	num_y_felt, y_is_felt := num_y.GetFelt()
+	num_x_felt, x_is_felt := num_x.GetFelt()
+	num_y_felt, y_is_felt := num_y.GetFelt()
 
-// 	if x_is_felt && y_is_felt {
-// 		if num_x_felt.Bits() > uint64(b.BitwiseBuiltin.TotalNBits) {
-// 			return nil, errors.New("Expected Intenger x to be smaller than 2^(total_n_bits)")
-// 		}
-// 		if num_y_felt.Bits() > uint64(b.BitwiseBuiltin.TotalNBits) {
-// 			return nil, errors.New("Expected Intenger y to be smaller than 2^(total_n_bits)")
-// 		}
+	if x_is_felt && y_is_felt {
+		if num_x_felt.Bits() > uint64(b.BitwiseBuiltin.TotalNBits) {
+			return nil, errors.New("Expected Intenger x to be smaller than 2^(total_n_bits)")
+		}
+		if num_y_felt.Bits() > uint64(b.BitwiseBuiltin.TotalNBits) {
+			return nil, errors.New("Expected Intenger y to be smaller than 2^(total_n_bits)")
+		}
 
-// 		var res *memory.MaybeRelocatable
-// 		switch index {
-// 		case 2:
-// 			res = memory.NewMaybeRelocatableFelt(num_x_felt.And(num_y_felt))
-// 		case 3:
-// 			res = memory.NewMaybeRelocatableFelt(num_x_felt ^ num_y_felt)
-// 		case 4:
-// 			res = memory.NewMaybeRelocatableFelt(num_x_felt.Or(num_y_felt))
-// 		default:
-// 			res = nil
-// 		}
-// 		return res, nil
-// 	}
+		var res *memory.MaybeRelocatable
+		switch index {
+		case 2:
+			res = memory.NewMaybeRelocatableFelt(num_x_felt.And(num_y_felt))
+		case 3:
+			res = memory.NewMaybeRelocatableFelt(num_x_felt.Pow(num_y_felt))
+		case 4:
+			res = memory.NewMaybeRelocatableFelt(num_x_felt.Or(num_y_felt))
+		default:
+			res = nil
+		}
+		return res, nil
+	}
 
-// 	return nil, nil
-// }
+	return nil, nil
+}
 
 func (r *BitwiseBuiltinRunner) AddValidatonRule(segments *memory.Memory) {}
