@@ -657,7 +657,7 @@ There are some things to do in each step, we will explain them more deeply just 
 
 This method is the organizer of the execution of each instruction, it orchestrates it and handles the possible errors. 
 
-The first thing it does is obtain the intruction we want to run, it does that getting the value on memory where the current pc is pointing. We know that the instruction has to be a felt, if it is not, then there has been an error with the encoding of the instruction. 
+The first thing it does is obtain the intruction we want to run, it does that by getting the value on memory where the current pc is pointing. We know that the instruction has to be a felt, if it is not, then there is an error with the encoding of the instruction. 
 Once we retrieve the felt we have the `encoded instruction`, we need to decode it to get the fields from its bits representation. Felt is not useful anymore so we will get its integer representation. 
 Now its time to decode the instruction and then run the `decoded instruction`.
 
