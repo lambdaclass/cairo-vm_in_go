@@ -1,8 +1,14 @@
 package builtins
 
-import "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+import (
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	starknet_crypto "github.com/lambdaclass/cairo-vm.go/pkg/starknet-crypto"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+)
 
 const POSEIDON_BUILTIN_NAME = "poseidon"
+const CELLS_PER_INSTANCE = 6
+const INPUT_CELLS_PER_INSTANCE = 3
 
 type PoseidonBuiltinRunner struct {
 	base     memory.Relocatable
@@ -33,7 +39,36 @@ func (p *PoseidonBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
 	}
 }
 
-func (p *PoseidonBuiltinRunner) DeduceMemoryCell(memory.Relocatable, *memory.Memory) (*memory.MaybeRelocatable, error) {
+func (p *PoseidonBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, memory *memory.Memory) (*memory.MaybeRelocatable, error) {
+	// Check if its an input cell
+	index := address.Offset % CELLS_PER_INSTANCE
+	if index < INPUT_CELLS_PER_INSTANCE {
+		return nil, nil
+	}
+
+	// TODO: fetch from cache
+	input_start_addr, _ := address.SubUint(index)
+	first_output_address := address.AddUint(INPUT_CELLS_PER_INSTANCE)
+
+	// Build the initial poseidon state
+	var poseidon_state [3]lambdaworks.Felt
+
+	for i := uint(0); i < INPUT_CELLS_PER_INSTANCE; i++ {
+		felt, err := memory.GetFelt(first_output_address.AddUint(i))
+		if err != nil {
+			return nil, err
+		}
+		poseidon_state[i] = felt
+	}
+
+	// Run the poseidon permutation
+
+	starknet_crypto.PoseidonPermuteComp(&poseidon_state)
+
+	// Insert the new state into the output cells
+	// TODO insert into cache
+	//TODO fetch result from output cache
+
 	return nil, nil //TODO
 }
 
