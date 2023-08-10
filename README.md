@@ -22,22 +22,24 @@ We also use [pyenv](https://github.com/pyenv/pyenv) to install testing-related d
 
 ## Compiling, running, testing
 
-To compile, run:
+First, install the testing dependencies:
 
-```shell
-make build
-```
-
-To run the main example file, run:
-
-```shell
-make run
-```
-
-Before running the tests, install the testing dependencies:
+- On Linux, run
 
 ```shell
 make deps
+```
+
+- On MacOS, run
+
+```shell
+make deps-macos
+```
+
+To build the project, run:
+
+```shell
+make build
 ```
 
 To run all tests, activate the venv created by make deps and run the test target:
@@ -75,7 +77,7 @@ make demo_factorial
 
 ### First milestone: Fibonacci/Factorial
 
-The first milestone for Cairo VM in Go is completed! :tada:
+The first milestone for Cairo VM in Go is completed! 🎉
 
 The milestone includes:
 
@@ -159,7 +161,7 @@ While this repo is only concerned with the second component, it's important to k
 
 Our virtual machine has a very simple flow:
 
-- Take a compiled cairo program as input. You can check out an example program [here](https://github.com/lambdaclass/cairo_vm.go/blob/main/cairo_programs/fibonacci.cairo).
+- Take a compiled cairo program as input. You can check out an example program [here](https://github.com/lambdaclass/cairo-vm.go/blob/main/cairo_programs/fibonacci.cairo).
 - Run the bytecode from the compiled program, doing the usual `fetch->decode->execute` loop, running until program termination.
 - On every step of the execution, record the values of each register.
 - Take the register values and memory at every step and write them to a file, called the `execution trace`.
