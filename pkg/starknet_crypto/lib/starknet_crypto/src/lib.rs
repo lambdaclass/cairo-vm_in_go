@@ -13,7 +13,7 @@ fn field_element_from_bytes(bytes: Bytes) -> FieldElement {
     FieldElement::from_bytes_be(&array).unwrap()
 }
 
-fn bytes_from_field_element(felt: FieldElement, bytes : Bytes) {
+fn bytes_from_field_element(felt: FieldElement, bytes: Bytes) {
     let byte_array = felt.to_bytes_be();
     for i in 0..32 {
         unsafe {
@@ -23,12 +23,17 @@ fn bytes_from_field_element(felt: FieldElement, bytes : Bytes) {
 }
 
 #[no_mangle]
-extern "C" fn poseidon_permute(first_state_felt: Bytes, second_state_felt: Bytes, third_state_felt: Bytes) {
+extern "C" fn poseidon_permute(
+    first_state_felt: Bytes,
+    second_state_felt: Bytes,
+    third_state_felt: Bytes,
+) {
     // Convert state from C representation to FieldElement
-    let mut state_array =  [FieldElement::ZERO; 3];
-    state_array[0] = field_element_from_bytes(first_state_felt);
-    state_array[1] = field_element_from_bytes(second_state_felt);
-    state_array[2] = field_element_from_bytes(third_state_felt);
+    let mut state_array: [FieldElement; 3] = [
+        field_element_from_bytes(first_state_felt),
+        field_element_from_bytes(second_state_felt),
+        field_element_from_bytes(third_state_felt),
+    ];
     // Call poseidon permute comp
     poseidon_permute_comp(&mut state_array);
     // Convert state from FieldElement back to C representation
