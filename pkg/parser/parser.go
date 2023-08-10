@@ -23,7 +23,7 @@ type Location struct {
 type InstructionLocation struct {
 	AccessibleScopes []string         `json:"accessible_scopes"`
 	FlowTrackingData FlowTrackingData `json:"flow_tracking_data"`
-	Hints            string           `json:"hints"`
+	Hints            []HintLocation   `json:"hints"`
 	Inst             Location         `json:"inst"`
 }
 
@@ -63,13 +63,20 @@ type ReferenceManager struct {
 	References []Reference `json:"references"`
 }
 
+type HintParams struct {
+	Code             string           `json:"code"`
+	AccessibleScopes []string         `json:"accessible_scopes"`
+	FlowTrackingData FlowTrackingData `json:"flow_trackingData"`
+	ReferenceIds     map[string]uint  `json:"reference_ids"`
+}
+
 type CompiledJson struct {
 	Attributes       []string              `json:"attributes"`
 	Builtins         []string              `json:"builtins"`
 	CompilerVersion  string                `json:"compiler_version"`
 	Data             []string              `json:"data"`
 	DebugInfo        DebugInfo             `json:"debug_info"`
-	Hints            map[string]string     `json:"hints"`
+	Hints            map[uint][]HintParams `json:"hints"`
 	Identifiers      map[string]Identifier `json:"identifiers"`
 	MainScope        string                `json:"main_scope"`
 	Prime            string                `json:"prime"`
