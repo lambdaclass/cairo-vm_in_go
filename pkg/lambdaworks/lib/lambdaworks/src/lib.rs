@@ -141,7 +141,12 @@ pub extern "C" fn felt_pow(a: Limbs, b: Limbs, result: Limbs) {
     felt_to_limbs(res, result)
 }
 
-// #[no_mangle]
-// pub extern "C" fn pow(a: Limbs, b: Limbs, result: Limbs) {
-// felt_to_limbs(limbs_to_felt(a).pow(&limbs_to_felt(b)), result)
-// }
+#[no_mangle]
+pub extern "C" fn felt_xor(a: Limbs, b: Limbs, result: Limbs) {
+    let felt_a = limbs_to_felt(a).representative();
+    let felt_b = limbs_to_felt(b).representative();
+
+    let res = felt_a ^ felt_b;
+
+    felt_to_limbs(Felt::from(&res), result)
+}

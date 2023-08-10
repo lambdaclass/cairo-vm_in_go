@@ -155,6 +155,14 @@ func (a Felt) And(b Felt) Felt {
 	return fromC(result)
 }
 
+func (a Felt) Xor(b Felt) Felt {
+	var result C.felt_t
+	var a_c C.felt_t = a.toC()
+	var b_c C.felt_t = b.toC()
+	C.felt_xor(&a_c[0], &b_c[0], &result[0])
+	return fromC(result)
+}
+
 func (a Felt) Or(b Felt) Felt {
 	var result C.felt_t
 	var a_c C.felt_t = a.toC()

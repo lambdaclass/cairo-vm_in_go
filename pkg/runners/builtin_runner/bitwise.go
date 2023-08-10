@@ -96,7 +96,7 @@ func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segm
 		case 2:
 			res = memory.NewMaybeRelocatableFelt(num_x_felt.And(num_y_felt))
 		case 3:
-			res = memory.NewMaybeRelocatableFelt(num_x_felt.Pow(num_y_felt))
+			res = memory.NewMaybeRelocatableFelt(num_x_felt.Xor(num_y_felt))
 		case 4:
 			res = memory.NewMaybeRelocatableFelt(num_x_felt.Or(num_y_felt))
 		default:
