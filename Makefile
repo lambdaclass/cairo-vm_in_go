@@ -52,6 +52,9 @@ test: $(COMPILED_TESTS)
 coverage: $(COMPILED_TESTS)
 	@go test -race -coverprofile=coverage.out -covermode=atomic ./...
 
+coverage_html: coverage
+	@go tool cover -html=coverage.out
+
 build:
 	@cd pkg/lambdaworks/lib/lambdaworks && cargo build --release
 	@cp pkg/lambdaworks/lib/lambdaworks/target/release/liblambdaworks.a pkg/lambdaworks/lib
