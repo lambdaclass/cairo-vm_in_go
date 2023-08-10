@@ -38,17 +38,14 @@ jobs:
     - name: test
       run: make coverage
 
+    - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+
     - name: format
       run: make check_fmt
 
     - name: Compare trace & memory with cairo-vm
       run: make compare_trace_memory
-
-    - name: Upload coverage to codecov
-      uses: codecov/codecov-action@v3
-      with:
-        files: c.out
-        fail_ci_if_error: true
 
   demos:
     runs-on: ubuntu-latest
