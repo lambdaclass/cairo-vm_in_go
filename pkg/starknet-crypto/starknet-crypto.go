@@ -7,8 +7,6 @@ package starknet_crypto
 */
 import "C"
 import (
-	"errors"
-
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 )
 
@@ -30,11 +28,7 @@ func fromC(result C.felt_t) lambdaworks.Felt {
 	return lambdaworks.FeltFromBeBytes(&bytes)
 }
 
-func PoseidonPermuteComp(poseidon_state *[]lambdaworks.Felt) error {
-	// Check input args
-	if len(*poseidon_state) != 3 {
-		return errors.New("Poseidon state must have 3 elements")
-	}
+func PoseidonPermuteComp(poseidon_state *[3]lambdaworks.Felt) {
 	state := *poseidon_state
 	// Convert args to c representation
 	first_state_felt := toC(state[0])
@@ -44,12 +38,11 @@ func PoseidonPermuteComp(poseidon_state *[]lambdaworks.Felt) error {
 	// Compute hash using starknet-crypto C wrapper
 	C.poseidon_permute(&first_state_felt[0], &second_state_felt[0], &third_state_felt[0])
 	// Convert result to Go representation
-	new_poseidon_state := make([]lambdaworks.Felt, 3)
-	new_poseidon_state[0] = fromC(first_state_felt)
-	new_poseidon_state[1] = fromC(second_state_felt)
-	new_poseidon_state[2] = fromC(third_state_felt)
+	var new_poseidon_state = [3]lambdaworks.Felt{
+		fromC(first_state_felt),
+		fromC(second_state_felt),
+		fromC(third_state_felt),
+	}
 	// Update poseidon state
 	*poseidon_state = new_poseidon_state
-
-	return nil
 }
