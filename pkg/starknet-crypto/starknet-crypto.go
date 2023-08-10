@@ -1,13 +1,14 @@
 package starknet_crypto
 
 /*
-#cgo LDFLAGS: pkg/starknet-crypto/lib/libstarknet-crypto.a -ldl
+#cgo LDFLAGS: pkg/starknet-crypto/lib/libstarknet_crypto.a -ldl
 #include "lib/starknet-crypto.h"
 #include <stdlib.h>
 */
 import "C"
 import (
 	"errors"
+	"fmt"
 	"unsafe"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
@@ -31,7 +32,7 @@ func fromC(result C.felt_t) lambdaworks.Felt {
 	return lambdaworks.FeltFromLimbs(limbs)
 }
 
-func poseidon_permute_comp(poseidon_state []lambdaworks.Felt) error {
+func PoseidonPermuteComp(poseidon_state []lambdaworks.Felt) error {
 	// Check input args
 	if len(poseidon_state) != 3 {
 		return errors.New("Poseidon state must have 3 elements")
@@ -45,6 +46,13 @@ func poseidon_permute_comp(poseidon_state []lambdaworks.Felt) error {
 	poseidon_state_ptr := (*C.felt_t)(unsafe.Pointer(&poseidon_state_c))
 	C.poseidon_permute(poseidon_state_ptr)
 	// convert result to Go representation
+	new_poseidon_state := make([]lambdaworks.Felt, 0, 3)
+	for i, elem := range poseidon_state_c {
+		felt_elem := fromC(elem)
+		new_poseidon_state[i] = felt_elem
+	}
+
+	fmt.Printf("New state %+v", new_poseidon_state)
 
 	return nil
 }
