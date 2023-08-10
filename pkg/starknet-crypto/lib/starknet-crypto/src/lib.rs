@@ -29,7 +29,6 @@ extern "C" fn poseidon_permute(first_state_felt: Bytes, second_state_felt: Bytes
     state_array[0] = field_element_from_bytes(first_state_felt);
     state_array[1] = field_element_from_bytes(second_state_felt);
     state_array[2] = field_element_from_bytes(third_state_felt);
-    println!("State array {:?}, {:?}, {:?}", state_array[0], state_array[1], state_array[2]);
     // Call poseidon permute comp
     poseidon_permute_comp(&mut state_array);
     // Convert state from FieldElement back to C representation
