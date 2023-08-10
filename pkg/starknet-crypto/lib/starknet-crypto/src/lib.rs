@@ -26,7 +26,8 @@ fn limbs_from_field_element(felt: FieldElement, limbs : Limbs) {
     }
 }
 
-fn poseidon_permute(state: PoseidonState) {
+#[no_mangle]
+extern "C" fn poseidon_permute(state: PoseidonState) {
     // Convert state from C representation to FieldElement
     let slice = unsafe {
         let slice: &mut [Limbs] = std::slice::from_raw_parts_mut(state, 3);
