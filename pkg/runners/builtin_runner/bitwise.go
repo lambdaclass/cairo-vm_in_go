@@ -1,7 +1,11 @@
 package builtinrunner
 
-import "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
-import "errors"
+import (
+	"errors"
+	"fmt"
+
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+)
 
 type BitwiseInstanceDef struct {
 	Ratio      *uint
@@ -49,22 +53,27 @@ func (b *BitwiseBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
 func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segments *memory.Memory) (*memory.MaybeRelocatable, error) {
 	index := address.Offset % b.CellsPerInstance
 	if index < 1 {
+		fmt.Println("index < 1")
 		return nil, nil
 	}
 
 	x_addr := memory.NewRelocatable(address.SegmentIndex, address.Offset-index)
 	y_addr, err := (x_addr.AddUint(1))
 	if err != nil {
+		fmt.Println("could not fetch y_addr")
 		return nil, err
 	}
-
 	num_x, err := segments.Get(x_addr)
 	if err != nil {
+		fmt.Println("could not fetch num x")
+
 		return nil, err
 	}
 
 	num_y, err := segments.Get(y_addr)
 	if err != nil {
+		fmt.Println("could not fetch num y")
+
 		return nil, err
 	}
 
@@ -72,6 +81,7 @@ func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segm
 	num_y_felt, y_is_felt := num_y.GetFelt()
 
 	if x_is_felt && y_is_felt {
+		fmt.Println("enter the critical if")
 		// TODO: check if this conversion if valid
 		if uint64(num_x_felt.Bits()) > uint64(b.BitwiseBuiltin.TotalNBits) {
 			return nil, errors.New("Expected Intenger x to be smaller than 2^(total_n_bits)")
@@ -81,6 +91,7 @@ func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segm
 		}
 
 		var res *memory.MaybeRelocatable
+		fmt.Println(index)
 		switch index {
 		case 2:
 			res = memory.NewMaybeRelocatableFelt(num_x_felt.And(num_y_felt))

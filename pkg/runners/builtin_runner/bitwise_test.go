@@ -8,7 +8,8 @@ import (
 )
 
 func TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd(t *testing.T) {
-	mem := memory.NewMemory()
+	mem := memory.NewMemorySegmentManager()
+	mem.AddSegment()
 	rel1 := memory.NewRelocatable(0, 5)
 	rel2 := memory.NewRelocatable(0, 6)
 	rel3 := memory.NewRelocatable(0, 7)
@@ -17,9 +18,12 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd(t *testing.T) {
 	m2 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(12))
 	m3 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0))
 
-	mem.Insert(rel1, m1)
-	mem.Insert(rel2, m2)
-	mem.Insert(rel3, m3)
+	err := mem.Memory.Insert(rel1, m1)
+	if err != nil {
+		t.Errorf("%v", err)
+	}
+	mem.Memory.Insert(rel2, m2)
+	mem.Memory.Insert(rel3, m3)
 
 	var ratio uint = 256
 
@@ -28,7 +32,7 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd(t *testing.T) {
 
 	address := memory.NewRelocatable(0, 8)
 
-	result, err := builtin.DeduceMemoryCell(address, mem)
+	result, err := builtin.DeduceMemoryCell(address, &mem.Memory)
 	expected := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(6))
 
 	if err != nil {
