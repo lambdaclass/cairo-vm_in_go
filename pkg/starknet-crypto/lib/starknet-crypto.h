@@ -1,10 +1,10 @@
 #include <stdint.h>
 
-typedef uint64_t limb_t;
+typedef uint8_t byte_t;
 
 /* A 256 bit prime field element (felt), represented as four limbs (integers).
  */
-typedef limb_t felt_t[4];
+typedef byte_t felt_t[32];
 
 
 void poseidon_permute(felt_t, felt_t, felt_t);

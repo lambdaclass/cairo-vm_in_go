@@ -15,19 +15,22 @@ import (
 // Converts a Go Felt to a C felt_t.
 func toC(f lambdaworks.Felt) C.felt_t {
 	var result C.felt_t
-	for i, limb := range f.ToLimbs() {
-		result[i] = C.limb_t(limb)
+	//TODO: Switch to be
+	for i, byte := range f.ToLeBytes() {
+		result[i] = C.byte_t(byte)
 	}
 	return result
 }
 
 // Converts a C felt_t to a Go Felt.
 func fromC(result C.felt_t) lambdaworks.Felt {
-	var limbs [4]uint64
-	for i, limb := range result {
-		limbs[i] = uint64(limb)
+	var bytes [32]uint8
+	for i, byte := range result {
+		bytes[i] = uint8(byte)
 	}
-	return lambdaworks.FeltFromLimbs(limbs)
+	// TODO: uncomment and remove placeholder line
+	//return lambdaworks.FeltFromBeBytes(limbs)
+	return lambdaworks.FeltZero() //placeholder
 }
 
 func PoseidonPermuteComp(poseidon_state *[]lambdaworks.Felt) error {

@@ -24,7 +24,7 @@ func TestPoseidonPermuteCompA(t *testing.T) {
 		lambdaworks.FeltFromHex("0x61df3789eef0e1ee0dbe010582a00dd099191e6395dfb976e7be3be2fa9d54b"),
 	}
 	if !reflect.DeepEqual(poseidon_state, expected_poseidon_state) {
-		t.Errorf("Wrong state after poseidon permutation")
+		t.Errorf("Wrong state after poseidon permutation.\n Expected %+v.\n Got: %+v", expected_poseidon_state, poseidon_state)
 	}
 
 }

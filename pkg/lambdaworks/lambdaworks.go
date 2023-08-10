@@ -135,13 +135,3 @@ func (a Felt) Div(b Felt) Felt {
 	C.lw_div(&a_c[0], &b_c[0], &result[0])
 	return fromC(result)
 }
-
-// Build a Felt value from its inner representation
-func FeltFromLimbs(limbs [4]uint64) Felt {
-	return Felt{limbs: limbs}
-}
-
-// Returns the inner representation of a Felt
-func (f Felt) ToLimbs() [4]uint64 {
-	return f.limbs
-}
