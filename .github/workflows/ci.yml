@@ -45,7 +45,7 @@ jobs:
       run: make compare_trace_memory
 
     - name: Upload coverage to codecov
-    - uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v3
       with:
         files: c.out
         fail_ci_if_error: true
