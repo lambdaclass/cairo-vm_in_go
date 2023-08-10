@@ -173,7 +173,7 @@ func TestDeduceOp1OpcodeCall(t *testing.T) {
 
 	vm := NewVirtualMachine()
 
-	m1, m2, err := vm.DeduceOp1(instruction, nil, nil)
+	m1, m2, err := vm.DeduceOp1(&instruction, nil, nil)
 
 	if err != nil {
 		t.Error(err)
@@ -211,7 +211,7 @@ func TestDeduceOp1OpcodeAssertEqResAddWithOptionals(t *testing.T) {
 	expected_dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltOne())
 	expected_op0 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(3))
 
-	m1, m2, err := vm.DeduceOp1(instruction, dst, op0)
+	m1, m2, err := vm.DeduceOp1(&instruction, dst, op0)
 
 	if err != nil {
 		t.Error(err)
@@ -242,7 +242,7 @@ func TestDeduceOp1OpcodeAssertEqResAddWithoutOptionals(t *testing.T) {
 
 	vm := NewVirtualMachine()
 
-	m1, m2, err := vm.DeduceOp1(instruction, nil, nil)
+	m1, m2, err := vm.DeduceOp1(&instruction, nil, nil)
 
 	if err != nil {
 		t.Error(err)
@@ -279,7 +279,7 @@ func TestDeduceOp1OpcodeAssertEqResMulNonZeroOp0(t *testing.T) {
 	expected_dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2))
 	expected_op0 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(4))
 
-	m1, m2, err := vm.DeduceOp1(instruction, dst, op0)
+	m1, m2, err := vm.DeduceOp1(&instruction, dst, op0)
 
 	if err != nil {
 		t.Error(err)
@@ -313,7 +313,7 @@ func TestDeduceOp1OpcodeAssertEqResMulZeroOp0(t *testing.T) {
 	dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(4))
 	op0 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0))
 
-	m1, m2, err := vm.DeduceOp1(instruction, dst, op0)
+	m1, m2, err := vm.DeduceOp1(&instruction, dst, op0)
 
 	if err != nil {
 		t.Error(err)
@@ -347,7 +347,7 @@ func TestDeduceOp1OpcodeAssertEqResOp1WithoutDst(t *testing.T) {
 
 	op0 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0))
 
-	m1, m2, err := vm.DeduceOp1(instruction, nil, op0)
+	m1, m2, err := vm.DeduceOp1(&instruction, nil, op0)
 
 	if err != nil {
 		t.Error(err)
@@ -383,7 +383,7 @@ func TestDeduceOp1OpcodeAssertEqResOp1WithDst(t *testing.T) {
 	expected_dst := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(7))
 	expected_op0 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(7))
 
-	m1, m2, err := vm.DeduceOp1(instruction, dst, nil)
+	m1, m2, err := vm.DeduceOp1(&instruction, dst, nil)
 
 	if err != nil {
 		t.Error(err)

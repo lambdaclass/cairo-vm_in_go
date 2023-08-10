@@ -223,7 +223,7 @@ func (vm *VirtualMachine) DeduceOp0(instruction *Instruction, dst *memory.MaybeR
 	return nil, nil, nil
 }
 
-func (vm *VirtualMachine) DeduceOp1(instruction Instruction, dst *memory.MaybeRelocatable, op0 *memory.MaybeRelocatable) (*memory.MaybeRelocatable, *memory.MaybeRelocatable, error) {
+func (vm *VirtualMachine) DeduceOp1(instruction *Instruction, dst *memory.MaybeRelocatable, op0 *memory.MaybeRelocatable) (*memory.MaybeRelocatable, *memory.MaybeRelocatable, error) {
 	if instruction.Opcode == AssertEq {
 		switch instruction.ResLogic {
 		case ResOp1:
@@ -289,42 +289,36 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 	if err != nil {
 		return Operands{}, ErrFailedToComputeOperandAddress
 	}
-	op0, _ := vm.Segments.Memory.Get(op0_addr)
+	op0_op, _ := vm.Segments.Memory.Get(op0_addr)
 
-	op1_addr, err := vm.RunContext.ComputeOp1Addr(instruction, op0)
+	op1_addr, err := vm.RunContext.ComputeOp1Addr(instruction, op0_op)
 	if err != nil {
 		return Operands{}, ErrFailedToComputeOperandAddress
 	}
-	op1, _ := vm.Segments.Memory.Get(op1_addr)
+	op1_op, _ := vm.Segments.Memory.Get(op1_addr)
 
-	if op0 == nil {
-		deducedOp0, deducedRes, err := vm.DeduceOp0(&instruction, dst, op1)
+	var op0 memory.MaybeRelocatable
+	if op0_op != nil {
+		op0 = *op0_op
+	} else {
+		op0, res, err = vm.ComputeOp0Deductions(op0_addr, &instruction, dst, op1_op)
 		if err != nil {
 			return Operands{}, err
 		}
-		op0 = deducedOp0
-		if op0 != nil {
-			vm.Segments.Memory.Insert(op0_addr, op0)
-		}
-		res = deducedRes
 	}
 
-	if op1 == nil {
-		deducedOp1, deducedRes, err := vm.DeduceOp1(instruction, dst, op0)
+	var op1 memory.MaybeRelocatable
+	if op1_op != nil {
+		op1 = *op1_op
+	} else {
+		op1, err = vm.ComputeOp1Deductions(op1_addr, &instruction, dst, op0_op, res)
 		if err != nil {
 			return Operands{}, err
-		}
-		op1 = deducedOp1
-		if op1 != nil {
-			vm.Segments.Memory.Insert(op1_addr, op1)
-		}
-		if res == nil {
-			res = deducedRes
 		}
 	}
 
 	if res == nil {
-		res, err = vm.ComputeRes(instruction, *op0, *op1)
+		res, err = vm.ComputeRes(instruction, op0, op1)
 
 		if err != nil {
 			return Operands{}, err
@@ -341,11 +335,61 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 
 	operands := Operands{
 		Dst: *dst,
-		Op0: *op0,
-		Op1: *op1,
+		Op0: op0,
+		Op1: op1,
 		Res: res,
 	}
 	return operands, nil
+}
+
+// Runs deductions for Op0, first runs builtin deductions, if this fails, attempts to deduce it based on dst and op1
+// Also returns res if it was also deduced in the process
+// Inserts the deduced operand
+// Fails if Op0 was not deduced or if an error arised in the process
+func (vm *VirtualMachine) ComputeOp0Deductions(op0_addr memory.Relocatable, instruction *Instruction, dst *memory.MaybeRelocatable, op1 *memory.MaybeRelocatable) (deduced_op0 memory.MaybeRelocatable, deduced_res *memory.MaybeRelocatable, err error) {
+	op0, err := vm.DeduceMemoryCell(op0_addr)
+	if err != nil {
+		return *memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero()), nil, err
+	}
+	if op0 == nil {
+		op0, deduced_res, err = vm.DeduceOp0(instruction, dst, op1)
+		if err != nil {
+			return *memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero()), nil, err
+		}
+	}
+	if op0 != nil {
+		vm.Segments.Memory.Insert(op0_addr, op0)
+	} else {
+		return *memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero()), nil, errors.New("Failed to compute or deduce op0")
+	}
+	return *op0, deduced_res, nil
+}
+
+// Runs deductions for Op1, first runs builtin deductions, if this fails, attempts to deduce it based on dst and op0
+// Also updates res if it was also deduced in the process
+// Inserts the deduced operand
+// Fails if Op1 was not deduced or if an error arised in the process
+func (vm *VirtualMachine) ComputeOp1Deductions(op1_addr memory.Relocatable, instruction *Instruction, dst *memory.MaybeRelocatable, op0 *memory.MaybeRelocatable, res *memory.MaybeRelocatable) (memory.MaybeRelocatable, error) {
+	op1, err := vm.DeduceMemoryCell(op1_addr)
+	if err != nil {
+		return *memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
+	}
+	if op1 == nil {
+		var deducedRes *memory.MaybeRelocatable
+		op1, deducedRes, err = vm.DeduceOp1(instruction, dst, op0)
+		if err != nil {
+			return *memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
+		}
+		if res == nil {
+			res = deducedRes
+		}
+	}
+	if op1 != nil {
+		vm.Segments.Memory.Insert(op1_addr, op1)
+	} else {
+		return *memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero()), errors.New("Failed to compute or deduce op1")
+	}
+	return *op1, nil
 }
 
 // Updates the values of the RunContext's registers according to the executed instruction
@@ -440,4 +484,18 @@ func (vm *VirtualMachine) UpdateFp(instruction *Instruction, operands *Operands)
 		}
 	}
 	return nil
+}
+
+// Applies the corresponding builtin's deduction rules if addr's segment index corresponds to a builtin segment
+// Returns nil if there is no deduction for the address
+func (vm *VirtualMachine) DeduceMemoryCell(addr memory.Relocatable) (*memory.MaybeRelocatable, error) {
+	if addr.SegmentIndex < 0 {
+		return nil, nil
+	}
+	for i := range vm.BuiltinRunners {
+		if vm.BuiltinRunners[i].Base().SegmentIndex == addr.SegmentIndex {
+			return vm.BuiltinRunners[i].DeduceMemoryCell(addr, &vm.Segments.Memory)
+		}
+	}
+	return nil, nil
 }
