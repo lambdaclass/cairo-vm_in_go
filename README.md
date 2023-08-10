@@ -1107,7 +1107,7 @@ Let's implement them.
 
 ##### RelocateAddress
 
-This `Relocatable`'s method converts an address of the original memory into an address of the relocated memory.
+This `Relocatable`'s method transforms an address of the original memory into an address of the relocated memory.
 Because the relocated memory is one-dimensional and not divided into segments, the memory addresses are not of type `Relocatable` but
 `uint`.
 
@@ -1119,7 +1119,10 @@ func (r *Relocatable) RelocateAddress(relocationTable *[]uint) uint {
 
 ##### RelocateValue
 
-This `MaybeRelocatable`'s method converts a value of the original memory into a value of the relocated memory.
+This `MaybeRelocatable`'s method transforms a value of the original memory into a value of the relocated memory.
+
+- If the value is a `Felt`, the method doesn't transform it and returns the value as is.
+- If the value is a `Relocatable`, the method transforms it to an address of the relocated memory.
 
 ```go
 func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (lambdaworks.Felt, error) {
