@@ -743,7 +743,7 @@ const (
 )
 ```
 
-The Op1Src constants define sources for an operation, including immediate values, registers (AP, FP), and an operation result.
+The Op1Src constants define sources for an operation, including immediate values, registers (ap, fp), and an operation result.
 
 ```go
 type Op1Src uint
