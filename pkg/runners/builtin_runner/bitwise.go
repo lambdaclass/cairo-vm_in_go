@@ -72,10 +72,11 @@ func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segm
 	num_y_felt, y_is_felt := num_y.GetFelt()
 
 	if x_is_felt && y_is_felt {
-		if num_x_felt.Bits() > uint64(b.BitwiseBuiltin.TotalNBits) {
+		// TODO: check if this conversion if valid
+		if uint64(num_x_felt.Bits()) > uint64(b.BitwiseBuiltin.TotalNBits) {
 			return nil, errors.New("Expected Intenger x to be smaller than 2^(total_n_bits)")
 		}
-		if num_y_felt.Bits() > uint64(b.BitwiseBuiltin.TotalNBits) {
+		if uint64(num_y_felt.Bits()) > uint64(b.BitwiseBuiltin.TotalNBits) {
 			return nil, errors.New("Expected Intenger y to be smaller than 2^(total_n_bits)")
 		}
 
