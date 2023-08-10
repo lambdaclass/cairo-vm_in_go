@@ -3,6 +3,7 @@ use lambdaworks_math::{
     field::fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
     unsigned_integer::element::UnsignedInteger, unsigned_integer::element::U256,
 };
+use lambdaworks_math::traits::ByteConversion;
 
 extern crate libc;
 // A 256 bit prime field represented as a Montgomery, 4-limb UnsignedInteger.
@@ -80,6 +81,12 @@ pub extern "C" fn to_le_bytes(result: &mut [u8; 32], value: Limbs) {
 pub extern "C" fn to_be_bytes(result: &mut [u8; 32], value: Limbs) {
     let value_felt = limbs_to_felt(value);
     *result = value_felt.to_bytes_be();
+}
+
+#[no_mangle]
+pub extern "C" fn from_be_bytes(result: Limbs, bytes: &mut [u8; 32]) {
+    let value_felt = FieldElement::from_bytes_be(bytes).unwrap();
+    felt_to_limbs(value_felt, result);
 }
 
 #[no_mangle]
