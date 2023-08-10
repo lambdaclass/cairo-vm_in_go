@@ -1,6 +1,6 @@
 //use starknet_crypto::{poseidon_permute_comp, FieldElement};
 use starknet_crypto::FieldElement;
-//extern crate libc;
+extern crate libc;
 
 // C representation of a limbs array: a raw pointer to a mutable unsigned 64 bits integer.
 // Consists of 4 u64 values representing a felt in big endian montgomery representation

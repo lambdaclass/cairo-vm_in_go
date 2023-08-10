@@ -50,6 +50,8 @@ test: $(COMPILED_TESTS)
 build:
 	@cd pkg/lambdaworks/lib/lambdaworks && cargo build --release
 	@cp pkg/lambdaworks/lib/lambdaworks/target/release/liblambdaworks.a pkg/lambdaworks/lib
+	@cd pkg/starknet-crypto/lib/starknet-crypto && cargo build --release
+	@cp pkg/starknet-crypto/lib/starknet-crypto/target/release/libstarknet_crypto.a pkg/starknet-crypto/lib
 	@go build ./...
 
 fmt:
@@ -62,6 +64,10 @@ clean:
 	rm -f $(TEST_DIR)/*.json
 	rm -f $(TEST_DIR)/*.memory
 	rm -f $(TEST_DIR)/*.trace
+	cd pkg/lambdaworks/lib/lambdaworks && cargo clean
+	rm pkg/lambdaworks/lib/liblambdaworks.a
+	cd pkg/starknet-crypto/lib/starknet-crypto && cargo clean
+	rm pkg/starknet-crypto/lib/libstarknet_crypto.a
 	rm -rf cairo-vm
 	rm -r cairo-vm-env
 
