@@ -659,8 +659,8 @@ To begin coding the basic execution functionality of our VM, we only need these 
 
 #### Compute operands
 
-Once the instruction has been decoded, it is executed by `run_instruction` whose first function is to compute operands. This function is in charge of
-calculating the addresses of the operands and fetching them from memory. If the function could not fetch them from the addresses then they are deduced from the other operands and
+Once the instruction has been decoded, it is executed by `RunInstruction` whose first function is to compute operands. This function is in charge of
+calculating the addresses of the operands and fetching them from memory. If the function could not fetch the operands then they are deduced from the other operands and
 taking in consideration what kind of opcode is going to be executed. 
 
 ```go
