@@ -292,7 +292,7 @@ The input of the Virtual Machine is a compiled Cairo program in Json format. The
 - **identifiers:** User-defined symbols in the Cairo code representing variables, functions, classes, etc. with unique names. The expected offset, type and its corresponding information is provided for each identifier
 
     For example, the identifier representing the main function (usually the entrypoint of the program) is of `function` type, and a list of decorators wrappers (if there are any) are provided as additional information.
-    Another example is a fuser defined struct, is of `struct` type, it provides its size, the members it contains (with its information) and more.
+    Another example is a user defined struct, is of `struct` type, it provides its size, the members it contains (with its information) and more.
 
 - **main_scope:** Usually something like `__main__`. All the identifiers associated with main function will be identified as `__main__`.identifier_name. Useful to identify the entrypoint of the program.
 - **prime:** The cairo prime in hexadecimal format. As explained above, all arithmetic operations are done over a base field, modulo this primer number.
@@ -659,10 +659,8 @@ To begin coding the basic execution functionality of our VM, we only need these 
 
 #### Compute operands
 
-*Compute operands*
-
-Once the instruction has been decoded, it is executed by `run_instruction` whose first function is compute operands. This function is in charge of
-calculating the addresses of the operands and fetching them from memory. If the function could not fetch them from the memory then they are deduced from the other operands and
+Once the instruction has been decoded, it is executed by `run_instruction` whose first function is to compute operands. This function is in charge of
+calculating the addresses of the operands and fetching them from memory. If the function could not fetch them from the addresses then they are deduced from the other operands and
 taking in consideration what kind of opcode is going to be executed. 
 
 ```go
