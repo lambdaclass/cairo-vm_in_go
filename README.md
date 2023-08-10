@@ -990,7 +990,7 @@ Now, once everything is set up, we only have to retrive each field by getting it
     var ErrInvalidOpcodeError = errors.New("Instruction had an invalid opcode")
     var ErrInvalidApUpdateError = errors.New("Instruction had an invalid Ap Update")
     ```
-#### Run instruction
+##### Run instruction
 
 At this point, we have all the information we need from the instruction. Let's run it! 
 
