@@ -20,6 +20,9 @@ void from_dec_str(felt_t result, char *value);
 /* Converts a felt_t to bytes in little-endian representation. */
 void to_le_bytes(uint8_t result[32], felt_t value);
 
+/* Converts a felt_t to bytes in big-endian representation. */
+void to_be_bytes(uint8_t result[32], felt_t value);
+
 /* Gets a felt_t representing 0 */
 void zero(felt_t result);
 

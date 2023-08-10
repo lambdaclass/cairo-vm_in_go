@@ -77,6 +77,12 @@ pub extern "C" fn to_le_bytes(result: &mut [u8; 32], value: Limbs) {
 }
 
 #[no_mangle]
+pub extern "C" fn to_be_bytes(result: &mut [u8; 32], value: Limbs) {
+    let value_felt = limbs_to_felt(value);
+    *result = value_felt.to_bytes_be();
+}
+
+#[no_mangle]
 pub extern "C" fn zero(result: Limbs) {
     felt_to_limbs(Felt::zero(), result)
 }
