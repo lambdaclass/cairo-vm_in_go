@@ -647,13 +647,13 @@ type VirtualMachine struct {
 
 To begin coding the basic execution functionality of our VM, we only need these basic fields, we will be adding more fields as we dive deeper into this guide.
 
-#### Instruction Decoding and Execution
+### Instruction Decoding and Execution
 
 We have to imagin running a program like running in real life, one `step` at a time for the whole run. 
 
 There are some things to do in each step, we will explain them more deeply just below. 
 
-### Step 
+#### Step 
 
 This method is the organizer of the execution of each instruction, it orchestrates it and controls the possible errors. 
 
@@ -688,7 +688,7 @@ func (v *VirtualMachine) Step() error {
 }
 ```
 
-### Decode instruction 
+#### Decode instruction 
 
 ```go
 //  Structure of the 63-bit that form the first word of each instruction.
@@ -795,32 +795,11 @@ const (
 
 Now, once everything is set up, we only have to retrive each field by getting its representative bits. We do that, creating different bitmasks to just get the value. 
 
-Constants and Masks:
+1. Constants and Masks:
     The method starts by defining constants and masks for various fields and properties of the instruction. These constants are used to extract specific bits from the encoded instruction and decode them into meaningful values. For instance, the HighBit constant represents the highest bit (bit 63) of the instruction, and various other masks are defined to extract different fields like destination register, opcode, update types, etc.
-Checking High Bit:
-    The first check in the method is whether the highest bit (bit 63) of the encoded instruction is set to zero. If it's not zero, this indicates an error, and the function returns an ErrNonZeroHighBitError.
-Extracting Offsets:
-    The method extracts three offsets from the encoded instruction. These offsets represent memory addresses used in the instruction. They are extracted using bitwise operations and masks to get the lower 16 bits of three different sections of the instruction.
-Extracting Flags:
-    The next step is to extract the flag section of the encoded instruction, which holds information about registers, sources, updates, and opcodes. This flag section is extracted using a bit shift to the right by 48 positions (which discards the lower 48 bits).
-Decoding Fields:
-    Using the extracted flag section, the method decodes various fields like destination register, op0 register, op1 source, result logic, pc update, ap update, and opcode. These fields are decoded by extracting specific bits from the flag section and mapping them to their corresponding enum values.
-Creating the Instruction:
-    With all the necessary information extracted and decoded, the method constructs an Instruction object by assigning the decoded values to its fields.
-Returning the Result:
-    The method returns the created Instruction object along with a nil error if the decoding process is successful.
-Error Handling:
-    If at any point during the decoding process, an unexpected value is encountered or the input doesn't conform to the expected pattern, the method returns an appropriate error. These errors include cases like invalid op1 register, invalid pc update, invalid result logic, invalid opcode, etc.
 
-```go
-var ErrNonZeroHighBitError = errors.New("Instruction high bit was not set to zero")
-var ErrInvalidOp1RegError = errors.New("Instruction had invalid Op1 Register")
-var ErrInvalidPcUpdateError = errors.New("Instruction had invalid Pc update")
-var ErrInvalidResError = errors.New("Instruction had an invalid res")
-var ErrInvalidOpcodeError = errors.New("Instruction had an invalid opcode")
-var ErrInvalidApUpdateError = errors.New("Instruction had an invalid Ap Update")
-
-func DecodeInstruction(encodedInstruction uint64) (Instruction, error) {
+    ```go
+    func DecodeInstruction(encodedInstruction uint64) (Instruction, error) {
 	const HighBit uint64 = 1 << 63
 	const DstRegMask uint64 = 0x0001
 	const DstRegOff uint64 = 0
@@ -836,18 +815,44 @@ func DecodeInstruction(encodedInstruction uint64) (Instruction, error) {
 	const ApUpdateOff uint64 = 10
 	const OpcodeMask uint64 = 0x7000
 	const OpcodeOff uint64 = 12
+    ```
 
-	if encodedInstruction&HighBit != 0 {
+2. Checking High Bit:
+    The first check in the method is whether the highest bit (bit 63) of the encoded instruction is set to zero. If it's not zero, this indicates an error, and the function returns an ErrNonZeroHighBitError.
+
+    ```go
+    if encodedInstruction&HighBit != 0 {
 		return Instruction{}, ErrNonZeroHighBitError
 	}
+    ```
 
-	var offset0 = fromBiasedRepresentation((encodedInstruction) & 0xFFFF)
+3. Extracting Offsets:
+    The method extracts three offsets from the encoded instruction. These offsets represent memory addresses used in the instruction. They are extracted using bitwise operations and masks to get the lower 16 bits of three different sections of the instruction.
+
+    ```go
+    var offset0 = fromBiasedRepresentation((encodedInstruction) & 0xFFFF)
 	var offset1 = fromBiasedRepresentation((encodedInstruction >> 16) & 0xFFFF)
 	var offset2 = fromBiasedRepresentation((encodedInstruction >> 32) & 0xFFFF)
 
-	var flags = encodedInstruction >> 48
+    -----------------------------------------------------------------------------------------
+    func fromBiasedRepresentation(offset uint64) int {
+	var bias uint16 = 1 << 15
+	return int(int16(uint16(offset) - bias))    
+    }
+    ```
 
-	var dstRegNum = (flags & DstRegMask) >> DstRegOff
+4. Extracting Flags:
+    The next step is to extract the flag section of the encoded instruction, which holds information about registers, sources, updates, and opcodes. This flag section is extracted using a bit shift to the right by 48 positions (which discards the lower 48 bits).
+    
+    ```go
+    var flags = encodedInstruction >> 48
+    ``
+
+5. Decoding Fields:
+    Using the extracted flag section, the method decodes various fields like destination register, op0 register, op1 source, result logic, pc update, ap update, and opcode. These fields are decoded by extracting specific bits from the flag section and mapping them to their corresponding enum values.
+
+    ```go 
+    var dstRegNum = (flags & DstRegMask) >> DstRegOff
 	var op0RegNum = (flags & Op0RegMask) >> Op0RegOff
 	var op1SrcNum = (flags & Op1SrcMask) >> Op1SrcOff
 	var resLogicNum = (flags & ResLogicMask) >> ResLogicOff
@@ -953,8 +958,13 @@ func DecodeInstruction(encodedInstruction uint64) (Instruction, error) {
 	default:
 		fpUpdate = FpUpdateRegular
 	}
+    ```
+    
+6. Creating the Instruction and Returning the Result:
+    With all the necessary information extracted and decoded, the method constructs an Instruction object by assigning the decoded values to its fields and returns the created Instruction object along with a nil error if the decoding process is successful.
 
-	return Instruction{
+    ```go 
+    return Instruction{
 		Off0:     offset0,
 		Off1:     offset1,
 		Off2:     offset2,
@@ -967,14 +977,19 @@ func DecodeInstruction(encodedInstruction uint64) (Instruction, error) {
 		FpUpdate: fpUpdate,
 		Opcode:   opcode,
 	}, nil
-}
+    ```
+7. Error Handling:
+    If at any point during the decoding process, an unexpected value is encountered or the input doesn't conform to the expected pattern, the method returns an appropriate error. These errors include cases like invalid op1 register, invalid pc update, invalid result logic, invalid opcode, etc.
 
-func fromBiasedRepresentation(offset uint64) int {
-	var bias uint16 = 1 << 15
-	return int(int16(uint16(offset) - bias))
-}
-```
-### Run instruction
+    ```go
+    var ErrNonZeroHighBitError = errors.New("Instruction high bit was not set to zero")
+    var ErrInvalidOp1RegError = errors.New("Instruction had invalid Op1 Register")
+    var ErrInvalidPcUpdateError = errors.New("Instruction had invalid Pc update")
+    var ErrInvalidResError = errors.New("Instruction had an invalid res")
+    var ErrInvalidOpcodeError = errors.New("Instruction had an invalid opcode")
+    var ErrInvalidApUpdateError = errors.New("Instruction had an invalid Ap Update")
+    ```
+#### Run instruction
 
 At this point, we have stored all the needed information of the instruction in our program's. Let's run it! 
 
