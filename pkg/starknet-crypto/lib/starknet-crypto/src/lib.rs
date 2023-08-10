@@ -1,12 +1,9 @@
-//use starknet_crypto::{poseidon_permute_comp, FieldElement};
-use starknet_crypto::FieldElement;
+use starknet_crypto::{poseidon_permute_comp, FieldElement};
 extern crate libc;
 
 // C representation of a limbs array: a raw pointer to a mutable unsigned 64 bits integer.
 // Consists of 4 u64 values representing a felt in big endian montgomery representation
 type Limbs = *mut u64;
-// C representation of an array of felts: a raw pointer to Limbs.
-type PoseidonState = *mut Limbs;
 
 fn field_element_from_limbs(limbs: Limbs) -> FieldElement {
     let array = unsafe {
@@ -34,6 +31,7 @@ extern "C" fn poseidon_permute(first_state_felt: Limbs, second_state_felt: Limbs
     state_array[1] = field_element_from_limbs(second_state_felt);
     state_array[2] = field_element_from_limbs(third_state_felt);
     // Call poseidon permute comp
+    poseidon_permute_comp(&mut state_array);
     // Convert state from FieldElement to C representation
     limbs_from_field_element(state_array[0], first_state_felt);
     limbs_from_field_element(state_array[1], second_state_felt);
