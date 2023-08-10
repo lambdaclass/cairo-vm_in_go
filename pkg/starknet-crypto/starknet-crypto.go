@@ -15,8 +15,7 @@ import (
 // Converts a Go Felt to a C felt_t.
 func toC(f lambdaworks.Felt) C.felt_t {
 	var result C.felt_t
-	//TODO: Switch to be
-	for i, byte := range f.ToLeBytes() {
+	for i, byte := range f.ToBeBytes() {
 		result[i] = C.byte_t(byte)
 	}
 	return result
@@ -28,9 +27,7 @@ func fromC(result C.felt_t) lambdaworks.Felt {
 	for i, byte := range result {
 		bytes[i] = uint8(byte)
 	}
-	// TODO: uncomment and remove placeholder line
-	//return lambdaworks.FeltFromBeBytes(limbs)
-	return lambdaworks.FeltZero() //placeholder
+	return lambdaworks.FeltFromBeBytes(&bytes)
 }
 
 func PoseidonPermuteComp(poseidon_state *[]lambdaworks.Felt) error {
