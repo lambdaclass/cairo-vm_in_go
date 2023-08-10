@@ -758,7 +758,7 @@ func (run_context RunContext) ComputeDstAddr(instruction Instruction) (memory.Re
 
 }
 ```
-###### ComputeOp0Addr
+##### ComputeOp0Addr
 
 The process is similar to compute the dst address.
 
@@ -781,7 +781,7 @@ func (run_context RunContext) ComputeOp0Addr(instruction Instruction) (memory.Re
 
 ```
 
-###### ComputeOp1Addr
+##### ComputeOp1Addr
 
 It computes the address of `Op1` based on  the `Op0` operand and the kind of Address the instruction has for `Op1`, If its address is `Op1SrcFp` it calculates the direction from Fp register, if it is `Op1SrcAp` then if calculates it if from Ap register. If it is an immediate then checks if the offset 2 is 1 and calculates it from the `Pc`. Finally if its an `Op1SrcOp0` it checks the `Op0` and calculates the direction from it. Then if performs and addition or a substraction if the `Off2` is negative or positive.
 
@@ -821,7 +821,7 @@ func (run_context RunContext) ComputeOp1Addr(instruction Instruction, op0 *memor
 }
 ```
 
-###### DeduceOp0
+##### DeduceOp0
 
 The method deduces the value of `Op0` if possible (based on `dst` and `Op1`).
 If Instruction opcode is a call `Op0` is deduced from the program counter and added the instruction size.
@@ -1123,8 +1123,6 @@ func (vm *VirtualMachine) UpdateAp(instruction *Instruction, operands *Operands)
 ```
 
 [TODO for Execution: Opcode Assertions, Run Instruction]
-
-
 
 ### CairoRunner
 
