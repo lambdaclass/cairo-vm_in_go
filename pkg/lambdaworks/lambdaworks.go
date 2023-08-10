@@ -92,6 +92,13 @@ func (felt Felt) ToBeBytes() *[32]byte {
 	return result
 }
 
+func FeltFromLeBytes(bytes *[32]byte) Felt {
+	var result C.felt_t
+	bytes_ptr := (*[32]C.uint8_t)(unsafe.Pointer(bytes))
+	C.from_le_bytes(&result[0], &bytes_ptr[0])
+	return fromC(result)
+}
+
 func FeltFromBeBytes(bytes *[32]byte) Felt {
 	var result C.felt_t
 	bytes_ptr := (*[32]C.uint8_t)(unsafe.Pointer(bytes))

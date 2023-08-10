@@ -56,7 +56,18 @@ func TestToBeBytes(t *testing.T) {
 	actual := *lambdaworks.FeltOne().ToBeBytes()
 
 	if !reflect.DeepEqual(expected, actual) {
-		t.Errorf("TestToLeBytes failed. Expected: %v, Got: %v", expected, actual)
+		t.Errorf("TestToBeBytes failed. Expected: %v, Got: %v", expected, actual)
+	}
+}
+
+func TestFromLeBytes(t *testing.T) {
+	bytes := [32]uint8{
+		1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	}
+	felt_from_bytes := lambdaworks.FeltFromLeBytes(&bytes)
+
+	if !reflect.DeepEqual(felt_from_bytes, lambdaworks.FeltOne()) {
+		t.Errorf("TestFromLeBytes failed. Expected 1, Got: %v", felt_from_bytes)
 	}
 }
 
@@ -67,7 +78,7 @@ func TestFromBeBytes(t *testing.T) {
 	felt_from_bytes := lambdaworks.FeltFromBeBytes(&bytes)
 
 	if !reflect.DeepEqual(felt_from_bytes, lambdaworks.FeltOne()) {
-		t.Errorf("TestToLeBytes failed. Expected 1, Got: %v", felt_from_bytes)
+		t.Errorf("TestToFromBeBytes failed. Expected 1, Got: %v", felt_from_bytes)
 	}
 }
 

@@ -84,6 +84,12 @@ pub extern "C" fn to_be_bytes(result: &mut [u8; 32], value: Limbs) {
 }
 
 #[no_mangle]
+pub extern "C" fn from_le_bytes(result: Limbs, bytes: &mut [u8; 32]) {
+    let value_felt = FieldElement::from_bytes_le(bytes).unwrap();
+    felt_to_limbs(value_felt, result);
+}
+
+#[no_mangle]
 pub extern "C" fn from_be_bytes(result: Limbs, bytes: &mut [u8; 32]) {
     let value_felt = FieldElement::from_bytes_be(bytes).unwrap();
     felt_to_limbs(value_felt, result);
