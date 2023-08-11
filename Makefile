@@ -17,6 +17,8 @@ CAIRO_RS_TRACE:=$(patsubst $(TEST_DIR)/%.json, $(TEST_DIR)/%.rs.trace, $(COMPILE
 CAIRO_GO_MEM:=$(patsubst $(TEST_DIR)/%.json, $(TEST_DIR)/%.go.memory, $(COMPILED_TESTS))
 CAIRO_GO_TRACE:=$(patsubst $(TEST_DIR)/%.json, $(TEST_DIR)/%.go.trace, $(COMPILED_TESTS))
 
+export PATH := $(shell pyenv root)/shims:$(PATH)
+
 $(TEST_DIR)/%.rs.trace $(TEST_DIR)/%.rs.memory: $(TEST_DIR)/%.json $(CAIRO_VM_CLI)
 	$(CAIRO_VM_CLI) --layout all_cairo $< --trace_file $(@D)/$(*F).rs.trace --memory_file $(@D)/$(*F).rs.memory
 
@@ -24,15 +26,14 @@ $(TEST_DIR)/%.go.trace $(TEST_DIR)/%.go.memory: $(TEST_DIR)/%.json
 	go run cmd/cli/main.go $(@D)/$(*F).json
 
 $(TEST_DIR)/%.json: $(TEST_DIR)/%.cairo
-	cairo-compile --cairo_path="$(TEST_DIR)" $< --output $@
+	source cairo-vm-env/bin/activate && cairo-compile --cairo_path="$(TEST_DIR)" $< --output $@
 
 # Creates a pyenv and installs cairo-lang
 deps:
 	pyenv install  -s 3.9.15
 	PYENV_VERSION=3.9.15 python -m venv cairo-vm-env
 	. cairo-vm-env/bin/activate ; \
-	pip install -r requirements.txt ; \
-	go get code.google.com/p/go.tools/cmd/cover
+	pip install -r requirements.txt
 
 # Creates a pyenv and installs cairo-lang
 deps-macos:
@@ -40,8 +41,7 @@ deps-macos:
 	pyenv install -s 3.9.15
 	PYENV_VERSION=3.9.15 python -m venv cairo-vm-env
 	. cairo-vm-env/bin/activate ; \
-	CFLAGS=-I/opt/homebrew/opt/gmp/include LDFLAGS=-L/opt/homebrew/opt/gmp/lib pip install -r requirements.txt ; \
-	go get code.google.com/p/go.tools/cmd/cover
+	CFLAGS=-I/opt/homebrew/opt/gmp/include LDFLAGS=-L/opt/homebrew/opt/gmp/lib pip install -r requirements.txt
 
 run:
 	@go run cmd/cli/main.go
