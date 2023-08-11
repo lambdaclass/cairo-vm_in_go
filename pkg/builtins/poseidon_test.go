@@ -10,7 +10,7 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
-func TestDeduceMemoryCellValid(t *testing.T) {
+func TestPoseidonDeduceMemoryCellValid(t *testing.T) {
 	poseidon := builtins.NewPoseidonBuiltinRunner(true)
 	vmachine := vm.NewVirtualMachine()
 	vmachine.BuiltinRunners = append(vmachine.BuiltinRunners, poseidon)
@@ -39,7 +39,7 @@ func TestDeduceMemoryCellValid(t *testing.T) {
 	}
 }
 
-func TestDeduceMemoryCellNoInputCells(t *testing.T) {
+func TestPoseidonDeduceMemoryCellNoInputCells(t *testing.T) {
 	poseidon := builtins.NewPoseidonBuiltinRunner(true)
 	vmachine := vm.NewVirtualMachine()
 	vmachine.BuiltinRunners = append(vmachine.BuiltinRunners, poseidon)
@@ -49,7 +49,7 @@ func TestDeduceMemoryCellNoInputCells(t *testing.T) {
 		t.Errorf("Wrong values returned by DeduceMemoryCell")
 	}
 }
-func TestDeduceMemoryCellInputCell(t *testing.T) {
+func TestPoseidonDeduceMemoryCellInputCell(t *testing.T) {
 	poseidon := builtins.NewPoseidonBuiltinRunner(true)
 	vmachine := vm.NewVirtualMachine()
 	vmachine.BuiltinRunners = append(vmachine.BuiltinRunners, poseidon)
@@ -60,7 +60,7 @@ func TestDeduceMemoryCellInputCell(t *testing.T) {
 	}
 }
 
-func TestInitializeSegments(t *testing.T) {
+func TestPoseidonInitializeSegments(t *testing.T) {
 	mem_manager := memory.NewMemorySegmentManager()
 	poseidon := builtins.NewPoseidonBuiltinRunner(true)
 	poseidon.InitializeSegments(&mem_manager)
@@ -74,7 +74,7 @@ func TestInitializeSegments(t *testing.T) {
 
 }
 
-func TestInitialStackIncluded(t *testing.T) {
+func TestPoseidonInitialStackIncluded(t *testing.T) {
 	poseidon := builtins.NewPoseidonBuiltinRunner(true)
 	initial_stack := poseidon.InitialStack()
 	expected_stack := []memory.MaybeRelocatable{*memory.NewMaybeRelocatableRelocatable(poseidon.Base())}
@@ -83,14 +83,14 @@ func TestInitialStackIncluded(t *testing.T) {
 	}
 }
 
-func TestInitialStackNotIncluded(t *testing.T) {
+func TestPoseidonInitialStackNotIncluded(t *testing.T) {
 	poseidon := builtins.NewPoseidonBuiltinRunner(false)
 	if len(poseidon.InitialStack()) != 0 {
 		t.Errorf("Initial stack should be empty if not included")
 	}
 }
 
-func TestAddValidationRule(t *testing.T) {
+func TestPoseidonAddValidationRule(t *testing.T) {
 	empty_mem := memory.NewMemory()
 	mem := memory.NewMemory()
 	poseidon := builtins.NewPoseidonBuiltinRunner(true)
