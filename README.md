@@ -1488,12 +1488,13 @@ func (v *VirtualMachine) RelocateTrace(relocationTable *[]uint) error {
 Like in `RelocateMemory`, we need to check that the `RelocateSegments` function was called before.
 
 Once the program was executed, the `VirtualMachine` will have generated a relocated trace and a relocated memory for that execution.
-Both trace and memory should be outputs of the execution, so we will write a function that respectively writes the trace and memory
+Both trace and memory should be outputs of the execution, so we will write two functions that respectively write the trace and memory
 into a file.
+We will create a package called `cairo_run` and create those functions there.
 
 #### Writing the trace into a file
 
-First, we will add a function to write the relocated trace into a buffer.
+First, we will add a function in our new `cairo_run` package to write the relocated trace into a buffer.
 This method converts the pc, fp and ap fields of each trace entry into a `uint64` and writes each integer into the buffer in little endian:
 
 ```go
@@ -1539,7 +1540,7 @@ func WriteEncodedTrace(relocatedTrace []vm.RelocatedTraceEntry, dest io.Writer) 
 
 #### Writing the memory into a file
 
-Second, we will add a function to write the relocated memory into another buffer.
+Second, we will add a function in the `cairo_run` package to write the relocated memory into another buffer.
 We want to write into the buffer the pairs of addresses and values by following a specific order.
 In this case, we want those pairs to be incrementally ordered by address.
 Because we implemented the relocated memory as a map and we store the addresses as keys, if we iterate over the relocated memory using
@@ -1582,6 +1583,65 @@ func WriteEncodedMemory(relocatedMemory map[uint]lambdaworks.Felt, dest io.Write
     return nil
 }
 ```
+
+#### Putting it all together
+
+Now it's time to finally add our `main` function to the project!
+
+```go
+func main() {
+    if len(os.Args) < 2 {
+        fmt.Println("Wrong argument count: Use go run cmd/cli/main.go COMPILED_JSON")
+        return
+    }
+    cli_args := os.Args[1:]
+    programPath := cli_args[0]
+    cairoRunner, err := cairo_run.CairoRun(programPath)
+    if err != nil {
+        fmt.Printf("Failed with error: %s", err)
+        return
+    }
+    traceFilePath := strings.Replace(programPath, ".json", ".go.trace", 1)
+    traceFile, err := os.OpenFile(traceFilePath, os.O_RDWR|os.O_CREATE, 0644)
+    defer traceFile.Close()
+
+    memoryFilePath := strings.Replace(programPath, ".json", ".go.memory", 1)
+    memoryFile, err := os.OpenFile(memoryFilePath, os.O_RDWR|os.O_CREATE, 0644)
+    defer memoryFile.Close()
+
+    cairo_run.WriteEncodedTrace(cairoRunner.Vm.RelocatedTrace, traceFile)
+    cairo_run.WriteEncodedMemory(cairoRunner.Vm.RelocatedMemory, memoryFile)
+
+    println("Done!")
+}
+```
+
+To make our `main` function work, we still need to add another function to the `cairo_run` package.
+The `CairoRun` function will be responsible of integrating the initialization, execution and relocation.
+
+```go
+func CairoRun(programPath string) (*runners.CairoRunner, error) {
+    compiledProgram := parser.Parse(programPath)
+    programJson := vm.DeserializeProgramJson(compiledProgram)
+
+    cairoRunner, err := runners.NewCairoRunner(programJson)
+    if err != nil {
+        return nil, err
+    }
+    end, err := cairoRunner.Initialize()
+    if err != nil {
+        return nil, err
+    }
+    err = cairoRunner.RunUntilPC(end)
+    if err != nil {
+        return nil, err
+    }
+    err = cairoRunner.Vm.Relocate()
+    return cairoRunner, err
+}
+```
+
+TODO: add parsing and deserializing
 
 #### Builtins
 
