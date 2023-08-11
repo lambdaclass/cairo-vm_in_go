@@ -729,13 +729,9 @@ And the good thing about this, is every bits combination for each field is known
 The off0, off1, and off2 values are used to compute the address of the dst, op0 and op1 respectively.
 For example, if the DstReg is AP and Off0 is -1, then we can compute the dst address by substracting one from the current value of ap.
 
-The Register constants, there's two possible registers, ap and fp. The ap register (address pointer register) keeps track of memory addresses for data access. The fp register (frame pointer register) manages function call stack frames, local variables and parameter access.
+There's two possible registers, ap and fp. The ap register (address pointer register) keeps track of memory addresses for data access. The fp register (frame pointer register) manages function call stack frames, local variables and parameter access.
 
 ```go 
-// x-----------------------------x
-// x----- Instruction flags -----x
-// x-----------------------------x
-
 type Register uint
 
 const (
