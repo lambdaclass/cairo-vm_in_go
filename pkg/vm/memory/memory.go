@@ -1,7 +1,7 @@
 package memory
 
 import (
-	"errors"
+	"github.com/pkg/errors"
 )
 
 // A Set to store Relocatable values
@@ -103,9 +103,11 @@ func (m *Memory) validateAddress(addr Relocatable) error {
 	if !ok {
 		return nil
 	}
-	validated_addresses, error := rule(m, addr)
-	if error != nil {
-		return error
+
+	validated_addresses, err := rule(m, addr)
+	if err != nil {
+		wrappedErr := errors.Errorf("Error validateAddress - SegmentIndex: %d, Offset: %d: %s", addr.SegmentIndex, addr.Offset, err)
+		return wrappedErr
 	}
 	for _, validated_address := range validated_addresses {
 		m.validated_addresses.Add(validated_address)
@@ -119,7 +121,8 @@ func (m *Memory) ValidateExistingMemory() error {
 	for addr := range m.data {
 		err := m.validateAddress(addr)
 		if err != nil {
-			return err
+			wrappedErr := errors.Errorf("Error ValidateExistingMemory - SegmentIndex: %d, Offset: %d: %s", addr.SegmentIndex, addr.Offset, err)
+			return wrappedErr
 		}
 	}
 	return nil

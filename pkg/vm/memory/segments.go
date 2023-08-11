@@ -1,6 +1,9 @@
 package memory
 
-import "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+import (
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/pkg/errors"
+)
 
 // MemorySegmentManager manages the list of memory segments.
 // Also holds metadata useful for the relocation process of
@@ -71,7 +74,8 @@ func (s *MemorySegmentManager) RelocateMemory(relocationTable *[]uint) (map[uint
 				relocatedAddr := ptr.RelocateAddress(relocationTable)
 				value, err := cell.RelocateValue(relocationTable)
 				if err != nil {
-					return nil, err
+					wrappedErr := errors.Errorf("Error RelocateMemory %s", err)
+					return nil, wrappedErr
 				}
 				relocatedMemory[relocatedAddr] = value
 			}
@@ -87,7 +91,8 @@ func (m *MemorySegmentManager) LoadData(ptr Relocatable, data *[]MaybeRelocatabl
 	for _, val := range *data {
 		err := m.Memory.Insert(ptr, &val)
 		if err != nil {
-			return Relocatable{0, 0}, err
+			wrappedErr := errors.Errorf("Error LoadData %s", err)
+			return Relocatable{0, 0}, wrappedErr
 		}
 		ptr.Offset += 1
 	}

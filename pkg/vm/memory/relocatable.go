@@ -1,10 +1,10 @@
 package memory
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/pkg/errors"
 )
 
 // Relocatable in the Cairo VM represents an address
@@ -34,7 +34,8 @@ func (r *Relocatable) AddFelt(other lambdaworks.Felt) (Relocatable, error) {
 	new_offset_felt := lambdaworks.FeltFromUint64(uint64(r.Offset)).Add(other)
 	new_offset, err := new_offset_felt.ToU64()
 	if err != nil {
-		return *r, err
+		wrappedErr := errors.Errorf("Error AddFelt %s", err)
+		return *r, wrappedErr
 	}
 	return NewRelocatable(r.SegmentIndex, uint(new_offset)), nil
 }
@@ -46,7 +47,8 @@ func (r *Relocatable) SubFelt(other lambdaworks.Felt) (Relocatable, error) {
 	new_offset_felt := lambdaworks.FeltFromUint64(uint64(r.Offset)).Sub(other)
 	new_offset, err := new_offset_felt.ToU64()
 	if err != nil {
-		return *r, err
+		wrappedErr := errors.Errorf("Error SubFelt %s", err)
+		return *r, wrappedErr
 	}
 	return NewRelocatable(r.SegmentIndex, uint(new_offset)), nil
 }
@@ -177,7 +179,8 @@ func (m MaybeRelocatable) Add(other MaybeRelocatable) (MaybeRelocatable, error) 
 		other_felt, _ := other.GetFelt()
 		relocatable, err := m_rel.AddFelt(other_felt)
 		if err != nil {
-			return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
+			wrappedErr := errors.Errorf("Error Add %s", err)
+			return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), wrappedErr
 		}
 		return *NewMaybeRelocatableRelocatable(relocatable), nil
 
@@ -186,7 +189,8 @@ func (m MaybeRelocatable) Add(other MaybeRelocatable) (MaybeRelocatable, error) 
 		m_felt, _ := m.GetFelt()
 		relocatable, err := other_rel.AddFelt(m_felt)
 		if err != nil {
-			return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
+			wrappedErr := errors.Errorf("Error Add %s", err)
+			return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), wrappedErr
 		}
 		return *NewMaybeRelocatableRelocatable(relocatable), nil
 	} else {
@@ -217,14 +221,16 @@ func (m MaybeRelocatable) Sub(other MaybeRelocatable) (MaybeRelocatable, error) 
 	if is_rel_m && !is_rel_other {
 		relocatable, err := m_rel.SubFelt(other_felt)
 		if err != nil {
-			return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
+			wrappedErr := errors.Errorf("Error Sub %s", err)
+			return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), wrappedErr
 		}
 		return *NewMaybeRelocatableRelocatable(relocatable), nil
 
 	} else if is_rel_m && is_rel_other {
 		offset_diff, err := m_rel.Sub(other_rel)
 		if err != nil {
-			return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
+			wrappedErr := errors.Errorf("Error Sub %s", err)
+			return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), wrappedErr
 		}
 		return *NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(uint64(offset_diff))), nil
 	} else {
