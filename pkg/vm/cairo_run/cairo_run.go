@@ -60,7 +60,8 @@ func WriteEncodedTrace(relocatedTrace []vm.RelocatedTraceEntry, dest io.Writer) 
 		ap_buffer := make([]byte, 8)
 		ap, err := entry.Ap.ToU64()
 		if err != nil {
-			return err
+			wrappedErr := errors.Errorf("WriteEncodedTrace failed: %s", err)
+			return wrappedErr
 		}
 		binary.LittleEndian.PutUint64(ap_buffer, ap)
 		_, err = dest.Write(ap_buffer)
@@ -71,7 +72,8 @@ func WriteEncodedTrace(relocatedTrace []vm.RelocatedTraceEntry, dest io.Writer) 
 		fp_buffer := make([]byte, 8)
 		fp, err := entry.Fp.ToU64()
 		if err != nil {
-			return err
+			wrappedErr := errors.Errorf("WriteEncodedTrace failed: %s", err)
+			return wrappedErr
 		}
 		binary.LittleEndian.PutUint64(fp_buffer, fp)
 		_, err = dest.Write(fp_buffer)
@@ -82,7 +84,8 @@ func WriteEncodedTrace(relocatedTrace []vm.RelocatedTraceEntry, dest io.Writer) 
 		pc_buffer := make([]byte, 8)
 		pc, err := entry.Pc.ToU64()
 		if err != nil {
-			return err
+			wrappedErr := errors.Errorf("WriteEncodedTrace failed: %s", err)
+			return wrappedErr
 		}
 		binary.LittleEndian.PutUint64(pc_buffer, pc)
 		_, err = dest.Write(pc_buffer)
