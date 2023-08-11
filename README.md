@@ -1602,22 +1602,26 @@ Now that we can call a simple poseidon permutation function we can start impleme
 
 We will start by defining our `PoseidonBuiltinRunner` and adding it to our VM when creating a `CairoRunner`:
 
-It will contain it's base and a cache of values that we will use later to optimze our `DeduceMemoryCell` method.
+It will contain it's base and a cache of values that we will use later to optimze our `DeduceMemoryCell` method. The included field indicates if a builtin is used by the program, is used in proof_mode, as all builtins have to be present by default, but for now we will always set the included field to true.
 
 ```go
 type PoseidonBuiltinRunner struct {
  base     memory.Relocatable
+ included bool
  cache    map[memory.Relocatable]lambdaworks.Felt
 }
 
-func NewPoseidonBuiltinRunner() *PoseidonBuiltinRunner {
- return &PoseidonBuiltinRunner{cache: make(map[memory.Relocatable]lambdaworks.Felt)}
+func NewPoseidonBuiltinRunner(included bool) *PoseidonBuiltinRunner {
+ return &PoseidonBuiltinRunner{included: included, cache: make(map[memory.Relocatable]lambdaworks.Felt)}
 }
 ```
 
 In order to store it as a `BuiltinRunner` we will have to implement the `BuiltinRunner` interface. Aside from `AddValidationRule` &`DeduceMemoryCell`, most builtins share the same bahaviour in their methods, so we can just port them from the builtin runners we implemented before:
 
 ```go
+
+const POSEIDON_BUILTIN_NAME = "poseidon"
+
 fnc (p *PoseidonBuiltinRunner) Base() memory.Relocatable {
  return p.base
 }
@@ -1636,6 +1640,66 @@ func (p *PoseidonBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
  } else {
   return nil
  }
+}
+```
+
+As the poseidon builtin doesn't have validation rules, the function will be left empty:
+
+```go
+func (p *PoseidonBuiltinRunner) AddValidationRule(*memory.Memory) {
+}
+```
+
+Now lets dive into the poseidon builtin's behaviour!
+
+The poseidon builtin memory is divided into instancess of 6 cells, 3 input cells and 3 output cells. This means that whenever we want to deduce the value of an output cell, we will look for the input cells, compute the pedersen permutation over them, and write the permutated values to the output cells. As we only deduce the value of one output cell at a time, we will write the value of the output cells to a cache and use them the next time we have to deduce a memory cell so we avoid computing the poseidon hash more more than once over the same input values
+
+We define the following constants to represent a poseidon instance:
+
+```go
+const CELLS_PER_INSTANCE = 6
+const INPUT_CELLS_PER_INSTANCE = 3
+```
+
+And we can implement `DeduceMemoryCell`:
+
+This method will first check if the cell is an input cell, if its an input cell then there is nothing to deduce and it returns nil. Then it will check if there is a cached value for that cell and return it. If there is no cached value it will define the addresses of the first input and output cells, and fetch the values of the input cells. If any of the input cells is missing, or is not a felt value, it returns an error. Once it has the three input cells, it performs the poseidon permutation and inserts the permutated value into each output cell's address in the cache. It then returns the value stored in the cache for the address that the method received.
+
+```go
+func (p *PoseidonBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem *memory.Memory) (*memory.MaybeRelocatable, error) {
+ // Check if its an input cell
+ index := address.Offset % CELLS_PER_INSTANCE
+ if index < INPUT_CELLS_PER_INSTANCE {
+  return nil, nil
+ }
+
+ value, ok := p.cache[address]
+ if ok {
+  return memory.NewMaybeRelocatableFelt(value), nil
+ }
+
+ input_start_addr, _ := address.SubUint(index)
+ output_start_address := input_start_addr.AddUint(INPUT_CELLS_PER_INSTANCE)
+
+ // Build the initial poseidon state
+ var poseidon_state [3]lambdaworks.Felt
+
+ for i := uint(0); i < INPUT_CELLS_PER_INSTANCE; i++ {
+  felt, err := mem.GetFelt(input_start_addr.AddUint(i))
+  if err != nil {
+   return nil, err
+  }
+  poseidon_state[i] = felt
+ }
+
+ // Run the poseidon permutation
+ starknet_crypto.PoseidonPermuteComp(&poseidon_state)
+
+ // Insert the new state into the corresponding output cells in the cache
+ for i, elem := range poseidon_state {
+  p.cache[output_start_address.AddUint(uint(i))] = elem
+ }
+ return memory.NewMaybeRelocatableFelt(p.cache[address]), nil
 }
 ```
 
