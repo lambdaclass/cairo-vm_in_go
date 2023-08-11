@@ -1747,7 +1747,6 @@ func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segm
 		}
 
 		var res *memory.MaybeRelocatable
-		fmt.Println(index)
 		switch index {
 		case 2:
 			res = memory.NewMaybeRelocatableFelt(num_x_felt.And(num_y_felt))
@@ -1766,7 +1765,6 @@ func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segm
 ```
 
 Finally `AddValidationRule` is empty in this case
-
 
 ``` go
 func (b *BitwiseBuiltinRunner) AddValidationRule(*memory.Memory) {}
