@@ -1,7 +1,6 @@
 package cairo_run_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/cairo_run"
@@ -17,5 +16,4 @@ func TestFibonacci(t *testing.T) {
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
-	fmt.Println(err)
 }

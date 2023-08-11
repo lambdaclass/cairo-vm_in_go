@@ -2,7 +2,6 @@ package cairo_run
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"io"
 	"sort"
@@ -11,7 +10,10 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
 	"github.com/lambdaclass/cairo-vm.go/pkg/runners"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
+	"github.com/pkg/errors"
 )
+
+var ErrCairoRun = errors.New("Cairo Run failed")
 
 type RunResources struct {
 	NSteps *uint
@@ -28,18 +30,25 @@ func CairoRun(programPath string) (*runners.CairoRunner, error) {
 
 	cairoRunner, err := runners.NewCairoRunner(programJson)
 	if err != nil {
-		return nil, err
+		wrappedErr := errors.Errorf("Cairo Run failed: %s", err)
+		return nil, wrappedErr
 	}
 	end, err := cairoRunner.Initialize()
 	if err != nil {
-		return nil, err
+		wrappedErr := errors.Errorf("Cairo Run failed: %s", err)
+		return nil, wrappedErr
 	}
 	err = cairoRunner.RunUntilPC(end)
 	if err != nil {
-		return nil, err
+		wrappedErr := errors.Errorf("Cairo Run failed: %s", err)
+		return nil, wrappedErr
 	}
 	err = cairoRunner.Vm.Relocate()
-	return cairoRunner, err
+	if err != nil {
+		wrappedErr := errors.Errorf("Cairo Run failed: %s", err)
+		return nil, wrappedErr
+	}
+	return cairoRunner, nil
 }
 
 // Writes the trace binary representation.

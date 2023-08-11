@@ -436,9 +436,10 @@ func TestFibonacci(t *testing.T) {
 
 	// TODO: Uncomment test when we have the bare minimum `CairoRun`
 	// err := vm.CairoRun(compiledProgram.Data)
-	// if err != nil {
-	// 	t.Errorf("Program execution failed with error: %s", err)
-	// }
+	//
+	//	if err != nil {
+	//		t.Errorf("Program execution failed with error: %s", err)
+	//	}
 }
 
 func VmNew(run_context vm.RunContext, current_step uint, segments_manager memory.MemorySegmentManager) vm.VirtualMachine {
@@ -585,8 +586,9 @@ func TestOpcodeAssertionsResUnconstrained(t *testing.T) {
 	testVm := vm.NewVirtualMachine()
 
 	err := testVm.OpcodeAssertions(instruction, operands)
-	if err.Error() != "UnconstrainedResAssertEq" {
-		t.Error("Assertion should error out with UnconstrainedResAssertEq")
+
+	if err != vm.ErrUnconstraintRes {
+		t.Error("Assertion should error out with ErrUnconstraintRes")
 	}
 }
 
@@ -614,7 +616,8 @@ func TestOpcodeAssertionsInstructionFailed(t *testing.T) {
 
 	testVm := vm.NewVirtualMachine()
 	err := testVm.OpcodeAssertions(instruction, operands)
-	if err.Error() != "DiffAssertValues" {
+
+	if err != vm.ErrDiffAssertValues {
 		t.Error("Assertion should error out with DiffAssertValues")
 	}
 
@@ -644,7 +647,7 @@ func TestOpcodeAssertionsInstructionFailedRelocatables(t *testing.T) {
 
 	testVm := vm.NewVirtualMachine()
 	err := testVm.OpcodeAssertions(instruction, operands)
-	if err.Error() != "DiffAssertValues" {
+	if err != vm.ErrDiffAssertValues {
 		t.Error("Assertion should error out with DiffAssertValues")
 	}
 }
@@ -674,7 +677,7 @@ func TestOpcodeAssertionsInconsistentOp0(t *testing.T) {
 	testVm := vm.NewVirtualMachine()
 	testVm.RunContext.Pc = memory.NewRelocatable(0, 4)
 	err := testVm.OpcodeAssertions(instruction, operands)
-	if err.Error() != "CantWriteReturnPc" {
+	if err != vm.ErrCantWriteReturnPC {
 		t.Error("Assertion should error out with CantWriteReturnPc")
 	}
 }
@@ -704,7 +707,7 @@ func TestOpcodeAssertionsInconsistentDst(t *testing.T) {
 	testVm := vm.NewVirtualMachine()
 	testVm.RunContext.Fp = memory.NewRelocatable(1, 6)
 	err := testVm.OpcodeAssertions(instruction, operands)
-	if err.Error() != "CantWriteReturnFp" {
+	if err != vm.ErrCantWriteReturnFP {
 		t.Error("Assertion should error out with CantWriteReturnFp")
 	}
 }

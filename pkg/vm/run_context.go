@@ -30,7 +30,7 @@ func (run_context RunContext) ComputeDstAddr(instruction Instruction) (memory.Re
 	if instruction.Off0 < 0 {
 		return base_addr.SubUint(uint(math.Abs(float64(instruction.Off0))))
 	} else {
-		return base_addr.AddUint(uint(instruction.Off0))
+		return base_addr.AddUint(uint(instruction.Off0)), nil
 	}
 
 }
@@ -47,7 +47,7 @@ func (run_context RunContext) ComputeOp0Addr(instruction Instruction) (memory.Re
 	if instruction.Off1 < 0 {
 		return base_addr.SubUint(uint(math.Abs(float64(instruction.Off1))))
 	} else {
-		return base_addr.AddUint(uint(instruction.Off1))
+		return base_addr.AddUint(uint(instruction.Off1)), nil
 	}
 }
 
@@ -81,6 +81,6 @@ func (run_context RunContext) ComputeOp1Addr(instruction Instruction, op0 *memor
 	if instruction.Off2 < 0 {
 		return base_addr.SubUint(uint(math.Abs(float64(instruction.Off2))))
 	} else {
-		return base_addr.AddUint(uint(instruction.Off2))
+		return base_addr.AddUint(uint(instruction.Off2)), nil
 	}
 }

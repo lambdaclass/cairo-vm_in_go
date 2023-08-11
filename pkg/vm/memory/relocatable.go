@@ -85,9 +85,9 @@ func (relocatable *Relocatable) SubUint(other uint) (Relocatable, error) {
 	}
 }
 
-func (relocatable *Relocatable) AddUint(other uint) (Relocatable, error) {
+func (relocatable *Relocatable) AddUint(other uint) Relocatable {
 	new_offset := relocatable.Offset + other
-	return NewRelocatable(relocatable.SegmentIndex, new_offset), nil
+	return NewRelocatable(relocatable.SegmentIndex, new_offset)
 }
 
 // MaybeRelocatable is the type of the memory cells in the Cairo

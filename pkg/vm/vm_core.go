@@ -1,12 +1,12 @@
 package vm
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+	"github.com/pkg/errors"
 )
 
 type VirtualMachineError struct {
@@ -25,6 +25,7 @@ var ErrFailedToComputeOperandAddress = errors.New("failed to compute operand add
 var ErrNotRelocatableValue = errors.New("not a relocatable value")
 var ErrNotFeltValue = errors.New("not a felts value")
 var ErrComputeResRelocatableMul = errors.New("compute res relocatable mul")
+var UnconstrainedResAssertEq = errors.New("UnconstrainedResAssertEq")
 
 func (e *VirtualMachineError) Error() string {
 	return fmt.Sprintf(e.Msg)
@@ -160,10 +161,7 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 			return ErrDiffAssertValues
 		}
 	case Call:
-		new_rel, err := vm.RunContext.Pc.AddUint(instruction.Size())
-		if err != nil {
-			return err
-		}
+		new_rel := vm.RunContext.Pc.AddUint(instruction.Size())
 		returnPC := memory.NewMaybeRelocatableRelocatable(new_rel)
 
 		if !operands.Op0.IsEqual(returnPC) {
