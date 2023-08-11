@@ -1373,3 +1373,94 @@ With all of our builtin logic integrated into the codebase, we can implement any
 
 
 ### Implementing each builtin runner 
+
+
+#### Bitwise builtin
+
+This builtin provides a way to work with the basic bit operations `and`, `or` and `xor`. It implements the basic builtin interface methods:
+
+```go
+func (b *BitwiseBuiltinRunner) Base() memory.Relocatable {
+	return r.base
+}
+
+func (b *BitwiseBuiltinRunner) Name() string {
+	return "range_check"
+}
+```
+
+For the `InitializeSegments` we just add a segment to the memory and store in the base attribute, the first adress of the segment. 
+
+```go
+func (b *BitwiseBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
+	r.base = segments.AddSegment()
+}
+```
+
+we also have `InitialStack` method that returns a stack the base address appended
+
+```go 
+func (b *BitwiseBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
+	if b.included {
+		return []memory.MaybeRelocatable{*memory.NewMaybeRelocatableRelocatable(b.base)}
+	} else {
+		return []memory.MaybeRelocatable{}
+	}
+}
+```
+
+The method deduce memory cell fetches from memory the operands and  
+
+```go 
+func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segments *memory.Memory) (*memory.MaybeRelocatable, error) {
+	index := address.Offset % CELLS_PER_INSTANCE
+	if index < INPUT_CELLS_PER_INSTANCE {
+		return nil, nil
+	}
+
+	x_addr := memory.NewRelocatable(address.SegmentIndex, address.Offset-index)
+	y_addr, err := (x_addr.AddUint(1))
+	if err != nil {
+		return nil, err
+	}
+	num_x, err := segments.Get(x_addr)
+	if err != nil {
+
+		return nil, err
+	}
+
+	num_y, err := segments.Get(y_addr)
+	if err != nil {
+
+		return nil, err
+	}
+
+	num_x_felt, x_is_felt := num_x.GetFelt()
+	num_y_felt, y_is_felt := num_y.GetFelt()
+
+	if x_is_felt && y_is_felt {
+		if num_x_felt.Bits() > TOTAL_N_BITS {
+			return nil, errors.New("Expected Intenger x to be smaller than 2^(total_n_bits)")
+		}
+		if num_y_felt.Bits() > TOTAL_N_BITS {
+			return nil, errors.New("Expected Intenger y to be smaller than 2^(total_n_bits)")
+		}
+
+		var res *memory.MaybeRelocatable
+		fmt.Println(index)
+		switch index {
+		case 2:
+			res = memory.NewMaybeRelocatableFelt(num_x_felt.And(num_y_felt))
+		case 3:
+			res = memory.NewMaybeRelocatableFelt(num_x_felt.Xor(num_y_felt))
+		case 4:
+			res = memory.NewMaybeRelocatableFelt(num_x_felt.Or(num_y_felt))
+		default:
+			res = nil
+		}
+		return res, nil
+	}
+
+	return nil, nil
+}
+```
