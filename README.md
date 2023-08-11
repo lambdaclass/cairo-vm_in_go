@@ -1704,7 +1704,12 @@ func (b *BitwiseBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
 }
 ```
 
-The method deduce memory cell fetches from memory the operands and  
+The method `DeducedMemoryCell` fetches from memory the operands and  performes the operations. 
+- If the index is lesser than two then the methods just return nil
+- After the operands are fetch it is checked that both are felts because bitwise can not be perform on relocatables or nil values.
+- If the number of bits of any operands is greater than TOTAL_N_BITS the method fails because we are out of the field.
+- The index is used to know which bitwise operation is going to be performed, if is 2 then `and` is executed, if is 3 then `xor` and if is a 4 then `or` is executed
+- Otherwise nil value is returned
 
 ```go 
 func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segments *memory.Memory) (*memory.MaybeRelocatable, error) {
@@ -1758,4 +1763,11 @@ func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segm
 
 	return nil, nil
 }
+```
+
+Finally `AddValidationRule` is empty in this case
+
+
+``` go
+func (b *BitwiseBuiltinRunner) AddValidationRule(*memory.Memory) {}
 ```
