@@ -760,7 +760,7 @@ func (run_context RunContext) ComputeDstAddr(instruction Instruction) (memory.Re
 ```
 ##### ComputeOp0Addr
 
-This method is similar to `ComputeDstAddr` but it uses the instruction second offset (off1) to add the selected register (ap or fp)
+This method is similar to `ComputeDstAddr` but it uses the instruction second offset (off1) to add to the selected register (ap or fp)
 
 ```go
 func (run_context RunContext) ComputeOp0Addr(instruction Instruction) (memory.Relocatable, error) {
@@ -783,7 +783,7 @@ func (run_context RunContext) ComputeOp0Addr(instruction Instruction) (memory.Re
 
 ##### ComputeOp1Addr
 
-It computes the address of `Op1` based on  the `Op0` operand and the kind of Address the instruction has for `Op1`.
+It computes the address of `Op1` based on the `Op0` operand and the kind of Address the instruction has for `Op1`.
 - If its address is `Op1SrcFp` it calculates the direction from Fp register.
 - if it is `Op1SrcAp` then if calculates it if from Ap register. 
 - If it is an immediate then checks if the offset 2 is 1 and calculates it from the `Pc`. 
