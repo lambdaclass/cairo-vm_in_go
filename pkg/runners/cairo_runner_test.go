@@ -6,6 +6,7 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
 	"github.com/lambdaclass/cairo-vm.go/pkg/runners"
+	builtinrunner "github.com/lambdaclass/cairo-vm.go/pkg/runners/builtin_runner"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
@@ -154,5 +155,92 @@ func TestInitializeRunnerNoBuiltinsNoProofModeNonEmptyProgram(t *testing.T) {
 	rel, ok = value.GetRelocatable()
 	if !ok || rel.SegmentIndex != 3 || rel.Offset != 0 {
 		t.Errorf("Wrong value for address 1:1: %d", rel)
+	}
+}
+
+func TestInitializeRunnerWithRangeCheckValid(t *testing.T) {
+	t.Helper()
+	// Create a Program with one fake instruction
+	program_data := make([]memory.MaybeRelocatable, 1)
+	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1))
+	empty_identifiers := make(map[string]parser.Identifier, 0)
+	builtins := []string{builtinrunner.CHECK_RANGE_BUILTIN_NAME}
+	program := vm.Program{Data: program_data, Identifiers: &empty_identifiers, Builtins: builtins}
+	// Create CairoRunner
+	runner, err := runners.NewCairoRunner(program)
+	if err != nil {
+		t.Errorf("NewCairoRunner error in test: %s", err)
+	}
+	// Initialize the runner
+	_, err = runner.Initialize()
+	if err != nil {
+		t.Errorf("Initialize error in test: %s", err)
+	}
+
+	runner.Vm.RunContext.Pc = memory.NewRelocatable(0, 1)
+	runner.Vm.RunContext.Ap = memory.NewRelocatable(1, 2)
+	runner.Vm.RunContext.Fp = memory.NewRelocatable(1, 2)
+
+	runner.Initialize()
+	runner.Vm.Segments.Memory.Insert(memory.NewRelocatable(2, 0), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(23)))
+	runner.Vm.Segments.Memory.Insert(memory.NewRelocatable(2, 1), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(233)))
+
+	builtin_runner := runner.Vm.BuiltinRunners[0]
+	builtin_name := builtin_runner.Name()
+	expected_name := builtinrunner.CHECK_RANGE_BUILTIN_NAME
+	if builtin_name != expected_name {
+		t.Errorf("Name of runner builtin failed. Expected %s, got %s", expected_name, builtin_name)
+	}
+
+	builtin_base := builtin_runner.Base()
+	expected_base := memory.NewRelocatable(2, 0)
+	if builtin_base.IsEqual(&expected_base) {
+		t.Errorf("Base of runner builtin failed. Expected %d, got %d", expected_base, builtin_base)
+	}
+
+	rel := memory.NewRelocatable(2, 0)
+	if !runner.Vm.Segments.Memory.ValidatedAdresses.Contains(rel) {
+		t.Errorf("Should validate address %d", rel)
+	}
+	rel = memory.NewRelocatable(2, 1)
+	if !runner.Vm.Segments.Memory.ValidatedAdresses.Contains(rel) {
+		t.Errorf("Should validate address %d", rel)
+	}
+
+	v_len := len(runner.Vm.Segments.Memory.ValidatedAdresses)
+	if v_len != 2 {
+		t.Errorf("Should be 2 validated addresses, got: %d", v_len)
+	}
+}
+
+func TestInitializeRunnerWithRangeCheckInvalid(t *testing.T) {
+	t.Helper()
+	// Create a Program with one fake instruction
+	program_data := make([]memory.MaybeRelocatable, 1)
+	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1))
+	empty_identifiers := make(map[string]parser.Identifier, 0)
+	builtins := []string{builtinrunner.CHECK_RANGE_BUILTIN_NAME}
+	program := vm.Program{Data: program_data, Identifiers: &empty_identifiers, Builtins: builtins}
+	// Create CairoRunner
+	runner, err := runners.NewCairoRunner(program)
+	if err != nil {
+		t.Errorf("NewCairoRunner error in test: %s", err)
+	}
+	// Initialize the runner
+	_, err = runner.Initialize()
+	if err != nil {
+		t.Errorf("Initialize error in test: %s", err)
+	}
+
+	runner.Vm.RunContext.Pc = memory.NewRelocatable(0, 1)
+	runner.Vm.RunContext.Ap = memory.NewRelocatable(1, 2)
+	runner.Vm.RunContext.Fp = memory.NewRelocatable(1, 2)
+
+	runner.Initialize()
+	runner.Vm.Segments.Memory.Insert(memory.NewRelocatable(2, 0), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(23)))
+	runner.Vm.Segments.Memory.Insert(memory.NewRelocatable(2, 4), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("-1")))
+	err = runner.InitializeVM()
+	if err != builtinrunner.ErrRangeOutOfBounds {
+		t.Errorf("Test should fail with: %s", builtinrunner.ErrRangeOutOfBounds.Error())
 	}
 }

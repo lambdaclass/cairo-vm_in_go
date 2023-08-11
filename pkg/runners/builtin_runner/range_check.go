@@ -7,6 +7,9 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
+var ErrRangeOutOfBounds = errors.New("RangeCheckNumOutOfBounds")
+
+const CHECK_RANGE_BUILTIN_NAME = "range_check"
 const INNER_RC_BOUND_SHIFT = 16
 const INNER_RC_BOUND_MASK = math.MaxUint16
 const CELLS_PER_RANGE_CHECK = 1
@@ -18,7 +21,7 @@ type RangeCheckBuiltinRunner struct {
 	included bool
 }
 
-func NewRangeCheckBuiltinRunner(ratio *uint32, nParts uint32, included bool) *RangeCheckBuiltinRunner {
+func NewRangeCheckBuiltinRunner(included bool) *RangeCheckBuiltinRunner {
 	return &RangeCheckBuiltinRunner{
 		base:     memory.NewRelocatable(0, 0),
 		included: included,
@@ -30,7 +33,7 @@ func (r *RangeCheckBuiltinRunner) Base() memory.Relocatable {
 }
 
 func (r *RangeCheckBuiltinRunner) Name() string {
-	return "range_check"
+	return CHECK_RANGE_BUILTIN_NAME
 }
 
 func (r *RangeCheckBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
@@ -61,7 +64,7 @@ func ValidationRule(mem *memory.Memory, address memory.Relocatable) ([]memory.Re
 	if felt.Bits() <= N_PARTS*INNER_RC_BOUND_SHIFT {
 		return []memory.Relocatable{address}, nil
 	}
-	return nil, errors.New("RangeCheckNumOutOfBounds")
+	return nil, ErrRangeOutOfBounds
 }
 
 func (r *RangeCheckBuiltinRunner) AddValidationRule(mem *memory.Memory) {

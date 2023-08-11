@@ -279,8 +279,7 @@ func TestMemorySegmentsLoadDataTwoElements(t *testing.T) {
 }
 
 func TestValidateExistingMemoryForRangeCheckWithinBounds(t *testing.T) {
-	ratio := uint32(8)
-	builtin := builtinrunner.NewRangeCheckBuiltinRunner(&ratio, 8, true)
+	builtin := builtinrunner.NewRangeCheckBuiltinRunner(true)
 	segments := memory.NewMemorySegmentManager()
 	builtin.InitializeSegments(&segments)
 	builtin.AddValidationRule(&segments.Memory)
@@ -299,8 +298,7 @@ func TestValidateExistingMemoryForRangeCheckWithinBounds(t *testing.T) {
 }
 
 func TestValidateExistingMemoryForRangeCheckOutsideBounds(t *testing.T) {
-	ratio := uint32(8)
-	builtin := builtinrunner.NewRangeCheckBuiltinRunner(&ratio, 8, true)
+	builtin := builtinrunner.NewRangeCheckBuiltinRunner(true)
 	segments := memory.NewMemorySegmentManager()
 	segments.AddSegment()
 	builtin.InitializeSegments(&segments)
@@ -309,14 +307,13 @@ func TestValidateExistingMemoryForRangeCheckOutsideBounds(t *testing.T) {
 	segments.Memory.Insert(addr, val)
 	builtin.AddValidationRule(&segments.Memory)
 	err := segments.Memory.ValidateAddress(addr)
-	if err.Error() != "RangeCheckNumOutOfBounds" {
+	if err != builtinrunner.ErrRangeOutOfBounds {
 		t.Error("Should fail with RangeCheckNumOutOfBounds")
 	}
 }
 
 func TestValidateExistingMemoryForRangeCheckRelocatableValue(t *testing.T) {
-	ratio := uint32(8)
-	builtin := builtinrunner.NewRangeCheckBuiltinRunner(&ratio, 8, true)
+	builtin := builtinrunner.NewRangeCheckBuiltinRunner(true)
 	segments := memory.NewMemorySegmentManager()
 	builtin.InitializeSegments(&segments)
 
@@ -334,8 +331,7 @@ func TestValidateExistingMemoryForRangeCheckRelocatableValue(t *testing.T) {
 }
 
 func TestValidateExistingMemoryForRangeCheckOutOfBoundsDiffSegment(t *testing.T) {
-	ratio := uint32(8)
-	builtin := builtinrunner.NewRangeCheckBuiltinRunner(&ratio, 8, true)
+	builtin := builtinrunner.NewRangeCheckBuiltinRunner(true)
 	segments := memory.NewMemorySegmentManager()
 	segments.AddSegment()
 	builtin.InitializeSegments(&segments)

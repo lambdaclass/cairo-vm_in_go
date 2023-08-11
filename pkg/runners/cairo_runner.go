@@ -3,6 +3,7 @@ package runners
 import (
 	"errors"
 
+	builtinrunner "github.com/lambdaclass/cairo-vm.go/pkg/runners/builtin_runner"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
@@ -29,10 +30,10 @@ func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 	for _, builtin_name := range program.Builtins {
 		switch builtin_name {
 		// Add a case for each builtin here, example:
-		// case "range_check":
-		// 	runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, RangeCheckBuiltin{})
+		case builtinrunner.CHECK_RANGE_BUILTIN_NAME:
+			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtinrunner.NewRangeCheckBuiltinRunner(true))
 		default:
-			return nil, errors.New("Invalid builtin")
+			return nil, errors.New("invalid builtin")
 		}
 	}
 
@@ -44,7 +45,7 @@ func (r *CairoRunner) Initialize() (memory.Relocatable, error) {
 	r.initializeSegments()
 	end, err := r.initializeMainEntrypoint()
 	if err == nil {
-		err = r.initializeVM()
+		err = r.InitializeVM()
 	}
 	return end, err
 }
@@ -102,7 +103,7 @@ func (r *CairoRunner) initializeMainEntrypoint() (memory.Relocatable, error) {
 }
 
 // Initializes the vm's run_context, adds builtin validation rules & validates memory
-func (r *CairoRunner) initializeVM() error {
+func (r *CairoRunner) InitializeVM() error {
 	r.Vm.RunContext.Ap = r.initialAp
 	r.Vm.RunContext.Fp = r.initialFp
 	r.Vm.RunContext.Pc = r.initialPc
