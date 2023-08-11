@@ -661,7 +661,7 @@ To begin coding the basic execution functionality of our VM, we only need these 
 
 Once the instruction has been decoded, it is executed by `RunInstruction` whose first function is to compute operands. This function is in charge of
 calculating the addresses of the operands and fetching them from memory. If the function could not fetch the operands then they are deduced from the other operands and
-taking in consideration what kind of opcode is going to be executed. 
+taking in consideration what kind of opcode is being executed. 
 
 ```go
 func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, error) {
@@ -738,7 +738,7 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 ```
 
 ##### ComputeDstAddr
-The method `ComputeDstAddr` computes the address of value that will be stored in the Destination (dst) operand. It checks which register is the relative to (wether ap or fp) and gets the direction by adding the instruction's first offset(off0) to the corresponding register.
+The method `ComputeDstAddr` computes the address of value that will be stored in the Destination (dst) operand. It checks which register its is relative to (wether ap or fp) and gets the direction by adding the instruction's first offset(off0) to the corresponding register.
 
 ```go
 func (run_context RunContext) ComputeDstAddr(instruction Instruction) (memory.Relocatable, error) {
