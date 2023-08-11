@@ -7,26 +7,19 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
-type BitwiseInstanceDef struct {
-	Ratio      *uint
-	TotalNBits uint
-}
+const CELLS_PER_INSTANCE = 5
+const TOTAL_N_BITS = 251
+const INPUT_CELLS_PER_INSTANCE = 2
 
 type BitwiseBuiltinRunner struct {
-	base             memory.Relocatable
-	included         bool
-	CellsPerInstance uint
-	Ratio            *uint
-	BitwiseBuiltin   BitwiseInstanceDef
+	base     memory.Relocatable
+	included bool
 }
 
-func NewBitwiseBuiltinRunner(instance_def BitwiseInstanceDef, included bool) BitwiseBuiltinRunner {
+func NewBitwiseBuiltinRunner(included bool) BitwiseBuiltinRunner {
 	return BitwiseBuiltinRunner{
-		base:             memory.NewRelocatable(0, 0),
-		included:         included,
-		CellsPerInstance: 5,
-		Ratio:            instance_def.Ratio,
-		BitwiseBuiltin:   instance_def,
+		base:     memory.NewRelocatable(0, 0),
+		included: included,
 	}
 }
 
@@ -35,7 +28,7 @@ func (b *BitwiseBuiltinRunner) Base() memory.Relocatable {
 }
 
 func (b *BitwiseBuiltinRunner) Name() string {
-	return "bitwise_builtin"
+	return "bitwise"
 }
 
 func (b *BitwiseBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
@@ -51,8 +44,8 @@ func (b *BitwiseBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
 }
 
 func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segments *memory.Memory) (*memory.MaybeRelocatable, error) {
-	index := address.Offset % b.CellsPerInstance
-	if index < 1 {
+	index := address.Offset % CELLS_PER_INSTANCE
+	if index < INPUT_CELLS_PER_INSTANCE {
 		return nil, nil
 	}
 
@@ -78,10 +71,10 @@ func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segm
 
 	if x_is_felt && y_is_felt {
 		// TODO: check if this conversion if valid
-		if uint64(num_x_felt.Bits()) > uint64(b.BitwiseBuiltin.TotalNBits) {
+		if num_x_felt.Bits() > TOTAL_N_BITS {
 			return nil, errors.New("Expected Intenger x to be smaller than 2^(total_n_bits)")
 		}
-		if uint64(num_y_felt.Bits()) > uint64(b.BitwiseBuiltin.TotalNBits) {
+		if num_y_felt.Bits() > TOTAL_N_BITS {
 			return nil, errors.New("Expected Intenger y to be smaller than 2^(total_n_bits)")
 		}
 

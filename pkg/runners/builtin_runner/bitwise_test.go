@@ -22,10 +22,7 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd(t *testing.T) {
 	mem.Memory.Insert(rel2, m2)
 	mem.Memory.Insert(rel3, m3)
 
-	var ratio uint = 256
-
-	builtin_instance := BitwiseInstanceDef{Ratio: &ratio, TotalNBits: 251}
-	builtin := NewBitwiseBuiltinRunner(builtin_instance, true)
+	builtin := NewBitwiseBuiltinRunner(true)
 
 	address := memory.NewRelocatable(0, 7)
 
@@ -57,9 +54,7 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryValidXor(t *testing.T) {
 	mem.Memory.Insert(rel2, m2)
 	mem.Memory.Insert(rel3, m3)
 
-	var ratio uint = 256
-	builtin_instance := BitwiseInstanceDef{Ratio: &ratio, TotalNBits: 251}
-	builtin := NewBitwiseBuiltinRunner(builtin_instance, true)
+	builtin := NewBitwiseBuiltinRunner(true)
 
 	address := memory.NewRelocatable(0, 8)
 
@@ -91,9 +86,7 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryValidOr(t *testing.T) {
 	mem.Memory.Insert(rel2, m2)
 	mem.Memory.Insert(rel3, m3)
 
-	var ratio uint = 256
-	builtin_instance := BitwiseInstanceDef{Ratio: &ratio, TotalNBits: 251}
-	builtin := NewBitwiseBuiltinRunner(builtin_instance, true)
+	builtin := NewBitwiseBuiltinRunner(true)
 
 	address := memory.NewRelocatable(0, 9)
 
@@ -125,9 +118,7 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryIncorrectOffset(t *testing.T) {
 	mem.Memory.Insert(rel2, m2)
 	mem.Memory.Insert(rel3, m3)
 
-	var ratio uint = 256
-	builtin_instance := BitwiseInstanceDef{Ratio: &ratio, TotalNBits: 251}
-	builtin := NewBitwiseBuiltinRunner(builtin_instance, true)
+	builtin := NewBitwiseBuiltinRunner(true)
 
 	address := memory.NewRelocatable(0, 5)
 
@@ -155,9 +146,7 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryNoValuesToOperate(t *testing.T) {
 	mem.Memory.Insert(rel1, m1)
 	mem.Memory.Insert(rel2, m2)
 
-	var ratio uint = 256
-	builtin_instance := BitwiseInstanceDef{Ratio: &ratio, TotalNBits: 251}
-	builtin := NewBitwiseBuiltinRunner(builtin_instance, true)
+	builtin := NewBitwiseBuiltinRunner(true)
 
 	address := memory.NewRelocatable(0, 5)
 
