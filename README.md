@@ -1182,9 +1182,101 @@ func (v *VirtualMachine) RelocateTrace(relocationTable *[]uint) error {
 
 Like in `RelocateMemory`, we need to check that the `RelocateSegments` function was called before.
 
-#### Writing trace into a file
+Once the program was executed, the `VirtualMachine` will have generated a relocated trace and a relocated memory for that execution.
+Both trace and memory should be outputs of the execution, so we will write a function that respectively writes the trace and memory
+into a file.
 
-#### Writing memory into a file
+#### Writing the trace into a file
+
+First, we will add a function to write the relocated trace into a buffer.
+This method converts the pc, fp and ap fields of each trace entry into a `uint64` and writes each integer into the buffer in little endian:
+
+```go
+func WriteEncodedTrace(relocatedTrace []vm.RelocatedTraceEntry, dest io.Writer) error {
+    for i, entry := range relocatedTrace {
+        ap_buffer := make([]byte, 8)
+        ap, err := entry.Ap.ToU64()
+        if err != nil {
+            return err
+        }
+        binary.LittleEndian.PutUint64(ap_buffer, ap)
+        _, err = dest.Write(ap_buffer)
+        if err != nil {
+            return encodeTraceError(i, err)
+        }
+
+        fp_buffer := make([]byte, 8)
+        fp, err := entry.Fp.ToU64()
+        if err != nil {
+            return err
+        }
+        binary.LittleEndian.PutUint64(fp_buffer, fp)
+        _, err = dest.Write(fp_buffer)
+        if err != nil {
+            return encodeTraceError(i, err)
+        }
+
+        pc_buffer := make([]byte, 8)
+        pc, err := entry.Pc.ToU64()
+        if err != nil {
+            return err
+        }
+        binary.LittleEndian.PutUint64(pc_buffer, pc)
+        _, err = dest.Write(pc_buffer)
+        if err != nil {
+            return encodeTraceError(i, err)
+        }
+    }
+
+    return nil
+}
+```
+
+#### Writing the memory into a file
+
+Second, we will add a function to write the relocated memory into another buffer.
+We want to write into the buffer the pairs of addresses and values by following a specific order.
+In this case, we want those pairs to be incrementally ordered by address.
+Because we implemented the relocated memory as a map and we store the addresses as keys, if we iterate over the relocated memory using
+`range`, we will end up storing the pairs of addresses and values without following any specific order.
+So, first we sort the relocated memory addresses and then we iterate those addresses to write each pair into the buffer.
+Before writing the relocated memory values into the buffer, we have to convert them to bytes in little endian by using the lambdaworks
+method `ToLeBytes`.
+That method returns an array and `io.Writer.Write` expects a slice, so we convert the array that `ToLeBytes` returns to a slice.
+
+```go
+func WriteEncodedMemory(relocatedMemory map[uint]lambdaworks.Felt, dest io.Writer) error {
+    // create a slice to store keys of the relocatedMemory map
+    keysMap := make([]uint, 0, len(relocatedMemory))
+    for k := range relocatedMemory {
+        keysMap = append(keysMap, k)
+    }
+
+    // sort the keys
+    sort.Slice(keysMap, func(i, j int) bool { return keysMap[i] < keysMap[j] })
+
+    // iterate over the `relocatedMemory` map in sorted key order
+    for _, k := range keysMap {
+        // write the key
+        keyArray := make([]byte, 8)
+        binary.LittleEndian.PutUint64(keyArray, uint64(k))
+        _, err := dest.Write(keyArray)
+        if err != nil {
+            return encodeMemoryError(k, err)
+        }
+
+        // write the value
+        valueArray := relocatedMemory[k].ToLeBytes()
+
+        _, err = dest.Write(valueArray[:])
+        if err != nil {
+            return encodeMemoryError(k, err)
+        }
+    }
+
+    return nil
+}
+```
 
 #### Builtins
 
