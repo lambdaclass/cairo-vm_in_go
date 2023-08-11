@@ -1600,6 +1600,45 @@ Now that we can call a simple poseidon permutation function we can start impleme
 
 ##### Implementing the PoseidonBuiltinRunner
 
+We will start by defining our `PoseidonBuiltinRunner` and adding it to our VM when creating a `CairoRunner`:
+
+It will contain it's base and a cache of values that we will use later to optimze our `DeduceMemoryCell` method.
+
+```go
+type PoseidonBuiltinRunner struct {
+ base     memory.Relocatable
+ cache    map[memory.Relocatable]lambdaworks.Felt
+}
+
+func NewPoseidonBuiltinRunner() *PoseidonBuiltinRunner {
+ return &PoseidonBuiltinRunner{cache: make(map[memory.Relocatable]lambdaworks.Felt)}
+}
+```
+
+In order to store it as a `BuiltinRunner` we will have to implement the `BuiltinRunner` interface. Aside from `AddValidationRule` &`DeduceMemoryCell`, most builtins share the same bahaviour in their methods, so we can just port them from the builtin runners we implemented before:
+
+```go
+fnc (p *PoseidonBuiltinRunner) Base() memory.Relocatable {
+ return p.base
+}
+
+func (p *PoseidonBuiltinRunner) Name() string {
+ return POSEIDON_BUILTIN_NAME
+}
+
+func (p *PoseidonBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
+ p.base = segments.AddSegment()
+}
+
+func (p *PoseidonBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
+ if p.included {
+  return []memory.MaybeRelocatable{*memory.NewMaybeRelocatableRelocatable(p.base)}
+ } else {
+  return nil
+ }
+}
+```
+
 #### Pedersen
 
 TODO
