@@ -659,10 +659,308 @@ To begin coding the basic execution functionality of our VM, we only need these 
 
 #### Compute operands
 
+Once the instruction has been decoded, it is executed by `RunInstruction` whose first function is to compute operands. This function is in charge of
+calculating the addresses of the operands and fetching them from memory. If the function could not fetch the operands then they are deduced from the other operands,
+taking in consideration what kind of opcode is being executed. 
+
 ```go
-    //TODO
+func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, error) {
+	var res *memory.MaybeRelocatable
+
+	dst_addr, err := vm.RunContext.ComputeDstAddr(instruction)
+	if err != nil {
+		return Operands{}, errors.New("FailedToComputeDstAddr")
+	}
+	dst, _ := vm.Segments.Memory.Get(dst_addr)
+
+	op0_addr, err := vm.RunContext.ComputeOp0Addr(instruction)
+	if err != nil {
+		return Operands{}, fmt.Errorf("FailedToComputeOp0Addr: %s", err)
+	}
+	op0, _ := vm.Segments.Memory.Get(op0_addr)
+
+	op1_addr, err := vm.RunContext.ComputeOp1Addr(instruction, op0)
+	if err != nil {
+		return Operands{}, fmt.Errorf("FailedToComputeOp1Addr: %s", err)
+	}
+	op1, _ := vm.Segments.Memory.Get(op1_addr)
+
+	if op0 == nil {
+		deducedOp0, deducedRes, err := vm.DeduceOp0(&instruction, dst, op1)
+		if err != nil {
+			return Operands{}, err
+		}
+		op0 = deducedOp0
+		if op0 != nil {
+			vm.Segments.Memory.Insert(op0_addr, op0)
+		}
+		res = deducedRes
+	}
+
+	if op1 == nil {
+		deducedOp1, deducedRes, err := vm.DeduceOp1(instruction, dst, op0)
+		if err != nil {
+			return Operands{}, err
+		}
+		op1 = deducedOp1
+		if op1 != nil {
+			vm.Segments.Memory.Insert(op1_addr, op1)
+		}
+		if res == nil {
+			res = deducedRes
+		}
+	}
+
+	if res == nil {
+		res, err = vm.ComputeRes(instruction, *op0, *op1)
+
+		if err != nil {
+			return Operands{}, err
+		}
+	}
+
+	if dst == nil {
+		deducedDst := vm.DeduceDst(instruction, res)
+		dst = deducedDst
+		if dst != nil {
+			vm.Segments.Memory.Insert(dst_addr, dst)
+		}
+	}
+
+	operands := Operands{
+		Dst: *dst,
+		Op0: *op0,
+		Op1: *op1,
+		Res: res,
+	}
+	return operands, nil
+}
 ```
 
+##### ComputeDstAddr
+The method `ComputeDstAddr` computes the address of the value that will be stored in the Destination (dst) operand. It checks which register its is relative to (wether ap or fp) and gets the direction by adding the instruction's first offset(off0) to the corresponding register.
+
+```go
+func (run_context RunContext) ComputeDstAddr(instruction Instruction) (memory.Relocatable, error) {
+	var base_addr memory.Relocatable
+	switch instruction.DstReg {
+	case AP:
+		base_addr = run_context.Ap
+	case FP:
+		base_addr = run_context.Fp
+	}
+
+	if instruction.Off0 < 0 {
+		return base_addr.SubUint(uint(math.Abs(float64(instruction.Off0))))
+	} else {
+		return base_addr.AddUint(uint(instruction.Off0))
+	}
+
+}
+```
+##### ComputeOp0Addr
+
+This method is similar to `ComputeDstAddr` but it uses the instruction second offset (off1) to add to the selected register (ap or fp)
+
+```go
+func (run_context RunContext) ComputeOp0Addr(instruction Instruction) (memory.Relocatable, error) {
+	var base_addr memory.Relocatable
+	switch instruction.Op0Reg {
+	case AP:
+		base_addr = run_context.Ap
+	case FP:
+		base_addr = run_context.Fp
+	}
+
+	if instruction.Off1 < 0 {
+		return base_addr.SubUint(uint(math.Abs(float64(instruction.Off1))))
+	} else {
+		return base_addr.AddUint(uint(instruction.Off1))
+	}
+}
+
+```
+
+##### ComputeOp1Addr
+
+It computes the address of `Op1` based on the `Op0` operand and the kind of Address the instruction has for `Op1`.
+- If its address is `Op1SrcFp` it calculates the direction from Fp register.
+- if it is `Op1SrcAp` then if calculates it if from Ap register. 
+- If it is an immediate then checks if the offset 2 is 1 and calculates it from the `Pc`. 
+- If it is an `Op1SrcOp0` it checks the `Op0` and calculates the direction from it.
+
+Then it performs and addition or a substraction if the `Off2` is negative or positive.
+
+```go
+func (run_context RunContext) ComputeOp1Addr(instruction Instruction, op0 *memory.MaybeRelocatable) (memory.Relocatable, error) {
+	var base_addr memory.Relocatable
+
+	switch instruction.Op1Addr {
+	case Op1SrcFP:
+		base_addr = run_context.Fp
+	case Op1SrcAP:
+		base_addr = run_context.Ap
+	case Op1SrcImm:
+		if instruction.Off2 == 1 {
+			base_addr = run_context.Pc
+		} else {
+			base_addr = memory.NewRelocatable(0, 0)
+			return memory.Relocatable{}, &VirtualMachineError{Msg: "UnknownOp0"}
+		}
+	case Op1SrcOp0:
+		if op0 == nil {
+			return memory.Relocatable{}, errors.New("Unknown Op0")
+		}
+		rel, is_rel := op0.GetRelocatable()
+		if is_rel {
+			base_addr = rel
+		} else {
+			return memory.Relocatable{}, errors.New("AddressNotRelocatable")
+		}
+	}
+
+	if instruction.Off2 < 0 {
+		return base_addr.SubUint(uint(math.Abs(float64(instruction.Off2))))
+	} else {
+		return base_addr.AddUint(uint(instruction.Off2))
+	}
+}
+```
+
+##### DeduceOp0
+
+The method deduces the value of `Op0` if possible (based on `dst` and `Op1`).
+If Instruction's opcode is a `Call` `Op0` is deduced by adding the instruction size to the program counter.
+- If it is an `AssertEq` then a second switch case is used to check what `ResLogic` is.
+- If it is `ResAdd` `Op0` is deduced from the substraction of `Op1` from `Dst`,  if is is `Resmul` the `Op0` is deduced from the division of `Dst` and `Op1` (both felt values). 
+- Otherwise op0 is nil.  
+
+The method also deduces `res` by using the value of `dst`
+
+```go
+func (vm *VirtualMachine) DeduceOp0(instruction *Instruction, dst *memory.MaybeRelocatable, op1 *memory.MaybeRelocatable) (deduced_op0 *memory.MaybeRelocatable, deduced_res *memory.MaybeRelocatable, error error) {
+	switch instruction.Opcode {
+	case Call:
+		deduced_op0 := vm.RunContext.Pc
+		deduced_op0.Offset += instruction.Size()
+		return memory.NewMaybeRelocatableRelocatable(deduced_op0), nil, nil
+	case AssertEq:
+		switch instruction.ResLogic {
+		case ResAdd:
+			if dst != nil && op1 != nil {
+				deduced_op0, err := dst.Sub(*op1)
+				if err != nil {
+					return nil, nil, err
+				}
+				return &deduced_op0, dst, nil
+			}
+		case ResMul:
+			if dst != nil && op1 != nil {
+				dst_felt, dst_is_felt := dst.GetFelt()
+				op1_felt, op1_is_felt := op1.GetFelt()
+				if dst_is_felt && op1_is_felt && !op1_felt.IsZero() {
+					return memory.NewMaybeRelocatableFelt(dst_felt.Div(op1_felt)), dst, nil
+
+				}
+			}
+		}
+	}
+	return nil, nil, nil
+}
+```
+
+##### DeduceOp1
+
+The method deduces the value of `Op1` if possible (based on `dst` and `Op0`) it also deduces `res` if possible.
+- If the instruction opcode is `AssertEq` a switch case is used to check what the `ResLogic` is.
+- If it is a `ResOp1` then the value of op1 is equal to the dst operand.
+- If `ResLogic` is `ResAdd` op1 is deduced from the substraction of `op0` from `dst`.
+- If it is `ResMul` `op1` is deduced from the division of `dst` by `op0`, 
+
+In all the cases `res` is equal to `dst`. if none of the former cases apply then nil is returned.
+
+```go
+func (vm *VirtualMachine) DeduceOp1(instruction Instruction, dst *memory.MaybeRelocatable, op0 *memory.MaybeRelocatable) (*memory.MaybeRelocatable, *memory.MaybeRelocatable, error) {
+	if instruction.Opcode == AssertEq {
+		switch instruction.ResLogic {
+		case ResOp1:
+			return dst, dst, nil
+		case ResAdd:
+			if op0 != nil && dst != nil {
+				dst_rel, err := dst.Sub(*op0)
+				if err != nil {
+					return nil, nil, err
+				}
+				return &dst_rel, dst, nil
+			}
+		case ResMul:
+			dst_felt, dst_is_felt := dst.GetFelt()
+			op0_felt, op0_is_felt := op0.GetFelt()
+			if dst_is_felt && op0_is_felt && !op0_felt.IsZero() {
+				res := memory.NewMaybeRelocatableFelt(dst_felt.Div(op0_felt))
+				return res, dst, nil
+			}
+		}
+	}
+	return nil, nil, nil
+}
+
+```
+##### ComputeRes
+
+If the Res value has not been deduced in the previous steps then it is computed based on the `Op0` and `Op1` values.
+- If `ResLogic` is `ResOp1` then `res` is equal to `op1`. 
+- If it is `ResAdd` then `res` is deduced from the addition of `op0` and `op1`. 
+- If it is `ResMul` `res` is deduced from the multiplication of `op0` and `op1`.
+- Otherwise `res` is nil.
+
+```go
+func (vm *VirtualMachine) ComputeRes(instruction Instruction, op0 memory.MaybeRelocatable, op1 memory.MaybeRelocatable) (*memory.MaybeRelocatable, error) {
+	switch instruction.ResLogic {
+	case ResOp1:
+		return &op1, nil
+
+	case ResAdd:
+		maybe_rel, err := op0.Add(op1)
+		if err != nil {
+			return nil, err
+		}
+		return &maybe_rel, nil
+
+	case ResMul:
+		num_op0, m_type := op0.GetFelt()
+		num_op1, other_type := op1.GetFelt()
+		if m_type && other_type {
+			result := memory.NewMaybeRelocatableFelt(num_op0.Mul(num_op1))
+			return result, nil
+		} else {
+			return nil, errors.New("ComputeResRelocatableMul")
+		}
+
+	case ResUnconstrained:
+		return nil, nil
+	}
+	return nil, nil
+}
+```
+
+##### DeduceDst
+
+If the destination value has not been calculated before then it is deduced based on the Res operand. If the opcode is an `AssertEq` then dst is equal res.
+If it is a `Call` then its value is taken from the `Fp` register 
+
+```go
+func (vm *VirtualMachine) DeduceDst(instruction Instruction, res *memory.MaybeRelocatable) *memory.MaybeRelocatable {
+	switch instruction.Opcode {
+	case AssertEq:
+		return res
+	case Call:
+		return memory.NewMaybeRelocatableRelocatable(vm.RunContext.Fp)
+
+	}
+	return nil
+}
+```
 #### Opcode assertions
 
 Once we have the instruction's operands to work with, we have to ensure the correctness of them. The first thing we need to differentiate is which type of instruction are we running, we do this by looking at the instruction's opcode.
@@ -971,10 +1269,7 @@ func (r *CairoRunner) RunUntilPC(end memory.Relocatable) error {
   }
  }
  return nil
-}
 ```
-
-Once we are done executing, we can relocate our memory & trace and output them into files
 
 #### Memory Relocation - function
 
