@@ -3,6 +3,7 @@ package builtins
 import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+	"golang.org/x/crypto/sha3"
 )
 
 const KECCAK_CELLS_PER_INSTANCE = 16
@@ -71,6 +72,15 @@ func (k *KeccakBuiltinRunner) DeduceMemoryCell(address Relocatable, mem *Memory)
 	}
 
 	// Run keccak
-	output_message := input_message
+	hasher := sha3.New256()
+	hasher.Write(input_message)
+	output_message := hasher.Sum(nil)
+	for i := uint(0); i < KECCAK_CELLS_PER_INSTANCE; i++ {
+		bytes := (output_message)[25*i : 25*i+25]
+		padded_bytes := (*[32]byte)(bytes[:32])
+		felt := FeltFromLeBytes(padded_bytes)
+		k.cache[output_start_address.AddUint(i)] = felt
+	}
+	return NewMaybeRelocatableFelt(k.cache[address]), nil
 
 }
