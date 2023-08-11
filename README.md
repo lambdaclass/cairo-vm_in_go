@@ -1506,6 +1506,7 @@ With these types defined we can now work on converting the C felt representation
         }
     }
     ```
+
 Now we will implement these same conversions but between `Felt` in go and `felt_t` in C. As we can import C types from Go, we don't have to define a type to represent `felt_t`.
 
 - toC
@@ -1569,6 +1570,29 @@ extern "C" fn poseidon_permute(
     bytes_from_field_element(state_array[0], first_state_felt);
     bytes_from_field_element(state_array[1], second_state_felt);
     bytes_from_field_element(state_array[2], third_state_felt);
+}
+```
+
+And with our lib ready, all that is left is to make a go wrapper with our felt conversion functions that calls the C function:
+
+```go
+func PoseidonPermuteComp(poseidon_state *[3]lambdaworks.Felt) {
+ state := *poseidon_state
+ // Convert args to c representation
+ first_state_felt := toC(state[0])
+ second_state_felt := toC(state[1])
+ third_state_felt := toC(state[2])
+
+ // Compute hash using starknet_crypto C wrapper
+ C.poseidon_permute(&first_state_felt[0], &second_state_felt[0], &third_state_felt[0])
+ // Convert result to Go representation
+ var new_poseidon_state = [3]lambdaworks.Felt{
+  fromC(first_state_felt),
+  fromC(second_state_felt),
+  fromC(third_state_felt),
+ }
+ // Update poseidon state
+ *poseidon_state = new_poseidon_state
 }
 ```
 
