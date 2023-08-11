@@ -1537,6 +1537,41 @@ Now we will implement these same conversions but between `Felt` in go and `felt_
 
 ###### Calling the poseidon permutation function
 
+Now that we have our felt types defined we can move on to wrapping the poseidon permutation function. The `poseidon_permute_comp` from `starknet_crypto` receives a mutable state of three felts as an array. To reduce the complexity of our wrapper we will be receiving three felts in our C function.
+
+We will define the following function in our C header file:
+
+```C
+// Computes the poseidon hash permutation over a state of three felts
+void poseidon_permute(felt_t, felt_t, felt_t);
+```
+
+And we will implement it in the rust lib file, using the types and conversions we implemented earlier:
+
+```rust
+use starknet_crypto::{poseidon_permute_comp, FieldElement};
+
+#[no_mangle]
+extern "C" fn poseidon_permute(
+    first_state_felt: Bytes,
+    second_state_felt: Bytes,
+    third_state_felt: Bytes,
+) {
+    // Convert state from C representation to FieldElement
+    let mut state_array: [FieldElement; 3] = [
+        field_element_from_bytes(first_state_felt),
+        field_element_from_bytes(second_state_felt),
+        field_element_from_bytes(third_state_felt),
+    ];
+    // Call poseidon permute comp
+    poseidon_permute_comp(&mut state_array);
+    // Convert state from FieldElement back to C representation
+    bytes_from_field_element(state_array[0], first_state_felt);
+    bytes_from_field_element(state_array[1], second_state_felt);
+    bytes_from_field_element(state_array[2], third_state_felt);
+}
+```
+
 #### Pedersen
 
 TODO
