@@ -5,6 +5,11 @@ import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
+const KECCAK_CELLS_PER_INSTANCE = 16
+const KECCAK_INPUT_CELLS_PER_INSTANCE = 8
+const KECCAK_INPUT_BIT_LENTGH = 200
+const KECCAK_INPUT_BYTES_LENTGH = 25
+
 type KeccakBuiltinRunner struct {
 	base     Relocatable
 	included bool
@@ -40,4 +45,32 @@ func (k *KeccakBuiltinRunner) InitialStack() []MaybeRelocatable {
 func (k *KeccakBuiltinRunner) AddValidationRule(*Memory) {}
 
 func (k *KeccakBuiltinRunner) DeduceMemoryCell(address Relocatable, mem *Memory) (*MaybeRelocatable, error) {
+	index := address.Offset % KECCAK_CELLS_PER_INSTANCE
+	if index < KECCAK_INPUT_CELLS_PER_INSTANCE {
+		return nil, nil
+	}
+
+	value, ok := k.cache[address]
+	if ok {
+		return NewMaybeRelocatableFelt(value), nil
+	}
+
+	input_start_addr, _ := address.SubUint(index)
+	output_start_address := input_start_addr.AddUint(KECCAK_INPUT_CELLS_PER_INSTANCE)
+
+	input_message := make([]byte, 0, 25*KECCAK_INPUT_CELLS_PER_INSTANCE)
+
+	for i := uint(0); i < KECCAK_INPUT_CELLS_PER_INSTANCE; i++ {
+		felt, err := mem.GetFelt(input_start_addr.AddUint(i))
+		if err != nil {
+			return nil, err
+		}
+		// TODO: Check bit length
+		le_bytes := felt.ToLeBytes()
+		input_message = append(input_message, le_bytes[:25]...)
+	}
+
+	// Run keccak
+	output_message := input_message
+
 }
