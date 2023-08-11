@@ -1667,10 +1667,10 @@ With all of our builtin logic integrated into the codebase, we can implement any
 [Next sections: Implementing each builtin runner]
 
 
-### Implementing each builtin runner 
+#### Implementing each builtin runner 
 
 
-#### Bitwise builtin
+##### Bitwise builtin
 
 This builtin provides a way to work with the basic bit operations `and`, `or` and `xor`. It implements the basic builtin interface methods:
 

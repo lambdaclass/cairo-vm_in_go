@@ -6,9 +6,9 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
-const CELLS_PER_INSTANCE = 5
-const TOTAL_N_BITS = 251
-const INPUT_CELLS_PER_INSTANCE = 2
+const BITWISE_CELLS_PER_INSTANCE = 5
+const BITWISE_TOTAL_N_BITS = 251
+const BIWISE_INPUT_CELLS_PER_INSTANCE = 2
 
 type BitwiseBuiltinRunner struct {
 	base     memory.Relocatable
@@ -42,8 +42,8 @@ func (b *BitwiseBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
 }
 
 func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segments *memory.Memory) (*memory.MaybeRelocatable, error) {
-	index := address.Offset % CELLS_PER_INSTANCE
-	if index < INPUT_CELLS_PER_INSTANCE {
+	index := address.Offset % BITWISE_CELLS_PER_INSTANCE
+	if index < BIWISE_INPUT_CELLS_PER_INSTANCE {
 		return nil, nil
 	}
 
@@ -68,10 +68,10 @@ func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segm
 	num_y_felt, y_is_felt := num_y.GetFelt()
 
 	if x_is_felt && y_is_felt {
-		if num_x_felt.Bits() > TOTAL_N_BITS {
+		if num_x_felt.Bits() > BITWISE_TOTAL_N_BITS {
 			return nil, errors.New("Expected Intenger x to be smaller than 2^(total_n_bits)")
 		}
-		if num_y_felt.Bits() > TOTAL_N_BITS {
+		if num_y_felt.Bits() > BITWISE_TOTAL_N_BITS {
 			return nil, errors.New("Expected Intenger y to be smaller than 2^(total_n_bits)")
 		}
 
