@@ -18,7 +18,7 @@ func (ec *EcOpBuiltinRunner) Base() memory.Relocatable {
 }
 
 func (ec *EcOpBuiltinRunner) Name() string {
-	return "bitwise"
+	return "ec_op"
 }
 
 func (ec *EcOpBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
