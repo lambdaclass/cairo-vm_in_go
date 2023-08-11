@@ -660,7 +660,7 @@ To begin coding the basic execution functionality of our VM, we only need these 
 #### Compute operands
 
 Once the instruction has been decoded, it is executed by `RunInstruction` whose first function is to compute operands. This function is in charge of
-calculating the addresses of the operands and fetching them from memory. If the function could not fetch the operands then they are deduced from the other operands and
+calculating the addresses of the operands and fetching them from memory. If the function could not fetch the operands then they are deduced from the other operands,
 taking in consideration what kind of opcode is being executed. 
 
 ```go
@@ -738,7 +738,7 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 ```
 
 ##### ComputeDstAddr
-The method `ComputeDstAddr` computes the address of value that will be stored in the Destination (dst) operand. It checks which register its is relative to (wether ap or fp) and gets the direction by adding the instruction's first offset(off0) to the corresponding register.
+The method `ComputeDstAddr` computes the address of the value that will be stored in the Destination (dst) operand. It checks which register its is relative to (wether ap or fp) and gets the direction by adding the instruction's first offset(off0) to the corresponding register.
 
 ```go
 func (run_context RunContext) ComputeDstAddr(instruction Instruction) (memory.Relocatable, error) {
@@ -787,7 +787,7 @@ It computes the address of `Op1` based on the `Op0` operand and the kind of Addr
 - If its address is `Op1SrcFp` it calculates the direction from Fp register.
 - if it is `Op1SrcAp` then if calculates it if from Ap register. 
 - If it is an immediate then checks if the offset 2 is 1 and calculates it from the `Pc`. 
-- If its an `Op1SrcOp0` it checks the `Op0` and calculates the direction from it.
+- If it is an `Op1SrcOp0` it checks the `Op0` and calculates the direction from it.
 
 Then it performs and addition or a substraction if the `Off2` is negative or positive.
 
