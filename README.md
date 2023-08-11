@@ -298,8 +298,6 @@ The input of the Virtual Machine is a compiled Cairo program in Json format. The
 - **prime:** The cairo prime in hexadecimal format. As explained above, all arithmetic operations are done over a base field, modulo this primer number.
 - **reference_manager:** Contains information about cairo variables. This information is useful to access to variables when executing cairo hints.
 
-In this project, we use a C++ library called [simdjson](https://github.com/simdjson/simdjson), the json is stored in a custom structure  which the vm can use to run the program and create a trace of its execution.
-
 ### Code walkthrough/Write your own Cairo VM
 
 Let's begin by creating the basic types and structures for our VM:
