@@ -167,3 +167,36 @@ func TestFeltDiv4Error(t *testing.T) {
 		t.Errorf("TestFeltDiv4Error failed. Expected: %v, Got: %v", expected, result)
 	}
 }
+
+func TestToU641(t *testing.T) {
+	felt := lambdaworks.FeltFromUint64(1)
+	result, err := felt.ToU64()
+
+	var expected uint64 = 1
+
+	if expected != result {
+		t.Errorf("Error in conversion expected: %v, got %v with err: %v", expected, result, err)
+	}
+
+}
+
+func TestToU6410230(t *testing.T) {
+	felt := lambdaworks.FeltFromUint64(10230)
+	result, err := felt.ToU64()
+
+	var expected uint64 = 10230
+
+	if expected != result {
+		t.Errorf("Error in conversion expected: %v, got %v with err: %v", expected, result, err)
+	}
+}
+
+func TestToU64Fail(t *testing.T) {
+	felt := lambdaworks.FeltFromDecString("9999999999999999999999999")
+
+	_, err := felt.ToU64()
+
+	if err == nil {
+		t.Errorf("%v", err)
+	}
+}
