@@ -1464,7 +1464,7 @@ typedef uint8_t byte_t;
 typedef byte_t felt_t[32];
 ```
 
-And we will interpret this felt_t in rust (lib.rs file) as a mutable pointer to the first byte in the felt:
+And we will interpret this `felt_t` in rust (lib.rs file) as a mutable pointer to the first byte in the felt:
 
 ```rust
 // C representation of a bit array: a raw pointer to a mutable unsigned 8 bits integer.
@@ -1500,6 +1500,34 @@ With these types defined we can now work on converting the C felt representation
                 *bytes.offset(i) = byte_array[i as usize];
             }
         }
+    }
+    ```
+Now we will implement these same conversions but between `Felt` in go and `felt_t` in C. As we can import C types from Go, we don't have to define a type to represent `felt_t`.
+
+- toC
+    We convert the `Felt` to bytes and insert each byte into a `felt_t`
+
+    ```go
+    func toC(f lambdaworks.Felt) C.felt_t {
+        var result C.felt_t
+        for i, byte := range f.ToBeBytes() {
+            result[i] = C.byte_t(byte)
+        }
+        return result
+    }
+    ```
+
+- fromC
+
+    We iterate the `felt_t` value and cast each byte as a `uint8` to build a byte array which we then use to build our `Felt`
+
+    ```go
+    func fromC(result C.felt_t) lambdaworks.Felt {
+        var bytes [32]uint8
+        for i, byte := range result {
+            bytes[i] = uint8(byte)
+        }
+        return lambdaworks.FeltFromBeBytes(&bytes)
     }
     ```
 
