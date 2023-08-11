@@ -1018,7 +1018,20 @@ func (v *VirtualMachine) Relocate() error {
 ```
 
 Notice that each step is encapsulated into a function.
-We need to add some methods to `MemorySegmentManager` and to `VirtualMachine`.
+We need to add the relocated trace and relocated memory fields to the `VirtualMachine` struct:
+
+```go
+type VirtualMachine struct {
+    RunContext     RunContext
+    currentStep    uint
+    Segments       memory.MemorySegmentManager
+    Trace           []TraceEntry
+    RelocatedTrace  []RelocatedTraceEntry
+    RelocatedMemory map[uint]lambdaworks.Felt
+}
+```
+
+Also we need to add some methods to `MemorySegmentManager` and to `VirtualMachine`.
 We will look into each one in the following subsections.
 
 #### ComputeEffectiveSizes
@@ -1123,6 +1136,7 @@ This `MaybeRelocatable`'s method transforms a value of the original memory into 
 
 - If the value is a `Felt`, the method doesn't transform it and returns the value as is.
 - If the value is a `Relocatable`, the method transforms it to an address of the relocated memory.
+- If the value is any other type, the method returns an error.
 
 ```go
 func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (lambdaworks.Felt, error) {
@@ -1140,7 +1154,33 @@ func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (lambdaworks.F
 }
 ```
 
-#### Trace Relocation function
+#### RelocateTrace
+
+After running `RelocateMemory` and returning the relocated memory without errors, the `Relocate` function calls `RelocateTrace`.
+This method transforms the fields of each trace entry from `Relocatable`s to `Felt`s.
+The fields of each entry are pc, ap and fp.
+Because those fields are address, the trace relocation process involves relocating addresses.
+That's why, this method also calls `RelocateAddress`:
+
+```go
+func (v *VirtualMachine) RelocateTrace(relocationTable *[]uint) error {
+    if len(*relocationTable) < 2 {
+        return errors.New("no relocation found for execution segment")
+    }
+
+    for _, entry := range v.Trace {
+        v.RelocatedTrace = append(v.RelocatedTrace, RelocatedTraceEntry{
+            Pc: lambdaworks.FeltFromUint64(uint64(entry.Pc.RelocateAddress(relocationTable))),
+            Ap: lambdaworks.FeltFromUint64(uint64(entry.Ap.RelocateAddress(relocationTable))),
+            Fp: lambdaworks.FeltFromUint64(uint64(entry.Fp.RelocateAddress(relocationTable))),
+        })
+    }
+
+    return nil
+}
+```
+
+Like in `RelocateMemory`, we need to check that the `RelocateSegments` function was called before.
 
 #### Writing trace into a file
 
@@ -1182,6 +1222,9 @@ type VirtualMachine struct {
     RunContext     RunContext
     currentStep    uint
     Segments       memory.MemorySegmentManager
+    Trace           []TraceEntry
+    RelocatedTrace  []RelocatedTraceEntry
+    RelocatedMemory map[uint]lambdaworks.Felt
     BuiltinRunners []builtins.BuiltinRunner
 }
 ```
