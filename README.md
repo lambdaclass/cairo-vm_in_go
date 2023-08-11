@@ -654,7 +654,7 @@ Cairo program execution is divided into steps, and in turn each step is divided 
   2. Instruction execution
 
 
-#### Step 
+##### Step 
 
 This method is the organizer of the execution of each instruction, it orchestrates them and handles the possible errors. 
 
