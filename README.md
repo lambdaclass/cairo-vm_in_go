@@ -1398,14 +1398,15 @@ To set up this we will need the following files:
 Our file tree will look like this:
 
 ```text
-├── starknet_crypto
-│   ├── lib
-│   │   ├── starknet_crypto.h
-|   |   ├── starknet_crypto
-|   |   |   ├── Cargo.toml
-|   |   |   ├── src
-|   |   |   |   ├── lib.rs
-│   ├── starknet_crypto.go
+ starknet_crypto
+ ┣ lib
+ ┃ ┣ starknet_crypto
+ ┃ ┃ ┣ src
+ ┃ ┃ ┃ ┗ lib.rs
+ ┃ ┃ ┣ Cargo.lock
+ ┃ ┃ ┗ Cargo.toml
+ ┃ ┗ starknet_crypto.h
+ ┣ starknet_crypto.go
 ```
 
 #### Pedersen
