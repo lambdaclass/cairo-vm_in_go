@@ -16,8 +16,8 @@ type BitwiseBuiltinRunner struct {
 	included bool
 }
 
-func NewBitwiseBuiltinRunner(included bool) BitwiseBuiltinRunner {
-	return BitwiseBuiltinRunner{
+func NewBitwiseBuiltinRunner(included bool) *BitwiseBuiltinRunner {
+	return &BitwiseBuiltinRunner{
 		included: included,
 	}
 }
@@ -95,4 +95,4 @@ func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segm
 	return nil, nil
 }
 
-func (r *BitwiseBuiltinRunner) AddValidatonRule(segments *memory.Memory) {}
+func (b *BitwiseBuiltinRunner) AddValidationRule(*memory.Memory) {}

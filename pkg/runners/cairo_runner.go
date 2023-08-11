@@ -33,7 +33,7 @@ func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 		// case "range_check":
 		// 	runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, RangeCheckBuiltin{})
 		case "bitwise":
-			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, &builtinrunner.RangeCheckBuiltinRunner{})
+			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtinrunner.NewBitwiseBuiltinRunner(true))
 		default:
 			return nil, errors.New("Invalid builtin")
 		}
