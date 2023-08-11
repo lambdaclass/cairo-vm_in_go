@@ -1596,6 +1596,10 @@ func PoseidonPermuteComp(poseidon_state *[3]lambdaworks.Felt) {
 }
 ```
 
+Now that we can call a simple poseidon permutation function we can start implementing our poseidon builtin runner!
+
+##### Implementing the PoseidonBuiltinRunner
+
 #### Pedersen
 
 TODO
