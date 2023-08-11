@@ -50,16 +50,16 @@ func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
 	}
 
 	// Check that insertions are preformed within the memory bounds
-	if addr.SegmentIndex >= int(m.NumSegments) {
+	if addr.SegmentIndex >= int(m.numSegments) {
 		return errors.New("Error: Inserting into a non allocated segment")
 	}
 
 	// Check for possible overwrites
-	prev_elem, ok := m.Data[addr]
+	prev_elem, ok := m.data[addr]
 	if ok && prev_elem != *val {
 		return errors.New("Memory is write-once, cannot overwrite memory value")
 	}
-	m.Data[addr] = *val
+	m.data[addr] = *val
 	return m.ValidateAddress(addr)
 }
 
@@ -77,7 +77,7 @@ func (m *Memory) Get(addr Relocatable) (*MaybeRelocatable, error) {
 	// check if the value is a `Relocatable` with a negative
 	// segment index. Again, these are edge cases so not important
 	// right now. See cairo-vm code for details.
-	value, ok := m.Data[addr]
+	value, ok := m.data[addr]
 
 	if !ok {
 		return nil, errors.New("Memory Get: Value not found")
@@ -88,16 +88,16 @@ func (m *Memory) Get(addr Relocatable) (*MaybeRelocatable, error) {
 
 // Adds a validation rule for a given segment
 func (m *Memory) AddValidationRule(SegmentIndex uint, rule ValidationRule) {
-	m.ValidationRules[SegmentIndex] = rule
+	m.validationRules[SegmentIndex] = rule
 }
 
 // Applies the validation rule for the addr's segment if any
 // Skips validation if the address is temporary or if it has been previously validated
 func (m *Memory) ValidateAddress(addr Relocatable) error {
-	if addr.SegmentIndex < 0 || m.ValidatedAdresses.Contains(addr) {
+	if addr.SegmentIndex < 0 || m.validatedAdresses.Contains(addr) {
 		return nil
 	}
-	rule, ok := m.ValidationRules[uint(addr.SegmentIndex)]
+	rule, ok := m.validationRules[uint(addr.SegmentIndex)]
 	if !ok {
 		return nil
 	}
@@ -106,7 +106,7 @@ func (m *Memory) ValidateAddress(addr Relocatable) error {
 		return error
 	}
 	for _, validated_address := range validated_addresses {
-		m.ValidatedAdresses.Add(validated_address)
+		m.validatedAdresses.Add(validated_address)
 	}
 	return nil
 }
@@ -114,7 +114,7 @@ func (m *Memory) ValidateAddress(addr Relocatable) error {
 // Applies validation_rules to every memory address, if applicatble
 // Skips validation if the address is temporary or if it has been previously validated
 func (m *Memory) ValidateExistingMemory() error {
-	for addr := range m.Data {
+	for addr := range m.data {
 		err := m.ValidateAddress(addr)
 		if err != nil {
 			return err
