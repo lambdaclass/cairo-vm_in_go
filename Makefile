@@ -26,7 +26,7 @@ $(TEST_DIR)/%.go.trace $(TEST_DIR)/%.go.memory: $(TEST_DIR)/%.json
 	go run cmd/cli/main.go $(@D)/$(*F).json
 
 $(TEST_DIR)/%.json: $(TEST_DIR)/%.cairo
-	source cairo-vm-env/bin/activate && cairo-compile --cairo_path="$(TEST_DIR)" $< --output $@
+	. cairo-vm-env/bin/activate && cairo-compile --cairo_path="$(TEST_DIR)" $< --output $@
 
 # Creates a pyenv and installs cairo-lang
 deps:
