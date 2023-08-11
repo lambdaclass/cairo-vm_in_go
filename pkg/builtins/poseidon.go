@@ -7,8 +7,8 @@ import (
 )
 
 const POSEIDON_BUILTIN_NAME = "poseidon"
-const CELLS_PER_INSTANCE = 6
-const INPUT_CELLS_PER_INSTANCE = 3
+const POSEIDON_CELLS_PER_INSTANCE = 6
+const POSEIDON_INPUT_CELLS_PER_INSTANCE = 3
 
 type PoseidonBuiltinRunner struct {
 	base     memory.Relocatable
@@ -42,8 +42,8 @@ func (p *PoseidonBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
 
 func (p *PoseidonBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem *memory.Memory) (*memory.MaybeRelocatable, error) {
 	// Check if its an input cell
-	index := address.Offset % CELLS_PER_INSTANCE
-	if index < INPUT_CELLS_PER_INSTANCE {
+	index := address.Offset % POSEIDON_CELLS_PER_INSTANCE
+	if index < POSEIDON_INPUT_CELLS_PER_INSTANCE {
 		return nil, nil
 	}
 
@@ -53,12 +53,12 @@ func (p *PoseidonBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem
 	}
 
 	input_start_addr, _ := address.SubUint(index)
-	output_start_address := input_start_addr.AddUint(INPUT_CELLS_PER_INSTANCE)
+	output_start_address := input_start_addr.AddUint(POSEIDON_INPUT_CELLS_PER_INSTANCE)
 
 	// Build the initial poseidon state
 	var poseidon_state [3]lambdaworks.Felt
 
-	for i := uint(0); i < INPUT_CELLS_PER_INSTANCE; i++ {
+	for i := uint(0); i < POSEIDON_INPUT_CELLS_PER_INSTANCE; i++ {
 		felt, err := mem.GetFelt(input_start_addr.AddUint(i))
 		if err != nil {
 			return nil, err
