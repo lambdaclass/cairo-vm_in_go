@@ -1389,6 +1389,8 @@ The section below will explain how to create a C wrapper to use this crate from 
 
 ##### Importing the `starknet-crypto`rust crate for our poseidon needs
 
+###### Basic Lib Setup
+
 To set up this we will need the following files:
 
 - A rust project that will hold the rust wrapper for our lib
@@ -1450,6 +1452,8 @@ And in order to import the lib from go we will add the following to our starknet
 */
 import "C"
 ```
+
+###### Converting Felt to FieldElement
 
 Now that we have the basic setup the first thing we have to do is to define a conversion between our `Felt` in go, a `felt_t` type in C, and starknet-crypto's `FieldElement` types. We will perform these conversion using the big endian byte representation.
 
@@ -1530,6 +1534,8 @@ Now we will implement these same conversions but between `Felt` in go and `felt_
         return lambdaworks.FeltFromBeBytes(&bytes)
     }
     ```
+
+###### Calling the poseidon permutation function
 
 #### Pedersen
 
