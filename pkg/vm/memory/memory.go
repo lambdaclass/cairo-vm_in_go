@@ -24,19 +24,19 @@ type ValidationRule func(*Memory, Relocatable) ([]Relocatable, error)
 
 // Memory represents the Cairo VM's memory.
 type Memory struct {
-	Data              map[Relocatable]MaybeRelocatable
-	NumSegments       uint
-	ValidationRules   map[uint]ValidationRule
-	ValidatedAdresses AddressSet
+	data              map[Relocatable]MaybeRelocatable
+	numSegments       uint
+	validationRules   map[uint]ValidationRule
+	validatedAdresses AddressSet
 }
 
 var ErrMissingSegmentUsize = errors.New("segment effective sizes haven't been calculated")
 
 func NewMemory() *Memory {
 	return &Memory{
-		Data:              make(map[Relocatable]MaybeRelocatable),
-		ValidatedAdresses: NewAddressSet(),
-		ValidationRules:   make(map[uint]ValidationRule),
+		data:              make(map[Relocatable]MaybeRelocatable),
+		validatedAdresses: NewAddressSet(),
+		validationRules:   make(map[uint]ValidationRule),
 	}
 }
 
