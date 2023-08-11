@@ -1381,6 +1381,14 @@ TODO
 
 TODO
 
+#### Poseidon
+
+The poseidon builtin is used to compute the poseidon hash function in an efficient way. The poseidon hash used by the builtin differs from a standard poseidon hash in two ways, it uses different constants (becoming its own stark poseidon hash), and it also used the internal poseidon permutation instead of calling a poseidon hash function. The reason for the second one is that it allow them to hash more than one element at a time by permuting the three-element poseidon state.
+Due to this difference, the best solution is to use a poseidon implementation built specifically for cairo. In our case we are going to use the poseidon hash in the `starknet-crypto` crate of the [starknet-rs](https://github.com/xJonathanLEI/starknet-rs) repo.
+The section below will explain how to create a C wrapper to use this crate from our go code, but you can skip it if you want to use your own version in your native language.
+
+##### Importing the `starknet-crypto`rust crate for our poseidon needs
+
 #### Pedersen
 
 TODO
@@ -1398,10 +1406,6 @@ TODO
 TODO
 
 #### EcOp
-
-TODO
-
-#### Poseidon
 
 TODO
 
