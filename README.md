@@ -1453,6 +1453,56 @@ import "C"
 
 Now that we have the basic setup the first thing we have to do is to define a conversion between our `Felt` in go, a `felt_t` type in C, and starknet-crypto's `FieldElement` types. We will perform these conversion using the big endian byte representation.
 
+In our C header hile (starknet_crypto.h) we will define the types `byte_t` and `felt_t`:
+
+```c
+#include <stdint.h>
+
+typedef uint8_t byte_t;
+
+// A 252 bit prime field element (felt), represented as an array of 32 bytes.
+typedef byte_t felt_t[32];
+```
+
+And we will interpret this felt_t in rust (lib.rs file) as a mutable pointer to the first byte in the felt:
+
+```rust
+// C representation of a bit array: a raw pointer to a mutable unsigned 8 bits integer.
+type Bytes = *mut u8;
+```
+
+With these types defined we can now work on converting the C felt representation to a `FieldElement` in rust. To do so we will implement the following conversion functions:
+
+- `field_element_from_bytes`
+
+    We will convert the C pointer to an array of bytes and use it to create a `FieldElement`
+
+    ```rust
+    fn field_element_from_bytes(bytes: Bytes) -> FieldElement {
+        let array = unsafe {
+            let slice: &mut [u8] = std::slice::from_raw_parts_mut(bytes, 32);
+            let array: [u8; 32] = slice.try_into().unwrap();
+            array
+        };
+        FieldElement::from_bytes_be(&array).unwrap()
+    }
+    ```
+
+- `bytes_from_field_element`
+
+    We will convert the `FieldElement` into bytes and insert each byte into the C mutable pointer
+
+    ```rust
+    fn bytes_from_field_element(felt: FieldElement, bytes: Bytes) {
+        let byte_array = felt.to_bytes_be();
+        for i in 0..32 {
+            unsafe {
+                *bytes.offset(i) = byte_array[i as usize];
+            }
+        }
+    }
+    ```
+
 #### Pedersen
 
 TODO
