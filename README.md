@@ -1383,7 +1383,8 @@ TODO
 
 #### Poseidon
 
-The poseidon builtin is used to compute the poseidon hash function in an efficient way. The poseidon hash used by the builtin differs from a standard poseidon hash in two ways, it uses different constants (becoming its own stark poseidon hash), and it also used the internal poseidon permutation instead of calling a poseidon hash function. The reason for the second one is that it allow them to hash more than one element at a time by permuting the three-element poseidon state.
+The poseidon builtin is used to compute the poseidon hash function in an efficient way. The poseidon hash used by the builtin differs from a standard poseidon hash in two ways, it uses different constants (becoming its own stark poseidon hash), and it also uses the internal poseidon permutation function instead of calling a poseidon hash function. The reason for the second one is that it allows the builtin to hash more than one element at a time by permuting the three-element poseidon state.
+
 Due to this difference, the best solution is to use a poseidon implementation built specifically for cairo. In our case we are going to use the poseidon hash in the `starknet-crypto` crate of the [starknet-rs](https://github.com/xJonathanLEI/starknet-rs) repo.
 The section below will explain how to create a C wrapper to use this crate from our go code, but you can skip it if you want to use your own version in your native language.
 
@@ -1455,7 +1456,7 @@ import "C"
 
 ###### Converting Felt to FieldElement
 
-Now that we have the basic setup the first thing we have to do is to define a conversion between our `Felt` in go, a `felt_t` type in C, and starknet-crypto's `FieldElement` types. We will perform these conversion using the big endian byte representation.
+Now that we have the basic setup the first thing we have to do is to define a conversion between our `Felt` in go, a `felt_t` type in C, and starknet-crypto's `FieldElement` types. We will perform these conversions using the big endian byte representation.
 
 In our C header hile (starknet_crypto.h) we will define the types `byte_t` and `felt_t`:
 
@@ -1510,6 +1511,7 @@ With these types defined we can now work on converting the C felt representation
 Now we will implement these same conversions but between `Felt` in go and `felt_t` in C. As we can import C types from Go, we don't have to define a type to represent `felt_t`.
 
 - toC
+
     We convert the `Felt` to bytes and insert each byte into a `felt_t`
 
     ```go
@@ -1643,7 +1645,7 @@ func (p *PoseidonBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
 }
 ```
 
-As the poseidon builtin doesn't have validation rules, the function will be left empty:
+As the poseidon builtin doesn't have validation rules, the method will be left empty:
 
 ```go
 func (p *PoseidonBuiltinRunner) AddValidationRule(*memory.Memory) {
@@ -1652,7 +1654,7 @@ func (p *PoseidonBuiltinRunner) AddValidationRule(*memory.Memory) {
 
 Now lets dive into the poseidon builtin's behaviour!
 
-The poseidon builtin memory is divided into instancess of 6 cells, 3 input cells and 3 output cells. This means that whenever we want to deduce the value of an output cell, we will look for the input cells, compute the pedersen permutation over them, and write the permutated values to the output cells. As we only deduce the value of one output cell at a time, we will write the value of the output cells to a cache and use them the next time we have to deduce a memory cell so we avoid computing the poseidon hash more more than once over the same input values
+The poseidon builtin memory is divided into instancess of 6 cells, 3 input cells and 3 output cells. This means that whenever we want to deduce the value of an output cell, we will look for the input cells, compute the pedersen permutation over them, and write the permutated values to the output cells. As we only deduce the value of one output cell at a time, we will write the value of the output cells to a cache and use them the next time we have to deduce a memory cell so we avoid computing the poseidon hash more than once over the same input values
 
 We define the following constants to represent a poseidon instance:
 
