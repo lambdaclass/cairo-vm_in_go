@@ -1,9 +1,11 @@
-package builtinrunner
+package builtinrunner_test
 
 import (
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	builtinrunner "github.com/lambdaclass/cairo-vm.go/pkg/runners/builtin_runner"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/cairo_run"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -22,7 +24,7 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd(t *testing.T) {
 	mem.Memory.Insert(rel2, m2)
 	mem.Memory.Insert(rel3, m3)
 
-	builtin := NewBitwiseBuiltinRunner(true)
+	builtin := builtinrunner.NewBitwiseBuiltinRunner(true)
 
 	address := memory.NewRelocatable(0, 7)
 
@@ -54,7 +56,7 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryValidXor(t *testing.T) {
 	mem.Memory.Insert(rel2, m2)
 	mem.Memory.Insert(rel3, m3)
 
-	builtin := NewBitwiseBuiltinRunner(true)
+	builtin := builtinrunner.NewBitwiseBuiltinRunner(true)
 
 	address := memory.NewRelocatable(0, 8)
 
@@ -86,7 +88,7 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryValidOr(t *testing.T) {
 	mem.Memory.Insert(rel2, m2)
 	mem.Memory.Insert(rel3, m3)
 
-	builtin := NewBitwiseBuiltinRunner(true)
+	builtin := builtinrunner.NewBitwiseBuiltinRunner(true)
 
 	address := memory.NewRelocatable(0, 9)
 
@@ -118,7 +120,7 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryIncorrectOffset(t *testing.T) {
 	mem.Memory.Insert(rel2, m2)
 	mem.Memory.Insert(rel3, m3)
 
-	builtin := NewBitwiseBuiltinRunner(true)
+	builtin := builtinrunner.NewBitwiseBuiltinRunner(true)
 
 	address := memory.NewRelocatable(0, 5)
 
@@ -146,7 +148,7 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryNoValuesToOperate(t *testing.T) {
 	mem.Memory.Insert(rel1, m1)
 	mem.Memory.Insert(rel2, m2)
 
-	builtin := NewBitwiseBuiltinRunner(true)
+	builtin := builtinrunner.NewBitwiseBuiltinRunner(true)
 
 	address := memory.NewRelocatable(0, 5)
 
@@ -160,4 +162,12 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryNoValuesToOperate(t *testing.T) {
 		t.Errorf("TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd Failed, expected nil, got %v", result)
 	}
 
+}
+
+func TestIntegrationBitwise(t *testing.T) {
+	cairo_runner, err := cairo_run.CairoRun("../../../cairo_programs/bitwise_builtin_test.json")
+	if err != nil {
+		t.Errorf("fail to create cairo runner with error: %v", err)
+	}
+	t.Log(cairo_runner)
 }
