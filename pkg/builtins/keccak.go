@@ -75,11 +75,11 @@ func (k *KeccakBuiltinRunner) DeduceMemoryCell(address Relocatable, mem *Memory)
 	// Cairo VM here uses the internal k1600 permutation, not the sha3 hash
 	// SOLUTION: Couldnt find any cool crates that export keccak_f, so my solution atm will be to link
 	// the keccak_f we use in cairo-vm, we would send the 8 felts and receive 8 felts for convenience
+	// Checked the keccakf1600 crate, but it uses a state of 50 uint64
 	output_message := make([]byte, 0, 200)
 	fmt.Printf("INPUT BYTES %v, %v\n", []byte(input_message), len(input_message))
 	fmt.Printf("OUTPUT BYTES %v, %v\n", []byte(output_message), len(output_message))
 	for i := uint(0); i < KECCAK_INPUT_CELLS_PER_INSTANCE; i++ {
-		fmt.Printf("Output cell %v, bytes from %v to %v\n", i, 25*i, 25*i+25)
 		bytes := (output_message)[25*i : 25*i+25]
 		padded_bytes := (*[32]byte)(append(bytes, []byte{0, 0, 0, 0, 0, 0, 0}...))
 		felt := FeltFromLeBytes(padded_bytes)
