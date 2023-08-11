@@ -1371,6 +1371,44 @@ With all of our builtin logic integrated into the codebase, we can implement any
 
 [Next sections: Implementing each builtin runner]
 
+#### Implementing each builtin runner
+
+##### RangeCheck
+
+TODO
+
+##### Output
+
+TODO
+
+#### Pedersen
+
+TODO
+
+#### Ecdsa
+
+TODO
+
+#### Keccak
+
+TODO
+
+#### Bitwise
+
+TODO
+
+#### EcOp
+
+TODO
+
+#### Poseidon
+
+TODO
+
+#### SegmentArena
+
+TODO
+
 #### Hints
 
 TODO
