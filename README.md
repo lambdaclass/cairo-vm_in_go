@@ -1389,6 +1389,14 @@ The section below will explain how to create a C wrapper to use this crate from 
 
 ##### Importing the `starknet-crypto`rust crate for our poseidon needs
 
+To set up this we will need the following files:
+
+- A rust project that will hold the rust wrapper for our lib
+- A C header file that will use the rust lib as its backend
+- A Go file that will call the C header and which our VM' code will intetact with.
+
+Our file tree will look like this:
+
 #### Pedersen
 
 TODO
