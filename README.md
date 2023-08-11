@@ -1393,7 +1393,7 @@ To set up this we will need the following files:
 
 - A rust project that will hold the rust wrapper for our lib
 - A C header file that will use the rust lib as its backend
-- A Go file that will call the C header and which our VM' code will intetact with.
+- A Go file that will call the C header and which our VM's code will intetact with.
 
 Our file tree will look like this:
 
@@ -1407,6 +1407,24 @@ Our file tree will look like this:
  ┃ ┃ ┗ Cargo.toml
  ┃ ┗ starknet_crypto.h
  ┣ starknet_crypto.go
+```
+
+Our Cargo.toml file will look like this:
+
+```toml
+[package]
+name = "starknet-crypto"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+libc = "0.2"
+starknet-crypto = { version = "0.5.0"}
+
+[lib]
+crate-type = ["cdylib", "staticlib", "lib"]
 ```
 
 #### Pedersen
