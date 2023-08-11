@@ -1675,6 +1675,14 @@ With all of our builtin logic integrated into the codebase, we can implement any
 This builtin provides a way to work with the basic bit operations `and`, `or` and `xor`. It implements the basic builtin interface methods:
 
 ```go
+type BitwiseBuiltinRunner struct {
+	base     memory.Relocatable
+	included bool
+}
+```
+the getter methods: 
+
+```go
 func (b *BitwiseBuiltinRunner) Base() memory.Relocatable {
 	return r.base
 }
@@ -1704,14 +1712,18 @@ func (b *BitwiseBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
 }
 ```
 
-The method `DeducedMemoryCell` fetches from memory the operands and  performes the operations. 
-- If the index is lesser than two then the methods just return nil
-- After the operands are fetch it is checked that both are felts because bitwise can not be perform on relocatables or nil values.
+The method `DeducedMemoryCell` fetches the operands from memory performes the following operations: 
+- If the index is less than the number of input cells then the methods just return nil
+- After the operands are fetched it is checks that both of them are felts because bitwise can not be performed on relocatable or nil values.
 - If the number of bits of any operands is greater than TOTAL_N_BITS the method fails because we are out of the field.
 - The index is used to know which bitwise operation is going to be performed, if is 2 then `and` is executed, if is 3 then `xor` and if is a 4 then `or` is executed
 - Otherwise nil value is returned
 
 ```go 
+const CELLS_PER_INSTANCE = 5
+const TOTAL_N_BITS = 251
+const INPUT_CELLS_PER_INSTANCE = 2
+
 func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segments *memory.Memory) (*memory.MaybeRelocatable, error) {
 	index := address.Offset % CELLS_PER_INSTANCE
 	if index < INPUT_CELLS_PER_INSTANCE {
