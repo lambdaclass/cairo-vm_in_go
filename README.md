@@ -1427,6 +1427,32 @@ starknet-crypto = { version = "0.5.0"}
 crate-type = ["cdylib", "staticlib", "lib"]
 ```
 
+We will import libc in our lib.rs as an external crate by adding:
+
+```rust
+extern crate libc;
+```
+
+In order to build the lib we will add the following lines to our Makefile's `build` target:
+
+```bash
+@cd pkg/starknet_crypto/lib/starknet_crypto && cargo build --release
+@cp pkg/starknet_crypto/lib/starknet_crypto/target/release/libstarknet_crypto.a pkg/starknet_crypto/lib
+```
+
+And in order to import the lib from go we will add the following to our starknet_crypto.go file:
+
+```go
+/*
+#cgo LDFLAGS: pkg/starknet_crypto/lib/libstarknet_crypto.a -ldl
+#include "lib/starknet_crypto.h"
+#include <stdlib.h>
+*/
+import "C"
+```
+
+Now that we have the basic setup the first thing we have to do is to define a conversion between our `Felt` in go, a `felt_t` type in C, and starknet-crypto's `FieldElement` types. We will perform these conversion using the big endian byte representation.
+
 #### Pedersen
 
 TODO
