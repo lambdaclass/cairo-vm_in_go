@@ -1624,7 +1624,7 @@ In order to store it as a `BuiltinRunner` we will have to implement the `Builtin
 
 const POSEIDON_BUILTIN_NAME = "poseidon"
 
-fnc (p *PoseidonBuiltinRunner) Base() memory.Relocatable {
+func (p *PoseidonBuiltinRunner) Base() memory.Relocatable {
  return p.base
 }
 
