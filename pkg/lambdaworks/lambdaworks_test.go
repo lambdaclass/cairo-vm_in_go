@@ -169,7 +169,7 @@ func TestFeltDiv4Error(t *testing.T) {
 }
 
 func TestToU641(t *testing.T) {
-	felt := lambdaworks.FeltFromUint64(1)
+	felt := lambdaworks.FeltOne()
 	result, err := felt.ToU64()
 
 	var expected uint64 = 1
