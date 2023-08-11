@@ -18,17 +18,18 @@ func (r *OutputBuiltinRunner) Name() string {
 }
 
 func (r *OutputBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
-
+	r.base = segments.AddSegment()
 }
 
 func (r *OutputBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
-
+	if r.included {
+		return []memory.MaybeRelocatable{*memory.NewMaybeRelocatableRelocatable(r.base)}
+	}
+	return []memory.MaybeRelocatable{}
 }
 
 func (r *OutputBuiltinRunner) DeduceMemoryCell(rel memory.Relocatable, mem *memory.Memory) (*memory.MaybeRelocatable, error) {
-
+	return nil, nil
 }
 
-func (r *OutputBuiltinRunner) AddValidationRule(mem *memory.Memory) {
-
-}
+func (r *OutputBuiltinRunner) AddValidationRule(mem *memory.Memory) {}
