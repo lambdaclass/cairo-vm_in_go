@@ -787,7 +787,7 @@ It computes the address of `Op1` based on the `Op0` operand and the kind of Addr
 - If its address is `Op1SrcFp` it calculates the direction from Fp register.
 - if it is `Op1SrcAp` then if calculates it if from Ap register. 
 - If it is an immediate then checks if the offset 2 is 1 and calculates it from the `Pc`. 
-- Finally if its an `Op1SrcOp0` it checks the `Op0` and calculates the direction from it.
+- If its an `Op1SrcOp0` it checks the `Op0` and calculates the direction from it.
 
 Then it performs and addition or a substraction if the `Off2` is negative or positive.
 
@@ -830,10 +830,12 @@ func (run_context RunContext) ComputeOp1Addr(instruction Instruction, op0 *memor
 ##### DeduceOp0
 
 The method deduces the value of `Op0` if possible (based on `dst` and `Op1`).
-If Instruction opcode is a call `Op0` is deduced from the program counter and added the instruction size.
+If Instruction's opcode is a `Call` `Op0` is deduced by adding the instruction size to the program counter.
 - If it is an `AssertEq` then a second switch case is used to check what `ResLogic` is.
-- If it is `ResAdd` `Op0` is deduced from the substraction of `Op1` to `Dst` or if is is `Resmul` the `Op0` is deduced from the division of `Dst` and `Op1` (both felt values). 
+- If it is `ResAdd` `Op0` is deduced from the substraction of `Op1` from `Dst`,  if is is `Resmul` the `Op0` is deduced from the division of `Dst` and `Op1` (both felt values). 
 - Otherwise op0 is nil.  
+
+The method also deduces `res` by using the value of `dst`
 
 ```go
 func (vm *VirtualMachine) DeduceOp0(instruction *Instruction, dst *memory.MaybeRelocatable, op1 *memory.MaybeRelocatable) (deduced_op0 *memory.MaybeRelocatable, deduced_res *memory.MaybeRelocatable, error error) {
@@ -872,8 +874,8 @@ func (vm *VirtualMachine) DeduceOp0(instruction *Instruction, dst *memory.MaybeR
 The method deduces the value of `Op1` if possible (based on `dst` and `Op0`) it also deduces `res` if possible.
 - If the instruction opcode is `AssertEq` a switch case is used to check what the `ResLogic` is.
 - If it is a `ResOp1` then the value of op1 is equal to the dst operand.
-- If `ResLogic` is `ResAdd` op1 is deduced from the substraction of `dst` with `op0`. 
-- Finally if it is `ResMul` `op1` is deduced from the division of `dst` with `op0`, 
+- If `ResLogic` is `ResAdd` op1 is deduced from the substraction of `op0` from `dst`.
+- If it is `ResMul` `op1` is deduced from the division of `dst` by `op0`, 
 
 In all the cases `res` is equal to `dst`. if none of the former cases apply then nil is returned.
 
@@ -908,7 +910,7 @@ func (vm *VirtualMachine) DeduceOp1(instruction Instruction, dst *memory.MaybeRe
 
 If the Res value has not been deduced in the previous steps then it is computed based on the `Op0` and `Op1` values.
 - If `ResLogic` is `ResOp1` then `res` is equal to `op1`. 
-- If it is `ResAdd` then `res` is deduced from the addition of `op0` with `op1`. 
+- If it is `ResAdd` then `res` is deduced from the addition of `op0` and `op1`. 
 - If it is `ResMul` `res` is deduced from the multiplication of `op0` and `op1`.
 - Otherwise `res` is nil.
 
