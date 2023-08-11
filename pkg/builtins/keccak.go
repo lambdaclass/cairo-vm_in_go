@@ -1,9 +1,10 @@
 package builtins
 
 import (
+	"fmt"
+
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
-	"golang.org/x/crypto/sha3"
 )
 
 const KECCAK_CELLS_PER_INSTANCE = 16
@@ -70,14 +71,15 @@ func (k *KeccakBuiltinRunner) DeduceMemoryCell(address Relocatable, mem *Memory)
 		le_bytes := felt.ToLeBytes()
 		input_message = append(input_message, le_bytes[:25]...)
 	}
-
 	// Run keccak
-	hasher := sha3.New256()
-	hasher.Write(input_message)
-	output_message := hasher.Sum(nil)
-	for i := uint(0); i < KECCAK_CELLS_PER_INSTANCE; i++ {
+	// Cairo VM here uses the internal k1600 permutation, not the sha3 hash
+	output_message := make([]byte, 0, 200)
+	fmt.Printf("INPUT BYTES %v, %v\n", []byte(input_message), len(input_message))
+	fmt.Printf("OUTPUT BYTES %v, %v\n", []byte(output_message), len(output_message))
+	for i := uint(0); i < KECCAK_INPUT_CELLS_PER_INSTANCE; i++ {
+		fmt.Printf("Output cell %v, bytes from %v to %v\n", i, 25*i, 25*i+25)
 		bytes := (output_message)[25*i : 25*i+25]
-		padded_bytes := (*[32]byte)(bytes[:32])
+		padded_bytes := (*[32]byte)(append(bytes, []byte{0, 0, 0, 0, 0, 0, 0}...))
 		felt := FeltFromLeBytes(padded_bytes)
 		k.cache[output_start_address.AddUint(i)] = felt
 	}
