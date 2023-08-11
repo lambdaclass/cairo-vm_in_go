@@ -3,6 +3,7 @@ package runners
 import (
 	"errors"
 
+	builtinrunner "github.com/lambdaclass/cairo-vm.go/pkg/runners/builtin_runner"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
@@ -31,6 +32,8 @@ func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 		// Add a case for each builtin here, example:
 		// case "range_check":
 		// 	runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, RangeCheckBuiltin{})
+		case "bitwise":
+			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, &builtinrunner.RangeCheckBuiltinRunner{})
 		default:
 			return nil, errors.New("Invalid builtin")
 		}
