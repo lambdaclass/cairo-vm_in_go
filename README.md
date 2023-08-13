@@ -273,13 +273,13 @@ Step 3: Convert relocatables to integers
 
 ```text
     1 (base[0] + 0) -> 1
-    2 (base[0] + 1) -> 4
-    3 (base[0] + 2) -> 7
-    4 (base[1] + 0) -> 8
+    2 (base[0] + 1) -> 2
+    3 (base[0] + 2) -> 3
+    4 (base[1] + 0) -> 4
     5 (base[1] + 1) -> 3 (that is: base[0] + 2)
     .... (memory gaps)
     8 (base[1] + 4) -> 2 (that is: base[0] + 1)
-    9 (base[2] + 0) -> 1
+    9 (base[2] + 0) -> 9
 ```
 
 #### Program parsing
