@@ -1665,7 +1665,7 @@ const POSEIDON_INPUT_CELLS_PER_INSTANCE = 3
 
 And we can implement `DeduceMemoryCell`:
 
-This method will first check if the cell is an input cell, if its an input cell then there is nothing to deduce and it returns nil. Then it will check if there is a cached value for that cell and return it. If there is no cached value it will define the addresses of the first input and output cells, and fetch the values of the input cells. If any of the input cells is missing, or is not a felt value, it returns an error. Once it has the three input cells, it performs the poseidon permutation and inserts the permutated value into each output cell's address in the cache. It then returns the value stored in the cache for the address that the method received.
+This method will first check if the cell is an input cell, if it's an input cell then there is nothing to deduce and it returns nil. Then it will check if there is a cached value for that cell and return it. If there is no cached value it will define the addresses of the first input and output cells, and fetch the values of the input cells. If any of the input cells is missing, or is not a felt value, it returns an error. Once it has the three input cells, it performs the poseidon permutation and inserts the permutated value into each output cell's address in the cache. It then returns the value stored in the cache for the address that the method received.
 
 ```go
 func (p *PoseidonBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem *memory.Memory) (*memory.MaybeRelocatable, error) {
