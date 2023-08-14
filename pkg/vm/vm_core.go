@@ -147,10 +147,7 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 			return &VirtualMachineError{"DiffAssertValues"}
 		}
 	case Call:
-		new_rel, err := vm.RunContext.Pc.AddUint(instruction.Size())
-		if err != nil {
-			return err
-		}
+		new_rel := vm.RunContext.Pc.AddUint(instruction.Size())
 		returnPC := memory.NewMaybeRelocatableRelocatable(new_rel)
 
 		if !operands.Op0.IsEqual(returnPC) {
