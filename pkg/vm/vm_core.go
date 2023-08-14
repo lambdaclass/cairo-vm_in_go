@@ -332,7 +332,7 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 // Runs deductions for Op0, first runs builtin deductions, if this fails, attempts to deduce it based on dst and op1
 // Also returns res if it was also deduced in the process
 // Inserts the deduced operand
-// Fails if Op0 was not deduced or if an error arised in the process
+// Fails if Op0 was not deduced or if an error arose in the process
 func (vm *VirtualMachine) ComputeOp0Deductions(op0_addr memory.Relocatable, instruction *Instruction, dst *memory.MaybeRelocatable, op1 *memory.MaybeRelocatable) (deduced_op0 memory.MaybeRelocatable, deduced_res *memory.MaybeRelocatable, err error) {
 	op0, err := vm.DeduceMemoryCell(op0_addr)
 	if err != nil {
@@ -355,7 +355,7 @@ func (vm *VirtualMachine) ComputeOp0Deductions(op0_addr memory.Relocatable, inst
 // Runs deductions for Op1, first runs builtin deductions, if this fails, attempts to deduce it based on dst and op0
 // Also updates res if it was also deduced in the process
 // Inserts the deduced operand
-// Fails if Op1 was not deduced or if an error arised in the process
+// Fails if Op1 was not deduced or if an error arose in the process
 func (vm *VirtualMachine) ComputeOp1Deductions(op1_addr memory.Relocatable, instruction *Instruction, dst *memory.MaybeRelocatable, op0 *memory.MaybeRelocatable, res *memory.MaybeRelocatable) (memory.MaybeRelocatable, error) {
 	op1, err := vm.DeduceMemoryCell(op1_addr)
 	if err != nil {
