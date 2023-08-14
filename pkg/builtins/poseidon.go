@@ -51,7 +51,7 @@ func (p *PoseidonBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem
 	if ok {
 		return memory.NewMaybeRelocatableFelt(value), nil
 	}
-
+	// index will always be less or equal to address.offset so we can ignore the error
 	input_start_addr, _ := address.SubUint(index)
 	output_start_address := input_start_addr.AddUint(POSEIDON_INPUT_CELLS_PER_INSTANCE)
 
