@@ -1618,7 +1618,7 @@ func NewPoseidonBuiltinRunner(included bool) *PoseidonBuiltinRunner {
 }
 ```
 
-In order to store it as a `BuiltinRunner` we will have to implement the `BuiltinRunner` interface. Aside from `AddValidationRule` &`DeduceMemoryCell`, most builtins share the same bahaviour in their methods, so we can just port them from the builtin runners we implemented before:
+In order to store it as a `BuiltinRunner` we will have to implement the `BuiltinRunner` interface. Aside from `AddValidationRule` & `DeduceMemoryCell`, most builtins share the same behaviour in their methods, so we can just port them from the builtin runners we implemented before:
 
 ```go
 
