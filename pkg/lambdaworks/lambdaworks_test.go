@@ -167,3 +167,23 @@ func TestFeltDiv4Error(t *testing.T) {
 		t.Errorf("TestFeltDiv4Error failed. Expected: %v, Got: %v", expected, result)
 	}
 }
+
+func TestFeltIsZero(t *testing.T) {
+	f_zero := lambdaworks.FeltZero()
+
+	is_zero := f_zero.IsZero()
+
+	if !is_zero {
+		t.Errorf("TestFeltIsZero failed. Expected true, Got: %v", is_zero)
+	}
+}
+
+func TestFeltIsNotZero(t *testing.T) {
+	f_one := lambdaworks.FeltOne()
+
+	is_zero := f_one.IsZero()
+
+	if is_zero {
+		t.Errorf("TestFeltIsNotZero failed. Expected false, Got: %v", is_zero)
+	}
+}
