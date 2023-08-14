@@ -1654,7 +1654,7 @@ func (p *PoseidonBuiltinRunner) AddValidationRule(*memory.Memory) {
 
 Now lets dive into the poseidon builtin's behaviour!
 
-The poseidon builtin memory is divided into instancess of 6 cells, 3 input cells and 3 output cells. This means that whenever we want to deduce the value of an output cell, we will look for the input cells, compute the pedersen permutation over them, and write the permutated values to the output cells. As we only deduce the value of one output cell at a time, we will write the value of the output cells to a cache and use them the next time we have to deduce a memory cell so we avoid computing the poseidon hash more than once over the same input values
+The poseidon builtin memory is divided into instances of 6 cells, 3 input cells and 3 output cells. This means that whenever we want to deduce the value of an output cell, we will look for the input cells, compute the pedersen permutation over them, and write the permutated values to the output cells. As we only deduce the value of one output cell at a time, we will write the value of the output cells to a cache and use them the next time we have to deduce a memory cell so we avoid computing the poseidon hash more than once over the same input values
 
 We define the following constants to represent a poseidon instance:
 
