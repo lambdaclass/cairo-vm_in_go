@@ -1604,7 +1604,7 @@ Now that we can call a simple poseidon permutation function we can start impleme
 
 We will start by defining our `PoseidonBuiltinRunner` and adding it to our VM when creating a `CairoRunner`:
 
-It will contain it's base and a cache of values that we will use later to optimze our `DeduceMemoryCell` method. The included field indicates if a builtin is used by the program, is used in proof_mode, as all builtins have to be present by default, but for now we will always set the included field to true.
+It will contain it's base and a cache of values that we will use later to optimize our `DeduceMemoryCell` method. The included field indicates if a builtin is used by the program, is used in proof_mode, as all builtins have to be present by default, but for now we will always set the included field to true.
 
 ```go
 type PoseidonBuiltinRunner struct {
