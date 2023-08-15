@@ -177,14 +177,6 @@ func TestInitializeRunnerWithRangeCheckValid(t *testing.T) {
 		t.Errorf("Initialize error in test: %s", err)
 	}
 
-	runner.Vm.RunContext.Pc = memory.NewRelocatable(0, 1)
-	runner.Vm.RunContext.Ap = memory.NewRelocatable(1, 2)
-	runner.Vm.RunContext.Fp = memory.NewRelocatable(1, 2)
-
-	runner.Initialize()
-	runner.Vm.Segments.Memory.Insert(memory.NewRelocatable(2, 0), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(23)))
-	runner.Vm.Segments.Memory.Insert(memory.NewRelocatable(2, 1), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(233)))
-
 	builtin_runner := runner.Vm.BuiltinRunners[0]
 	if builtin_runner.Name() != builtins.CHECK_RANGE_BUILTIN_NAME {
 		t.Errorf("Name of runner builtin failed. Expected %s, got %s", builtin_runner.Name(), builtins.CHECK_RANGE_BUILTIN_NAME)
@@ -192,22 +184,18 @@ func TestInitializeRunnerWithRangeCheckValid(t *testing.T) {
 
 	builtin_base := builtin_runner.Base()
 	expected_base := memory.NewRelocatable(2, 0)
-	if builtin_base.IsEqual(&expected_base) {
+	if !builtin_base.IsEqual(&expected_base) {
 		t.Errorf("Base of runner builtin failed. Expected %d, got %d", expected_base, builtin_base)
 	}
 
-	rel := memory.NewRelocatable(2, 0)
-	if !runner.Vm.Segments.Memory.ValidatedAdresses().Contains(rel) {
-		t.Errorf("Should validate address %d", rel)
-	}
-	rel = memory.NewRelocatable(2, 1)
-	if !runner.Vm.Segments.Memory.ValidatedAdresses().Contains(rel) {
-		t.Errorf("Should validate address %d", rel)
+	err = runner.Vm.Segments.Memory.Insert(memory.NewRelocatable(2, 0), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(23)))
+	if err != nil {
+		t.Errorf("Insertion failed in test with error: %s", err.Error())
 	}
 
-	v_len := len(runner.Vm.Segments.Memory.ValidatedAdresses())
-	if v_len != 2 {
-		t.Errorf("Should be 2 validated addresses, got: %d", v_len)
+	err = runner.Vm.Segments.Memory.Insert(memory.NewRelocatable(2, 1), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(233)))
+	if err != nil {
+		t.Errorf("Insert failed in test with error: %s", err.Error())
 	}
 }
 

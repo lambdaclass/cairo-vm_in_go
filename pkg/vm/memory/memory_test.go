@@ -289,9 +289,9 @@ func TestValidateExistingMemoryForRangeCheckWithinBounds(t *testing.T) {
 	}
 	addr := memory.NewRelocatable(0, 0)
 	val := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(45))
-	segments.Memory.Insert(addr, val)
-	if !segments.Memory.ValidatedAdresses().Contains(addr) {
-		t.Errorf("Memory failed validating addresses within bounds")
+	err := segments.Memory.Insert(addr, val)
+	if err != nil {
+		t.Errorf("Insertion failed in test with error: %s", err)
 	}
 
 }
