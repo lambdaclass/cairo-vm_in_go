@@ -1000,6 +1000,7 @@ Now, once everything is set up, we only have to retrive each field by getting it
 		Opcode:   opcode,
 	}, nil
     ```
+
 7. Error Handling:
     If at any point during the decoding process, an unexpected value is encountered or the input doesn't conform to the expected pattern, the method returns an appropriate error. These errors include cases like invalid op1 register, invalid pc update, invalid result logic, invalid opcode, etc.
 
