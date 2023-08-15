@@ -1,13 +1,12 @@
 package builtins
 
 import (
-	"errors"
 	"math"
 
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+	"github.com/pkg/errors"
 )
-
-var ErrRangeOutOfBounds = errors.New("RangeCheckNumOutOfBounds")
 
 const CHECK_RANGE_BUILTIN_NAME = "range_check"
 const INNER_RC_BOUND_SHIFT = 16
@@ -15,6 +14,20 @@ const INNER_RC_BOUND_MASK = math.MaxUint16
 const CELLS_PER_RANGE_CHECK = 1
 
 const N_PARTS = 8
+
+func RangeCheckError(err error) error {
+	return errors.Wrapf(err, "Range check error")
+}
+
+func OutsideBoundsError(felt lambdaworks.Felt) error {
+	upperBound := uint64(math.Pow(2, float64(N_PARTS*INNER_RC_BOUND_SHIFT)))
+	return RangeCheckError(errors.Errorf("Value %d is out of bounds [0, %d]", felt, upperBound))
+}
+
+func NotAFeltError(addr memory.Relocatable, val memory.MaybeRelocatable) error {
+	rel, _ := val.GetRelocatable()
+	return RangeCheckError(errors.Errorf("Value %d found in %d is not a felt element", rel, addr))
+}
 
 type RangeCheckBuiltinRunner struct {
 	base     memory.Relocatable
@@ -58,12 +71,12 @@ func ValidationRule(mem *memory.Memory, address memory.Relocatable) ([]memory.Re
 	}
 	felt, is_felt := res_val.GetFelt()
 	if !is_felt {
-		return nil, errors.New("NotFeltElement")
+		return nil, NotAFeltError(address, *res_val)
 	}
 	if felt.Bits() <= N_PARTS*INNER_RC_BOUND_SHIFT {
 		return []memory.Relocatable{address}, nil
 	}
-	return nil, ErrRangeOutOfBounds
+	return nil, OutsideBoundsError(felt)
 }
 
 func (r *RangeCheckBuiltinRunner) AddValidationRule(mem *memory.Memory) {

@@ -29,7 +29,6 @@ func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 	runner := CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
 	for _, builtin_name := range program.Builtins {
 		switch builtin_name {
-		// Add a case for each builtin here, example:
 		case builtins.CHECK_RANGE_BUILTIN_NAME:
 			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewRangeCheckBuiltinRunner(true))
 		case builtins.POSEIDON_BUILTIN_NAME:
@@ -47,7 +46,7 @@ func (r *CairoRunner) Initialize() (memory.Relocatable, error) {
 	r.initializeSegments()
 	end, err := r.initializeMainEntrypoint()
 	if err == nil {
-		err = r.InitializeVM()
+		err = r.initializeVM()
 	}
 	return end, err
 }
@@ -105,7 +104,7 @@ func (r *CairoRunner) initializeMainEntrypoint() (memory.Relocatable, error) {
 }
 
 // Initializes the vm's run_context, adds builtin validation rules & validates memory
-func (r *CairoRunner) InitializeVM() error {
+func (r *CairoRunner) initializeVM() error {
 	r.Vm.RunContext.Ap = r.initialAp
 	r.Vm.RunContext.Fp = r.initialFp
 	r.Vm.RunContext.Pc = r.initialPc

@@ -290,7 +290,6 @@ func TestValidateExistingMemoryForRangeCheckWithinBounds(t *testing.T) {
 	addr := memory.NewRelocatable(0, 0)
 	val := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(45))
 	segments.Memory.Insert(addr, val)
-	segments.Memory.ValidateAddress(addr)
 	if !segments.Memory.ValidatedAdresses.Contains(addr) {
 		t.Errorf("Memory failed validating addresses within bounds")
 	}
@@ -298,6 +297,7 @@ func TestValidateExistingMemoryForRangeCheckWithinBounds(t *testing.T) {
 }
 
 func TestValidateExistingMemoryForRangeCheckOutsideBounds(t *testing.T) {
+	t.Helper()
 	check_range := builtins.NewRangeCheckBuiltinRunner(true)
 	segments := memory.NewMemorySegmentManager()
 	segments.AddSegment()
@@ -306,9 +306,12 @@ func TestValidateExistingMemoryForRangeCheckOutsideBounds(t *testing.T) {
 	val := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("-10"))
 	segments.Memory.Insert(addr, val)
 	check_range.AddValidationRule(&segments.Memory)
-	err := segments.Memory.ValidateAddress(addr)
-	if err != builtins.ErrRangeOutOfBounds {
-		t.Error("Should fail with RangeCheckNumOutOfBounds")
+	err := segments.Memory.ValidateExistingMemory()
+	expected_err := builtins.OutsideBoundsError(lambdaworks.FeltFromDecString("-10"))
+	if err.Error() != expected_err.Error() {
+		t.Errorf("This test should fail\n")
+		t.Errorf("Expected: %s", expected_err)
+		t.Errorf("Got: %s", err)
 	}
 }
 
@@ -316,7 +319,6 @@ func TestValidateExistingMemoryForRangeCheckRelocatableValue(t *testing.T) {
 	check_range := builtins.NewRangeCheckBuiltinRunner(true)
 	segments := memory.NewMemorySegmentManager()
 	check_range.InitializeSegments(&segments)
-
 	for i := 0; i < 3; i++ {
 		segments.AddSegment()
 	}
@@ -324,9 +326,12 @@ func TestValidateExistingMemoryForRangeCheckRelocatableValue(t *testing.T) {
 	val := memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(0, 4))
 	segments.Memory.Insert(addr, val)
 	check_range.AddValidationRule(&segments.Memory)
-	err := segments.Memory.ValidateAddress(addr)
-	if err.Error() != "NotFeltElement" {
-		t.Error("Should fail with NotFeltElement")
+	err := segments.Memory.ValidateExistingMemory()
+	expected_err := builtins.NotAFeltError(addr, *val)
+	if err.Error() != expected_err.Error() {
+		t.Errorf("This test should fail")
+		t.Errorf("Expected: %s", expected_err)
+		t.Errorf("Got: %s", err)
 	}
 }
 
@@ -340,11 +345,12 @@ func TestValidateExistingMemoryForRangeCheckOutOfBoundsDiffSegment(t *testing.T)
 	val := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("-45"))
 	segments.Memory.Insert(addr, val)
 	check_range.AddValidationRule(&segments.Memory)
-	err := segments.Memory.ValidateAddress(addr)
+	err := segments.Memory.ValidateExistingMemory()
 	if err != nil {
-		t.Errorf("This test should not throw an error")
+		t.Errorf("This test should not return an error. Error: %s", err)
 	}
 }
+
 func TestMemoryValidateExistingMemoryOk(t *testing.T) {
 	mem_manager := memory.NewMemorySegmentManager()
 	mem_manager.AddSegment()
