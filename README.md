@@ -651,14 +651,13 @@ Cairo program execution is divided into steps, and in turn each step is divided 
   1. Instruction decoding
   2. Instruction execution
 
-
 ##### Step 
 
 This method is the organizer of the execution of each instruction, it orchestrates them and handles the possible errors. 
 
-The first thing it does is to obtain the intruction we want to run, it does that by getting the value on memory where the current pc is pointing. We know that the instruction has to be a felt, if it is not, then there is an error with the encoding of the instruction. 
+The first thing it does is to obtain the instruction we want to run, it does that by getting the value on memory where the current pc is pointing. We know that the instruction has to be a felt, if it is not, then there is an error with the encoding of the instruction. 
 Once we retrieve the felt we have the `encoded instruction`, we need to decode it to get the fields from its bits representation. Felt is not useful anymore so we will get its integer representation. 
-Now its time to decode the instruction and then run the `decoded instruction`.
+Now it's time to decode the instruction and then run the `decoded instruction`.
 
 
 ```go
@@ -724,7 +723,7 @@ type Instruction struct {
 }
 ```
 
-And the good thing about this, is every bits combination for each field is known, so we can code all the possible flags to work with. These flags are represented below. 
+And the good thing about this is that every combination of bits for each field is known, so we can code all the possible flags to work with. These flags are represented below. 
 
 The off0, off1, and off2 values are used to compute the address of the dst, op0 and op1 respectively.
 For example, if the DstReg is AP and Off0 is -1, then we can compute the dst address by substracting one from the current value of ap.
@@ -854,8 +853,8 @@ Now, once everything is set up, we only have to retrive each field by getting it
 
     ```go
     var offset0 = fromBiasedRepresentation((encodedInstruction) & 0xFFFF)
-	var offset1 = fromBiasedRepresentation((encodedInstruction >> 16) & 0xFFFF)
-	var offset2 = fromBiasedRepresentation((encodedInstruction >> 32) & 0xFFFF)
+    var offset1 = fromBiasedRepresentation((encodedInstruction >> 16) & 0xFFFF)
+    var offset2 = fromBiasedRepresentation((encodedInstruction >> 32) & 0xFFFF)
 
     -----------------------------------------------------------------------------------------
     func fromBiasedRepresentation(offset uint64) int {
@@ -875,7 +874,7 @@ Now, once everything is set up, we only have to retrive each field by getting it
     Using the extracted flag section, the method decodes various fields like destination register, op0 register, op1 source, result logic, pc update, ap update, and opcode. These fields are decoded by extracting specific bits from the flag section and mapping them to their corresponding enum values.
 
     ```go 
-    var dstRegNum = (flags & DstRegMask) >> DstRegOff
+	var dstRegNum = (flags & DstRegMask) >> DstRegOff
 	var op0RegNum = (flags & Op0RegMask) >> Op0RegOff
 	var op1SrcNum = (flags & Op1SrcMask) >> Op1SrcOff
 	var resLogicNum = (flags & ResLogicMask) >> ResLogicOff
