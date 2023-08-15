@@ -49,6 +49,39 @@ func TestToLeBytes(t *testing.T) {
 	}
 }
 
+func TestToBeBytes(t *testing.T) {
+	expected := [32]uint8{
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	}
+	actual := *lambdaworks.FeltOne().ToBeBytes()
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Errorf("TestToBeBytes failed. Expected: %v, Got: %v", expected, actual)
+	}
+}
+
+func TestFromLeBytes(t *testing.T) {
+	bytes := [32]uint8{
+		1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	}
+	felt_from_bytes := lambdaworks.FeltFromLeBytes(&bytes)
+
+	if !reflect.DeepEqual(felt_from_bytes, lambdaworks.FeltOne()) {
+		t.Errorf("TestFromLeBytes failed. Expected 1, Got: %v", felt_from_bytes)
+	}
+}
+
+func TestFromBeBytes(t *testing.T) {
+	bytes := [32]uint8{
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	}
+	felt_from_bytes := lambdaworks.FeltFromBeBytes(&bytes)
+
+	if !reflect.DeepEqual(felt_from_bytes, lambdaworks.FeltOne()) {
+		t.Errorf("TestToFromBeBytes failed. Expected 1, Got: %v", felt_from_bytes)
+	}
+}
+
 func TestFeltSub(t *testing.T) {
 	f_one := lambdaworks.FeltOne()
 	expected := lambdaworks.FeltZero()

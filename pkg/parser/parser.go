@@ -12,7 +12,7 @@ type FlowTrackingData struct {
 	ReferenceIDS map[string]int `json:"reference_ids"`
 }
 
-type Instructions struct {
+type Location struct {
 	EndCol    int               `json:"end_col"`
 	EndLine   int               `json:"end_line"`
 	InputFile map[string]string `json:"input_file"`
@@ -23,8 +23,13 @@ type Instructions struct {
 type InstructionLocation struct {
 	AccessibleScopes []string         `json:"accessible_scopes"`
 	FlowTrackingData FlowTrackingData `json:"flow_tracking_data"`
-	Hints            []string         `json:"hints"`
-	Inst             Instructions     `json:"inst"`
+	Hints            []HintLocation   `json:"hints"`
+	Inst             Location         `json:"inst"`
+}
+
+type HintLocation struct {
+	Location        Location `json:"location"`
+	NPrefixNewLines uint32   `json:"n_prefix_newlines"`
 }
 
 type DebugInfo struct {
@@ -58,13 +63,20 @@ type ReferenceManager struct {
 	References []Reference `json:"references"`
 }
 
+type HintParams struct {
+	Code             string           `json:"code"`
+	AccessibleScopes []string         `json:"accessible_scopes"`
+	FlowTrackingData FlowTrackingData `json:"flow_trackingData"`
+	ReferenceIds     map[string]uint  `json:"reference_ids"`
+}
+
 type CompiledJson struct {
 	Attributes       []string              `json:"attributes"`
 	Builtins         []string              `json:"builtins"`
 	CompilerVersion  string                `json:"compiler_version"`
 	Data             []string              `json:"data"`
 	DebugInfo        DebugInfo             `json:"debug_info"`
-	Hints            map[string]string     `json:"hints"`
+	Hints            map[uint][]HintParams `json:"hints"`
 	Identifiers      map[string]Identifier `json:"identifiers"`
 	MainScope        string                `json:"main_scope"`
 	Prime            string                `json:"prime"`
