@@ -65,7 +65,7 @@ func TestPoseidonInitializeSegments(t *testing.T) {
 	poseidon := builtins.NewPoseidonBuiltinRunner(true)
 	poseidon.InitializeSegments(&mem_manager)
 
-	if mem_manager.Memory.NumSegments != 1 {
+	if mem_manager.Memory.NumSegments() != 1 {
 		t.Errorf("Wrong number of segments after InitializeSegments")
 	}
 	if !reflect.DeepEqual(poseidon.Base(), memory.Relocatable{SegmentIndex: 0, Offset: 0}) {

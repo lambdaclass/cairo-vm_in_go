@@ -197,15 +197,15 @@ func TestInitializeRunnerWithRangeCheckValid(t *testing.T) {
 	}
 
 	rel := memory.NewRelocatable(2, 0)
-	if !runner.Vm.Segments.Memory.ValidatedAdresses.Contains(rel) {
+	if !runner.Vm.Segments.Memory.ValidatedAdresses().Contains(rel) {
 		t.Errorf("Should validate address %d", rel)
 	}
 	rel = memory.NewRelocatable(2, 1)
-	if !runner.Vm.Segments.Memory.ValidatedAdresses.Contains(rel) {
+	if !runner.Vm.Segments.Memory.ValidatedAdresses().Contains(rel) {
 		t.Errorf("Should validate address %d", rel)
 	}
 
-	v_len := len(runner.Vm.Segments.Memory.ValidatedAdresses)
+	v_len := len(runner.Vm.Segments.Memory.ValidatedAdresses())
 	if v_len != 2 {
 		t.Errorf("Should be 2 validated addresses, got: %d", v_len)
 	}
