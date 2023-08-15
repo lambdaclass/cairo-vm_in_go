@@ -1670,7 +1670,7 @@ With all of our builtin logic integrated into the codebase, we can implement any
 
 ##### RangeCheck
 
-When working with field elements within the range [0, 2^128), it's important to ensure that these values remain within the specified bounds to prevent unexpected behavior and errors. We perform range checks and comparisons using the following approach:
+When working with field elements within the range [0, 2^128), it's important to ensure that these values remain within the specified bounds to prevent unexpected behavior and errors. This check is also used along other operations in many functions, like asserting if a number fits in 250 bits, or exists in other range.  We perform range checks and comparisons using the following approach:
 
 Once we have a RangeCheckRunner that implements the basic builtin interface methods, let's see how this implementation is done:  
 
