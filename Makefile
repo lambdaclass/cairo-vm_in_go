@@ -32,7 +32,6 @@ deps:
 	PYENV_VERSION=3.9.15 python -m venv cairo-vm-env
 	. cairo-vm-env/bin/activate ; \
 	pip install -r requirements.txt ; \
-	go get code.google.com/p/go.tools/cmd/cover
 
 # Creates a pyenv and installs cairo-lang
 deps-macos:
@@ -41,7 +40,6 @@ deps-macos:
 	PYENV_VERSION=3.9.15 python -m venv cairo-vm-env
 	. cairo-vm-env/bin/activate ; \
 	CFLAGS=-I/opt/homebrew/opt/gmp/include LDFLAGS=-L/opt/homebrew/opt/gmp/lib pip install -r requirements.txt ; \
-	go get code.google.com/p/go.tools/cmd/cover
 
 run:
 	@go run cmd/cli/main.go
