@@ -1,4 +1,4 @@
-package builtinrunner
+package builtins
 
 import (
 	"errors"
@@ -23,7 +23,6 @@ type RangeCheckBuiltinRunner struct {
 
 func NewRangeCheckBuiltinRunner(included bool) *RangeCheckBuiltinRunner {
 	return &RangeCheckBuiltinRunner{
-		base:     memory.NewRelocatable(0, 0),
 		included: included,
 	}
 }

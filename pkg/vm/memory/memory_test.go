@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
-	builtinrunner "github.com/lambdaclass/cairo-vm.go/pkg/runners/builtin_runner"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -279,10 +279,10 @@ func TestMemorySegmentsLoadDataTwoElements(t *testing.T) {
 }
 
 func TestValidateExistingMemoryForRangeCheckWithinBounds(t *testing.T) {
-	builtin := builtinrunner.NewRangeCheckBuiltinRunner(true)
+	check_range := builtins.NewRangeCheckBuiltinRunner(true)
 	segments := memory.NewMemorySegmentManager()
-	builtin.InitializeSegments(&segments)
-	builtin.AddValidationRule(&segments.Memory)
+	check_range.InitializeSegments(&segments)
+	check_range.AddValidationRule(&segments.Memory)
 
 	for i := 0; i < 3; i++ {
 		segments.AddSegment()
@@ -298,24 +298,24 @@ func TestValidateExistingMemoryForRangeCheckWithinBounds(t *testing.T) {
 }
 
 func TestValidateExistingMemoryForRangeCheckOutsideBounds(t *testing.T) {
-	builtin := builtinrunner.NewRangeCheckBuiltinRunner(true)
+	check_range := builtins.NewRangeCheckBuiltinRunner(true)
 	segments := memory.NewMemorySegmentManager()
 	segments.AddSegment()
-	builtin.InitializeSegments(&segments)
+	check_range.InitializeSegments(&segments)
 	addr := memory.NewRelocatable(1, 0)
 	val := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("-10"))
 	segments.Memory.Insert(addr, val)
-	builtin.AddValidationRule(&segments.Memory)
+	check_range.AddValidationRule(&segments.Memory)
 	err := segments.Memory.ValidateAddress(addr)
-	if err != builtinrunner.ErrRangeOutOfBounds {
+	if err != builtins.ErrRangeOutOfBounds {
 		t.Error("Should fail with RangeCheckNumOutOfBounds")
 	}
 }
 
 func TestValidateExistingMemoryForRangeCheckRelocatableValue(t *testing.T) {
-	builtin := builtinrunner.NewRangeCheckBuiltinRunner(true)
+	check_range := builtins.NewRangeCheckBuiltinRunner(true)
 	segments := memory.NewMemorySegmentManager()
-	builtin.InitializeSegments(&segments)
+	check_range.InitializeSegments(&segments)
 
 	for i := 0; i < 3; i++ {
 		segments.AddSegment()
@@ -323,7 +323,7 @@ func TestValidateExistingMemoryForRangeCheckRelocatableValue(t *testing.T) {
 	addr := memory.NewRelocatable(0, 0)
 	val := memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(0, 4))
 	segments.Memory.Insert(addr, val)
-	builtin.AddValidationRule(&segments.Memory)
+	check_range.AddValidationRule(&segments.Memory)
 	err := segments.Memory.ValidateAddress(addr)
 	if err.Error() != "NotFeltElement" {
 		t.Error("Should fail with NotFeltElement")
@@ -331,15 +331,15 @@ func TestValidateExistingMemoryForRangeCheckRelocatableValue(t *testing.T) {
 }
 
 func TestValidateExistingMemoryForRangeCheckOutOfBoundsDiffSegment(t *testing.T) {
-	builtin := builtinrunner.NewRangeCheckBuiltinRunner(true)
+	check_range := builtins.NewRangeCheckBuiltinRunner(true)
 	segments := memory.NewMemorySegmentManager()
 	segments.AddSegment()
-	builtin.InitializeSegments(&segments)
+	check_range.InitializeSegments(&segments)
 
 	addr := memory.NewRelocatable(0, 0)
 	val := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("-45"))
 	segments.Memory.Insert(addr, val)
-	builtin.AddValidationRule(&segments.Memory)
+	check_range.AddValidationRule(&segments.Memory)
 	err := segments.Memory.ValidateAddress(addr)
 	if err != nil {
 		t.Errorf("This test should not throw an error")

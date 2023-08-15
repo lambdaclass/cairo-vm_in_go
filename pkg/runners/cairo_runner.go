@@ -3,7 +3,7 @@ package runners
 import (
 	"errors"
 
-	builtinrunner "github.com/lambdaclass/cairo-vm.go/pkg/runners/builtin_runner"
+	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
@@ -30,8 +30,10 @@ func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 	for _, builtin_name := range program.Builtins {
 		switch builtin_name {
 		// Add a case for each builtin here, example:
-		case builtinrunner.CHECK_RANGE_BUILTIN_NAME:
-			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtinrunner.NewRangeCheckBuiltinRunner(true))
+		case builtins.CHECK_RANGE_BUILTIN_NAME:
+			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewRangeCheckBuiltinRunner(true))
+		case builtins.POSEIDON_BUILTIN_NAME:
+			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewPoseidonBuiltinRunner(true))
 		default:
 			return nil, errors.New("invalid builtin")
 		}

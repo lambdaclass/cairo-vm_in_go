@@ -3,10 +3,10 @@ package runners_test
 import (
 	"testing"
 
+	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
 	"github.com/lambdaclass/cairo-vm.go/pkg/runners"
-	builtinrunner "github.com/lambdaclass/cairo-vm.go/pkg/runners/builtin_runner"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
@@ -164,8 +164,8 @@ func TestInitializeRunnerWithRangeCheckValid(t *testing.T) {
 	program_data := make([]memory.MaybeRelocatable, 1)
 	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1))
 	empty_identifiers := make(map[string]parser.Identifier, 0)
-	builtins := []string{builtinrunner.CHECK_RANGE_BUILTIN_NAME}
-	program := vm.Program{Data: program_data, Identifiers: &empty_identifiers, Builtins: builtins}
+	program_builtins := []string{builtins.CHECK_RANGE_BUILTIN_NAME}
+	program := vm.Program{Data: program_data, Identifiers: &empty_identifiers, Builtins: program_builtins}
 	// Create CairoRunner
 	runner, err := runners.NewCairoRunner(program)
 	if err != nil {
@@ -186,10 +186,8 @@ func TestInitializeRunnerWithRangeCheckValid(t *testing.T) {
 	runner.Vm.Segments.Memory.Insert(memory.NewRelocatable(2, 1), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(233)))
 
 	builtin_runner := runner.Vm.BuiltinRunners[0]
-	builtin_name := builtin_runner.Name()
-	expected_name := builtinrunner.CHECK_RANGE_BUILTIN_NAME
-	if builtin_name != expected_name {
-		t.Errorf("Name of runner builtin failed. Expected %s, got %s", expected_name, builtin_name)
+	if builtin_runner.Name() != builtins.CHECK_RANGE_BUILTIN_NAME {
+		t.Errorf("Name of runner builtin failed. Expected %s, got %s", builtin_runner.Name(), builtins.CHECK_RANGE_BUILTIN_NAME)
 	}
 
 	builtin_base := builtin_runner.Base()
@@ -219,8 +217,8 @@ func TestInitializeRunnerWithRangeCheckInvalid(t *testing.T) {
 	program_data := make([]memory.MaybeRelocatable, 1)
 	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1))
 	empty_identifiers := make(map[string]parser.Identifier, 0)
-	builtins := []string{builtinrunner.CHECK_RANGE_BUILTIN_NAME}
-	program := vm.Program{Data: program_data, Identifiers: &empty_identifiers, Builtins: builtins}
+	program_builtins := []string{builtins.CHECK_RANGE_BUILTIN_NAME}
+	program := vm.Program{Data: program_data, Identifiers: &empty_identifiers, Builtins: program_builtins}
 	// Create CairoRunner
 	runner, err := runners.NewCairoRunner(program)
 	if err != nil {
@@ -240,7 +238,7 @@ func TestInitializeRunnerWithRangeCheckInvalid(t *testing.T) {
 	runner.Vm.Segments.Memory.Insert(memory.NewRelocatable(2, 0), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(23)))
 	runner.Vm.Segments.Memory.Insert(memory.NewRelocatable(2, 4), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("-1")))
 	err = runner.InitializeVM()
-	if err != builtinrunner.ErrRangeOutOfBounds {
-		t.Errorf("Test should fail with: %s", builtinrunner.ErrRangeOutOfBounds.Error())
+	if err != builtins.ErrRangeOutOfBounds {
+		t.Errorf("Test should fail with: %s", builtins.ErrRangeOutOfBounds.Error())
 	}
 }
