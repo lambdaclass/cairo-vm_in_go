@@ -1587,6 +1587,11 @@ func WriteEncodedMemory(relocatedMemory map[uint]lambdaworks.Felt, dest io.Write
 #### Putting it all together
 
 Now it's time to finally add our `main` function to the project!
+The CLI will receive one argument: the program path.
+This path will be passed as argument to a new function called `CairoRun`.
+This new function will return the cairo runner and an error, if it exists one during the program execution.
+If the program execution ends successfully, we write the relocated trace and memory in files respectively and print that the execution was ended with no errors.
+If the program execution ends with an error, we don't write any file and print the corresponding error.
 
 ```go
 func main() {
