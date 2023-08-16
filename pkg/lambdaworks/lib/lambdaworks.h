@@ -56,8 +56,5 @@ void felt_and(felt_t a, felt_t b, felt_t result);
 /* writes the result variable with a | b */
 void felt_or(felt_t a, felt_t b, felt_t result);
 
-/* writes the result variable with a.pow(b) */
-void felt_pow(felt_t a, felt_t b, felt_t result);
-
 /* writes the result variable with a ^ b */
 void felt_xor(felt_t a, felt_t b, felt_t result);

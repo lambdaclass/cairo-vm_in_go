@@ -194,11 +194,3 @@ func (a Felt) Or(b Felt) Felt {
 	C.felt_or(&a_c[0], &b_c[0], &result[0])
 	return fromC(result)
 }
-
-func (a Felt) Pow(b Felt) Felt {
-	var result C.felt_t
-	var a_c C.felt_t = a.toC()
-	var b_c C.felt_t = b.toC()
-	C.felt_pow(&a_c[0], &b_c[0], &result[0])
-	return fromC(result)
-}

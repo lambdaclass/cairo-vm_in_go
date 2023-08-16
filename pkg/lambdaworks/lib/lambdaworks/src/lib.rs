@@ -152,15 +152,6 @@ pub extern "C" fn felt_or(a: Limbs, b: Limbs, result: Limbs) {
 }
 
 #[no_mangle]
-pub extern "C" fn felt_pow(a: Limbs, b: Limbs, result: Limbs) {
-    let felt_a = limbs_to_felt(a);
-    let felt_b = limbs_to_felt(b).representative();
-    let res = felt_a.pow(felt_b);
-
-    felt_to_limbs(res, result)
-}
-
-#[no_mangle]
 pub extern "C" fn felt_xor(a: Limbs, b: Limbs, result: Limbs) {
     let felt_a = limbs_to_felt(a).representative();
     let felt_b = limbs_to_felt(b).representative();
