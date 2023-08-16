@@ -278,3 +278,59 @@ func TestBits(t *testing.T) {
 		t.Errorf("TestBits failed. Expected: %d, Got: %d", 1, f_neg_one.Bits())
 	}
 }
+
+func TestFeltIsZero(t *testing.T) {
+	f_zero := lambdaworks.FeltZero()
+
+	is_zero := f_zero.IsZero()
+
+	if !is_zero {
+		t.Errorf("TestFeltIsZero failed. Expected true, Got: %v", is_zero)
+	}
+}
+
+func TestFeltIsNotZero(t *testing.T) {
+	f_one := lambdaworks.FeltOne()
+
+	is_zero := f_one.IsZero()
+
+	if is_zero {
+		t.Errorf("TestFeltIsNotZero failed. Expected false, Got: %v", is_zero)
+	}
+}
+
+func TestPow2(t *testing.T) {
+	f0 := lambdaworks.FeltFromUint64(2)
+	pow := lambdaworks.FeltFromUint64(2)
+
+	expected := lambdaworks.FeltFromUint64(4)
+	result := f0.Pow(pow)
+
+	if expected != result {
+		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
+	}
+}
+
+func TestPow0(t *testing.T) {
+	f0 := lambdaworks.FeltFromUint64(2)
+	pow := lambdaworks.FeltFromUint64(0)
+
+	expected := lambdaworks.FeltFromUint64(1)
+	result := f0.Pow(pow)
+
+	if expected != result {
+		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
+	}
+}
+
+func TestPow3(t *testing.T) {
+	f0 := lambdaworks.FeltFromUint64(3)
+	pow := lambdaworks.FeltFromUint64(2)
+
+	expected := lambdaworks.FeltFromUint64(9)
+	result := f0.Pow(pow)
+
+	if expected != result {
+		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
+	}
+}
