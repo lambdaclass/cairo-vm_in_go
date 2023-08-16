@@ -2054,10 +2054,10 @@ func (b *BitwiseBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
 }
 ```
 
-The method `DeducedMemoryCell` fetches the operands from memory performes the following operations: 
-- If the index is less than the number of input cells then the methods just return nil
+The method `DeducedMemoryCell` fetches the operands from memory and performs the following operations: 
+- If the index is less than the number of input cells then the method returns nil
 - After the operands are fetched it is checks that both of them are felts because bitwise can not be performed on relocatable or nil values.
-- If the number of bits of any operands is greater than TOTAL_N_BITS the method fails because we are out of the field.
+- If the number of bits of any operand is greater than `TOTAL_N_BITS` the method fails because we are out of the field.
 - The index is used to know which bitwise operation is going to be performed, if is 2 then `and` is executed, if is 3 then `xor` and if is a 4 then `or` is executed
 - Otherwise nil value is returned
 
