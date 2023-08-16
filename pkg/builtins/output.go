@@ -39,4 +39,3 @@ func (r *OutputBuiltinRunner) DeduceMemoryCell(rel memory.Relocatable, mem *memo
 }
 
 func (r *OutputBuiltinRunner) AddValidationRule(mem *memory.Memory) {}
-
