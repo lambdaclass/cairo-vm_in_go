@@ -195,8 +195,9 @@ func TestToU64Fail(t *testing.T) {
 	felt := lambdaworks.FeltFromDecString("9999999999999999999999999")
 
 	_, err := felt.ToU64()
+	expected_err := lambdaworks.ConversionError(felt, "u64")
 
-	if err == nil {
-		t.Errorf("%v", err)
+	if err.Error() != expected_err.Error() {
+		t.Errorf("Conversion test should fail with error: %v", expected_err)
 	}
 }
