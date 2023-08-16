@@ -6,6 +6,7 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
+const BITWISE_BUILTIN_NAME = "bitwise"
 const BITWISE_CELLS_PER_INSTANCE = 5
 const BITWISE_TOTAL_N_BITS = 251
 const BIWISE_INPUT_CELLS_PER_INSTANCE = 2
@@ -26,7 +27,7 @@ func (b *BitwiseBuiltinRunner) Base() memory.Relocatable {
 }
 
 func (b *BitwiseBuiltinRunner) Name() string {
-	return "bitwise"
+	return BITWISE_BUILTIN_NAME
 }
 
 func (b *BitwiseBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
