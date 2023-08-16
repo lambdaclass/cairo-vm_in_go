@@ -659,10 +659,308 @@ To begin coding the basic execution functionality of our VM, we only need these 
 
 #### Compute operands
 
+Once the instruction has been decoded, it is executed by `RunInstruction` whose first function is to compute operands. This function is in charge of
+calculating the addresses of the operands and fetching them from memory. If the function could not fetch the operands then they are deduced from the other operands,
+taking in consideration what kind of opcode is being executed. 
+
 ```go
-    //TODO
+func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, error) {
+	var res *memory.MaybeRelocatable
+
+	dst_addr, err := vm.RunContext.ComputeDstAddr(instruction)
+	if err != nil {
+		return Operands{}, errors.New("FailedToComputeDstAddr")
+	}
+	dst, _ := vm.Segments.Memory.Get(dst_addr)
+
+	op0_addr, err := vm.RunContext.ComputeOp0Addr(instruction)
+	if err != nil {
+		return Operands{}, fmt.Errorf("FailedToComputeOp0Addr: %s", err)
+	}
+	op0, _ := vm.Segments.Memory.Get(op0_addr)
+
+	op1_addr, err := vm.RunContext.ComputeOp1Addr(instruction, op0)
+	if err != nil {
+		return Operands{}, fmt.Errorf("FailedToComputeOp1Addr: %s", err)
+	}
+	op1, _ := vm.Segments.Memory.Get(op1_addr)
+
+	if op0 == nil {
+		deducedOp0, deducedRes, err := vm.DeduceOp0(&instruction, dst, op1)
+		if err != nil {
+			return Operands{}, err
+		}
+		op0 = deducedOp0
+		if op0 != nil {
+			vm.Segments.Memory.Insert(op0_addr, op0)
+		}
+		res = deducedRes
+	}
+
+	if op1 == nil {
+		deducedOp1, deducedRes, err := vm.DeduceOp1(instruction, dst, op0)
+		if err != nil {
+			return Operands{}, err
+		}
+		op1 = deducedOp1
+		if op1 != nil {
+			vm.Segments.Memory.Insert(op1_addr, op1)
+		}
+		if res == nil {
+			res = deducedRes
+		}
+	}
+
+	if res == nil {
+		res, err = vm.ComputeRes(instruction, *op0, *op1)
+
+		if err != nil {
+			return Operands{}, err
+		}
+	}
+
+	if dst == nil {
+		deducedDst := vm.DeduceDst(instruction, res)
+		dst = deducedDst
+		if dst != nil {
+			vm.Segments.Memory.Insert(dst_addr, dst)
+		}
+	}
+
+	operands := Operands{
+		Dst: *dst,
+		Op0: *op0,
+		Op1: *op1,
+		Res: res,
+	}
+	return operands, nil
+}
 ```
 
+##### ComputeDstAddr
+The method `ComputeDstAddr` computes the address of the value that will be stored in the Destination (dst) operand. It checks which register its is relative to (wether ap or fp) and gets the direction by adding the instruction's first offset(off0) to the corresponding register.
+
+```go
+func (run_context RunContext) ComputeDstAddr(instruction Instruction) (memory.Relocatable, error) {
+	var base_addr memory.Relocatable
+	switch instruction.DstReg {
+	case AP:
+		base_addr = run_context.Ap
+	case FP:
+		base_addr = run_context.Fp
+	}
+
+	if instruction.Off0 < 0 {
+		return base_addr.SubUint(uint(math.Abs(float64(instruction.Off0))))
+	} else {
+		return base_addr.AddUint(uint(instruction.Off0))
+	}
+
+}
+```
+##### ComputeOp0Addr
+
+This method is similar to `ComputeDstAddr` but it uses the instruction second offset (off1) to add to the selected register (ap or fp)
+
+```go
+func (run_context RunContext) ComputeOp0Addr(instruction Instruction) (memory.Relocatable, error) {
+	var base_addr memory.Relocatable
+	switch instruction.Op0Reg {
+	case AP:
+		base_addr = run_context.Ap
+	case FP:
+		base_addr = run_context.Fp
+	}
+
+	if instruction.Off1 < 0 {
+		return base_addr.SubUint(uint(math.Abs(float64(instruction.Off1))))
+	} else {
+		return base_addr.AddUint(uint(instruction.Off1))
+	}
+}
+
+```
+
+##### ComputeOp1Addr
+
+It computes the address of `Op1` based on the `Op0` operand and the kind of Address the instruction has for `Op1`.
+- If its address is `Op1SrcFp` it calculates the direction from Fp register.
+- if it is `Op1SrcAp` then if calculates it if from Ap register. 
+- If it is an immediate then checks if the offset 2 is 1 and calculates it from the `Pc`. 
+- If it is an `Op1SrcOp0` it checks the `Op0` and calculates the direction from it.
+
+Then it performs and addition or a substraction if the `Off2` is negative or positive.
+
+```go
+func (run_context RunContext) ComputeOp1Addr(instruction Instruction, op0 *memory.MaybeRelocatable) (memory.Relocatable, error) {
+	var base_addr memory.Relocatable
+
+	switch instruction.Op1Addr {
+	case Op1SrcFP:
+		base_addr = run_context.Fp
+	case Op1SrcAP:
+		base_addr = run_context.Ap
+	case Op1SrcImm:
+		if instruction.Off2 == 1 {
+			base_addr = run_context.Pc
+		} else {
+			base_addr = memory.NewRelocatable(0, 0)
+			return memory.Relocatable{}, &VirtualMachineError{Msg: "UnknownOp0"}
+		}
+	case Op1SrcOp0:
+		if op0 == nil {
+			return memory.Relocatable{}, errors.New("Unknown Op0")
+		}
+		rel, is_rel := op0.GetRelocatable()
+		if is_rel {
+			base_addr = rel
+		} else {
+			return memory.Relocatable{}, errors.New("AddressNotRelocatable")
+		}
+	}
+
+	if instruction.Off2 < 0 {
+		return base_addr.SubUint(uint(math.Abs(float64(instruction.Off2))))
+	} else {
+		return base_addr.AddUint(uint(instruction.Off2))
+	}
+}
+```
+
+##### DeduceOp0
+
+The method deduces the value of `Op0` if possible (based on `dst` and `Op1`).
+If Instruction's opcode is a `Call` `Op0` is deduced by adding the instruction size to the program counter.
+- If it is an `AssertEq` then a second switch case is used to check what `ResLogic` is.
+- If it is `ResAdd` `Op0` is deduced from the substraction of `Op1` from `Dst`,  if is is `Resmul` the `Op0` is deduced from the division of `Dst` and `Op1` (both felt values). 
+- Otherwise op0 is nil.  
+
+The method also deduces `res` by using the value of `dst`
+
+```go
+func (vm *VirtualMachine) DeduceOp0(instruction *Instruction, dst *memory.MaybeRelocatable, op1 *memory.MaybeRelocatable) (deduced_op0 *memory.MaybeRelocatable, deduced_res *memory.MaybeRelocatable, error error) {
+	switch instruction.Opcode {
+	case Call:
+		deduced_op0 := vm.RunContext.Pc
+		deduced_op0.Offset += instruction.Size()
+		return memory.NewMaybeRelocatableRelocatable(deduced_op0), nil, nil
+	case AssertEq:
+		switch instruction.ResLogic {
+		case ResAdd:
+			if dst != nil && op1 != nil {
+				deduced_op0, err := dst.Sub(*op1)
+				if err != nil {
+					return nil, nil, err
+				}
+				return &deduced_op0, dst, nil
+			}
+		case ResMul:
+			if dst != nil && op1 != nil {
+				dst_felt, dst_is_felt := dst.GetFelt()
+				op1_felt, op1_is_felt := op1.GetFelt()
+				if dst_is_felt && op1_is_felt && !op1_felt.IsZero() {
+					return memory.NewMaybeRelocatableFelt(dst_felt.Div(op1_felt)), dst, nil
+
+				}
+			}
+		}
+	}
+	return nil, nil, nil
+}
+```
+
+##### DeduceOp1
+
+The method deduces the value of `Op1` if possible (based on `dst` and `Op0`) it also deduces `res` if possible.
+- If the instruction opcode is `AssertEq` a switch case is used to check what the `ResLogic` is.
+- If it is a `ResOp1` then the value of op1 is equal to the dst operand.
+- If `ResLogic` is `ResAdd` op1 is deduced from the substraction of `op0` from `dst`.
+- If it is `ResMul` `op1` is deduced from the division of `dst` by `op0`, 
+
+In all the cases `res` is equal to `dst`. if none of the former cases apply then nil is returned.
+
+```go
+func (vm *VirtualMachine) DeduceOp1(instruction Instruction, dst *memory.MaybeRelocatable, op0 *memory.MaybeRelocatable) (*memory.MaybeRelocatable, *memory.MaybeRelocatable, error) {
+	if instruction.Opcode == AssertEq {
+		switch instruction.ResLogic {
+		case ResOp1:
+			return dst, dst, nil
+		case ResAdd:
+			if op0 != nil && dst != nil {
+				dst_rel, err := dst.Sub(*op0)
+				if err != nil {
+					return nil, nil, err
+				}
+				return &dst_rel, dst, nil
+			}
+		case ResMul:
+			dst_felt, dst_is_felt := dst.GetFelt()
+			op0_felt, op0_is_felt := op0.GetFelt()
+			if dst_is_felt && op0_is_felt && !op0_felt.IsZero() {
+				res := memory.NewMaybeRelocatableFelt(dst_felt.Div(op0_felt))
+				return res, dst, nil
+			}
+		}
+	}
+	return nil, nil, nil
+}
+
+```
+##### ComputeRes
+
+If the Res value has not been deduced in the previous steps then it is computed based on the `Op0` and `Op1` values.
+- If `ResLogic` is `ResOp1` then `res` is equal to `op1`. 
+- If it is `ResAdd` then `res` is deduced from the addition of `op0` and `op1`. 
+- If it is `ResMul` `res` is deduced from the multiplication of `op0` and `op1`.
+- Otherwise `res` is nil.
+
+```go
+func (vm *VirtualMachine) ComputeRes(instruction Instruction, op0 memory.MaybeRelocatable, op1 memory.MaybeRelocatable) (*memory.MaybeRelocatable, error) {
+	switch instruction.ResLogic {
+	case ResOp1:
+		return &op1, nil
+
+	case ResAdd:
+		maybe_rel, err := op0.Add(op1)
+		if err != nil {
+			return nil, err
+		}
+		return &maybe_rel, nil
+
+	case ResMul:
+		num_op0, m_type := op0.GetFelt()
+		num_op1, other_type := op1.GetFelt()
+		if m_type && other_type {
+			result := memory.NewMaybeRelocatableFelt(num_op0.Mul(num_op1))
+			return result, nil
+		} else {
+			return nil, errors.New("ComputeResRelocatableMul")
+		}
+
+	case ResUnconstrained:
+		return nil, nil
+	}
+	return nil, nil
+}
+```
+
+##### DeduceDst
+
+If the destination value has not been calculated before then it is deduced based on the Res operand. If the opcode is an `AssertEq` then dst is equal res.
+If it is a `Call` then its value is taken from the `Fp` register 
+
+```go
+func (vm *VirtualMachine) DeduceDst(instruction Instruction, res *memory.MaybeRelocatable) *memory.MaybeRelocatable {
+	switch instruction.Opcode {
+	case AssertEq:
+		return res
+	case Call:
+		return memory.NewMaybeRelocatableRelocatable(vm.RunContext.Fp)
+
+	}
+	return nil
+}
+```
 #### Opcode assertions
 
 Once we have the instruction's operands to work with, we have to ensure the correctness of them. The first thing we need to differentiate is which type of instruction are we running, we do this by looking at the instruction's opcode.
@@ -971,10 +1269,7 @@ func (r *CairoRunner) RunUntilPC(end memory.Relocatable) error {
   }
  }
  return nil
-}
 ```
-
-Once we are done executing, we can relocate our memory & trace and output them into files
 
 #### Memory Relocation - function
 
@@ -1370,6 +1665,364 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 With all of our builtin logic integrated into the codebase, we can implement any builtin and use it in our cairo programs while worrying only about implementing the `BuiltinRunner` interface and creating the builtin in the `NewCairoRunner` function.
 
 [Next sections: Implementing each builtin runner]
+
+#### Implementing each builtin runner
+
+##### RangeCheck
+
+TODO
+
+##### Output
+
+TODO
+
+#### Poseidon
+
+The poseidon builtin is used to compute the poseidon hash function in an efficient way. The poseidon hash used by the builtin differs from a standard poseidon hash in two ways, it uses different constants (becoming its own stark poseidon hash), and it also uses the internal poseidon permutation function instead of calling a poseidon hash function. The reason for the second one is that it allows the builtin to hash more than one element at a time by permuting the three-element poseidon state.
+
+Due to this difference, the best solution is to use a poseidon implementation built specifically for cairo. In our case we are going to use the poseidon hash in the `starknet-crypto` crate of the [starknet-rs](https://github.com/xJonathanLEI/starknet-rs) repo.
+The section below will explain how to create a C wrapper to use this crate from our go code, but you can skip it if you want to use your own version in your native language.
+
+##### Importing the `starknet-crypto`rust crate for our poseidon needs
+
+###### Basic Lib Setup
+
+To set up this we will need the following files:
+
+- A rust project that will hold the rust wrapper for our lib
+- A C header file that will use the rust lib as its backend
+- A Go file that will call the C header and which our VM's code will intetact with.
+
+Our file tree will look like this:
+
+```text
+ starknet_crypto
+ ┣ lib
+ ┃ ┣ starknet_crypto
+ ┃ ┃ ┣ src
+ ┃ ┃ ┃ ┗ lib.rs
+ ┃ ┃ ┣ Cargo.lock
+ ┃ ┃ ┗ Cargo.toml
+ ┃ ┗ starknet_crypto.h
+ ┣ starknet_crypto.go
+```
+
+Our Cargo.toml file will look like this:
+
+```toml
+[package]
+name = "starknet-crypto"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+libc = "0.2"
+starknet-crypto = { version = "0.5.0"}
+
+[lib]
+crate-type = ["cdylib", "staticlib", "lib"]
+```
+
+We will import libc in our lib.rs as an external crate by adding:
+
+```rust
+extern crate libc;
+```
+
+In order to build the lib we will add the following lines to our Makefile's `build` target:
+
+```bash
+@cd pkg/starknet_crypto/lib/starknet_crypto && cargo build --release
+@cp pkg/starknet_crypto/lib/starknet_crypto/target/release/libstarknet_crypto.a pkg/starknet_crypto/lib
+```
+
+And in order to import the lib from go we will add the following to our starknet_crypto.go file:
+
+```go
+/*
+#cgo LDFLAGS: pkg/starknet_crypto/lib/libstarknet_crypto.a -ldl
+#include "lib/starknet_crypto.h"
+#include <stdlib.h>
+*/
+import "C"
+```
+
+###### Converting Felt to FieldElement
+
+Now that we have the basic setup the first thing we have to do is to define a conversion between our `Felt` in go, a `felt_t` type in C, and starknet-crypto's `FieldElement` types. We will perform these conversions using the big endian byte representation.
+
+In our C header hile (starknet_crypto.h) we will define the types `byte_t` and `felt_t`:
+
+```c
+#include <stdint.h>
+
+typedef uint8_t byte_t;
+
+// A 252 bit prime field element (felt), represented as an array of 32 bytes.
+typedef byte_t felt_t[32];
+```
+
+And we will interpret this `felt_t` in rust (lib.rs file) as a mutable pointer to the first byte in the felt:
+
+```rust
+// C representation of a bit array: a raw pointer to a mutable unsigned 8 bits integer.
+type Bytes = *mut u8;
+```
+
+With these types defined we can now work on converting the C felt representation to a `FieldElement` in rust. To do so we will implement the following conversion functions:
+
+- `field_element_from_bytes`
+
+    We will convert the C pointer to an array of bytes and use it to create a `FieldElement`
+
+    ```rust
+    fn field_element_from_bytes(bytes: Bytes) -> FieldElement {
+        let array = unsafe {
+            let slice: &mut [u8] = std::slice::from_raw_parts_mut(bytes, 32);
+            let array: [u8; 32] = slice.try_into().unwrap();
+            array
+        };
+        FieldElement::from_bytes_be(&array).unwrap()
+    }
+    ```
+
+- `bytes_from_field_element`
+
+    We will convert the `FieldElement` into bytes and insert each byte into the C mutable pointer
+
+    ```rust
+    fn bytes_from_field_element(felt: FieldElement, bytes: Bytes) {
+        let byte_array = felt.to_bytes_be();
+        for i in 0..32 {
+            unsafe {
+                *bytes.offset(i) = byte_array[i as usize];
+            }
+        }
+    }
+    ```
+
+Now we will implement these same conversions but between `Felt` in go and `felt_t` in C. As we can import C types from Go, we don't have to define a type to represent `felt_t`.
+
+- toC
+
+    We convert the `Felt` to bytes and insert each byte into a `felt_t`
+
+    ```go
+    func toC(f lambdaworks.Felt) C.felt_t {
+        var result C.felt_t
+        for i, byte := range f.ToBeBytes() {
+            result[i] = C.byte_t(byte)
+        }
+        return result
+    }
+    ```
+
+- fromC
+
+    We iterate the `felt_t` value and cast each byte as a `uint8` to build a byte array which we then use to build our `Felt`
+
+    ```go
+    func fromC(result C.felt_t) lambdaworks.Felt {
+        var bytes [32]uint8
+        for i, byte := range result {
+            bytes[i] = uint8(byte)
+        }
+        return lambdaworks.FeltFromBeBytes(&bytes)
+    }
+    ```
+
+###### Calling the poseidon permutation function
+
+Now that we have our felt types defined we can move on to wrapping the poseidon permutation function. The `poseidon_permute_comp` from `starknet_crypto` receives a mutable state of three felts as an array. To reduce the complexity of our wrapper we will be receiving three felts in our C function.
+
+We will define the following function in our C header file:
+
+```C
+// Computes the poseidon hash permutation over a state of three felts
+void poseidon_permute(felt_t, felt_t, felt_t);
+```
+
+And we will implement it in the rust lib file, using the types and conversions we implemented earlier:
+
+```rust
+use starknet_crypto::{poseidon_permute_comp, FieldElement};
+
+#[no_mangle]
+extern "C" fn poseidon_permute(
+    first_state_felt: Bytes,
+    second_state_felt: Bytes,
+    third_state_felt: Bytes,
+) {
+    // Convert state from C representation to FieldElement
+    let mut state_array: [FieldElement; 3] = [
+        field_element_from_bytes(first_state_felt),
+        field_element_from_bytes(second_state_felt),
+        field_element_from_bytes(third_state_felt),
+    ];
+    // Call poseidon permute comp
+    poseidon_permute_comp(&mut state_array);
+    // Convert state from FieldElement back to C representation
+    bytes_from_field_element(state_array[0], first_state_felt);
+    bytes_from_field_element(state_array[1], second_state_felt);
+    bytes_from_field_element(state_array[2], third_state_felt);
+}
+```
+
+And with our lib ready, all that is left is to make a go wrapper with our felt conversion functions that calls the C function:
+
+```go
+func PoseidonPermuteComp(poseidon_state *[3]lambdaworks.Felt) {
+ state := *poseidon_state
+ // Convert args to c representation
+ first_state_felt := toC(state[0])
+ second_state_felt := toC(state[1])
+ third_state_felt := toC(state[2])
+
+ // Compute hash using starknet_crypto C wrapper
+ C.poseidon_permute(&first_state_felt[0], &second_state_felt[0], &third_state_felt[0])
+ // Convert result to Go representation
+ var new_poseidon_state = [3]lambdaworks.Felt{
+  fromC(first_state_felt),
+  fromC(second_state_felt),
+  fromC(third_state_felt),
+ }
+ // Update poseidon state
+ *poseidon_state = new_poseidon_state
+}
+```
+
+Now that we can call a simple poseidon permutation function we can start implementing our poseidon builtin runner!
+
+##### Implementing the PoseidonBuiltinRunner
+
+We will start by defining our `PoseidonBuiltinRunner` and adding it to our VM when creating a `CairoRunner`:
+
+It will contain it's base and a cache of values that we will use later to optimize our `DeduceMemoryCell` method. The included field indicates if a builtin is used by the program, is used in proof_mode, as all builtins have to be present by default, but for now we will always set the included field to true.
+
+```go
+type PoseidonBuiltinRunner struct {
+ base     memory.Relocatable
+ included bool
+ cache    map[memory.Relocatable]lambdaworks.Felt
+}
+
+func NewPoseidonBuiltinRunner(included bool) *PoseidonBuiltinRunner {
+ return &PoseidonBuiltinRunner{included: included, cache: make(map[memory.Relocatable]lambdaworks.Felt)}
+}
+```
+
+In order to store it as a `BuiltinRunner` we will have to implement the `BuiltinRunner` interface. Aside from `AddValidationRule` & `DeduceMemoryCell`, most builtins share the same behaviour in their methods, so we can just port them from the builtin runners we implemented before:
+
+```go
+
+const POSEIDON_BUILTIN_NAME = "poseidon"
+
+func (p *PoseidonBuiltinRunner) Base() memory.Relocatable {
+ return p.base
+}
+
+func (p *PoseidonBuiltinRunner) Name() string {
+ return POSEIDON_BUILTIN_NAME
+}
+
+func (p *PoseidonBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
+ p.base = segments.AddSegment()
+}
+
+func (p *PoseidonBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
+ if p.included {
+  return []memory.MaybeRelocatable{*memory.NewMaybeRelocatableRelocatable(p.base)}
+ } else {
+  return nil
+ }
+}
+```
+
+As the poseidon builtin doesn't have validation rules, the method will be left empty:
+
+```go
+func (p *PoseidonBuiltinRunner) AddValidationRule(*memory.Memory) {
+}
+```
+
+Now lets dive into the poseidon builtin's behaviour!
+
+The poseidon builtin memory is divided into instances of 6 cells, 3 input cells and 3 output cells. This means that whenever we want to deduce the value of an output cell, we will look for the input cells, compute the pedersen permutation over them, and write the permutated values to the output cells. As we only deduce the value of one output cell at a time, we will write the value of the output cells to a cache and use them the next time we have to deduce a memory cell so we avoid computing the poseidon hash more than once over the same input values
+
+We define the following constants to represent a poseidon instance:
+
+```go
+const POSEIDON_CELLS_PER_INSTANCE = 6
+const POSEIDON_INPUT_CELLS_PER_INSTANCE = 3
+```
+
+And we can implement `DeduceMemoryCell`:
+
+This method will first check if the cell is an input cell, if it's an input cell then there is nothing to deduce and it returns nil. Then it will check if there is a cached value for that cell and return it. If there is no cached value it will define the addresses of the first input and output cells, and fetch the values of the input cells. If any of the input cells is missing, or is not a felt value, it returns an error. Once it has the three input cells, it performs the poseidon permutation and inserts the permutated value into each output cell's address in the cache. It then returns the value stored in the cache for the address that the method received.
+
+```go
+func (p *PoseidonBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem *memory.Memory) (*memory.MaybeRelocatable, error) {
+ // Check if its an input cell
+ index := address.Offset % POSEIDON_CELLS_PER_INSTANCE
+ if index < POSEIDON_INPUT_CELLS_PER_INSTANCE {
+  return nil, nil
+ }
+
+ value, ok := p.cache[address]
+ if ok {
+  return memory.NewMaybeRelocatableFelt(value), nil
+ }
+
+ input_start_addr, _ := address.SubUint(index)
+ output_start_address := input_start_addr.AddUint(POSEIDON_INPUT_CELLS_PER_INSTANCE)
+
+ // Build the initial poseidon state
+ var poseidon_state [3]lambdaworks.Felt
+
+ for i := uint(0); i < POSEIDON_INPUT_CELLS_PER_INSTANCE; i++ {
+  felt, err := mem.GetFelt(input_start_addr.AddUint(i))
+  if err != nil {
+   return nil, err
+  }
+  poseidon_state[i] = felt
+ }
+
+ // Run the poseidon permutation
+ starknet_crypto.PoseidonPermuteComp(&poseidon_state)
+
+ // Insert the new state into the corresponding output cells in the cache
+ for i, elem := range poseidon_state {
+  p.cache[output_start_address.AddUint(uint(i))] = elem
+ }
+ return memory.NewMaybeRelocatableFelt(p.cache[address]), nil
+}
+```
+
+#### Pedersen
+
+TODO
+
+#### Ecdsa
+
+TODO
+
+#### Keccak
+
+TODO
+
+#### Bitwise
+
+TODO
+
+#### EcOp
+
+TODO
+
+#### SegmentArena
+
+TODO
 
 #### Hints
 
