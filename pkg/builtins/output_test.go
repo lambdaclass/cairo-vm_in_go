@@ -8,6 +8,14 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
+func TestOutputDeduceMemoryCell(t *testing.T) {
+	output := builtins.NewOutputBuiltinRunner(true)
+	a, b := output.DeduceMemoryCell(memory.NewRelocatable(0, 0), memory.NewMemory())
+	if a != nil || b != nil {
+		t.Errorf("DeduceMemoryCell should do nothing")
+	}
+}
+
 func TestOutputInitializeSegments(t *testing.T) {
 	mem_manager := memory.NewMemorySegmentManager()
 	output := builtins.NewOutputBuiltinRunner(true)
