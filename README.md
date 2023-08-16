@@ -2012,23 +2012,6 @@ TODO
 
 TODO
 
-#### Bitwise
-
-TODO
-
-#### EcOp
-
-TODO
-
-#### SegmentArena
-
-TODO
-
-#### Hints
-
-#### Implementing each builtin runner 
-
-
 ##### Bitwise builtin
 
 This builtin provides a way to work with the basic bit operations `and`, `or` and `xor`. It implements the basic builtin interface methods:
@@ -2140,3 +2123,18 @@ Finally `AddValidationRule` is empty in this case
 ``` go
 func (b *BitwiseBuiltinRunner) AddValidationRule(*memory.Memory) {}
 ```
+
+#### EcOp
+
+TODO
+
+#### SegmentArena
+
+TODO
+
+#### Hints
+
+#### Implementing each builtin runner 
+
+
+
