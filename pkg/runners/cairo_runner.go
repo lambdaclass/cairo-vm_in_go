@@ -31,6 +31,8 @@ func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 		switch builtin_name {
 		case builtins.POSEIDON_BUILTIN_NAME:
 			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewPoseidonBuiltinRunner(true))
+		case builtins.OUTPUT_BUILTIN_NAME:
+			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewOutputBuiltinRunner(true))
 		default:
 			return nil, errors.New("Invalid builtin")
 		}
