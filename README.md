@@ -2012,7 +2012,7 @@ TODO
 
 TODO
 
-##### Bitwise builtin
+#### Bitwise
 
 This builtin provides a way to work with the basic bit operations `and`, `or` and `xor`. It implements the basic builtin interface methods:
 
