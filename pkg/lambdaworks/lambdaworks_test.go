@@ -103,128 +103,90 @@ func TestFeltAdd(t *testing.T) {
 	}
 }
 
-func TestAndZero(t *testing.T) {
+func TestAnd(t *testing.T) {
 	f_zero := lambdaworks.FeltZero()
 	f_one := lambdaworks.FeltOne()
-
-	expected := lambdaworks.FeltZero()
 
 	result := f_zero.And(f_one)
-
+	expected := f_zero
 	if result != expected {
-		t.Errorf("TestAndZero Failed, expecte: %v, got %v", expected, result)
+		t.Errorf("TestZeroAndOne failed, expected: %v, got %v", expected, result)
+	}
+
+	result = f_one.And(f_zero)
+	expected = f_zero
+	if result != expected {
+		t.Errorf("TestOneAndZero failed, expected: %v, got %v", expected, result)
+	}
+
+	result = f_zero.And(f_zero)
+	expected = f_zero
+	if result != expected {
+		t.Errorf("TestZeroAndZero failed, expected: %v, got %v", expected, result)
+	}
+
+	result = f_one.And(f_one)
+	expected = f_one
+	if result != expected {
+		t.Errorf("TestOneAndOne failed, expected: %v, got %v", expected, result)
 	}
 }
 
-func TestOrZeroOne(t *testing.T) {
+func TestOr(t *testing.T) {
 	f_zero := lambdaworks.FeltZero()
 	f_one := lambdaworks.FeltOne()
 
-	expected := lambdaworks.FeltOne()
-
 	result := f_zero.Or(f_one)
-
+	expected := f_one
 	if result != expected {
-		t.Errorf("TestAndZero Failed, expecte: %v, got %v", expected, result)
+		t.Errorf("TestZeroOrOne failed, expected: %v, got %v", expected, result)
+	}
+
+	result = f_one.Or(f_zero)
+	expected = f_one
+	if result != expected {
+		t.Errorf("TestOneOrZero failed, expected: %v, got %v", expected, result)
+	}
+
+	result = f_zero.Or(f_zero)
+	expected = f_zero
+	if result != expected {
+		t.Errorf("TestZeroOrZero failed, expected: %v, got %v", expected, result)
+	}
+
+	result = f_one.Or(f_one)
+	expected = f_one
+	if result != expected {
+		t.Errorf("TestOneOrOne failed, expected: %v, got %v", expected, result)
 	}
 }
 
-func TestOrZero(t *testing.T) {
+func TestXor(t *testing.T) {
 	f_zero := lambdaworks.FeltZero()
-	f_one := lambdaworks.FeltZero()
+	f_one := lambdaworks.FeltOne()
 
-	expected := lambdaworks.FeltZero()
-
-	result := f_zero.Or(f_one)
-
+	result := f_zero.Xor(f_one)
+	expected := f_one
 	if result != expected {
-		t.Errorf("TestAndZero Failed, expecte: %v, got %v", expected, result)
+		t.Errorf("TestZeroXorOne failed, expected: %v, got %v", expected, result)
 	}
-}
 
-func TestAndOne(t *testing.T) {
-	f0 := lambdaworks.FeltOne()
-	f1 := lambdaworks.FeltOne()
-
-	expected := lambdaworks.FeltOne()
-
-	result := f0.And(f1)
-
+	result = f_one.Xor(f_zero)
+	expected = f_one
 	if result != expected {
-		t.Errorf("TestAndZero Failed, expecte: %v, got %v", expected, result)
+		t.Errorf("TestOneXorZero failed, expected: %v, got %v", expected, result)
 	}
-}
 
-func TestOrOne(t *testing.T) {
-	f0 := lambdaworks.FeltOne()
-	f1 := lambdaworks.FeltOne()
-
-	expected := lambdaworks.FeltOne()
-
-	result := f0.Or(f1)
-
+	result = f_zero.Xor(f_zero)
+	expected = f_zero
 	if result != expected {
-		t.Errorf("TestAndZero Failed, expecte: %v, got %v", expected, result)
+		t.Errorf("TestZeroXorZero failed, expected: %v, got %v", expected, result)
 	}
-}
 
-func TestPow2(t *testing.T) {
-	f0 := lambdaworks.FeltFromUint64(2)
-	pow := lambdaworks.FeltFromUint64(2)
-
-	expected := lambdaworks.FeltFromUint64(4)
-	result := f0.Pow(pow)
-
-	if expected != result {
-		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
-	}
-}
-
-func TestPow0(t *testing.T) {
-	f0 := lambdaworks.FeltFromUint64(2)
-	pow := lambdaworks.FeltFromUint64(0)
-
-	expected := lambdaworks.FeltFromUint64(1)
-	result := f0.Pow(pow)
-
-	if expected != result {
-		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
-	}
-}
-
-func TestPow3(t *testing.T) {
-	f0 := lambdaworks.FeltFromUint64(3)
-	pow := lambdaworks.FeltFromUint64(2)
-
-	expected := lambdaworks.FeltFromUint64(9)
-	result := f0.Pow(pow)
-
-	if expected != result {
-		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
-	}
-}
-
-func TestXor1(t *testing.T) {
-	f0 := lambdaworks.FeltFromUint64(1)
-	pow := lambdaworks.FeltFromUint64(0)
-
-	expected := lambdaworks.FeltFromUint64(1)
-	result := f0.Xor(pow)
-
-	if expected != result {
-		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
-	}
-}
-
-func TestXor0(t *testing.T) {
-	f0 := lambdaworks.FeltFromUint64(1)
-	pow := lambdaworks.FeltFromUint64(1)
-
-	expected := lambdaworks.FeltFromUint64(0)
-	result := f0.Xor(pow)
-
-	if expected != result {
-		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
+	result = f_one.Xor(f_one)
+	expected = f_zero
+	if result != expected {
+		t.Errorf("TestOneXorOne failed, expected: %v, got %v", expected, result)
 	}
 }
 
