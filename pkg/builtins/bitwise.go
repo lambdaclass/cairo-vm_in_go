@@ -1,4 +1,4 @@
-package builtinrunner
+package builtins
 
 import (
 	"errors"
@@ -48,10 +48,7 @@ func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segm
 	}
 
 	x_addr := memory.NewRelocatable(address.SegmentIndex, address.Offset-index)
-	y_addr, err := (x_addr.AddUint(1))
-	if err != nil {
-		return nil, err
-	}
+	y_addr := x_addr.AddUint(1)
 	num_x, err := segments.Get(x_addr)
 	if err != nil {
 
