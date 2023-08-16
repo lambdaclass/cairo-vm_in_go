@@ -30,7 +30,7 @@ func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 	runner := CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
 	for _, builtin_name := range program.Builtins {
 		switch builtin_name {
-		case "bitwise":
+		case builtins.BITWISE_BUILTIN_NAME:
 			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtinrunner.NewBitwiseBuiltinRunner(true))
 		case builtins.POSEIDON_BUILTIN_NAME:
 			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewPoseidonBuiltinRunner(true))
