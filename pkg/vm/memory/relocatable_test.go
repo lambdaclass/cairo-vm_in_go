@@ -64,6 +64,15 @@ func TestRelocatableIsNotEqual(t *testing.T) {
 	}
 }
 
+func TestRelocatableAddUint(t *testing.T) {
+	rel := memory.Relocatable{2, 4}
+	res := rel.AddUint(24)
+	expected := memory.Relocatable{2, 28}
+	if res != expected {
+		t.Errorf("got wrong value from Relocatable.AddUint, expected: %v, got: %v", expected, res)
+	}
+}
+
 func TestRelocatableSubOk(t *testing.T) {
 	a := memory.Relocatable{1, 7}
 	b := memory.Relocatable{1, 5}
