@@ -1,9 +1,8 @@
 package builtins
 
 import (
-	"errors"
-
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+	"github.com/pkg/errors"
 )
 
 const BITWISE_BUILTIN_NAME = "bitwise"
@@ -14,6 +13,10 @@ const BIWISE_INPUT_CELLS_PER_INSTANCE = 2
 type BitwiseBuiltinRunner struct {
 	base     memory.Relocatable
 	included bool
+}
+
+func BitwiseError(err error) error {
+	return errors.Wrapf(err, "Bitwise builtin error")
 }
 
 func NewBitwiseBuiltinRunner(included bool) *BitwiseBuiltinRunner {
@@ -48,18 +51,21 @@ func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segm
 		return nil, nil
 	}
 
-	x_addr := memory.NewRelocatable(address.SegmentIndex, address.Offset-index)
-	y_addr := x_addr.AddUint(1)
-	num_x, err := segments.Get(x_addr)
+	x_addr, err := address.SubUint(index)
 	if err != nil {
-
-		return nil, err
+		return nil, BitwiseError(err)
 	}
 
+	num_x, err := segments.Get(x_addr)
+	if err != nil {
+		return nil, BitwiseError(err)
+	}
+
+	y_addr := x_addr.AddUint(1)
 	num_y, err := segments.Get(y_addr)
 	if err != nil {
 
-		return nil, err
+		return nil, BitwiseError(err)
 	}
 
 	num_x_felt, x_is_felt := num_x.GetFelt()
