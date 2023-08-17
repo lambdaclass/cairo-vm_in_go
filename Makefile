@@ -71,16 +71,16 @@ clean:
 	rm -f $(TEST_DIR)/*.memory
 	rm -f $(TEST_DIR)/*.trace
 	cd pkg/lambdaworks/lib/lambdaworks && cargo clean
-	rm -f pkg/lambdaworks/lib/liblambdaworks.a
+	rm pkg/lambdaworks/lib/liblambdaworks.a
 	cd pkg/starknet_crypto/lib/starknet_crypto && cargo clean
-	rm -f pkg/starknet_crypto/lib/libstarknet_crypto.a
+	rm pkg/starknet_crypto/lib/libstarknet_crypto.a
 	rm -rf cairo-vm
 	rm -r cairo-vm-env
 
 clean_files:
-	rm -rf $(TEST_DIR)/*.json
-	rm -rf $(TEST_DIR)/*.memory
-	rm -rf $(TEST_DIR)/*.trace
+	rm -f $(TEST_DIR)/*.json
+	rm -f $(TEST_DIR)/*.memory
+	rm -f $(TEST_DIR)/*.trace
 
 demo_fibonacci: clean_files build_cairo_vm_cli build
 	@echo "Compiling fibonacci program..."

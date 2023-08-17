@@ -31,14 +31,6 @@ func ConversionError(felt Felt, targetType string) error {
 	return LambdaworksError(errors.Errorf("Cannot convert felt: %d to %s", felt, targetType))
 }
 
-func LambdaworksError(err error) error {
-	return errors.Wrapf(err, "Lambdaworks Error")
-}
-
-func ConversionError(felt Felt, targetType string) error {
-	return LambdaworksError(errors.Errorf("Cannot convert felt: %d to %s", felt, targetType))
-}
-
 // Converts a Go Felt to a C felt_t.
 func (f Felt) toC() C.felt_t {
 	var result C.felt_t
