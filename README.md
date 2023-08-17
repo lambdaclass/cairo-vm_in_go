@@ -2076,7 +2076,7 @@ func (r *RangeCheckBuiltinRunner) Name() string {
 }
 ```
 
-For the `InitializeSegments` we just add a segment to the memory and store in the base attribute, the first adress of the segment. 
+For the `InitializeSegments` we just add a segment to the memory and store in the base attribute, the first address of the segment. 
 
 ```go
 func (r *RangeCheckBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
@@ -2106,13 +2106,13 @@ func (r *RangeCheckBuiltinRunner) DeduceMemoryCell(addr memory.Relocatable, mem 
 
 And finally we have the `AddValidationRule` and the `ValidationRule` methods.
 
-*AddValidationRule* 
+###### AddValidationRule
 
 Receives the memory and adds to it a new validation rule for the builtin segment. 
 
-*ValidationRule*
+###### ValidationRule
 
-Receives the memory and an adress and it checks multiple things. First checks if the value in that address is a `felt` and then if it's inside the range. To do so, it checks that the necessary number of bits for representing the felt is not greater than the bits for representing the upper bound of the range. If it fits in this range, it returns an `Relocatable` array with the address appended. Otherwise returns error. 
+Receives the memory and an address and it checks if the value in that address is a `felt` and then if it's inside the range. To do so, it checks that the necessary number of bits for representing the felt is not greater than the bits for representing the upper bound of the range. If it fits in this range, it returns an `Relocatable` array with the address appended. Otherwise returns error. 
 
 ```go 
 func ValidationRule(mem *memory.Memory, address memory.Relocatable) ([]memory.Relocatable, error) {
