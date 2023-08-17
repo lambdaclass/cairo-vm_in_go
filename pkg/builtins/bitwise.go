@@ -50,24 +50,20 @@ func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segm
 	if index < BIWISE_INPUT_CELLS_PER_INSTANCE {
 		return nil, nil
 	}
-
 	x_addr, err := address.SubUint(index)
 	if err != nil {
 		return nil, BitwiseError(err)
 	}
-
 	num_x, err := segments.Get(x_addr)
 	if err != nil {
 		return nil, BitwiseError(err)
 	}
-
 	y_addr := x_addr.AddUint(1)
 	num_y, err := segments.Get(y_addr)
 	if err != nil {
 
 		return nil, BitwiseError(err)
 	}
-
 	num_x_felt, x_is_felt := num_x.GetFelt()
 	num_y_felt, y_is_felt := num_y.GetFelt()
 
@@ -78,7 +74,6 @@ func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segm
 		if num_y_felt.Bits() > BITWISE_TOTAL_N_BITS {
 			return nil, errors.New("Expected Intenger y to be smaller than 2^(total_n_bits)")
 		}
-
 		var res *memory.MaybeRelocatable
 		switch index {
 		case 2:
@@ -92,7 +87,6 @@ func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segm
 		}
 		return res, nil
 	}
-
 	return nil, nil
 }
 

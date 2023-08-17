@@ -12,7 +12,6 @@ import (
 func TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd(t *testing.T) {
 	mem := memory.NewMemorySegmentManager()
 	mem.AddSegment()
-
 	mem.Memory.Insert(memory.NewRelocatable(0, 5), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(10)))
 	mem.Memory.Insert(memory.NewRelocatable(0, 6), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(12)))
 	mem.Memory.Insert(memory.NewRelocatable(0, 7), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0)))
@@ -22,11 +21,10 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd(t *testing.T) {
 	address := memory.NewRelocatable(0, 7)
 
 	result, err := builtin.DeduceMemoryCell(address, &mem.Memory)
-	expected := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(8))
-
 	if err != nil {
-		t.Errorf("%v", err)
+		t.Errorf("Test failed with error: %v", err)
 	}
+	expected := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(8))
 
 	if *result != *expected {
 		t.Errorf("TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd Failed, expected %v, got %v", expected, result)
