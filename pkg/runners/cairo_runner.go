@@ -22,7 +22,7 @@ type CairoRunner struct {
 }
 
 func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
-	mainIdentifier, ok := (*program.Identifiers)["__main__.main"]
+	mainIdentifier, ok := (program.Identifiers)["__main__.main"]
 	main_offset := uint(0)
 	if ok {
 		main_offset = uint(mainIdentifier.PC)

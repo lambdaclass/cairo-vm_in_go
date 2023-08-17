@@ -159,6 +159,6 @@ func TestIntegrationBitwise(t *testing.T) {
 	t.Helper()
 	_, err := cairo_run.CairoRun("../../cairo_programs/bitwise_builtin_test.json")
 	if err != nil {
-		t.Errorf("fail to create cairo runner with error: %v", err)
+		t.Errorf("Test failed with error: %v", err)
 	}
 }

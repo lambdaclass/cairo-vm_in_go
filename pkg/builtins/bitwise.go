@@ -16,7 +16,7 @@ type BitwiseBuiltinRunner struct {
 }
 
 func BitwiseError(err error) error {
-	return errors.Wrapf(err, "Bitwise builtin error")
+	return errors.Wrapf(err, "Bitwise builtin error\n")
 }
 
 func NewBitwiseBuiltinRunner(included bool) *BitwiseBuiltinRunner {
