@@ -32,7 +32,6 @@ deps:
 	PYENV_VERSION=3.9.15 python -m venv cairo-vm-env
 	. cairo-vm-env/bin/activate ; \
 	pip install -r requirements.txt ; \
-	go get code.google.com/p/go.tools/cmd/cover
 
 # Creates a pyenv and installs cairo-lang
 deps-macos:
@@ -41,7 +40,6 @@ deps-macos:
 	PYENV_VERSION=3.9.15 python -m venv cairo-vm-env
 	. cairo-vm-env/bin/activate ; \
 	CFLAGS=-I/opt/homebrew/opt/gmp/include LDFLAGS=-L/opt/homebrew/opt/gmp/lib pip install -r requirements.txt ; \
-	go get code.google.com/p/go.tools/cmd/cover
 
 run:
 	@go run cmd/cli/main.go
@@ -73,16 +71,16 @@ clean:
 	rm -f $(TEST_DIR)/*.memory
 	rm -f $(TEST_DIR)/*.trace
 	cd pkg/lambdaworks/lib/lambdaworks && cargo clean
-	rm pkg/lambdaworks/lib/liblambdaworks.a
+	rm -f pkg/lambdaworks/lib/liblambdaworks.a
 	cd pkg/starknet_crypto/lib/starknet_crypto && cargo clean
-	rm pkg/starknet_crypto/lib/libstarknet_crypto.a
+	rm -f pkg/starknet_crypto/lib/libstarknet_crypto.a
 	rm -rf cairo-vm
 	rm -r cairo-vm-env
 
 clean_files:
-	rm -f $(TEST_DIR)/*.json
-	rm -f $(TEST_DIR)/*.memory
-	rm -f $(TEST_DIR)/*.trace
+	rm -rf $(TEST_DIR)/*.json
+	rm -rf $(TEST_DIR)/*.memory
+	rm -rf $(TEST_DIR)/*.trace
 
 demo_fibonacci: clean_files build_cairo_vm_cli build
 	@echo "Compiling fibonacci program..."

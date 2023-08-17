@@ -298,8 +298,6 @@ The input of the Virtual Machine is a compiled Cairo program in Json format. The
 - **prime:** The cairo prime in hexadecimal format. As explained above, all arithmetic operations are done over a base field, modulo this primer number.
 - **reference_manager:** Contains information about cairo variables. This information is useful to access to variables when executing cairo hints.
 
-In this project, we use a C++ library called [simdjson](https://github.com/simdjson/simdjson), the json is stored in a custom structure  which the vm can use to run the program and create a trace of its execution.
-
 ### Code walkthrough/Write your own Cairo VM
 
 Let's begin by creating the basic types and structures for our VM:
@@ -649,12 +647,406 @@ To begin coding the basic execution functionality of our VM, we only need these 
 
 #### Instruction Decoding and Execution
 
-[TODO for Execution: Introduction, ComputeOperands]
+Cairo program execution is divided into steps, and in turn each step is divided into:
+  1. Instruction decoding
+  2. Instruction execution
 
-#### Run instruction
+##### Step 
+
+This method is the organizer of the execution of each instruction, it orchestrates them and handles the possible errors. 
+
+The first thing it does is to obtain the instruction we want to run, it does that by getting the value on memory where the current pc is pointing. We know that the instruction has to be a felt, if it is not, then there is an error with the encoding of the instruction. 
+Once we retrieve the felt we have the `encoded instruction`, we need to decode it to get the fields from its bits representation. Felt is not useful anymore so we will get its integer representation. 
+Now it's time to decode the instruction and then run the `decoded instruction`.
+
 
 ```go
-    //TODO
+func (v *VirtualMachine) Step() error {
+	encoded_instruction, err := v.Segments.Memory.Get(v.RunContext.Pc)
+	if err != nil {
+		return fmt.Errorf("Failed to fetch instruction at %+v", v.RunContext.Pc)
+	}
+
+	encoded_instruction_felt, ok := encoded_instruction.GetFelt()
+	if !ok {
+		return errors.New("Wrong instruction encoding")
+	}
+
+	encoded_instruction_uint, err := encoded_instruction_felt.ToU64()
+	if err != nil {
+		return err
+	}
+
+	instruction, err := DecodeInstruction(encoded_instruction_uint)
+	if err != nil {
+		return err
+	}
+
+	return v.RunInstruction(&instruction)
+}
+```
+
+##### Decode instruction 
+
+```go
+//  Structure of the 63-bit that form the first word of each instruction.
+//  See Cairo whitepaper, page 32 - https://eprint.iacr.org/2021/1063.pdf.
+// ┌─────────────────────────────────────────────────────────────────────────┐
+// │                     off_dst (biased representation)                     │
+// ├─────────────────────────────────────────────────────────────────────────┤
+// │                     off_op0 (biased representation)                     │
+// ├─────────────────────────────────────────────────────────────────────────┤
+// │                     off_op1 (biased representation)                     │
+// ├─────┬─────┬───────┬───────┬───────────┬────────┬───────────────────┬────┤
+// │ dst │ op0 │  op1  │  res  │    pc     │   ap   │      opcode       │ 0  │
+// │ reg │ reg │  src  │ logic │  update   │ update │                   │    │
+// ├─────┼─────┼───┬───┼───┬───┼───┬───┬───┼───┬────┼────┬────┬────┬────┼────┤
+// │  0  │  1  │ 2 │ 3 │ 4 │ 5 │ 6 │ 7 │ 8 │ 9 │ 10 │ 11 │ 12 │ 13 │ 14 │ 15 │
+// └─────┴─────┴───┴───┴───┴───┴───┴───┴───┴───┴────┴────┴────┴────┴────┴────┘
+```
+
+As we can see in the chart above, all the information we need is present on the bits representation of the instruction. The first thing to do is create a structure that stores it. 
+
+```go 
+type Instruction struct {
+	Off0     int
+	Off1     int
+	Off2     int
+	DstReg   Register
+	Op0Reg   Register
+	Op1Addr  Op1Src
+	ResLogic ResLogic
+	PcUpdate PcUpdate
+	ApUpdate ApUpdate
+	FpUpdate FpUpdate
+	Opcode   Opcode
+}
+```
+
+And the good thing about this is that every combination of bits for each field is known, so we can code all the possible flags to work with. These flags are represented below. 
+
+The off0, off1, and off2 values are used to compute the address of the dst, op0 and op1 respectively.
+For example, if the DstReg is AP and Off0 is -1, then we can compute the dst address by substracting one from the current value of ap.
+
+There's two possible registers, ap and fp. The ap register (address pointer register) keeps track of memory addresses for data access. The fp register (frame pointer register) manages function call stack frames, local variables and parameter access.
+
+```go 
+type Register uint
+
+const (
+	AP Register = 0
+	FP Register = 1
+)
+```
+
+The Op1Src constants define sources for an operation, including immediate values, registers (ap, fp), and an operation result.
+
+```go
+type Op1Src uint
+
+const (
+	Op1SrcImm Op1Src = 0
+	Op1SrcAP  Op1Src = 1
+	Op1SrcFP  Op1Src = 2
+	Op1SrcOp0 Op1Src = 4
+)
+```
+The ResLogic constants represent different types of results in a program, including operation results, addition, multiplication, and unconstrained values.
+
+```go
+type ResLogic uint
+
+const (
+	ResOp1           ResLogic = 0
+	ResAdd           ResLogic = 1
+	ResMul           ResLogic = 2
+	ResUnconstrained ResLogic = 3
+)
+```
+
+The PcUpdate constants define different ways to update the program counter, including regular updates, jumps, relative jumps, and conditional jumps (jump if not zero).
+
+```go
+type PcUpdate uint
+
+const (
+	PcUpdateRegular PcUpdate = 0
+	PcUpdateJump    PcUpdate = 1
+	PcUpdateJumpRel PcUpdate = 2
+	PcUpdateJnz     PcUpdate = 3
+)
+```
+
+The ApUpdate constants represent various ways of updating an address pointer, including regular updates, and different addition types.
+
+```go
+type ApUpdate uint
+
+const (
+	ApUpdateRegular ApUpdate = 0
+	ApUpdateAdd     ApUpdate = 1
+	ApUpdateAdd1    ApUpdate = 2
+	ApUpdateAdd2    ApUpdate = 3
+)
+```
+
+The FpUpdate constants define different ways of updating the frame pointer, including regular updates, addition with a specific offset, and destination updates.
+
+```go
+type FpUpdate uint
+
+const (
+	FpUpdateRegular FpUpdate = 0
+	FpUpdateAPPlus2 FpUpdate = 1
+	FpUpdateDst     FpUpdate = 2
+)
+```
+
+The Opcode constants represent different types of operations or instructions, including no operation, assertion checks, function calls, and returns.
+
+```go
+type Opcode uint
+
+const (
+	NOp      Opcode = 0
+	AssertEq Opcode = 1
+	Call     Opcode = 2
+	Ret      Opcode = 4
+)
+```
+
+Now, once everything is set up, we only have to retrive each field by getting its representative bits. We do that, creating different bitmasks to just get the value. 
+
+1. Constants and Masks:
+    The method starts by defining constants and masks for various fields and properties of the instruction. These constants are used to extract specific bits from the encoded instruction and decode them into meaningful values. For instance, the HighBit constant represents the highest bit (bit 63) of the instruction, and various other masks are defined to extract different fields like destination register, opcode, update types, etc.
+
+    ```go
+    func DecodeInstruction(encodedInstruction uint64) (Instruction, error) {
+        const HighBit uint64 = 1 << 63
+        const DstRegMask uint64 = 0x0001
+        const DstRegOff uint64 = 0
+        const Op0RegMask uint64 = 0x0002
+        const Op0RegOff uint64 = 1
+        const Op1SrcMask uint64 = 0x001C
+        const Op1SrcOff uint64 = 2
+        const ResLogicMask uint64 = 0x0060
+        const ResLogicOff uint64 = 5
+        const PcUpdateMask uint64 = 0x0380
+        const PcUpdateOff uint64 = 7
+        const ApUpdateMask uint64 = 0x0C00
+        const ApUpdateOff uint64 = 10
+        const OpcodeMask uint64 = 0x7000
+        const OpcodeOff uint64 = 12
+    ```
+
+2. Checking High Bit:
+    The first check in the method is whether the highest bit (bit 63) of the encoded instruction is set to zero. If it's not zero, this indicates an error, and the function returns an ErrNonZeroHighBitError.
+
+    ```go
+    if encodedInstruction&HighBit != 0 {
+		return Instruction{}, ErrNonZeroHighBitError
+	}
+    ```
+
+3. Extracting Offsets:
+    The method extracts three offsets from the encoded instruction. These offsets represent memory addresses used in the instruction. They are extracted using bitwise operations and masks to get the lower 16 bits of three different sections of the instruction.
+
+    ```go
+    var offset0 = fromBiasedRepresentation((encodedInstruction) & 0xFFFF)
+    var offset1 = fromBiasedRepresentation((encodedInstruction >> 16) & 0xFFFF)
+    var offset2 = fromBiasedRepresentation((encodedInstruction >> 32) & 0xFFFF)
+
+    -----------------------------------------------------------------------------------------
+    func fromBiasedRepresentation(offset uint64) int {
+        var bias uint16 = 1 << 15
+        return int(int16(uint16(offset) - bias))    
+    }
+    ```
+
+4. Extracting Flags:
+    The next step is to extract the flag section of the encoded instruction, which holds information about registers, sources, updates, and opcodes. This flag section is extracted using a bit shift to the right by 48 positions (which discards the lower 48 bits).
+    
+    ```go
+    var flags = encodedInstruction >> 48
+    ```
+
+5. Decoding Fields:
+    Using the extracted flag section, the method decodes various fields like destination register, op0 register, op1 source, result logic, pc update, ap update, and opcode. These fields are decoded by extracting specific bits from the flag section and mapping them to their corresponding enum values.
+
+    ```go 
+	var dstRegNum = (flags & DstRegMask) >> DstRegOff
+	var op0RegNum = (flags & Op0RegMask) >> Op0RegOff
+	var op1SrcNum = (flags & Op1SrcMask) >> Op1SrcOff
+	var resLogicNum = (flags & ResLogicMask) >> ResLogicOff
+	var pcUpdateNum = (flags & PcUpdateMask) >> PcUpdateOff
+	var apUpdateNum = (flags & ApUpdateMask) >> ApUpdateOff
+	var opCodeNum = (flags & OpcodeMask) >> OpcodeOff
+
+	var dstRegister Register
+	var op0Register Register
+	var op1Src Op1Src
+	var pcUpdate PcUpdate
+	var res ResLogic
+	var opcode Opcode
+	var apUpdate ApUpdate
+	var fpUpdate FpUpdate
+
+	if dstRegNum == 1 {
+		dstRegister = FP
+	} else {
+		dstRegister = AP
+	}
+
+	if op0RegNum == 1 {
+		op0Register = FP
+	} else {
+		op0Register = AP
+	}
+
+	switch op1SrcNum {
+        case 0:
+            op1Src = Op1SrcOp0
+        case 1:
+            op1Src = Op1SrcImm
+        case 2:
+            op1Src = Op1SrcFP
+        case 4:
+            op1Src = Op1SrcAP
+        default:
+            return Instruction{}, ErrInvalidOp1RegError
+	}
+
+	switch pcUpdateNum {
+        case 0:
+            pcUpdate = PcUpdateRegular
+        case 1:
+            pcUpdate = PcUpdateJump
+        case 2:
+            pcUpdate = PcUpdateJumpRel
+        case 4:
+            pcUpdate = PcUpdateJnz
+        default:
+            return Instruction{}, ErrInvalidPcUpdateError
+	}
+
+	switch resLogicNum {
+        case 0:
+            if pcUpdate == PcUpdateJnz {
+                res = ResUnconstrained
+            } else {
+                res = ResOp1
+            }
+        case 1:
+            res = ResAdd
+        case 2:
+            res = ResMul
+        default:
+            return Instruction{}, ErrInvalidResError
+	}
+
+	switch opCodeNum {
+        case 0:
+            opcode = NOp
+        case 1:
+            opcode = Call
+        case 2:
+            opcode = Ret
+        case 4:
+            opcode = AssertEq
+        default:
+            return Instruction{}, ErrInvalidOpcodeError
+	}
+
+	switch apUpdateNum {
+        case 0:
+            if opcode == Call {
+                apUpdate = ApUpdateAdd2
+            } else {
+                apUpdate = ApUpdateRegular
+            }
+        case 1:
+            apUpdate = ApUpdateAdd
+        case 2:
+            apUpdate = ApUpdateAdd1
+        default:
+            return Instruction{}, ErrInvalidApUpdateError
+	}
+
+	switch opcode {
+        case Call:
+            fpUpdate = FpUpdateAPPlus2
+        case Ret:
+            fpUpdate = FpUpdateDst
+        default:
+            fpUpdate = FpUpdateRegular
+	}
+    ```
+    
+6. Creating the Instruction and Returning the Result:
+    With all the necessary information extracted and decoded, the method constructs an Instruction object by assigning the decoded values to its fields and returns the created Instruction object along with a nil error if the decoding process is successful.
+
+    ```go 
+    return Instruction{
+		Off0:     offset0,
+		Off1:     offset1,
+		Off2:     offset2,
+		DstReg:   dstRegister,
+		Op0Reg:   op0Register,
+		Op1Addr:  op1Src,
+		ResLogic: res,
+		PcUpdate: pcUpdate,
+		ApUpdate: apUpdate,
+		FpUpdate: fpUpdate,
+		Opcode:   opcode,
+	}, nil
+    ```
+
+7. Error Handling:
+    If at any point during the decoding process, an unexpected value is encountered or the input doesn't conform to the expected pattern, the method returns an appropriate error. These errors include cases like invalid op1 register, invalid pc update, invalid result logic, invalid opcode, etc.
+
+    ```go
+    var ErrNonZeroHighBitError = errors.New("Instruction high bit was not set to zero")
+    var ErrInvalidOp1RegError = errors.New("Instruction had invalid Op1 Register")
+    var ErrInvalidPcUpdateError = errors.New("Instruction had invalid Pc update")
+    var ErrInvalidResError = errors.New("Instruction had an invalid res")
+    var ErrInvalidOpcodeError = errors.New("Instruction had an invalid opcode")
+    var ErrInvalidApUpdateError = errors.New("Instruction had an invalid Ap Update")
+    ```
+
+##### Run instruction
+
+At this point, we have all the information we need from the instruction. Let's run it! 
+
+There are 5 steps to run an instruction, they will be explained in detail later.
+
+    1. Compute the operands of the instruction
+    2. Assert the correctness of the operands
+    3. Add the context's register state to the trace 
+    4. Update registers
+    5. Add one to the current step
+
+```go
+func (v *VirtualMachine) RunInstruction(instruction *Instruction) error {
+	operands, err := v.ComputeOperands(*instruction)
+	if err != nil {
+		return err
+	}
+
+	err = v.OpcodeAssertions(*instruction, operands)
+	if err != nil {
+		return err
+	}
+
+	v.Trace = append(v.Trace, TraceEntry{Pc: v.RunContext.Pc, Ap: v.RunContext.Ap, Fp: v.RunContext.Fp})
+
+	err = v.UpdateRegisters(instruction, &operands)
+	if err != nil {
+		return err
+	}
+
+	v.CurrentStep++
+	return nil
+}
 ```
 
 #### Compute operands
@@ -1139,8 +1531,6 @@ func (vm *VirtualMachine) UpdateAp(instruction *Instruction, operands *Operands)
     return nil
 }
 ```
-
-[TODO for Execution: Opcode Assertions, Run Instruction]
 
 ### CairoRunner
 

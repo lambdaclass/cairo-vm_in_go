@@ -179,15 +179,68 @@ func TestBits(t *testing.T) {
 	}
 	f_eight := lambdaworks.FeltFromUint64(8)
 	if f_eight.Bits() != 4 {
-		t.Errorf("TestBits failed. Expected: %d, Got: %d", 1, f_eight.Bits())
+		t.Errorf("TestBits failed. Expected: %d, Got: %d", 4, f_eight.Bits())
 	}
 	f_fifteen := lambdaworks.FeltFromUint64(15)
 	if f_fifteen.Bits() != 4 {
-		t.Errorf("TestBits failed. Expected: %d, Got: %d", 1, f_fifteen.Bits())
+		t.Errorf("TestBits failed. Expected: %d, Got: %d", 4, f_fifteen.Bits())
 	}
 
 	f_neg_one := lambdaworks.FeltFromDecString("-1")
 	if f_neg_one.Bits() != 252 {
-		t.Errorf("TestBits failed. Expected: %d, Got: %d", 1, f_neg_one.Bits())
+		t.Errorf("TestBits failed. Expected: %d, Got: %d", 252, f_neg_one.Bits())
+	}
+}
+
+func TestToU641(t *testing.T) {
+	felt := lambdaworks.FeltOne()
+	result, err := felt.ToU64()
+
+	var expected uint64 = 1
+
+	if expected != result {
+		t.Errorf("Error in conversion expected: %v, got %v with err: %v", expected, result, err)
+	}
+
+}
+
+func TestToU6410230(t *testing.T) {
+	felt := lambdaworks.FeltFromUint64(10230)
+	result, err := felt.ToU64()
+
+	var expected uint64 = 10230
+
+	if expected != result {
+		t.Errorf("Error in conversion expected: %v, got %v with err: %v", expected, result, err)
+	}
+}
+
+func TestToU64Fail(t *testing.T) {
+	felt := lambdaworks.FeltFromDecString("9999999999999999999999999")
+
+	_, err := felt.ToU64()
+	expected_err := lambdaworks.ConversionError(felt, "u64")
+
+	if err.Error() != expected_err.Error() {
+		t.Errorf("Conversion test should fail with error: %v", expected_err)
+	}
+}
+func TestFeltIsZero(t *testing.T) {
+	f_zero := lambdaworks.FeltZero()
+
+	is_zero := f_zero.IsZero()
+
+	if !is_zero {
+		t.Errorf("TestFeltIsZero failed. Expected true, Got: %v", is_zero)
+	}
+}
+
+func TestFeltIsNotZero(t *testing.T) {
+	f_one := lambdaworks.FeltOne()
+
+	is_zero := f_one.IsZero()
+
+	if is_zero {
+		t.Errorf("TestFeltIsNotZero failed. Expected false, Got: %v", is_zero)
 	}
 }
