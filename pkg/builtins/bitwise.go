@@ -1,6 +1,9 @@
 package builtins
 
 import (
+	"math"
+
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	"github.com/pkg/errors"
 )
@@ -17,6 +20,11 @@ type BitwiseBuiltinRunner struct {
 
 func BitwiseError(err error) error {
 	return errors.Wrapf(err, "Bitwise builtin error\n")
+}
+
+func ErrFeltBiggerThanPowerOfTwo(felt lambdaworks.Felt, exponent uint) error {
+	upperBound := uint64(math.Pow(2, float64(exponent)))
+	return BitwiseError(errors.Errorf("Expected felt %d to be smaller than %d", felt, upperBound))
 }
 
 func NewBitwiseBuiltinRunner(included bool) *BitwiseBuiltinRunner {
@@ -50,6 +58,7 @@ func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segm
 	if index < BIWISE_INPUT_CELLS_PER_INSTANCE {
 		return nil, nil
 	}
+
 	x_addr, err := address.SubUint(index)
 	if err != nil {
 		return nil, BitwiseError(err)
@@ -58,22 +67,24 @@ func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segm
 	if err != nil {
 		return nil, BitwiseError(err)
 	}
+
 	y_addr := x_addr.AddUint(1)
 	num_y, err := segments.Get(y_addr)
 	if err != nil {
-
 		return nil, BitwiseError(err)
 	}
+
 	num_x_felt, x_is_felt := num_x.GetFelt()
 	num_y_felt, y_is_felt := num_y.GetFelt()
 
 	if x_is_felt && y_is_felt {
 		if num_x_felt.Bits() > BITWISE_TOTAL_N_BITS {
-			return nil, errors.New("Expected Intenger x to be smaller than 2^(total_n_bits)")
+			return nil, ErrFeltBiggerThanPowerOfTwo(num_x_felt, BITWISE_TOTAL_N_BITS)
 		}
 		if num_y_felt.Bits() > BITWISE_TOTAL_N_BITS {
-			return nil, errors.New("Expected Intenger y to be smaller than 2^(total_n_bits)")
+			return nil, ErrFeltBiggerThanPowerOfTwo(num_y_felt, BITWISE_TOTAL_N_BITS)
 		}
+
 		var res *memory.MaybeRelocatable
 		switch index {
 		case 2:
