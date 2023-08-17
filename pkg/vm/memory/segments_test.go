@@ -128,6 +128,14 @@ func TestGetSegmentUsedSizeBeforeComputingUsed(t *testing.T) {
 	}
 }
 
+func TestRelocateSegmentUsedSizeBeforeComputingSegment(t *testing.T) {
+	segments := memory.NewMemorySegmentManager()
+	_, ok := segments.RelocateSegments()
+	if !ok {
+		t.Errorf("Expected no segment sizes loaded")
+	}
+}
+
 func TestRelocateOneSegment(t *testing.T) {
 	segments := memory.NewMemorySegmentManager()
 	segments.AddSegment()
