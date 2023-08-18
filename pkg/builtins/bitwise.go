@@ -65,13 +65,13 @@ func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segm
 
 	num_x, err := segments.Get(x_addr)
 	if err != nil {
-		return nil, BitwiseError(err)
+		return nil, nil
 	}
 
 	y_addr := x_addr.AddUint(1)
 	num_y, err := segments.Get(y_addr)
 	if err != nil {
-		return nil, BitwiseError(err)
+		return nil, nil
 	}
 
 	num_x_felt, x_is_felt := num_x.GetFelt()
