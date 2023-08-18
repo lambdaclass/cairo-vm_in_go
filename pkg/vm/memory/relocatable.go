@@ -231,3 +231,16 @@ func (m MaybeRelocatable) Sub(other MaybeRelocatable) (MaybeRelocatable, error) 
 		return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), errors.New("Cant sub Relocatable from Felt")
 	}
 }
+
+func (m *MaybeRelocatable) ToString() string {
+	felt, is_felt := m.GetFelt()
+	if !is_felt {
+		rel, _ := m.GetRelocatable()
+		return rel.ToString()
+	}
+	return felt.ToString()
+}
+
+func (r *Relocatable) ToString() string {
+	return fmt.Sprintf("{%d, %d}\n", r.SegmentIndex, r.Offset)
+}

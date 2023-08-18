@@ -8,6 +8,7 @@ package lambdaworks
 import "C"
 
 import (
+	"fmt"
 	"unsafe"
 
 	"github.com/pkg/errors"
@@ -167,4 +168,10 @@ func (a Felt) Div(b Felt) Felt {
 	var b_c C.felt_t = b.toC()
 	C.lw_div(&a_c[0], &b_c[0], &result[0])
 	return fromC(result)
+}
+
+// Todo: Call to_signed_int fromlambdaworks library
+func (f Felt) ToString() string {
+	return fmt.Sprintf("{%d}\n", f)
+
 }

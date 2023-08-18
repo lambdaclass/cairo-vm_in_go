@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 
@@ -482,4 +483,23 @@ func (vm *VirtualMachine) DeduceMemoryCell(addr memory.Relocatable) (*memory.May
 		}
 	}
 	return nil, nil
+}
+
+// Write the values hosted in the output builtin's segment.
+// Does nothing if the output builtin is not present in the program.
+func (vm *VirtualMachine) WriteOutput(writer *bytes.Buffer) {
+	for _, builtin := range vm.BuiltinRunners {
+		if builtin.Name() == builtins.OUTPUT_BUILTIN_NAME {
+			outputSegmentSize := vm.Segments.SegmentSizes[uint(builtin.Base().SegmentIndex)]
+			for i := 0; i < int(outputSegmentSize); i++ {
+				formattedValue, err := vm.Segments.Memory.Get(memory.NewRelocatable(builtin.Base().SegmentIndex, uint(i)))
+				if err != nil {
+					writer.WriteString("<missing>\n")
+				} else {
+					writer.WriteString(formattedValue.ToString())
+				}
+			}
+			break
+		}
+	}
 }
