@@ -17,3 +17,17 @@ func TestFibonacci(t *testing.T) {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
 }
+
+func TestPoseidonBuiltin(t *testing.T) {
+	_, err := cairo_run.CairoRun("../../../cairo_programs/poseidon_builtin.json")
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
+
+func TestPoseidonHash(t *testing.T) {
+	_, err := cairo_run.CairoRun("../../../cairo_programs/poseidon_hash.json")
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}

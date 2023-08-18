@@ -61,7 +61,7 @@ func (m *MemorySegmentManager) RelocateSegments() ([]uint, bool) {
 }
 
 // Relocates the VM's memory, turning bidimensional indexes into contiguous numbers, and values
-// into Felt252s. Uses the relocation_table to asign each index a number according to the value
+// into Felt252s. Uses the relocation_table to assign each index a number according to the value
 // on its segment number.
 func (s *MemorySegmentManager) RelocateMemory(relocationTable *[]uint) (map[uint]lambdaworks.Felt, error) {
 	relocatedMemory := make(map[uint]lambdaworks.Felt, 0)

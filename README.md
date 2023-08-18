@@ -298,8 +298,6 @@ The input of the Virtual Machine is a compiled Cairo program in Json format. The
 - **prime:** The cairo prime in hexadecimal format. As explained above, all arithmetic operations are done over a base field, modulo this primer number.
 - **reference_manager:** Contains information about cairo variables. This information is useful to access to variables when executing cairo hints.
 
-In this project, we use a C++ library called [simdjson](https://github.com/simdjson/simdjson), the json is stored in a custom structure  which the vm can use to run the program and create a trace of its execution.
-
 ### Code walkthrough/Write your own Cairo VM
 
 Let's begin by creating the basic types and structures for our VM:
@@ -649,12 +647,406 @@ To begin coding the basic execution functionality of our VM, we only need these 
 
 #### Instruction Decoding and Execution
 
-[TODO for Execution: Introduction, ComputeOperands]
+Cairo program execution is divided into steps, and in turn each step is divided into:
+  1. Instruction decoding
+  2. Instruction execution
 
-#### Run instruction
+##### Step 
+
+This method is the organizer of the execution of each instruction, it orchestrates them and handles the possible errors. 
+
+The first thing it does is to obtain the instruction we want to run, it does that by getting the value on memory where the current pc is pointing. We know that the instruction has to be a felt, if it is not, then there is an error with the encoding of the instruction. 
+Once we retrieve the felt we have the `encoded instruction`, we need to decode it to get the fields from its bits representation. Felt is not useful anymore so we will get its integer representation. 
+Now it's time to decode the instruction and then run the `decoded instruction`.
+
 
 ```go
-    //TODO
+func (v *VirtualMachine) Step() error {
+	encoded_instruction, err := v.Segments.Memory.Get(v.RunContext.Pc)
+	if err != nil {
+		return fmt.Errorf("Failed to fetch instruction at %+v", v.RunContext.Pc)
+	}
+
+	encoded_instruction_felt, ok := encoded_instruction.GetFelt()
+	if !ok {
+		return errors.New("Wrong instruction encoding")
+	}
+
+	encoded_instruction_uint, err := encoded_instruction_felt.ToU64()
+	if err != nil {
+		return err
+	}
+
+	instruction, err := DecodeInstruction(encoded_instruction_uint)
+	if err != nil {
+		return err
+	}
+
+	return v.RunInstruction(&instruction)
+}
+```
+
+##### Decode instruction 
+
+```go
+//  Structure of the 63-bit that form the first word of each instruction.
+//  See Cairo whitepaper, page 32 - https://eprint.iacr.org/2021/1063.pdf.
+// ┌─────────────────────────────────────────────────────────────────────────┐
+// │                     off_dst (biased representation)                     │
+// ├─────────────────────────────────────────────────────────────────────────┤
+// │                     off_op0 (biased representation)                     │
+// ├─────────────────────────────────────────────────────────────────────────┤
+// │                     off_op1 (biased representation)                     │
+// ├─────┬─────┬───────┬───────┬───────────┬────────┬───────────────────┬────┤
+// │ dst │ op0 │  op1  │  res  │    pc     │   ap   │      opcode       │ 0  │
+// │ reg │ reg │  src  │ logic │  update   │ update │                   │    │
+// ├─────┼─────┼───┬───┼───┬───┼───┬───┬───┼───┬────┼────┬────┬────┬────┼────┤
+// │  0  │  1  │ 2 │ 3 │ 4 │ 5 │ 6 │ 7 │ 8 │ 9 │ 10 │ 11 │ 12 │ 13 │ 14 │ 15 │
+// └─────┴─────┴───┴───┴───┴───┴───┴───┴───┴───┴────┴────┴────┴────┴────┴────┘
+```
+
+As we can see in the chart above, all the information we need is present on the bits representation of the instruction. The first thing to do is create a structure that stores it. 
+
+```go 
+type Instruction struct {
+	Off0     int
+	Off1     int
+	Off2     int
+	DstReg   Register
+	Op0Reg   Register
+	Op1Addr  Op1Src
+	ResLogic ResLogic
+	PcUpdate PcUpdate
+	ApUpdate ApUpdate
+	FpUpdate FpUpdate
+	Opcode   Opcode
+}
+```
+
+And the good thing about this is that every combination of bits for each field is known, so we can code all the possible flags to work with. These flags are represented below. 
+
+The off0, off1, and off2 values are used to compute the address of the dst, op0 and op1 respectively.
+For example, if the DstReg is AP and Off0 is -1, then we can compute the dst address by substracting one from the current value of ap.
+
+There's two possible registers, ap and fp. The ap register (address pointer register) keeps track of memory addresses for data access. The fp register (frame pointer register) manages function call stack frames, local variables and parameter access.
+
+```go 
+type Register uint
+
+const (
+	AP Register = 0
+	FP Register = 1
+)
+```
+
+The Op1Src constants define sources for an operation, including immediate values, registers (ap, fp), and an operation result.
+
+```go
+type Op1Src uint
+
+const (
+	Op1SrcImm Op1Src = 0
+	Op1SrcAP  Op1Src = 1
+	Op1SrcFP  Op1Src = 2
+	Op1SrcOp0 Op1Src = 4
+)
+```
+The ResLogic constants represent different types of results in a program, including operation results, addition, multiplication, and unconstrained values.
+
+```go
+type ResLogic uint
+
+const (
+	ResOp1           ResLogic = 0
+	ResAdd           ResLogic = 1
+	ResMul           ResLogic = 2
+	ResUnconstrained ResLogic = 3
+)
+```
+
+The PcUpdate constants define different ways to update the program counter, including regular updates, jumps, relative jumps, and conditional jumps (jump if not zero).
+
+```go
+type PcUpdate uint
+
+const (
+	PcUpdateRegular PcUpdate = 0
+	PcUpdateJump    PcUpdate = 1
+	PcUpdateJumpRel PcUpdate = 2
+	PcUpdateJnz     PcUpdate = 3
+)
+```
+
+The ApUpdate constants represent various ways of updating an address pointer, including regular updates, and different addition types.
+
+```go
+type ApUpdate uint
+
+const (
+	ApUpdateRegular ApUpdate = 0
+	ApUpdateAdd     ApUpdate = 1
+	ApUpdateAdd1    ApUpdate = 2
+	ApUpdateAdd2    ApUpdate = 3
+)
+```
+
+The FpUpdate constants define different ways of updating the frame pointer, including regular updates, addition with a specific offset, and destination updates.
+
+```go
+type FpUpdate uint
+
+const (
+	FpUpdateRegular FpUpdate = 0
+	FpUpdateAPPlus2 FpUpdate = 1
+	FpUpdateDst     FpUpdate = 2
+)
+```
+
+The Opcode constants represent different types of operations or instructions, including no operation, assertion checks, function calls, and returns.
+
+```go
+type Opcode uint
+
+const (
+	NOp      Opcode = 0
+	AssertEq Opcode = 1
+	Call     Opcode = 2
+	Ret      Opcode = 4
+)
+```
+
+Now, once everything is set up, we only have to retrive each field by getting its representative bits. We do that, creating different bitmasks to just get the value. 
+
+1. Constants and Masks:
+    The method starts by defining constants and masks for various fields and properties of the instruction. These constants are used to extract specific bits from the encoded instruction and decode them into meaningful values. For instance, the HighBit constant represents the highest bit (bit 63) of the instruction, and various other masks are defined to extract different fields like destination register, opcode, update types, etc.
+
+    ```go
+    func DecodeInstruction(encodedInstruction uint64) (Instruction, error) {
+        const HighBit uint64 = 1 << 63
+        const DstRegMask uint64 = 0x0001
+        const DstRegOff uint64 = 0
+        const Op0RegMask uint64 = 0x0002
+        const Op0RegOff uint64 = 1
+        const Op1SrcMask uint64 = 0x001C
+        const Op1SrcOff uint64 = 2
+        const ResLogicMask uint64 = 0x0060
+        const ResLogicOff uint64 = 5
+        const PcUpdateMask uint64 = 0x0380
+        const PcUpdateOff uint64 = 7
+        const ApUpdateMask uint64 = 0x0C00
+        const ApUpdateOff uint64 = 10
+        const OpcodeMask uint64 = 0x7000
+        const OpcodeOff uint64 = 12
+    ```
+
+2. Checking High Bit:
+    The first check in the method is whether the highest bit (bit 63) of the encoded instruction is set to zero. If it's not zero, this indicates an error, and the function returns an ErrNonZeroHighBitError.
+
+    ```go
+    if encodedInstruction&HighBit != 0 {
+		return Instruction{}, ErrNonZeroHighBitError
+	}
+    ```
+
+3. Extracting Offsets:
+    The method extracts three offsets from the encoded instruction. These offsets represent memory addresses used in the instruction. They are extracted using bitwise operations and masks to get the lower 16 bits of three different sections of the instruction.
+
+    ```go
+    var offset0 = fromBiasedRepresentation((encodedInstruction) & 0xFFFF)
+    var offset1 = fromBiasedRepresentation((encodedInstruction >> 16) & 0xFFFF)
+    var offset2 = fromBiasedRepresentation((encodedInstruction >> 32) & 0xFFFF)
+
+    -----------------------------------------------------------------------------------------
+    func fromBiasedRepresentation(offset uint64) int {
+        var bias uint16 = 1 << 15
+        return int(int16(uint16(offset) - bias))    
+    }
+    ```
+
+4. Extracting Flags:
+    The next step is to extract the flag section of the encoded instruction, which holds information about registers, sources, updates, and opcodes. This flag section is extracted using a bit shift to the right by 48 positions (which discards the lower 48 bits).
+    
+    ```go
+    var flags = encodedInstruction >> 48
+    ```
+
+5. Decoding Fields:
+    Using the extracted flag section, the method decodes various fields like destination register, op0 register, op1 source, result logic, pc update, ap update, and opcode. These fields are decoded by extracting specific bits from the flag section and mapping them to their corresponding enum values.
+
+    ```go 
+	var dstRegNum = (flags & DstRegMask) >> DstRegOff
+	var op0RegNum = (flags & Op0RegMask) >> Op0RegOff
+	var op1SrcNum = (flags & Op1SrcMask) >> Op1SrcOff
+	var resLogicNum = (flags & ResLogicMask) >> ResLogicOff
+	var pcUpdateNum = (flags & PcUpdateMask) >> PcUpdateOff
+	var apUpdateNum = (flags & ApUpdateMask) >> ApUpdateOff
+	var opCodeNum = (flags & OpcodeMask) >> OpcodeOff
+
+	var dstRegister Register
+	var op0Register Register
+	var op1Src Op1Src
+	var pcUpdate PcUpdate
+	var res ResLogic
+	var opcode Opcode
+	var apUpdate ApUpdate
+	var fpUpdate FpUpdate
+
+	if dstRegNum == 1 {
+		dstRegister = FP
+	} else {
+		dstRegister = AP
+	}
+
+	if op0RegNum == 1 {
+		op0Register = FP
+	} else {
+		op0Register = AP
+	}
+
+	switch op1SrcNum {
+        case 0:
+            op1Src = Op1SrcOp0
+        case 1:
+            op1Src = Op1SrcImm
+        case 2:
+            op1Src = Op1SrcFP
+        case 4:
+            op1Src = Op1SrcAP
+        default:
+            return Instruction{}, ErrInvalidOp1RegError
+	}
+
+	switch pcUpdateNum {
+        case 0:
+            pcUpdate = PcUpdateRegular
+        case 1:
+            pcUpdate = PcUpdateJump
+        case 2:
+            pcUpdate = PcUpdateJumpRel
+        case 4:
+            pcUpdate = PcUpdateJnz
+        default:
+            return Instruction{}, ErrInvalidPcUpdateError
+	}
+
+	switch resLogicNum {
+        case 0:
+            if pcUpdate == PcUpdateJnz {
+                res = ResUnconstrained
+            } else {
+                res = ResOp1
+            }
+        case 1:
+            res = ResAdd
+        case 2:
+            res = ResMul
+        default:
+            return Instruction{}, ErrInvalidResError
+	}
+
+	switch opCodeNum {
+        case 0:
+            opcode = NOp
+        case 1:
+            opcode = Call
+        case 2:
+            opcode = Ret
+        case 4:
+            opcode = AssertEq
+        default:
+            return Instruction{}, ErrInvalidOpcodeError
+	}
+
+	switch apUpdateNum {
+        case 0:
+            if opcode == Call {
+                apUpdate = ApUpdateAdd2
+            } else {
+                apUpdate = ApUpdateRegular
+            }
+        case 1:
+            apUpdate = ApUpdateAdd
+        case 2:
+            apUpdate = ApUpdateAdd1
+        default:
+            return Instruction{}, ErrInvalidApUpdateError
+	}
+
+	switch opcode {
+        case Call:
+            fpUpdate = FpUpdateAPPlus2
+        case Ret:
+            fpUpdate = FpUpdateDst
+        default:
+            fpUpdate = FpUpdateRegular
+	}
+    ```
+    
+6. Creating the Instruction and Returning the Result:
+    With all the necessary information extracted and decoded, the method constructs an Instruction object by assigning the decoded values to its fields and returns the created Instruction object along with a nil error if the decoding process is successful.
+
+    ```go 
+    return Instruction{
+		Off0:     offset0,
+		Off1:     offset1,
+		Off2:     offset2,
+		DstReg:   dstRegister,
+		Op0Reg:   op0Register,
+		Op1Addr:  op1Src,
+		ResLogic: res,
+		PcUpdate: pcUpdate,
+		ApUpdate: apUpdate,
+		FpUpdate: fpUpdate,
+		Opcode:   opcode,
+	}, nil
+    ```
+
+7. Error Handling:
+    If at any point during the decoding process, an unexpected value is encountered or the input doesn't conform to the expected pattern, the method returns an appropriate error. These errors include cases like invalid op1 register, invalid pc update, invalid result logic, invalid opcode, etc.
+
+    ```go
+    var ErrNonZeroHighBitError = errors.New("Instruction high bit was not set to zero")
+    var ErrInvalidOp1RegError = errors.New("Instruction had invalid Op1 Register")
+    var ErrInvalidPcUpdateError = errors.New("Instruction had invalid Pc update")
+    var ErrInvalidResError = errors.New("Instruction had an invalid res")
+    var ErrInvalidOpcodeError = errors.New("Instruction had an invalid opcode")
+    var ErrInvalidApUpdateError = errors.New("Instruction had an invalid Ap Update")
+    ```
+
+##### Run instruction
+
+At this point, we have all the information we need from the instruction. Let's run it! 
+
+There are 5 steps to run an instruction, they will be explained in detail later.
+
+    1. Compute the operands of the instruction
+    2. Assert the correctness of the operands
+    3. Add the context's register state to the trace 
+    4. Update registers
+    5. Add one to the current step
+
+```go
+func (v *VirtualMachine) RunInstruction(instruction *Instruction) error {
+	operands, err := v.ComputeOperands(*instruction)
+	if err != nil {
+		return err
+	}
+
+	err = v.OpcodeAssertions(*instruction, operands)
+	if err != nil {
+		return err
+	}
+
+	v.Trace = append(v.Trace, TraceEntry{Pc: v.RunContext.Pc, Ap: v.RunContext.Ap, Fp: v.RunContext.Fp})
+
+	err = v.UpdateRegisters(instruction, &operands)
+	if err != nil {
+		return err
+	}
+
+	v.CurrentStep++
+	return nil
+}
 ```
 
 #### Compute operands
@@ -1139,8 +1531,6 @@ func (vm *VirtualMachine) UpdateAp(instruction *Instruction, operands *Operands)
     return nil
 }
 ```
-
-[TODO for Execution: Opcode Assertions, Run Instruction]
 
 ### CairoRunner
 
@@ -1665,6 +2055,364 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 With all of our builtin logic integrated into the codebase, we can implement any builtin and use it in our cairo programs while worrying only about implementing the `BuiltinRunner` interface and creating the builtin in the `NewCairoRunner` function.
 
 [Next sections: Implementing each builtin runner]
+
+#### Implementing each builtin runner
+
+##### RangeCheck
+
+TODO
+
+##### Output
+
+TODO
+
+#### Poseidon
+
+The poseidon builtin is used to compute the poseidon hash function in an efficient way. The poseidon hash used by the builtin differs from a standard poseidon hash in two ways, it uses different constants (becoming its own stark poseidon hash), and it also uses the internal poseidon permutation function instead of calling a poseidon hash function. The reason for the second one is that it allows the builtin to hash more than one element at a time by permuting the three-element poseidon state.
+
+Due to this difference, the best solution is to use a poseidon implementation built specifically for cairo. In our case we are going to use the poseidon hash in the `starknet-crypto` crate of the [starknet-rs](https://github.com/xJonathanLEI/starknet-rs) repo.
+The section below will explain how to create a C wrapper to use this crate from our go code, but you can skip it if you want to use your own version in your native language.
+
+##### Importing the `starknet-crypto`rust crate for our poseidon needs
+
+###### Basic Lib Setup
+
+To set up this we will need the following files:
+
+- A rust project that will hold the rust wrapper for our lib
+- A C header file that will use the rust lib as its backend
+- A Go file that will call the C header and which our VM's code will intetact with.
+
+Our file tree will look like this:
+
+```text
+ starknet_crypto
+ ┣ lib
+ ┃ ┣ starknet_crypto
+ ┃ ┃ ┣ src
+ ┃ ┃ ┃ ┗ lib.rs
+ ┃ ┃ ┣ Cargo.lock
+ ┃ ┃ ┗ Cargo.toml
+ ┃ ┗ starknet_crypto.h
+ ┣ starknet_crypto.go
+```
+
+Our Cargo.toml file will look like this:
+
+```toml
+[package]
+name = "starknet-crypto"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+libc = "0.2"
+starknet-crypto = { version = "0.5.0"}
+
+[lib]
+crate-type = ["cdylib", "staticlib", "lib"]
+```
+
+We will import libc in our lib.rs as an external crate by adding:
+
+```rust
+extern crate libc;
+```
+
+In order to build the lib we will add the following lines to our Makefile's `build` target:
+
+```bash
+@cd pkg/starknet_crypto/lib/starknet_crypto && cargo build --release
+@cp pkg/starknet_crypto/lib/starknet_crypto/target/release/libstarknet_crypto.a pkg/starknet_crypto/lib
+```
+
+And in order to import the lib from go we will add the following to our starknet_crypto.go file:
+
+```go
+/*
+#cgo LDFLAGS: pkg/starknet_crypto/lib/libstarknet_crypto.a -ldl
+#include "lib/starknet_crypto.h"
+#include <stdlib.h>
+*/
+import "C"
+```
+
+###### Converting Felt to FieldElement
+
+Now that we have the basic setup the first thing we have to do is to define a conversion between our `Felt` in go, a `felt_t` type in C, and starknet-crypto's `FieldElement` types. We will perform these conversions using the big endian byte representation.
+
+In our C header hile (starknet_crypto.h) we will define the types `byte_t` and `felt_t`:
+
+```c
+#include <stdint.h>
+
+typedef uint8_t byte_t;
+
+// A 252 bit prime field element (felt), represented as an array of 32 bytes.
+typedef byte_t felt_t[32];
+```
+
+And we will interpret this `felt_t` in rust (lib.rs file) as a mutable pointer to the first byte in the felt:
+
+```rust
+// C representation of a bit array: a raw pointer to a mutable unsigned 8 bits integer.
+type Bytes = *mut u8;
+```
+
+With these types defined we can now work on converting the C felt representation to a `FieldElement` in rust. To do so we will implement the following conversion functions:
+
+- `field_element_from_bytes`
+
+    We will convert the C pointer to an array of bytes and use it to create a `FieldElement`
+
+    ```rust
+    fn field_element_from_bytes(bytes: Bytes) -> FieldElement {
+        let array = unsafe {
+            let slice: &mut [u8] = std::slice::from_raw_parts_mut(bytes, 32);
+            let array: [u8; 32] = slice.try_into().unwrap();
+            array
+        };
+        FieldElement::from_bytes_be(&array).unwrap()
+    }
+    ```
+
+- `bytes_from_field_element`
+
+    We will convert the `FieldElement` into bytes and insert each byte into the C mutable pointer
+
+    ```rust
+    fn bytes_from_field_element(felt: FieldElement, bytes: Bytes) {
+        let byte_array = felt.to_bytes_be();
+        for i in 0..32 {
+            unsafe {
+                *bytes.offset(i) = byte_array[i as usize];
+            }
+        }
+    }
+    ```
+
+Now we will implement these same conversions but between `Felt` in go and `felt_t` in C. As we can import C types from Go, we don't have to define a type to represent `felt_t`.
+
+- toC
+
+    We convert the `Felt` to bytes and insert each byte into a `felt_t`
+
+    ```go
+    func toC(f lambdaworks.Felt) C.felt_t {
+        var result C.felt_t
+        for i, byte := range f.ToBeBytes() {
+            result[i] = C.byte_t(byte)
+        }
+        return result
+    }
+    ```
+
+- fromC
+
+    We iterate the `felt_t` value and cast each byte as a `uint8` to build a byte array which we then use to build our `Felt`
+
+    ```go
+    func fromC(result C.felt_t) lambdaworks.Felt {
+        var bytes [32]uint8
+        for i, byte := range result {
+            bytes[i] = uint8(byte)
+        }
+        return lambdaworks.FeltFromBeBytes(&bytes)
+    }
+    ```
+
+###### Calling the poseidon permutation function
+
+Now that we have our felt types defined we can move on to wrapping the poseidon permutation function. The `poseidon_permute_comp` from `starknet_crypto` receives a mutable state of three felts as an array. To reduce the complexity of our wrapper we will be receiving three felts in our C function.
+
+We will define the following function in our C header file:
+
+```C
+// Computes the poseidon hash permutation over a state of three felts
+void poseidon_permute(felt_t, felt_t, felt_t);
+```
+
+And we will implement it in the rust lib file, using the types and conversions we implemented earlier:
+
+```rust
+use starknet_crypto::{poseidon_permute_comp, FieldElement};
+
+#[no_mangle]
+extern "C" fn poseidon_permute(
+    first_state_felt: Bytes,
+    second_state_felt: Bytes,
+    third_state_felt: Bytes,
+) {
+    // Convert state from C representation to FieldElement
+    let mut state_array: [FieldElement; 3] = [
+        field_element_from_bytes(first_state_felt),
+        field_element_from_bytes(second_state_felt),
+        field_element_from_bytes(third_state_felt),
+    ];
+    // Call poseidon permute comp
+    poseidon_permute_comp(&mut state_array);
+    // Convert state from FieldElement back to C representation
+    bytes_from_field_element(state_array[0], first_state_felt);
+    bytes_from_field_element(state_array[1], second_state_felt);
+    bytes_from_field_element(state_array[2], third_state_felt);
+}
+```
+
+And with our lib ready, all that is left is to make a go wrapper with our felt conversion functions that calls the C function:
+
+```go
+func PoseidonPermuteComp(poseidon_state *[3]lambdaworks.Felt) {
+ state := *poseidon_state
+ // Convert args to c representation
+ first_state_felt := toC(state[0])
+ second_state_felt := toC(state[1])
+ third_state_felt := toC(state[2])
+
+ // Compute hash using starknet_crypto C wrapper
+ C.poseidon_permute(&first_state_felt[0], &second_state_felt[0], &third_state_felt[0])
+ // Convert result to Go representation
+ var new_poseidon_state = [3]lambdaworks.Felt{
+  fromC(first_state_felt),
+  fromC(second_state_felt),
+  fromC(third_state_felt),
+ }
+ // Update poseidon state
+ *poseidon_state = new_poseidon_state
+}
+```
+
+Now that we can call a simple poseidon permutation function we can start implementing our poseidon builtin runner!
+
+##### Implementing the PoseidonBuiltinRunner
+
+We will start by defining our `PoseidonBuiltinRunner` and adding it to our VM when creating a `CairoRunner`:
+
+It will contain it's base and a cache of values that we will use later to optimize our `DeduceMemoryCell` method. The included field indicates if a builtin is used by the program, is used in proof_mode, as all builtins have to be present by default, but for now we will always set the included field to true.
+
+```go
+type PoseidonBuiltinRunner struct {
+ base     memory.Relocatable
+ included bool
+ cache    map[memory.Relocatable]lambdaworks.Felt
+}
+
+func NewPoseidonBuiltinRunner(included bool) *PoseidonBuiltinRunner {
+ return &PoseidonBuiltinRunner{included: included, cache: make(map[memory.Relocatable]lambdaworks.Felt)}
+}
+```
+
+In order to store it as a `BuiltinRunner` we will have to implement the `BuiltinRunner` interface. Aside from `AddValidationRule` & `DeduceMemoryCell`, most builtins share the same behaviour in their methods, so we can just port them from the builtin runners we implemented before:
+
+```go
+
+const POSEIDON_BUILTIN_NAME = "poseidon"
+
+func (p *PoseidonBuiltinRunner) Base() memory.Relocatable {
+ return p.base
+}
+
+func (p *PoseidonBuiltinRunner) Name() string {
+ return POSEIDON_BUILTIN_NAME
+}
+
+func (p *PoseidonBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
+ p.base = segments.AddSegment()
+}
+
+func (p *PoseidonBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
+ if p.included {
+  return []memory.MaybeRelocatable{*memory.NewMaybeRelocatableRelocatable(p.base)}
+ } else {
+  return nil
+ }
+}
+```
+
+As the poseidon builtin doesn't have validation rules, the method will be left empty:
+
+```go
+func (p *PoseidonBuiltinRunner) AddValidationRule(*memory.Memory) {
+}
+```
+
+Now lets dive into the poseidon builtin's behaviour!
+
+The poseidon builtin memory is divided into instances of 6 cells, 3 input cells and 3 output cells. This means that whenever we want to deduce the value of an output cell, we will look for the input cells, compute the pedersen permutation over them, and write the permutated values to the output cells. As we only deduce the value of one output cell at a time, we will write the value of the output cells to a cache and use them the next time we have to deduce a memory cell so we avoid computing the poseidon hash more than once over the same input values
+
+We define the following constants to represent a poseidon instance:
+
+```go
+const POSEIDON_CELLS_PER_INSTANCE = 6
+const POSEIDON_INPUT_CELLS_PER_INSTANCE = 3
+```
+
+And we can implement `DeduceMemoryCell`:
+
+This method will first check if the cell is an input cell, if it's an input cell then there is nothing to deduce and it returns nil. Then it will check if there is a cached value for that cell and return it. If there is no cached value it will define the addresses of the first input and output cells, and fetch the values of the input cells. If any of the input cells is missing, or is not a felt value, it returns an error. Once it has the three input cells, it performs the poseidon permutation and inserts the permutated value into each output cell's address in the cache. It then returns the value stored in the cache for the address that the method received.
+
+```go
+func (p *PoseidonBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem *memory.Memory) (*memory.MaybeRelocatable, error) {
+ // Check if its an input cell
+ index := address.Offset % POSEIDON_CELLS_PER_INSTANCE
+ if index < POSEIDON_INPUT_CELLS_PER_INSTANCE {
+  return nil, nil
+ }
+
+ value, ok := p.cache[address]
+ if ok {
+  return memory.NewMaybeRelocatableFelt(value), nil
+ }
+
+ input_start_addr, _ := address.SubUint(index)
+ output_start_address := input_start_addr.AddUint(POSEIDON_INPUT_CELLS_PER_INSTANCE)
+
+ // Build the initial poseidon state
+ var poseidon_state [3]lambdaworks.Felt
+
+ for i := uint(0); i < POSEIDON_INPUT_CELLS_PER_INSTANCE; i++ {
+  felt, err := mem.GetFelt(input_start_addr.AddUint(i))
+  if err != nil {
+   return nil, err
+  }
+  poseidon_state[i] = felt
+ }
+
+ // Run the poseidon permutation
+ starknet_crypto.PoseidonPermuteComp(&poseidon_state)
+
+ // Insert the new state into the corresponding output cells in the cache
+ for i, elem := range poseidon_state {
+  p.cache[output_start_address.AddUint(uint(i))] = elem
+ }
+ return memory.NewMaybeRelocatableFelt(p.cache[address]), nil
+}
+```
+
+#### Pedersen
+
+TODO
+
+#### Ecdsa
+
+TODO
+
+#### Keccak
+
+TODO
+
+#### Bitwise
+
+TODO
+
+#### EcOp
+
+TODO
+
+#### SegmentArena
+
+TODO
 
 #### Hints
 

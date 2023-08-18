@@ -2,6 +2,8 @@ package memory
 
 import (
 	"github.com/pkg/errors"
+
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 )
 
 // A Set to store Relocatable values
@@ -86,6 +88,21 @@ func (m *Memory) Get(addr Relocatable) (*MaybeRelocatable, error) {
 	}
 
 	return &value, nil
+}
+
+// Gets the felt value stored in the memory address `addr`.
+// Fails if the value doesn't exist or is not a felt
+func (m *Memory) GetFelt(addr Relocatable) (lambdaworks.Felt, error) {
+	elem, err := m.Get(addr)
+	if err == nil {
+		felt, ok := elem.GetFelt()
+		if ok {
+			return felt, nil
+		} else {
+			return lambdaworks.FeltZero(), errors.New("Memory GetFelt: Fetched value is not a Felt")
+		}
+	}
+	return lambdaworks.FeltZero(), err
 }
 
 // Adds a validation rule for a given segment
