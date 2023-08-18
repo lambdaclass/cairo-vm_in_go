@@ -31,3 +31,10 @@ func TestPoseidonHash(t *testing.T) {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
 }
+
+func TestSimplePrint(t *testing.T) {
+	_, err := cairo_run.CairoRun("../../../cairo_programs/simple_print.json")
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
