@@ -21,7 +21,7 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd(t *testing.T) {
 
 	result, err := builtin.DeduceMemoryCell(address, &mem.Memory)
 	if err != nil {
-		t.Errorf("TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd failed with error: \n %v", err)
+		t.Errorf("TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd failed with error:\n %v", err)
 	}
 	expected := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(8))
 
@@ -49,7 +49,7 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryValidXor(t *testing.T) {
 	expected := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(6))
 
 	if *result != *expected {
-		t.Errorf("TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd Failed, expected %v, got %v", expected, result)
+		t.Errorf("TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd failed, expected %v, got %v", expected, result)
 	}
 
 }
@@ -73,7 +73,7 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryValidOr(t *testing.T) {
 	expected := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(14))
 
 	if *result != *expected {
-		t.Errorf("TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd Failed, expected %v, got %v", expected, result)
+		t.Errorf("TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd failed, expected %v, got %v", expected, result)
 	}
 
 }
@@ -104,7 +104,7 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryIncorrectOffset(t *testing.T) {
 	}
 
 	if result != nil {
-		t.Errorf("TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd Failed, expected nil, got %v", result)
+		t.Errorf("TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd failed, expected nil, got %v", result)
 	}
 
 }
@@ -132,7 +132,7 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryNoValuesToOperate(t *testing.T) {
 	}
 
 	if result != nil {
-		t.Errorf("TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd Failed, expected nil, got %v", result)
+		t.Errorf("TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd failed, expected nil, got %v", result)
 	}
 
 }
