@@ -43,6 +43,27 @@ func TestMaybeRelocatableAddFelt(t *testing.T) {
 	}
 }
 
+func TestRelocatableIsEqual(t *testing.T) {
+	a := memory.Relocatable{2, 4}
+	b := memory.Relocatable{2, 4}
+
+	is_equal := a.IsEqual(&b)
+	if !is_equal {
+		t.Errorf("TestRelocatableIsEqual failed epected true, got %v", is_equal)
+	}
+
+}
+
+func TestRelocatableIsNotEqual(t *testing.T) {
+	a := memory.Relocatable{2, 4}
+	b := memory.Relocatable{4, 2}
+
+	is_equal := a.IsEqual(&b)
+	if is_equal {
+		t.Errorf("TestRelocatableIsNotEqual failed epected false, got %v", is_equal)
+	}
+}
+
 func TestRelocatableSubOk(t *testing.T) {
 	a := memory.Relocatable{1, 7}
 	b := memory.Relocatable{1, 5}
