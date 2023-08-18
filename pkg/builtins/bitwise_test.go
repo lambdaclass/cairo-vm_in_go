@@ -21,12 +21,12 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd(t *testing.T) {
 
 	result, err := builtin.DeduceMemoryCell(address, &mem.Memory)
 	if err != nil {
-		t.Errorf("Test failed with error: %v", err)
+		t.Errorf("TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd failed with error: \n %v", err)
 	}
 	expected := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(8))
 
 	if *result != *expected {
-		t.Errorf("TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd Failed, expected %v, got %v", expected, result)
+		t.Errorf("TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd failed, expected %v, got %v", expected, result)
 	}
 
 }
