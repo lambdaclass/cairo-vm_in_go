@@ -1,12 +1,10 @@
 package runners
 
 import (
-	"errors"
-
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
-	builtinrunner "github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+	"github.com/pkg/errors"
 )
 
 type CairoRunner struct {
@@ -31,11 +29,11 @@ func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 	for _, builtin_name := range program.Builtins {
 		switch builtin_name {
 		case builtins.BITWISE_BUILTIN_NAME:
-			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtinrunner.NewBitwiseBuiltinRunner(true))
+			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewBitwiseBuiltinRunner(true))
 		case builtins.POSEIDON_BUILTIN_NAME:
 			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewPoseidonBuiltinRunner(true))
 		default:
-			return nil, errors.New("Invalid builtin")
+			return nil, errors.Errorf("Invalid builtin: %s", builtin_name)
 		}
 	}
 
