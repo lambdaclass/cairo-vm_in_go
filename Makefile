@@ -75,7 +75,7 @@ clean:
 	cd pkg/starknet_crypto/lib/starknet_crypto && cargo clean
 	rm -f pkg/starknet_crypto/lib/libstarknet_crypto.a
 	rm -rf cairo-vm
-	rm -r cairo-vm-env
+	rm -rf cairo-vm-env
 
 clean_files:
 	rm -f $(TEST_DIR)/*.json
