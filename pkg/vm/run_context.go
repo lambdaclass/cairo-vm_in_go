@@ -15,7 +15,7 @@ type RunContext struct {
 	Fp memory.Relocatable
 }
 
-var ErrUnknownOp0 = errors.New("unkonwn op0")
+var ErrUnknownOp0 = errors.New("Unkonwn op0")
 var ErrAddressNotRelocatable = errors.New("AddressNotRelocatable")
 
 func (run_context RunContext) ComputeDstAddr(instruction Instruction) (memory.Relocatable, error) {

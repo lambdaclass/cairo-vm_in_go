@@ -20,7 +20,7 @@ type CairoRunner struct {
 	mainOffset    uint
 }
 
-var ErrInvalidBuiltin = errors.New("invalid builtin")
+var ErrInvalidBuiltin = errors.New("Invalid builtin")
 
 func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 	mainIdentifier, ok := (*program.Identifiers)["__main__.main"]

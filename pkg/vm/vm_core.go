@@ -13,18 +13,18 @@ type VirtualMachineError struct {
 	Msg string
 }
 
-var ErrWrongInstructionEncoding = errors.New("wrong instruction encoding")
-var ErrFailedToFetchInstruction = errors.New("failed to fetch instruction in address")
-var ErrNoRelocationFoundSegment = errors.New("no relocation found for execution segment")
-var ErrTraceNotRelocated = errors.New("trace not relocated")
+var ErrWrongInstructionEncoding = errors.New("Wrong instruction encoding")
+var ErrFailedToFetchInstruction = errors.New("Failed to fetch instruction in address")
+var ErrNoRelocationFoundSegment = errors.New("No relocation found for execution segment")
+var ErrTraceNotRelocated = errors.New("Trace not relocated")
 var ErrUnconstraintRes = errors.New("UnconstrainedRes")
-var ErrDiffAssertValues = errors.New("diff assert values")
-var ErrCantWriteReturnPC = errors.New("can't write return pc")
-var ErrCantWriteReturnFP = errors.New("can't write return fp")
-var ErrFailedToComputeOperandAddress = errors.New("failed to compute operand address")
-var ErrNotRelocatableValue = errors.New("not a relocatable value")
-var ErrNotFeltValue = errors.New("not a felts value")
-var ErrComputeResRelocatableMul = errors.New("compute res relocatable mul")
+var ErrDiffAssertValues = errors.New("Diff assert values")
+var ErrCantWriteReturnPC = errors.New("Can't write return pc")
+var ErrCantWriteReturnFP = errors.New("Can't write return fp")
+var ErrFailedToComputeOperandAddress = errors.New("Failed to compute operand address")
+var ErrNotRelocatableValue = errors.New("Not a relocatable value")
+var ErrNotFeltValue = errors.New("Not a felts value")
+var ErrComputeResRelocatableMul = errors.New("Compute res relocatable mul")
 var UnconstrainedResAssertEq = errors.New("UnconstrainedResAssertEq")
 
 func (e *VirtualMachineError) Error() string {
