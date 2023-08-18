@@ -34,7 +34,7 @@ func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 		case builtins.POSEIDON_BUILTIN_NAME:
 			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewPoseidonBuiltinRunner(true))
 		default:
-			return nil, errors.New("invalid builtin")
+			return nil, errors.New("Invalid builtin")
 		}
 	}
 
