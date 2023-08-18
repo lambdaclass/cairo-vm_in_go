@@ -10,9 +10,7 @@ type OutputBuiltinRunner struct {
 }
 
 func NewOutputBuiltinRunner(included bool) *OutputBuiltinRunner {
-	return &OutputBuiltinRunner{
-		base:     memory.NewRelocatable(0, 0),
-		included: included}
+	return &OutputBuiltinRunner{included: included}
 }
 
 func (r *OutputBuiltinRunner) Base() memory.Relocatable {
