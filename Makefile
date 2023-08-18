@@ -71,7 +71,7 @@ clean:
 	rm -f $(TEST_DIR)/*.memory
 	rm -f $(TEST_DIR)/*.trace
 	cd pkg/lambdaworks/lib/lambdaworks && cargo clean
-	rm -fpkg/lambdaworks/lib/liblambdaworks.a
+	rm -f pkg/lambdaworks/lib/liblambdaworks.a
 	cd pkg/starknet_crypto/lib/starknet_crypto && cargo clean
 	rm -f pkg/starknet_crypto/lib/libstarknet_crypto.a
 	rm -rf cairo-vm
