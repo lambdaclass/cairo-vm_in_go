@@ -2076,7 +2076,7 @@ func (r *RangeCheckBuiltinRunner) Name() string {
 }
 ```
 
-For the `InitializeSegments` we just add a segment to the memory and store in the base attribute, the first address of the segment. 
+For the `InitializeSegments` method we just add a segment to the memory and store the first address of the segment in the base attribute.
 
 ```go
 func (r *RangeCheckBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
