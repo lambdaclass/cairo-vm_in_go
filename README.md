@@ -2108,7 +2108,7 @@ And finally we have the `AddValidationRule` and the `ValidationRule` methods.
 
 ###### AddValidationRule
 
-Receives the memory and adds to it a new validation rule for the builtin segment. 
+Receives the memory and adds a new validation rule to it for the builtin segment. 
 
 ###### ValidationRule
 
