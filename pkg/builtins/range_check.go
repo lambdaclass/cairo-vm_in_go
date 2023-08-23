@@ -20,8 +20,7 @@ func RangeCheckError(err error) error {
 }
 
 func OutsideBoundsError(felt lambdaworks.Felt) error {
-	upperBound := uint64(math.Pow(2, float64(N_PARTS*INNER_RC_BOUND_SHIFT)))
-	return RangeCheckError(errors.Errorf("Value %d is out of bounds [0, %d]", felt, upperBound))
+	return RangeCheckError(errors.Errorf("Value %d is out of bounds [0, 2^128]", felt))
 }
 
 func NotAFeltError(addr memory.Relocatable, val memory.MaybeRelocatable) error {
