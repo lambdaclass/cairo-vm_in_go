@@ -8,6 +8,47 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
+func TestMaybeRelocatableIsEqual(t *testing.T) {
+	rel_felt_one := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(24))
+	rel_felt_two := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(24))
+
+	rel_rel_one := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{2, 4})
+	rel_rel_two := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{2, 4})
+
+	rel_felts_are_equal := rel_felt_one.IsEqual(rel_felt_two)
+	rel_rel_are_equal := rel_rel_one.IsEqual(rel_rel_two)
+
+	if !rel_felts_are_equal {
+		t.Errorf("%s and %s are not equal", rel_felt_one, rel_felt_two)
+	}
+	if !rel_rel_are_equal {
+		t.Errorf("%s and %s are not equal", rel_rel_one, rel_rel_two)
+	}
+
+}
+
+func TestMaybeRelocatableIsNotEqual(t *testing.T) {
+	rel_felt_one := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2))
+	rel_felt_two := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(4))
+
+	rel_rel_one := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{2, 4})
+	rel_rel_two := memory.NewMaybeRelocatableRelocatable(memory.Relocatable{4, 2})
+
+	rel_felts_are_equal := rel_felt_one.IsEqual(rel_felt_two)
+	rel_rel_are_equal := rel_rel_one.IsEqual(rel_rel_two)
+	rel_rel_and_rel_felt_are_equal := rel_felt_one.IsEqual(rel_rel_one)
+
+	if rel_felts_are_equal {
+		t.Errorf("%s and %s are equal", rel_felt_one, rel_felt_two)
+	}
+	if rel_rel_are_equal {
+		t.Errorf("%s and %s are equal", rel_rel_one, rel_rel_two)
+	}
+	if rel_rel_and_rel_felt_are_equal {
+		t.Errorf("%s and %s are equal", rel_rel_one, rel_felt_two)
+	}
+}
+
 func TestMaybeRelocatableIsZeroInt(t *testing.T) {
 	zero := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0))
 	if !zero.IsZero() {
