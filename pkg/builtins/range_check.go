@@ -54,8 +54,7 @@ func (r *RangeCheckBuiltinRunner) InitializeSegments(segments *memory.MemorySegm
 
 func (r *RangeCheckBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
 	if r.included {
-		stack := []memory.MaybeRelocatable{*memory.NewMaybeRelocatableRelocatable(r.base)}
-		return stack
+		return []memory.MaybeRelocatable{*memory.NewMaybeRelocatableRelocatable(r.base)}
 	}
 	return []memory.MaybeRelocatable{}
 }
