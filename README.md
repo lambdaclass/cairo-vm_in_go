@@ -2060,11 +2060,13 @@ With all of our builtin logic integrated into the codebase, we can implement any
 
 ##### RangeCheck
 
-When working with field elements within the range [0, 2^128), it's important to ensure that these values remain within the specified bounds to prevent unexpected behavior and errors. This check is also used along other operations in many functions, like asserting if a number fits in 250 bits, or exists in other range.  We perform range checks and comparisons using the following approach:
+The `RangeCheck` builtin does a very simple thing: it asserts that a given number is in the range $[0, 2^{128})$, i.e., that it's greater than zero and less than $2^{128}$. This might seem superficial but it is used for a lot of different things in Cairo, including comparing numbers. Whenever a program asserts that some number is less than other, the range check builtin is being called underneath. 
 
-Once we have a RangeCheckRunner that implements the basic builtin interface methods, let's see how this implementation is done:  
+TODO: explain this better, it's not entirely clear why $2^{128}$ was chosen.
 
-We have getters functions just to obtain information about the builtin. The `Name` method is used when iterating through all the builtins of the program so we can switch to the correct execution. 
+Let's now talk about how to implement the `RangeCheckBuiltinRunner`.
+
+We have getter functions just to obtain information about the builtin. The `Name` method is used when iterating through all the builtins of the program so we can switch to the correct execution. 
 
 ```go
 func (r *RangeCheckBuiltinRunner) Base() memory.Relocatable {
