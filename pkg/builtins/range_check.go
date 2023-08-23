@@ -26,7 +26,7 @@ func OutsideBoundsError(felt lambdaworks.Felt) error {
 
 func NotAFeltError(addr memory.Relocatable, val memory.MaybeRelocatable) error {
 	rel, _ := val.GetRelocatable()
-	return RangeCheckError(errors.Errorf("Value %d found in %d is not a felt element", rel, addr))
+	return RangeCheckError(errors.Errorf("Value %d found in %d is not a field element", rel, addr))
 }
 
 type RangeCheckBuiltinRunner struct {
