@@ -23,7 +23,7 @@ var ErrCantWriteReturnPC = errors.New("Can't write return pc")
 var ErrCantWriteReturnFP = errors.New("Can't write return fp")
 var ErrFailedToComputeOperandAddress = errors.New("Failed to compute operand address")
 var ErrNotRelocatableValue = errors.New("Not a relocatable value")
-var ErrNotFeltValue = errors.New("Not a felts value")
+var ErrNotFeltValue = errors.New("Not a felt value")
 var ErrComputeResRelocatableMul = errors.New("Compute res relocatable mul")
 var UnconstrainedResAssertEq = errors.New("UnconstrainedResAssertEq")
 
