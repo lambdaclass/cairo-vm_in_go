@@ -26,22 +26,24 @@ type ValidationRule func(*Memory, Relocatable) ([]Relocatable, error)
 
 // Memory represents the Cairo VM's memory.
 type Memory struct {
-	data                map[Relocatable]MaybeRelocatable
-	num_segments        uint
-	validation_rules    map[uint]ValidationRule
-	validated_addresses AddressSet
+	data              map[Relocatable]MaybeRelocatable
+	numSegments       uint
+	validationRules   map[uint]ValidationRule
+	validatedAdresses AddressSet
 }
+
+var ErrMissingSegmentUsize = errors.New("Segment effective sizes haven't been calculated")
 
 func NewMemory() *Memory {
 	return &Memory{
-		data:                make(map[Relocatable]MaybeRelocatable),
-		validated_addresses: NewAddressSet(),
-		validation_rules:    make(map[uint]ValidationRule),
+		data:              make(map[Relocatable]MaybeRelocatable),
+		validatedAdresses: NewAddressSet(),
+		validationRules:   make(map[uint]ValidationRule),
 	}
 }
 
 func (m *Memory) NumSegments() uint {
-	return m.num_segments
+	return m.numSegments
 }
 
 // Inserts a value in some memory address, given by a Relocatable value.
@@ -54,7 +56,7 @@ func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
 	}
 
 	// Check that insertions are preformed within the memory bounds
-	if addr.SegmentIndex >= int(m.num_segments) {
+	if addr.SegmentIndex >= int(m.numSegments) {
 		return errors.New("Error: Inserting into a non allocated segment")
 	}
 
@@ -106,17 +108,17 @@ func (m *Memory) GetFelt(addr Relocatable) (lambdaworks.Felt, error) {
 }
 
 // Adds a validation rule for a given segment
-func (m *Memory) AddValidationRule(segment_index uint, rule ValidationRule) {
-	m.validation_rules[segment_index] = rule
+func (m *Memory) AddValidationRule(SegmentIndex uint, rule ValidationRule) {
+	m.validationRules[SegmentIndex] = rule
 }
 
 // Applies the validation rule for the addr's segment if any
 // Skips validation if the address is temporary or if it has been previously validated
 func (m *Memory) validateAddress(addr Relocatable) error {
-	if addr.SegmentIndex < 0 || m.validated_addresses.Contains(addr) {
+	if addr.SegmentIndex < 0 || m.validatedAdresses.Contains(addr) {
 		return nil
 	}
-	rule, ok := m.validation_rules[uint(addr.SegmentIndex)]
+	rule, ok := m.validationRules[uint(addr.SegmentIndex)]
 	if !ok {
 		return nil
 	}
@@ -127,7 +129,7 @@ func (m *Memory) validateAddress(addr Relocatable) error {
 		return wrappedErr
 	}
 	for _, validated_address := range validated_addresses {
-		m.validated_addresses.Add(validated_address)
+		m.validatedAdresses.Add(validated_address)
 	}
 	return nil
 }

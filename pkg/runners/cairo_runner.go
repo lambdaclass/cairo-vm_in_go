@@ -31,6 +31,8 @@ func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 	runner := CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
 	for _, builtin_name := range program.Builtins {
 		switch builtin_name {
+		case builtins.CHECK_RANGE_BUILTIN_NAME:
+			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewRangeCheckBuiltinRunner(true))
 		case builtins.POSEIDON_BUILTIN_NAME:
 			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewPoseidonBuiltinRunner(true))
 		case builtins.OUTPUT_BUILTIN_NAME:
