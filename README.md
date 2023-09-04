@@ -2054,10 +2054,6 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 
 With all of our builtin logic integrated into the codebase, we can implement any builtin and use it in our cairo programs while worrying only about implementing the `BuiltinRunner` interface and creating the builtin in the `NewCairoRunner` function.
 
-[Next sections: Implementing each builtin runner]
-
-#### Implementing each builtin runner
-
 ##### RangeCheck
 
 The `RangeCheck` builtin does a very simple thing: it asserts that a given number is in the range $[0, 2^{128})$, i.e., that it's greater than zero and less than $2^{128}$. This might seem superficial but it is used for a lot of different things in Cairo, including comparing numbers. Whenever a program asserts that some number is less than other, the range check builtin is being called underneath. 
@@ -2527,59 +2523,48 @@ The method `DeducedMemoryCell` fetches the operands from memory and performs the
 - Otherwise nil value is returned
 
 ```go 
-const CELLS_PER_INSTANCE = 5
-const TOTAL_N_BITS = 251
-const INPUT_CELLS_PER_INSTANCE = 2
+const BITWISE_CELLS_PER_INSTANCE = 5
+const BITWISE_TOTAL_N_BITS = 251
+const BIWISE_INPUT_CELLS_PER_INSTANCE = 2
 
-func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segments *memory.Memory) (*memory.MaybeRelocatable, error) {
-	index := address.Offset % CELLS_PER_INSTANCE
-	if index < INPUT_CELLS_PER_INSTANCE {
+func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem *memory.Memory) (*memory.MaybeRelocatable, error) {
+	index := address.Offset % BITWISE_CELLS_PER_INSTANCE
+	if index < BIWISE_INPUT_CELLS_PER_INSTANCE {
 		return nil, nil
 	}
 
-	x_addr := memory.NewRelocatable(address.SegmentIndex, address.Offset-index)
-	y_addr, err := (x_addr.AddUint(1))
+	x_addr, _ := address.SubUint(index)
+	y_addr := x_addr.AddUint(1)
+
+	num_x_felt, err := mem.GetFelt(x_addr)
 	if err != nil {
-		return nil, err
+		return nil, nil
 	}
-	num_x, err := segments.Get(x_addr)
+	num_y_felt, err := mem.GetFelt(y_addr)
 	if err != nil {
-
-		return nil, err
+		return nil, nil
 	}
 
-	num_y, err := segments.Get(y_addr)
-	if err != nil {
-
-		return nil, err
+	if num_x_felt.Bits() > BITWISE_TOTAL_N_BITS {
+		return nil, ErrFeltBiggerThanPowerOfTwo(num_x_felt)
+	}
+	if num_y_felt.Bits() > BITWISE_TOTAL_N_BITS {
+		return nil, ErrFeltBiggerThanPowerOfTwo(num_y_felt)
 	}
 
-	num_x_felt, x_is_felt := num_x.GetFelt()
-	num_y_felt, y_is_felt := num_y.GetFelt()
-
-	if x_is_felt && y_is_felt {
-		if num_x_felt.Bits() > TOTAL_N_BITS {
-			return nil, errors.New("Expected Intenger x to be smaller than 2^(total_n_bits)")
-		}
-		if num_y_felt.Bits() > TOTAL_N_BITS {
-			return nil, errors.New("Expected Intenger y to be smaller than 2^(total_n_bits)")
-		}
-
-		var res *memory.MaybeRelocatable
-		switch index {
-		case 2:
-			res = memory.NewMaybeRelocatableFelt(num_x_felt.And(num_y_felt))
-		case 3:
-			res = memory.NewMaybeRelocatableFelt(num_x_felt.Xor(num_y_felt))
-		case 4:
-			res = memory.NewMaybeRelocatableFelt(num_x_felt.Or(num_y_felt))
-		default:
-			res = nil
-		}
-		return res, nil
+	var res *memory.MaybeRelocatable
+	switch index {
+	case 2:
+		res = memory.NewMaybeRelocatableFelt(num_x_felt.And(num_y_felt))
+	case 3:
+		res = memory.NewMaybeRelocatableFelt(num_x_felt.Xor(num_y_felt))
+	case 4:
+		res = memory.NewMaybeRelocatableFelt(num_x_felt.Or(num_y_felt))
+	default:
+		res = nil
 	}
+	return res, nil
 
-	return nil, nil
 }
 ```
 
@@ -2598,8 +2583,6 @@ TODO
 TODO
 
 #### Hints
-
-#### Implementing each builtin runner 
 
 
 

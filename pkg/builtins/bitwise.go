@@ -50,55 +50,44 @@ func (b *BitwiseBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
 	}
 }
 
-func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segments *memory.Memory) (*memory.MaybeRelocatable, error) {
+func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem *memory.Memory) (*memory.MaybeRelocatable, error) {
 	index := address.Offset % BITWISE_CELLS_PER_INSTANCE
 	if index < BIWISE_INPUT_CELLS_PER_INSTANCE {
 		return nil, nil
 	}
 
 	x_addr, _ := address.SubUint(index)
-
-	// Error can't happen, index is never bigger than address offset
-	// if err != nil {
-	// 	return nil, BitwiseError(err)
-	// }
-
-	num_x, err := segments.Get(x_addr)
-	if err != nil {
-		return nil, nil
-	}
-
 	y_addr := x_addr.AddUint(1)
-	num_y, err := segments.Get(y_addr)
+
+	num_x_felt, err := mem.GetFelt(x_addr)
+	if err != nil {
+		return nil, nil
+	}
+	num_y_felt, err := mem.GetFelt(y_addr)
 	if err != nil {
 		return nil, nil
 	}
 
-	num_x_felt, x_is_felt := num_x.GetFelt()
-	num_y_felt, y_is_felt := num_y.GetFelt()
-
-	if x_is_felt && y_is_felt {
-		if num_x_felt.Bits() > BITWISE_TOTAL_N_BITS {
-			return nil, ErrFeltBiggerThanPowerOfTwo(num_x_felt)
-		}
-		if num_y_felt.Bits() > BITWISE_TOTAL_N_BITS {
-			return nil, ErrFeltBiggerThanPowerOfTwo(num_y_felt)
-		}
-
-		var res *memory.MaybeRelocatable
-		switch index {
-		case 2:
-			res = memory.NewMaybeRelocatableFelt(num_x_felt.And(num_y_felt))
-		case 3:
-			res = memory.NewMaybeRelocatableFelt(num_x_felt.Xor(num_y_felt))
-		case 4:
-			res = memory.NewMaybeRelocatableFelt(num_x_felt.Or(num_y_felt))
-		default:
-			res = nil
-		}
-		return res, nil
+	if num_x_felt.Bits() > BITWISE_TOTAL_N_BITS {
+		return nil, ErrFeltBiggerThanPowerOfTwo(num_x_felt)
 	}
-	return nil, nil
+	if num_y_felt.Bits() > BITWISE_TOTAL_N_BITS {
+		return nil, ErrFeltBiggerThanPowerOfTwo(num_y_felt)
+	}
+
+	var res *memory.MaybeRelocatable
+	switch index {
+	case 2:
+		res = memory.NewMaybeRelocatableFelt(num_x_felt.And(num_y_felt))
+	case 3:
+		res = memory.NewMaybeRelocatableFelt(num_x_felt.Xor(num_y_felt))
+	case 4:
+		res = memory.NewMaybeRelocatableFelt(num_x_felt.Or(num_y_felt))
+	default:
+		res = nil
+	}
+	return res, nil
+
 }
 
 func (b *BitwiseBuiltinRunner) AddValidationRule(*memory.Memory) {}
