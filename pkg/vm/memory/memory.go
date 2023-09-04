@@ -32,7 +32,7 @@ type Memory struct {
 	validatedAdresses AddressSet
 }
 
-var ErrMissingSegmentUsize = errors.New("segment effective sizes haven't been calculated")
+var ErrMissingSegmentUsize = errors.New("Segment effective sizes haven't been calculated")
 
 func NewMemory() *Memory {
 	return &Memory{
@@ -66,7 +66,7 @@ func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
 		return errors.New("Memory is write-once, cannot overwrite memory value")
 	}
 	m.data[addr] = *val
-	return m.ValidateAddress(addr)
+	return m.validateAddress(addr)
 }
 
 // Gets some value stored in the memory address `addr`.
@@ -114,7 +114,7 @@ func (m *Memory) AddValidationRule(SegmentIndex uint, rule ValidationRule) {
 
 // Applies the validation rule for the addr's segment if any
 // Skips validation if the address is temporary or if it has been previously validated
-func (m *Memory) ValidateAddress(addr Relocatable) error {
+func (m *Memory) validateAddress(addr Relocatable) error {
 	if addr.SegmentIndex < 0 || m.validatedAdresses.Contains(addr) {
 		return nil
 	}
@@ -122,9 +122,9 @@ func (m *Memory) ValidateAddress(addr Relocatable) error {
 	if !ok {
 		return nil
 	}
-	validated_addresses, error := rule(m, addr)
-	if error != nil {
-		return error
+	validated_addresses, err := rule(m, addr)
+	if err != nil {
+		return err
 	}
 	for _, validated_address := range validated_addresses {
 		m.validatedAdresses.Add(validated_address)
@@ -136,7 +136,7 @@ func (m *Memory) ValidateAddress(addr Relocatable) error {
 // Skips validation if the address is temporary or if it has been previously validated
 func (m *Memory) ValidateExistingMemory() error {
 	for addr := range m.data {
-		err := m.ValidateAddress(addr)
+		err := m.validateAddress(addr)
 		if err != nil {
 			return err
 		}

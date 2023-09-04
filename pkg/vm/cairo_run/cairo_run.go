@@ -93,7 +93,7 @@ func WriteEncodedTrace(relocatedTrace []vm.RelocatedTraceEntry, dest io.Writer) 
 }
 
 func encodeTraceError(i int, err error) error {
-	return errors.New(fmt.Sprintf("failed to encode trace at position %d, serialize error: %s", i, err))
+	return errors.New(fmt.Sprintf("Failed to encode trace at position %d, serialize error: %s", i, err))
 }
 
 // Writes a binary representation of the relocated memory.
@@ -135,5 +135,5 @@ func WriteEncodedMemory(relocatedMemory map[uint]lambdaworks.Felt, dest io.Write
 }
 
 func encodeMemoryError(i uint, err error) error {
-	return fmt.Errorf("failed to encode trace at position %d, serialize error: %s", i, err)
+	return fmt.Errorf("Failed to encode trace at position %d, serialize error: %s", i, err)
 }

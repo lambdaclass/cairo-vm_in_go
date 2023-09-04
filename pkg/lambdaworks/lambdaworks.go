@@ -8,8 +8,9 @@ package lambdaworks
 import "C"
 
 import (
-	"errors"
 	"unsafe"
+
+	"github.com/pkg/errors"
 )
 
 const N_LIMBS_IN_FELT = 4
@@ -20,6 +21,14 @@ type Limb C.limb_t
 // Go representation of a 256 bit prime field element (felt).
 type Felt struct {
 	limbs [N_LIMBS_IN_FELT]Limb
+}
+
+func LambdaworksError(err error) error {
+	return errors.Wrapf(err, "Lambdaworks Error")
+}
+
+func ConversionError(felt Felt, targetType string) error {
+	return LambdaworksError(errors.Errorf("Cannot convert felt: %d to %s", felt, targetType))
 }
 
 // Converts a Go Felt to a C felt_t.
@@ -70,7 +79,7 @@ func (felt Felt) ToU64() (uint64, error) {
 	if felt.limbs[0] == 0 && felt.limbs[1] == 0 && felt.limbs[2] == 0 {
 		return uint64(felt.limbs[3]), nil
 	} else {
-		return 0, errors.New("Cannot convert felt to u64")
+		return 0, ConversionError(felt, "u64")
 	}
 }
 

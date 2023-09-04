@@ -30,8 +30,12 @@ func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 		switch builtin_name {
 		case builtins.BITWISE_BUILTIN_NAME:
 			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewBitwiseBuiltinRunner(true))
+		case builtins.CHECK_RANGE_BUILTIN_NAME:
+			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewRangeCheckBuiltinRunner(true))
 		case builtins.POSEIDON_BUILTIN_NAME:
 			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewPoseidonBuiltinRunner(true))
+		case builtins.OUTPUT_BUILTIN_NAME:
+			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewOutputBuiltinRunner(true))
 		default:
 			return nil, errors.Errorf("Invalid builtin: %s", builtin_name)
 		}

@@ -44,7 +44,7 @@ deps-macos:
 run:
 	@go run cmd/cli/main.go
 
-test: $(COMPILED_TESTS)
+test: build $(COMPILED_TESTS)
 	@go test -v ./...
 
 coverage: $(COMPILED_TESTS)
@@ -71,9 +71,9 @@ clean:
 	rm -f $(TEST_DIR)/*.memory
 	rm -f $(TEST_DIR)/*.trace
 	cd pkg/lambdaworks/lib/lambdaworks && cargo clean
-	rm pkg/lambdaworks/lib/liblambdaworks.a
+	rm -f pkg/lambdaworks/lib/liblambdaworks.a
 	cd pkg/starknet_crypto/lib/starknet_crypto && cargo clean
-	rm pkg/starknet_crypto/lib/libstarknet_crypto.a
+	rm -f pkg/starknet_crypto/lib/libstarknet_crypto.a
 	rm -rf cairo-vm
 	rm -r cairo-vm-env
 

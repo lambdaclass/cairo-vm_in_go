@@ -160,3 +160,4 @@ pub extern "C" fn felt_xor(a: Limbs, b: Limbs, result: Limbs) {
 
     felt_to_limbs(Felt::from(&res), result)
 }
+
