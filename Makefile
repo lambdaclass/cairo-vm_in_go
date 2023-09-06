@@ -44,7 +44,7 @@ deps-macos:
 run:
 	@go run cmd/cli/main.go
 
-test: $(COMPILED_TESTS)
+test: build $(COMPILED_TESTS)
 	@go test -v ./...
 
 coverage: $(COMPILED_TESTS)

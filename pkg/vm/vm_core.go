@@ -87,7 +87,7 @@ func (v *VirtualMachine) RunInstruction(instruction *Instruction) error {
 // Relocates the VM's trace, turning relocatable registers to numbered ones
 func (v *VirtualMachine) RelocateTrace(relocationTable *[]uint) error {
 	if len(*relocationTable) < 2 {
-		return errors.New("no relocation found for execution segment")
+		return errors.New("No relocation found for execution segment")
 	}
 
 	for _, entry := range v.Trace {
@@ -105,7 +105,7 @@ func (v *VirtualMachine) GetRelocatedTrace() ([]RelocatedTraceEntry, error) {
 	if len(v.RelocatedTrace) > 0 {
 		return v.RelocatedTrace, nil
 	} else {
-		return nil, errors.New("trace not relocated")
+		return nil, errors.New("Trace not relocated")
 	}
 }
 
@@ -399,7 +399,7 @@ func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands)
 		}
 		res, ok := operands.Res.GetRelocatable()
 		if !ok {
-			return errors.New("an integer value as Res cannot be used with PcUpdate.JUMP")
+			return errors.New("An integer value as Res cannot be used with PcUpdate.JUMP")
 		}
 		vm.RunContext.Pc = res
 	case PcUpdateJumpRel:
@@ -408,7 +408,7 @@ func (vm *VirtualMachine) UpdatePc(instruction *Instruction, operands *Operands)
 		}
 		res, ok := operands.Res.GetFelt()
 		if !ok {
-			return errors.New("a relocatable value as Res cannot be used with PcUpdate.JUMP_REL")
+			return errors.New("A relocatable value as Res cannot be used with PcUpdate.JUMP_REL")
 		}
 		new_pc, err := vm.RunContext.Pc.AddFelt(res)
 		if err != nil {

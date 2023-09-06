@@ -3,8 +3,8 @@ package runners_test
 import (
 	"testing"
 
+	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
-	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
 	"github.com/lambdaclass/cairo-vm.go/pkg/runners"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
@@ -13,9 +13,9 @@ import (
 func TestNewCairoRunnerInvalidBuiltin(t *testing.T) {
 	// Create a Program with one fake instruction
 	program_data := make([]memory.MaybeRelocatable, 1)
-	empty_identifiers := make(map[string]parser.Identifier, 0)
+	empty_identifiers := make(map[string]vm.Identifier, 0)
 	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltOne())
-	program := vm.Program{Data: program_data, Builtins: []string{"fake_builtin"}, Identifiers: &empty_identifiers}
+	program := vm.Program{Data: program_data, Builtins: []string{"fake_builtin"}, Identifiers: empty_identifiers}
 	// Create CairoRunner
 	_, err := runners.NewCairoRunner(program)
 	if err == nil {
@@ -25,8 +25,8 @@ func TestNewCairoRunnerInvalidBuiltin(t *testing.T) {
 func TestInitializeRunnerNoBuiltinsNoProofModeEmptyProgram(t *testing.T) {
 	// Create a Program with empty data
 	program_data := make([]memory.MaybeRelocatable, 0)
-	empty_identifiers := make(map[string]parser.Identifier, 0)
-	program := vm.Program{Data: program_data, Identifiers: &empty_identifiers}
+	empty_identifiers := make(map[string]vm.Identifier, 0)
+	program := vm.Program{Data: program_data, Identifiers: empty_identifiers}
 	// Create CairoRunner
 	runner, err := runners.NewCairoRunner(program)
 	if err != nil {
@@ -91,8 +91,8 @@ func TestInitializeRunnerNoBuiltinsNoProofModeNonEmptyProgram(t *testing.T) {
 	// Create a Program with one fake instruction
 	program_data := make([]memory.MaybeRelocatable, 1)
 	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1))
-	empty_identifiers := make(map[string]parser.Identifier, 0)
-	program := vm.Program{Data: program_data, Identifiers: &empty_identifiers}
+	empty_identifiers := make(map[string]vm.Identifier, 0)
+	program := vm.Program{Data: program_data, Identifiers: empty_identifiers}
 	// Create CairoRunner
 	runner, err := runners.NewCairoRunner(program)
 	if err != nil {
@@ -155,4 +155,94 @@ func TestInitializeRunnerNoBuiltinsNoProofModeNonEmptyProgram(t *testing.T) {
 	if !ok || rel.SegmentIndex != 3 || rel.Offset != 0 {
 		t.Errorf("Wrong value for address 1:1: %d", rel)
 	}
+}
+
+func TestInitializeRunnerWithRangeCheckValid(t *testing.T) {
+	t.Helper()
+	// Create a Program with one fake instruction
+	program_data := make([]memory.MaybeRelocatable, 1)
+	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1))
+	empty_identifiers := make(map[string]vm.Identifier, 0)
+	program_builtins := []string{builtins.CHECK_RANGE_BUILTIN_NAME}
+	program := vm.Program{Data: program_data, Identifiers: empty_identifiers, Builtins: program_builtins}
+	// Create CairoRunner
+	runner, err := runners.NewCairoRunner(program)
+	if err != nil {
+		t.Errorf("NewCairoRunner error in test: %s", err)
+	}
+	// Initialize the runner
+	_, err = runner.Initialize()
+	if err != nil {
+		t.Errorf("Initialize error in test: %s", err)
+	}
+
+	builtin_runner := runner.Vm.BuiltinRunners[0]
+	if builtin_runner.Name() != builtins.CHECK_RANGE_BUILTIN_NAME {
+		t.Errorf("Name of runner builtin failed. Expected %s, got %s", builtin_runner.Name(), builtins.CHECK_RANGE_BUILTIN_NAME)
+	}
+
+	builtin_base := builtin_runner.Base()
+	expected_base := memory.NewRelocatable(2, 0)
+	if !builtin_base.IsEqual(&expected_base) {
+		t.Errorf("Base of runner builtin failed. Expected %d, got %d", expected_base, builtin_base)
+	}
+
+	err = runner.Vm.Segments.Memory.Insert(memory.NewRelocatable(2, 0), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(23)))
+	if err != nil {
+		t.Errorf("Insertion failed in test with error: %s", err.Error())
+	}
+
+	err = runner.Vm.Segments.Memory.Insert(memory.NewRelocatable(2, 1), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(233)))
+	if err != nil {
+		t.Errorf("Insert failed in test with error: %s", err.Error())
+	}
+}
+
+func TestInitializeRunnerWithRangeCheckInvalid(t *testing.T) {
+	t.Helper()
+	// Create a Program with one fake instruction
+	program_data := make([]memory.MaybeRelocatable, 1)
+	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1))
+	empty_identifiers := make(map[string]vm.Identifier, 0)
+	program_builtins := []string{builtins.CHECK_RANGE_BUILTIN_NAME}
+	program := vm.Program{Data: program_data, Identifiers: empty_identifiers, Builtins: program_builtins}
+	// Create CairoRunner
+	runner, err := runners.NewCairoRunner(program)
+	if err != nil {
+		t.Errorf("NewCairoRunner error in test: %s", err)
+	}
+	// Initialize the runner
+	_, err = runner.Initialize()
+	if err != nil {
+		t.Errorf("Initialize error in test: %s", err)
+	}
+
+	builtin_runner := runner.Vm.BuiltinRunners[0]
+	if builtin_runner.Name() != builtins.CHECK_RANGE_BUILTIN_NAME {
+		t.Errorf("Name of runner builtin failed. Expected %s, got %s", builtin_runner.Name(), builtins.CHECK_RANGE_BUILTIN_NAME)
+	}
+
+	builtin_base := builtin_runner.Base()
+	expected_base := memory.NewRelocatable(2, 0)
+	if !builtin_base.IsEqual(&expected_base) {
+		t.Errorf("Base of runner builtin failed. Expected %d, got %d", expected_base, builtin_base)
+	}
+
+	addr := memory.NewRelocatable(2, 0)
+	val := memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(2, 1))
+	err = runner.Vm.Segments.Memory.Insert(addr, val)
+	expected_error := builtins.NotAFeltError(addr, *val)
+	if err.Error() != expected_error.Error() {
+		t.Errorf("Test failed: Expected error: %s, Actual error: %s", err.Error(), expected_error.Error())
+	}
+
+	addr = memory.NewRelocatable(2, 1)
+	val = memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("-1"))
+	err = runner.Vm.Segments.Memory.Insert(addr, val)
+	felt, _ := val.GetFelt()
+	expected_error = builtins.OutsideBoundsError(felt)
+	if err.Error() != expected_error.Error() {
+		t.Errorf("Test failed: Expected error: %s, Actual error: %s", err.Error(), expected_error.Error())
+	}
+
 }

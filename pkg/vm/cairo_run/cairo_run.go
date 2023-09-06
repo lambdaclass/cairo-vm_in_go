@@ -2,7 +2,6 @@ package cairo_run
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"io"
 	"sort"
@@ -11,6 +10,7 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
 	"github.com/lambdaclass/cairo-vm.go/pkg/runners"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
+	"github.com/pkg/errors"
 )
 
 type RunResources struct {
@@ -22,8 +22,15 @@ type CairoRunConfig struct {
 	MemoryFile *string
 }
 
+func CairoRunError(err error) error {
+	return errors.Wrapf(err, "Cairo Run Error\n")
+}
+
 func CairoRun(programPath string) (*runners.CairoRunner, error) {
-	compiledProgram := parser.Parse(programPath)
+	compiledProgram, err := parser.Parse(programPath)
+	if err != nil {
+		return nil, CairoRunError(err)
+	}
 	programJson := vm.DeserializeProgramJson(compiledProgram)
 
 	cairoRunner, err := runners.NewCairoRunner(programJson)
@@ -86,7 +93,7 @@ func WriteEncodedTrace(relocatedTrace []vm.RelocatedTraceEntry, dest io.Writer) 
 }
 
 func encodeTraceError(i int, err error) error {
-	return errors.New(fmt.Sprintf("failed to encode trace at position %d, serialize error: %s", i, err))
+	return errors.New(fmt.Sprintf("Failed to encode trace at position %d, serialize error: %s", i, err))
 }
 
 // Writes a binary representation of the relocated memory.
@@ -128,5 +135,5 @@ func WriteEncodedMemory(relocatedMemory map[uint]lambdaworks.Felt, dest io.Write
 }
 
 func encodeMemoryError(i uint, err error) error {
-	return fmt.Errorf("failed to encode trace at position %d, serialize error: %s", i, err)
+	return fmt.Errorf("Failed to encode trace at position %d, serialize error: %s", i, err)
 }
