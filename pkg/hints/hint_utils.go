@@ -107,15 +107,12 @@ func ParseHintReference(reference parser.Reference) HintReference {
 	var off_1_reg_0 string
 	var off_1_reg_1 string
 	var off1 string
-	var off1_reg vm.Register = vm.AP
 	// Reference no deref 1 offset: cast(reg + off)
 	_, err = fmt.Scanf(value_string, "cast(%c%c + %s)", off_1_reg_0, off_1_reg_1, off1)
 	if err == nil {
-		if off_1_reg_0 == "f" && off_1_reg_1 == "p" {
-			off1_reg = vm.FP
-		}
+		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
 		num_off1 := offsetValueFromString(off1)
-		return HintReference{ap_tracking_data: reference.ApTrackingData, offset1: OffsetValue{valueType: Reference, register: off1_reg, value: num_off1}}
+		return HintReference{ap_tracking_data: reference.ApTrackingData, offset1: OffsetValue{valueType: Reference, register: off1_reg, value: num_off1}, dereference: dereference}
 	}
 
 	return HintReference{ap_tracking_data: reference.ApTrackingData}
@@ -128,4 +125,12 @@ func offsetValueFromString(num string) int {
 	}
 	res, _ := strconv.ParseInt(num, 0, 32)
 	return int(res)
+}
+
+func getRegister(reg_0 string, reg_1 string) vm.Register {
+	reg := vm.AP
+	if reg_0 == "f" && reg_1 == "p" {
+		reg = vm.FP
+	}
+	return reg
 }
