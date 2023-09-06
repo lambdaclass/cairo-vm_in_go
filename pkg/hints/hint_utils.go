@@ -125,12 +125,11 @@ func ParseHintReference(reference parser.Reference) HintReference {
 	return HintReference{ap_tracking_data: reference.ApTrackingData}
 }
 
+// Parses strings of type num/(-num)
 func offsetValueFromString(num string) int {
-	value_string, has_prefix := strings.CutPrefix(num, "(-")
-	if has_prefix {
-		value_string, _ = strings.CutSuffix(value_string, ")")
-	}
-	res, _ := strconv.ParseInt(num, 0, 32)
+	value_string, _ := strings.CutPrefix(num, "(")
+	value_string, _ = strings.CutSuffix(value_string, ")")
+	res, _ := strconv.ParseInt(num, 10, 32)
 	return int(res)
 }
 
