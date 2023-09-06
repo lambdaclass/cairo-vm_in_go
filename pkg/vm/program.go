@@ -6,10 +6,21 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
+type Identifier struct {
+	FullName   string
+	Members    map[string]any
+	Size       int
+	Decorators []string
+	PC         int
+	Type       string
+	CairoType  string
+	Value      lambdaworks.Felt
+}
+
 type Program struct {
 	Data        []memory.MaybeRelocatable
 	Builtins    []string
-	Identifiers *map[string]parser.Identifier
+	Identifiers map[string]Identifier
 }
 
 func DeserializeProgramJson(compiledProgram parser.CompiledJson) Program {
@@ -21,7 +32,19 @@ func DeserializeProgramJson(compiledProgram parser.CompiledJson) Program {
 		program.Data = append(program.Data, *memory.NewMaybeRelocatableFelt(felt))
 	}
 	program.Builtins = compiledProgram.Builtins
-	program.Identifiers = &compiledProgram.Identifiers
+	program.Identifiers = make(map[string]Identifier)
+	for key, identifier := range compiledProgram.Identifiers {
+		var programIdentifier Identifier
+		programIdentifier.FullName = identifier.FullName
+		programIdentifier.Members = identifier.Members
+		programIdentifier.Size = identifier.Size
+		programIdentifier.Decorators = identifier.Decorators
+		programIdentifier.PC = identifier.PC
+		programIdentifier.Type = identifier.Type
+		programIdentifier.CairoType = identifier.CairoType
+		programIdentifier.Value = lambdaworks.FeltFromDecString(identifier.Value.String())
+		program.Identifiers[key] = programIdentifier
+	}
 
 	return program
 }

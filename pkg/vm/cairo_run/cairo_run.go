@@ -24,8 +24,15 @@ type CairoRunConfig struct {
 	MemoryFile *string
 }
 
+func CairoRunError(err error) error {
+	return errors.Wrapf(err, "Cairo Run Error\n")
+}
+
 func CairoRun(programPath string) (*runners.CairoRunner, error) {
-	compiledProgram := parser.Parse(programPath)
+	compiledProgram, err := parser.Parse(programPath)
+	if err != nil {
+		return nil, CairoRunError(err)
+	}
 	programJson := vm.DeserializeProgramJson(compiledProgram)
 
 	cairoRunner, err := runners.NewCairoRunner(programJson)

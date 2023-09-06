@@ -1,11 +1,10 @@
 package runners
 
 import (
-	"errors"
-
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+	"github.com/pkg/errors"
 )
 
 type CairoRunner struct {
@@ -23,7 +22,7 @@ type CairoRunner struct {
 var ErrInvalidBuiltin = errors.New("Invalid builtin")
 
 func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
-	mainIdentifier, ok := (*program.Identifiers)["__main__.main"]
+	mainIdentifier, ok := (program.Identifiers)["__main__.main"]
 	main_offset := uint(0)
 	if ok {
 		main_offset = uint(mainIdentifier.PC)
@@ -31,6 +30,8 @@ func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 	runner := CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
 	for _, builtin_name := range program.Builtins {
 		switch builtin_name {
+		case builtins.BITWISE_BUILTIN_NAME:
+			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewBitwiseBuiltinRunner(true))
 		case builtins.CHECK_RANGE_BUILTIN_NAME:
 			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewRangeCheckBuiltinRunner(true))
 		case builtins.POSEIDON_BUILTIN_NAME:
