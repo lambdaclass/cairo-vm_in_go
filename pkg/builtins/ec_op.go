@@ -3,7 +3,8 @@ package builtins
 import (
 	"errors"
 	"reflect"
-
+	"math/big"
+	
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
@@ -22,6 +23,7 @@ type EcPoint struct {
 }
 
 const INPUT_CELLS_PER_EC_OP = 5
+const PRIME = "0x800000000000011000000000000000000000000000000000000000000000001"
 
 func NewEcOpBuiltinRunner(included bool) *EcOpBuiltinRunner {
 	return &EcOpBuiltinRunner{
@@ -101,6 +103,15 @@ func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segmen
 			return nil, errors.New("Point not in curve")
 		}
 	}
+
+	prime, ok := new(big.Int).SetString(PRIME, 16)
+	if !ok {
+		return nil, errors.New("Could not parse prime")
+	}
+
+	alpha_big_int := big.NewInt(1)
+
+	
 
 	return nil, nil
 }
