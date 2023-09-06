@@ -58,3 +58,6 @@ void felt_or(felt_t a, felt_t b, felt_t result);
 
 /* writes the result variable with a ^ b */
 void felt_xor(felt_t a, felt_t b, felt_t result);
+
+/* writes the result variable with a << num */
+void felt_shl(felt_t a, uint64_t num, felt_t result);

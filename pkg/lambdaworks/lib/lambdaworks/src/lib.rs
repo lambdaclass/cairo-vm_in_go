@@ -161,3 +161,10 @@ pub extern "C" fn felt_xor(a: Limbs, b: Limbs, result: Limbs) {
     felt_to_limbs(Felt::from(&res), result)
 }
 
+#[no_mangle]
+pub extern "C" fn felt_shl(a: Limbs, num: u64, result: Limbs) {
+    let felt_a = limbs_to_felt(a).representative();
+    
+    let res = felt_a << num as usize; 
+    felt_to_limbs(Felt::from(&res), result)
+}
