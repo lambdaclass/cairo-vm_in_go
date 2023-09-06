@@ -55,7 +55,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 	var off_1_reg_0 string
 	var off_1_reg_1 string
 	var off1 string
-	// Reference no deref 1 offset: cast(reg + off)
+	// Reference no deref 1 offset: cast(reg + off, type)
 	_, err = fmt.Scanf(value_string, "cast(%c%c + %s, %s)", &off_1_reg_0, &off_1_reg_1, &off1, &value_type)
 	if err == nil {
 		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
@@ -67,7 +67,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 		}
 	}
 	var off2 string
-	// Reference no deref 2 offsets: cast(reg + off1 + off2)
+	// Reference no deref 2 offsets: cast(reg + off1 + off2, type)
 	_, err = fmt.Scanf(value_string, "cast(%c%c + %s + %s, %s)", &off_1_reg_0, &off_1_reg_1, &off1, &off2, &value_type)
 	if err == nil {
 		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
@@ -80,7 +80,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			dereference:      dereference,
 		}
 	}
-	// Reference with deref 1 offset: cast([reg + off1])
+	// Reference with deref 1 offset: cast([reg + off1], type)
 	_, err = fmt.Scanf(value_string, "cast([%c%c + %s], %s)", &off_1_reg_0, &off_1_reg_1, &off1, &value_type)
 	if err == nil {
 		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
@@ -91,7 +91,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			dereference:      dereference,
 		}
 	}
-	// Reference with deref 2 offsets: cast([reg + off1] + off2)
+	// Reference with deref 2 offsets: cast([reg + off1] + off2, type)
 	_, err = fmt.Scanf(value_string, "cast([%c%c + %s] + %s, %s)", &off_1_reg_0, &off_1_reg_1, &off1, off2, &value_type)
 	if err == nil {
 		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
@@ -104,7 +104,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			dereference:      dereference,
 		}
 	}
-	// Reference with deref + reference with deref: cast([reg + off1] + [reg + off2])
+	// Reference with deref + reference with deref: cast([reg + off1] + [reg + off2], type)
 	var off_2_reg_0 string
 	var off_2_reg_1 string
 	_, err = fmt.Scanf(value_string, "cast([%c%c + %s] + [%c%c + %s], %s)", &off_1_reg_0, &off_1_reg_1, &off1, &off2, &value_type)
@@ -122,7 +122,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 	}
 	// Special subcases: Sometimes if the offset is 0 it gets omitted, so we get [reg]
 
-	// Reference with deref no off: cast([reg])
+	// Reference with deref no off: cast([reg], type)
 	_, err = fmt.Scanf(value_string, "cast([%c%c], %s)", &off_1_reg_0, &off_1_reg_1, &value_type)
 	if err == nil {
 		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
@@ -132,7 +132,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			dereference:      dereference,
 		}
 	}
-	// Reference with deref 2 offsets no off1: cast([reg] + off2)
+	// Reference with deref 2 offsets no off1: cast([reg] + off2, type)
 	_, err = fmt.Scanf(value_string, "cast([%c%c + %s] + %s, %s)", &off_1_reg_0, &off_1_reg_1, &off2, &value_type)
 	if err == nil {
 		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
@@ -145,7 +145,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 		}
 	}
 
-	// 2 dereferences no off1 : cast([reg] + [reg + off2])
+	// 2 dereferences no off1 : cast([reg] + [reg + off2], type)
 	_, err = fmt.Scanf(value_string, "cast([%c%c] + [%c%c + %s], %s)", &off_1_reg_0, &off_1_reg_1, &off2, &value_type)
 	if err == nil {
 		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
@@ -158,7 +158,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			dereference:      dereference,
 		}
 	}
-	// 2 dereferences no off2: cast([reg + off1] + [reg])
+	// 2 dereferences no off2: cast([reg + off1] + [reg], type)
 	_, err = fmt.Scanf(value_string, "cast([%c%c + %s] + [%c%c], %s)", &off_1_reg_0, &off_1_reg_1, &off1, &value_type)
 	if err == nil {
 		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
@@ -171,7 +171,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			dereference:      dereference,
 		}
 	}
-	// 2 dereferences no offs: cast([reg] + [reg])
+	// 2 dereferences no offs: cast([reg] + [reg], type)
 	_, err = fmt.Scanf(value_string, "cast([%c%c] + [%c%c], %s)", &off_1_reg_0, &off_1_reg_1, &value_type)
 	if err == nil {
 		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
