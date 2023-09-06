@@ -120,7 +120,69 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			dereference:      dereference,
 		}
 	}
-	// TODO: Subcases to add: No off (cuz off = 0)
+	// Special subcases: Sometimes if the offset is 0 it gets omitted, so we get [reg]
+
+	// Reference with deref no off: cast([reg])
+	_, err = fmt.Scanf(value_string, "cast([%c%c])", off_1_reg_0, off_1_reg_1)
+	if err == nil {
+		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
+		return HintReference{
+			ap_tracking_data: reference.ApTrackingData,
+			offset1:          OffsetValue{valueType: Reference, register: off1_reg, dereference: true},
+			dereference:      dereference,
+		}
+	}
+	// Reference with deref 2 offsets no off1: cast([reg] + off2)
+	_, err = fmt.Scanf(value_string, "cast([%c%c + %s] + %s)", off_1_reg_0, off_1_reg_1, off2)
+	if err == nil {
+		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
+		num_off2 := offsetValueFromString(off2)
+		return HintReference{
+			ap_tracking_data: reference.ApTrackingData,
+			offset1:          OffsetValue{valueType: Reference, register: off1_reg, dereference: true},
+			offset2:          OffsetValue{value: num_off2},
+			dereference:      dereference,
+		}
+	}
+
+	// 2 dereferences no off1 : cast([reg] + [reg + off2])
+	_, err = fmt.Scanf(value_string, "cast([%c%c] + [%c%c + %s])", off_1_reg_0, off_1_reg_1, off2)
+	if err == nil {
+		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
+		off2_reg := getRegister(off_2_reg_0, off_2_reg_1)
+		num_off2 := offsetValueFromString(off2)
+		return HintReference{
+			ap_tracking_data: reference.ApTrackingData,
+			offset1:          OffsetValue{valueType: Reference, register: off1_reg, dereference: true},
+			offset2:          OffsetValue{valueType: Reference, register: off2_reg, value: num_off2, dereference: true},
+			dereference:      dereference,
+		}
+	}
+	// 2 dereferences no off2: cast([reg + off1] + [reg])
+	_, err = fmt.Scanf(value_string, "cast([%c%c + %s] + [%c%c])", off_1_reg_0, off_1_reg_1, off1)
+	if err == nil {
+		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
+		off2_reg := getRegister(off_2_reg_0, off_2_reg_1)
+		num_off1 := offsetValueFromString(off1)
+		return HintReference{
+			ap_tracking_data: reference.ApTrackingData,
+			offset1:          OffsetValue{valueType: Reference, register: off1_reg, value: num_off1, dereference: true},
+			offset2:          OffsetValue{valueType: Reference, register: off2_reg, dereference: true},
+			dereference:      dereference,
+		}
+	}
+	// 2 dereferences no offs: cast([reg] + [reg])
+	_, err = fmt.Scanf(value_string, "cast([%c%c] + [%c%c])", off_1_reg_0, off_1_reg_1)
+	if err == nil {
+		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
+		off2_reg := getRegister(off_2_reg_0, off_2_reg_1)
+		return HintReference{
+			ap_tracking_data: reference.ApTrackingData,
+			offset1:          OffsetValue{valueType: Reference, register: off1_reg, dereference: true},
+			offset2:          OffsetValue{valueType: Reference, register: off2_reg, dereference: true},
+			dereference:      dereference,
+		}
+	}
 
 	return HintReference{ap_tracking_data: reference.ApTrackingData}
 }
