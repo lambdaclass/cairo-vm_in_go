@@ -11,18 +11,18 @@ import (
 )
 
 type HintReference struct {
-	offset1          OffsetValue
-	offset2          OffsetValue
-	dereference      bool
-	ap_tracking_data parser.ApTrackingData
+	Offset1        OffsetValue
+	Offset2        OffsetValue
+	Dereference    bool
+	ApTrackingData parser.ApTrackingData
 }
 
 type OffsetValue struct {
-	valueType   offsetValueType
-	immediate   Felt
-	value       int
-	register    vm.Register
-	dereference bool
+	ValueType   offsetValueType
+	Immediate   Felt
+	Value       int
+	Register    vm.Register
+	Dereference bool
 }
 
 type offsetValueType uint
@@ -48,8 +48,8 @@ func ParseHintReference(reference parser.Reference) HintReference {
 	if err == nil {
 		var felt = FeltFromDecString(immediate)
 		return HintReference{
-			ap_tracking_data: reference.ApTrackingData,
-			offset1:          OffsetValue{immediate: felt, valueType: Immediate},
+			ApTrackingData: reference.ApTrackingData,
+			Offset1:        OffsetValue{Immediate: felt, ValueType: Immediate},
 		}
 	}
 	var off_1_reg_0 string
@@ -61,9 +61,9 @@ func ParseHintReference(reference parser.Reference) HintReference {
 		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
 		num_off1 := offsetValueFromString(off1)
 		return HintReference{
-			ap_tracking_data: reference.ApTrackingData,
-			offset1:          OffsetValue{valueType: Reference, register: off1_reg, value: num_off1},
-			dereference:      dereference,
+			ApTrackingData: reference.ApTrackingData,
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: num_off1},
+			Dereference:    dereference,
 		}
 	}
 	var off2 string
@@ -74,10 +74,10 @@ func ParseHintReference(reference parser.Reference) HintReference {
 		num_off1 := offsetValueFromString(off1)
 		num_off2 := offsetValueFromString(off2)
 		return HintReference{
-			ap_tracking_data: reference.ApTrackingData,
-			offset1:          OffsetValue{valueType: Reference, register: off1_reg, value: num_off1},
-			offset2:          OffsetValue{value: num_off2},
-			dereference:      dereference,
+			ApTrackingData: reference.ApTrackingData,
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: num_off1},
+			Offset2:        OffsetValue{Value: num_off2},
+			Dereference:    dereference,
 		}
 	}
 	// Reference with deref 1 offset: cast([reg + off1], type)
@@ -86,9 +86,9 @@ func ParseHintReference(reference parser.Reference) HintReference {
 		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
 		num_off1 := offsetValueFromString(off1)
 		return HintReference{
-			ap_tracking_data: reference.ApTrackingData,
-			offset1:          OffsetValue{valueType: Reference, register: off1_reg, value: num_off1, dereference: true},
-			dereference:      dereference,
+			ApTrackingData: reference.ApTrackingData,
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: num_off1, Dereference: true},
+			Dereference:    dereference,
 		}
 	}
 	// Reference with deref 2 offsets: cast([reg + off1] + off2, type)
@@ -98,10 +98,10 @@ func ParseHintReference(reference parser.Reference) HintReference {
 		num_off1 := offsetValueFromString(off1)
 		num_off2 := offsetValueFromString(off2)
 		return HintReference{
-			ap_tracking_data: reference.ApTrackingData,
-			offset1:          OffsetValue{valueType: Reference, register: off1_reg, value: num_off1, dereference: true},
-			offset2:          OffsetValue{value: num_off2},
-			dereference:      dereference,
+			ApTrackingData: reference.ApTrackingData,
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: num_off1, Dereference: true},
+			Offset2:        OffsetValue{Value: num_off2},
+			Dereference:    dereference,
 		}
 	}
 	// Reference with deref + reference with deref: cast([reg + off1] + [reg + off2], type)
@@ -114,10 +114,10 @@ func ParseHintReference(reference parser.Reference) HintReference {
 		num_off1 := offsetValueFromString(off1)
 		num_off2 := offsetValueFromString(off2)
 		return HintReference{
-			ap_tracking_data: reference.ApTrackingData,
-			offset1:          OffsetValue{valueType: Reference, register: off1_reg, value: num_off1, dereference: true},
-			offset2:          OffsetValue{valueType: Reference, register: off2_reg, value: num_off2, dereference: true},
-			dereference:      dereference,
+			ApTrackingData: reference.ApTrackingData,
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: num_off1, Dereference: true},
+			Offset2:        OffsetValue{ValueType: Reference, Register: off2_reg, Value: num_off2, Dereference: true},
+			Dereference:    dereference,
 		}
 	}
 	// Special subcases: Sometimes if the offset is 0 it gets omitted, so we get [reg]
@@ -127,9 +127,9 @@ func ParseHintReference(reference parser.Reference) HintReference {
 	if err == nil {
 		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
 		return HintReference{
-			ap_tracking_data: reference.ApTrackingData,
-			offset1:          OffsetValue{valueType: Reference, register: off1_reg, dereference: true},
-			dereference:      dereference,
+			ApTrackingData: reference.ApTrackingData,
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Dereference: true},
+			Dereference:    dereference,
 		}
 	}
 	// Reference with deref 2 offsets no off1: cast([reg] + off2, type)
@@ -138,10 +138,10 @@ func ParseHintReference(reference parser.Reference) HintReference {
 		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
 		num_off2 := offsetValueFromString(off2)
 		return HintReference{
-			ap_tracking_data: reference.ApTrackingData,
-			offset1:          OffsetValue{valueType: Reference, register: off1_reg, dereference: true},
-			offset2:          OffsetValue{value: num_off2},
-			dereference:      dereference,
+			ApTrackingData: reference.ApTrackingData,
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Dereference: true},
+			Offset2:        OffsetValue{Value: num_off2},
+			Dereference:    dereference,
 		}
 	}
 
@@ -152,10 +152,10 @@ func ParseHintReference(reference parser.Reference) HintReference {
 		off2_reg := getRegister(off_2_reg_0, off_2_reg_1)
 		num_off2 := offsetValueFromString(off2)
 		return HintReference{
-			ap_tracking_data: reference.ApTrackingData,
-			offset1:          OffsetValue{valueType: Reference, register: off1_reg, dereference: true},
-			offset2:          OffsetValue{valueType: Reference, register: off2_reg, value: num_off2, dereference: true},
-			dereference:      dereference,
+			ApTrackingData: reference.ApTrackingData,
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Dereference: true},
+			Offset2:        OffsetValue{ValueType: Reference, Register: off2_reg, Value: num_off2, Dereference: true},
+			Dereference:    dereference,
 		}
 	}
 	// 2 dereferences no off2: cast([reg + off1] + [reg], type)
@@ -165,10 +165,10 @@ func ParseHintReference(reference parser.Reference) HintReference {
 		off2_reg := getRegister(off_2_reg_0, off_2_reg_1)
 		num_off1 := offsetValueFromString(off1)
 		return HintReference{
-			ap_tracking_data: reference.ApTrackingData,
-			offset1:          OffsetValue{valueType: Reference, register: off1_reg, value: num_off1, dereference: true},
-			offset2:          OffsetValue{valueType: Reference, register: off2_reg, dereference: true},
-			dereference:      dereference,
+			ApTrackingData: reference.ApTrackingData,
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: num_off1, Dereference: true},
+			Offset2:        OffsetValue{ValueType: Reference, Register: off2_reg, Dereference: true},
+			Dereference:    dereference,
 		}
 	}
 	// 2 dereferences no offs: cast([reg] + [reg], type)
@@ -177,14 +177,14 @@ func ParseHintReference(reference parser.Reference) HintReference {
 		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
 		off2_reg := getRegister(off_2_reg_0, off_2_reg_1)
 		return HintReference{
-			ap_tracking_data: reference.ApTrackingData,
-			offset1:          OffsetValue{valueType: Reference, register: off1_reg, dereference: true},
-			offset2:          OffsetValue{valueType: Reference, register: off2_reg, dereference: true},
-			dereference:      dereference,
+			ApTrackingData: reference.ApTrackingData,
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Dereference: true},
+			Offset2:        OffsetValue{ValueType: Reference, Register: off2_reg, Dereference: true},
+			Dereference:    dereference,
 		}
 	}
 
-	return HintReference{ap_tracking_data: reference.ApTrackingData}
+	return HintReference{ApTrackingData: reference.ApTrackingData}
 }
 
 // Parses strings of type num/(-num)
