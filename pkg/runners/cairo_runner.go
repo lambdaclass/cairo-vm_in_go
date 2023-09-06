@@ -2,6 +2,7 @@ package runners
 
 import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
+	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	"github.com/pkg/errors"
@@ -52,6 +53,24 @@ func (r *CairoRunner) Initialize() (memory.Relocatable, error) {
 		err = r.initializeVM()
 	}
 	return end, err
+}
+
+func (r *CairoRunner) initializeBuiltins() error {
+	orderedBuiltinNames := []string{
+		"output_builtin",
+		"pedersen_builtin",
+		"range_check_builtin",
+		"ecdsa_builtin",
+		"bitwise_builtin",
+		"ec_op_builtin",
+		"keccak_builtin",
+		"poseidon_builtin",
+	}
+	if !utils.IsSubsequence(r.Program.Builtins, orderedBuiltinNames) {
+		return errors.Errorf("program builtins are not in appropiate order")
+	}
+
+	return nil
 }
 
 // Creates program, execution and builtin segments
