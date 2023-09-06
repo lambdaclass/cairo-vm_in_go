@@ -733,11 +733,11 @@ func TestDeduceOp1OpcodeCall(t *testing.T) {
 	}
 
 	if m1 != nil {
-		t.Error("maybe relocatable of deduced operand is not nil")
+		t.Error("Maybe relocatable of deduced operand is not nil")
 	}
 
 	if m2 != nil {
-		t.Error("maybe relocatable of deduced operand is not nil")
+		t.Error("Maybe relocatable of deduced operand is not nil")
 	}
 }
 
@@ -802,11 +802,11 @@ func TestDeduceOp1OpcodeAssertEqResAddWithoutOptionals(t *testing.T) {
 	}
 
 	if m1 != nil {
-		t.Error("maybe relocatable of deduced operand is not nil")
+		t.Error("Maybe relocatable of deduced operand is not nil")
 	}
 
 	if m2 != nil {
-		t.Error("maybe relocatable of deduced operand is not nil")
+		t.Error("Maybe relocatable of deduced operand is not nil")
 	}
 }
 func TestDeduceOp1OpcodeAssertEqResMulNonZeroOp0(t *testing.T) {
@@ -873,11 +873,11 @@ func TestDeduceOp1OpcodeAssertEqResMulZeroOp0(t *testing.T) {
 	}
 
 	if m1 != nil {
-		t.Error("maybe relocatable of deduced operand is not nil")
+		t.Error("Maybe relocatable of deduced operand is not nil")
 	}
 
 	if m2 != nil {
-		t.Error("maybe relocatable of deduced operand is not nil")
+		t.Error("Maybe relocatable of deduced operand is not nil")
 	}
 }
 
@@ -907,11 +907,11 @@ func TestDeduceOp1OpcodeAssertEqResOp1WithoutDst(t *testing.T) {
 	}
 
 	if m1 != nil {
-		t.Error("maybe relocatable of deduced operand is not nil")
+		t.Error("Maybe relocatable of deduced operand is not nil")
 	}
 
 	if m2 != nil {
-		t.Error("maybe relocatable of deduced operand is not nil")
+		t.Error("Maybe relocatable of deduced operand is not nil")
 	}
 }
 func TestDeduceOp1OpcodeAssertEqResOp1WithDst(t *testing.T) {

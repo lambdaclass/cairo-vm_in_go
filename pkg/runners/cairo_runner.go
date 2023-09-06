@@ -1,10 +1,10 @@
 package runners
 
 import (
-	"errors"
-
+	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+	"github.com/pkg/errors"
 )
 
 type CairoRunner struct {
@@ -20,7 +20,7 @@ type CairoRunner struct {
 }
 
 func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
-	mainIdentifier, ok := (*program.Identifiers)["__main__.main"]
+	mainIdentifier, ok := (program.Identifiers)["__main__.main"]
 	main_offset := uint(0)
 	if ok {
 		main_offset = uint(mainIdentifier.PC)
@@ -28,11 +28,16 @@ func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 	runner := CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
 	for _, builtin_name := range program.Builtins {
 		switch builtin_name {
-		// Add a case for each builtin here, example:
-		// case "range_check":
-		// 	runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, RangeCheckBuiltin{})
+		case builtins.BITWISE_BUILTIN_NAME:
+			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewBitwiseBuiltinRunner(true))
+		case builtins.CHECK_RANGE_BUILTIN_NAME:
+			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewRangeCheckBuiltinRunner(true))
+		case builtins.POSEIDON_BUILTIN_NAME:
+			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewPoseidonBuiltinRunner(true))
+		case builtins.OUTPUT_BUILTIN_NAME:
+			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewOutputBuiltinRunner(true))
 		default:
-			return nil, errors.New("Invalid builtin")
+			return nil, errors.Errorf("Invalid builtin: %s", builtin_name)
 		}
 	}
 
