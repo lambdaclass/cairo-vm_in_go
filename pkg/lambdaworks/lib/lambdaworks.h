@@ -46,3 +46,15 @@ void mul(felt_t a, felt_t b, felt_t result);
 
 /* Writes the result variable with a / b. */
 void lw_div(felt_t a, felt_t b, felt_t result);
+
+/* Returns the minimum number of bits needed to represent the felt */
+limb_t bits(felt_t a);
+
+/* writes the result variable with a & b */
+void felt_and(felt_t a, felt_t b, felt_t result);
+
+/* writes the result variable with a | b */
+void felt_or(felt_t a, felt_t b, felt_t result);
+
+/* writes the result variable with a ^ b */
+void felt_xor(felt_t a, felt_t b, felt_t result);

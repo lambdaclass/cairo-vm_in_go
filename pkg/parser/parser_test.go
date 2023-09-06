@@ -8,7 +8,10 @@ import (
 )
 
 func TestData(t *testing.T) {
-	got := parser.Parse("../../cairo_programs/fibonacci.json")
+	got, err := parser.Parse("../../cairo_programs/fibonacci.json")
+	if err != nil {
+		t.Errorf("Test failed with error: %v", err)
+	}
 	expected := []string{"0x480680017fff8000",
 		"0x1",
 		"0x480680017fff8000",

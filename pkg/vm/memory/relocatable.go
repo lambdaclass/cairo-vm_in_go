@@ -39,8 +39,8 @@ func (r *Relocatable) AddFelt(other lambdaworks.Felt) (Relocatable, error) {
 	return NewRelocatable(r.SegmentIndex, uint(new_offset)), nil
 }
 
-// Substracts a Felt value from a Relocatable
-// Performs the initial substraction considering the offset as a Felt
+// Subtracts a Felt value from a Relocatable
+// Performs the initial subtraction considering the offset as a Felt
 // Fails if the new offset exceeds the size of a uint
 func (r *Relocatable) SubFelt(other lambdaworks.Felt) (Relocatable, error) {
 	new_offset_felt := lambdaworks.FeltFromUint64(uint64(r.Offset)).Sub(other)
@@ -85,9 +85,9 @@ func (relocatable *Relocatable) SubUint(other uint) (Relocatable, error) {
 	}
 }
 
-func (relocatable *Relocatable) AddUint(other uint) (Relocatable, error) {
+func (relocatable *Relocatable) AddUint(other uint) Relocatable {
 	new_offset := relocatable.Offset + other
-	return NewRelocatable(relocatable.SegmentIndex, new_offset), nil
+	return NewRelocatable(relocatable.SegmentIndex, new_offset)
 }
 
 // MaybeRelocatable is the type of the memory cells in the Cairo
