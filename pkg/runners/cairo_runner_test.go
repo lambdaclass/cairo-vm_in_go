@@ -264,7 +264,7 @@ func TestBuildHintDataMapEmpty(t *testing.T) {
 	}
 }
 
-func TestBuildHintDataMapHappyPath(t *testing.T) {
+func TestBuildHintDataMapOneHint(t *testing.T) {
 	program := vm.Program{
 		Hints: map[uint][]parser.HintParams{
 			0: {
@@ -291,7 +291,7 @@ func TestBuildHintDataMapHappyPath(t *testing.T) {
 	runner, _ := runners.NewCairoRunner(program)
 	hintProcessor := &hints.CairoVmHintProcessor{}
 	expectedHintDataMap := map[uint][]any{
-		0: []any{
+		0: {
 			hints.HintData{
 				Ids: map[string]hint_utils.HintReference{
 					"a": {
