@@ -1,10 +1,9 @@
 package builtins
 
 import (
-	"fmt"
     "errors"
     "math/bits"
-
+    "encoding/binary"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
@@ -64,35 +63,51 @@ func (k *KeccakBuiltinRunner) DeduceMemoryCell(address Relocatable, mem *Memory)
 
 	input_message := make([]byte, 0, 25*KECCAK_INPUT_CELLS_PER_INSTANCE)
 
+    // This for block creates an input message of 200 bytes. The slice is created fro
+    // from 8 chunks of 25 bytes which are felts. To make sure nothing breaks, the
+    // numbers are checked to need at most 25 bytes for their representation, if this
+    // doesn't hold, an error will be returned.
 	for i := uint(0); i < KECCAK_INPUT_CELLS_PER_INSTANCE; i++ {
 		felt, err := mem.GetFelt(input_start_addr.AddUint(i))
 		if err != nil {
 			return nil, err
 		}
-        // Original condition felt >= FeltOne() << 200
-        if !(felt.Bits() < 199) {
+
+        if !(felt.Bits() <= 200) {
             return nil, errors.New("Expected integer to be smaller than 2^200")
         }
+        // Padding should already occur
 		le_bytes := felt.ToLeBytes()
 		input_message = append(input_message, le_bytes[:25]...)
 	}
-	// Run keccak
-	// Cairo VM here uses the internal k1600 permutation, not the sha3 hash
-	// SOLUTION: Couldnt find any cool crates that export keccak_f, so my solution atm will be to link
-	// the keccak_f we use in cairo-vm, we would send the 8 felts and receive 8 felts for convenience
-	// Checked the keccakf1600 crate, but it uses a state of 50 uint64
+
+	output_message_bytes := append(make([]byte, 0, 200), input_message...)
+    // Make sure output message is padded
+    output_message_bytes = output_message_bytes[:cap(output_message_bytes)]
+
+    // Type conversions are needed to use keccakF1600
+    var output_message_u64 [25]uint64
+    for i := 0; i < 25; i++ {
+        output_message_u64[i] = binary.LittleEndian.Uint64(output_message_bytes[8*i:8*i+8])
+    }
+    keccakF1600(&output_message_u64)
+
+    // Convert back to bytes
 	output_message := make([]byte, 0, 200)
-	fmt.Printf("INPUT BYTES %v, %v\n", []byte(input_message), len(input_message))
-	fmt.Printf("OUTPUT BYTES %v, %v\n", []byte(output_message), len(output_message))
+    for _, num := range output_message_u64 {
+        var chunk []byte
+        chunk = binary.LittleEndian.AppendUint64(chunk, num)
+        output_message = append(output_message, chunk...)
+    }
+
 	for i := uint(0); i < KECCAK_INPUT_CELLS_PER_INSTANCE; i++ {
-		bytes := (output_message)[25*i : 25*i+25]
-		padded_bytes := (*[32]byte)(append(bytes, []byte{0, 0, 0, 0, 0, 0, 0}...))
-        keccakF1600(input_message)
-		felt := FeltFromLeBytes(padded_bytes)
+		bytes := output_message[25*i : 25*i+25]
+        var padded_bytes [32]byte
+        copy(padded_bytes[:], bytes)
+		felt := FeltFromLeBytes(&padded_bytes)
 		k.cache[output_start_address.AddUint(i)] = felt
 	}
 	return NewMaybeRelocatableFelt(k.cache[address]), nil
-
 }
 
 // The following code was copied from https://github.com/golang/crypto/blob/a3485e174077e5296d3d4a43ca31d2d21b40be2c/sha3/keccakf.go

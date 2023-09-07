@@ -7,6 +7,7 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/cairo_run"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -125,4 +126,12 @@ func TestKeccakAddValidationRule(t *testing.T) {
 		t.Errorf("AddValidationRule should do nothing")
 	}
 
+}
+
+func TestIntegrationKeccak(t *testing.T) {
+	t.Helper()
+	_, err := cairo_run.CairoRun("../../cairo_programs/keccak_builtin.json")
+	if err != nil {
+		t.Errorf("TestIntegrationKeccak failed with error:\n %v", err)
+	}
 }
