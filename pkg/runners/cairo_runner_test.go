@@ -358,3 +358,53 @@ func TestWriteOutputFromPresentMemoryNegOutput(t *testing.T) {
 		t.Errorf("TestWriteOutputFromPresentMemoryNegOutput failed. Expected: %s, got: %s", expected, result)
 	}
 }
+
+// Todo: Uncomment when we can add main entrypoint to program
+/*func TestWriteOutputUnorderedBuiltins(t *testing.T) {
+	program_data := make([]memory.MaybeRelocatable, 14)
+	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(4612671182993129469))
+	program_data[1] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5198983563776458752))
+	program_data[2] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1))
+	program_data[3] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2345108766317314046))
+	program_data[4] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5191102247248822272))
+	program_data[5] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5189976364521848832))
+	program_data[6] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1))
+	program_data[7] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1226245742482522112))
+	program_data[8] = *memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(-7, 10))
+	program_data[9] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5189976364521848832))
+	program_data[10] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(17))
+	program_data[11] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1226245742482522112))
+	program_data[12] = *memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(-11, 10))
+	program_data[13] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2345108766317314046))
+	empty_identifiers := make(map[string]vm.Identifier, 0)
+	program_builtins := []string{builtins.OUTPUT_BUILTIN_NAME, builtins.BITWISE_BUILTIN_NAME}
+	program := vm.Program{Data: program_data, Identifiers: empty_identifiers, Builtins: program_builtins}
+	// Create CairoRunner
+	runner, err := runners.NewCairoRunner(program)
+	if err != nil {
+		t.Errorf("NewCairoRunner error in test: %s", err)
+	}
+
+	// Initialize the runner
+	end, err := runner.Initialize()
+	if err != nil {
+		t.Errorf("Initialize error in test: %s", err)
+	}
+
+	runner.Vm.BuiltinRunners[0], runner.Vm.BuiltinRunners[1] = runner.Vm.BuiltinRunners[1], runner.Vm.BuiltinRunners[0]
+
+	err = runner.RunUntilPC(end)
+	if err != nil {
+		t.Errorf("RunUntilPC error in test: %s", err)
+	}
+	var buffer bytes.Buffer
+	runner.Vm.WriteOutput(&buffer)
+
+	expected := ""
+	result := buffer.String()
+
+	if expected != result {
+		t.Errorf("TestWriteOutputFromPresentMemoryNegOutput failed. Expected: %s, got: %s", expected, result)
+	}
+}
+*/
