@@ -1,9 +1,11 @@
 package runners_test
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
+	"github.com/lambdaclass/cairo-vm.go/pkg/hints"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/runners"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
@@ -244,5 +246,18 @@ func TestInitializeRunnerWithRangeCheckInvalid(t *testing.T) {
 	if err.Error() != expected_error.Error() {
 		t.Errorf("Test failed: Expected error: %s, Actual error: %s", err.Error(), expected_error.Error())
 	}
+}
 
+func TestBuildHintDataMapEmpty(t *testing.T) {
+	program := vm.Program{}
+	runner, _ := runners.NewCairoRunner(program)
+	hintProcessor := &hints.CairoVmHintProcessor{}
+	expectedHintDataMap := make(map[uint][]any)
+	hintDataMap, err := runner.BuildHintDataMap(hintProcessor)
+	if err != nil {
+		t.Errorf("Test failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(hintDataMap, expectedHintDataMap) {
+		t.Errorf("Wrong hintDataMap, expected %+v, got %+v", expectedHintDataMap, hintDataMap)
+	}
 }

@@ -36,10 +36,10 @@ func TestCompileHintHappyPath(t *testing.T) {
 	referenceManager := &parser.ReferenceManager{
 		References: []parser.Reference{
 			{
-				Value: "cast(ap + (-2))",
+				Value: "cast(ap + (-2), felt)",
 			},
 			{
-				Value: "cast(ap + (-1))",
+				Value: "cast(ap + (-1), felt)",
 			},
 		},
 	}
@@ -47,13 +47,17 @@ func TestCompileHintHappyPath(t *testing.T) {
 		Ids: map[string]HintReference{
 			"a": {
 				Offset1: OffsetValue{
-					Value: -2,
+					ValueType: Reference,
+					Value:     -2,
 				},
+				ValueType: "felt",
 			},
 			"b": {
 				Offset1: OffsetValue{
-					Value: -1,
+					ValueType: Reference,
+					Value:     -1,
 				},
+				ValueType: "felt",
 			},
 		},
 		Code:       "ids.a = ids.b",
@@ -63,7 +67,7 @@ func TestCompileHintHappyPath(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error in test: %s", err)
 	}
-	if reflect.DeepEqual(data.(HintData), expectedData) {
+	if !reflect.DeepEqual(data.(HintData), expectedData) {
 		t.Errorf("Wrong hint data, %+v", data)
 	}
 }
