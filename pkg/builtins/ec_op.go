@@ -2,9 +2,9 @@ package builtins
 
 import (
 	"errors"
-	"reflect"
 	"math/big"
-	
+	"reflect"
+
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
@@ -20,6 +20,16 @@ type EcOpBuiltinRunner struct {
 type EcPoint struct {
 	x uint
 	y uint
+}
+
+type PartialSum struct {
+	x lambdaworks.Felt
+	y lambdaworks.Felt
+}
+
+type DoublePoint struct {
+	x lambdaworks.Felt
+	y lambdaworks.Felt
 }
 
 const INPUT_CELLS_PER_EC_OP = 5
@@ -75,7 +85,7 @@ func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segmen
 	number := ec.cache[address]
 
 	if !reflect.DeepEqual(number, lambdaworks.Felt{}) {
-		return lambdaworks.NewMaybeRelocatableFelt(number), nil
+		return memory.NewMaybeRelocatableFelt(number), nil
 	}
 
 	//All input cells should be filled, and be integer values
@@ -111,9 +121,26 @@ func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segmen
 
 	alpha_big_int := big.NewInt(1)
 
-	
+	partial_sum := PartialSum{x: input_cells[0], y: input_cells[1]}
+	double_point := DoublePoint{x: input_cells[2], y: input_cells[3]}
 
-	return nil, nil
+	result_x, result_y := ec.ec_op_impl(partial_sum, double_point, input_cells[4], alpha_big_int, prime)
+
+	felt_result_x := lambdaworks.FeltFromHex(result_x.Text(16))
+	felt_result_y := lambdaworks.FeltFromHex(result_y.Text(16))
+
+	ec.cache[x_addr] = felt_result_x
+	ec.cache[x_addr.AddUint(1)] = felt_result_y
+
+	if index-uint(ec.n_input_cells) == 0 {
+		return memory.NewMaybeRelocatableFelt(felt_result_x), nil
+	} else {
+		return memory.NewMaybeRelocatableFelt(felt_result_y), nil
+	}
+}
+
+func (ec *EcOpBuiltinRunner) ec_op_impl(partial_sum PartialSum, double_point DoublePoint, m lambdaworks.Felt, alpha *big.Int, prime *big.Int) (big.Int, big.Int) {
+	return *big.NewInt(1), *big.NewInt(1)
 }
 
 func (ec *EcOpBuiltinRunner) point_on_curve(x lambdaworks.Felt, y lambdaworks.Felt, alpha lambdaworks.Felt, beta lambdaworks.Felt) bool {
