@@ -184,3 +184,57 @@ func TestParseHintTwoDereferencesPosNeg(t *testing.T) {
 		t.Errorf("Wrong parsed reference, %+v", ParseHintReference(reference))
 	}
 }
+
+func TestParseHintReferenceDerefOneOffsetOmitted(t *testing.T) {
+	reference := parser.Reference{Value: "cast([ap], felt)"}
+	expected := HintReference{
+		Offset1: OffsetValue{ValueType: Reference, Value: 0, Dereference: true},
+	}
+	if ParseHintReference(reference) != expected {
+		t.Errorf("Wrong parsed reference, %+v", ParseHintReference(reference))
+	}
+}
+
+func TestParseHintReferenceDerefTwoOffsetOmitted(t *testing.T) {
+	reference := parser.Reference{Value: "cast([ap] + 1, felt)"}
+	expected := HintReference{
+		Offset1: OffsetValue{ValueType: Reference, Value: 0, Dereference: true},
+		Offset2: OffsetValue{Value: 1},
+	}
+	if ParseHintReference(reference) != expected {
+		t.Errorf("Wrong parsed reference, %+v", ParseHintReference(reference))
+	}
+}
+
+func TestParseHintReferenceDoubleDerefFirstOffOmitted(t *testing.T) {
+	reference := parser.Reference{Value: "cast([ap] + [ap + 1], felt)"}
+	expected := HintReference{
+		Offset1: OffsetValue{ValueType: Reference, Value: 0, Dereference: true},
+		Offset2: OffsetValue{ValueType: Reference, Value: 1, Dereference: true},
+	}
+	if ParseHintReference(reference) != expected {
+		t.Errorf("Wrong parsed reference, %+v", ParseHintReference(reference))
+	}
+}
+
+func TestParseHintReferenceDoubleDerefSecondOffOmitted(t *testing.T) {
+	reference := parser.Reference{Value: "cast([ap + 1] + [ap], felt)"}
+	expected := HintReference{
+		Offset1: OffsetValue{ValueType: Reference, Value: 1, Dereference: true},
+		Offset2: OffsetValue{ValueType: Reference, Value: 0, Dereference: true},
+	}
+	if ParseHintReference(reference) != expected {
+		t.Errorf("Wrong parsed reference, %+v", ParseHintReference(reference))
+	}
+}
+
+func TestParseHintReferenceDoubleDerefBothOffOmitted(t *testing.T) {
+	reference := parser.Reference{Value: "cast([ap] + [ap], felt)"}
+	expected := HintReference{
+		Offset1: OffsetValue{ValueType: Reference, Value: 0, Dereference: true},
+		Offset2: OffsetValue{ValueType: Reference, Value: 0, Dereference: true},
+	}
+	if ParseHintReference(reference) != expected {
+		t.Errorf("Wrong parsed reference, %+v", ParseHintReference(reference))
+	}
+}
