@@ -8,6 +8,7 @@ package lambdaworks
 import "C"
 
 import (
+	"math/big"
 	"unsafe"
 
 	"github.com/pkg/errors"
@@ -227,4 +228,13 @@ func (a Felt) PowUint(p uint32) Felt {
 
 	C.felt_pow_uint(&a_c[0], C.uint(p), &result[0])
 	return fromC(result)
+}
+
+func (a Felt) ToBigInt() (big.Int, error) {
+	hex := a.ToHexString()
+	big_int, ok := new(big.Int).SetString(hex, 16)
+	if !ok {
+		return big.Int{}, errors.New("Could not convert to big int")
+	}
+	return *big_int, nil	
 }
