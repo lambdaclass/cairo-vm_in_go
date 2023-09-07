@@ -17,7 +17,7 @@ func TestNewCairoRunnerInvalidBuiltin(t *testing.T) {
 	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltOne())
 	program := vm.Program{Data: program_data, Builtins: []string{"fake_builtin"}, Identifiers: empty_identifiers}
 	// Create CairoRunner
-	_, err := runners.NewCairoRunner(program)
+	_, err := runners.NewCairoRunner(program, "plain", false)
 	if err == nil {
 		t.Errorf("Expected creating a CairoRunner with fake builtin to fail")
 	}
@@ -28,7 +28,7 @@ func TestInitializeRunnerNoBuiltinsNoProofModeEmptyProgram(t *testing.T) {
 	empty_identifiers := make(map[string]vm.Identifier, 0)
 	program := vm.Program{Data: program_data, Identifiers: empty_identifiers}
 	// Create CairoRunner
-	runner, err := runners.NewCairoRunner(program)
+	runner, err := runners.NewCairoRunner(program, "plain", false)
 	if err != nil {
 		t.Errorf("NewCairoRunner error in test: %s", err)
 	}
@@ -94,7 +94,7 @@ func TestInitializeRunnerNoBuiltinsNoProofModeNonEmptyProgram(t *testing.T) {
 	empty_identifiers := make(map[string]vm.Identifier, 0)
 	program := vm.Program{Data: program_data, Identifiers: empty_identifiers}
 	// Create CairoRunner
-	runner, err := runners.NewCairoRunner(program)
+	runner, err := runners.NewCairoRunner(program, "plain", false)
 	if err != nil {
 		t.Errorf("NewCairoRunner error in test: %s", err)
 	}
@@ -166,7 +166,7 @@ func TestInitializeRunnerWithRangeCheckValid(t *testing.T) {
 	program_builtins := []string{builtins.CHECK_RANGE_BUILTIN_NAME}
 	program := vm.Program{Data: program_data, Identifiers: empty_identifiers, Builtins: program_builtins}
 	// Create CairoRunner
-	runner, err := runners.NewCairoRunner(program)
+	runner, err := runners.NewCairoRunner(program, "plain", false)
 	if err != nil {
 		t.Errorf("NewCairoRunner error in test: %s", err)
 	}
@@ -207,7 +207,7 @@ func TestInitializeRunnerWithRangeCheckInvalid(t *testing.T) {
 	program_builtins := []string{builtins.CHECK_RANGE_BUILTIN_NAME}
 	program := vm.Program{Data: program_data, Identifiers: empty_identifiers, Builtins: program_builtins}
 	// Create CairoRunner
-	runner, err := runners.NewCairoRunner(program)
+	runner, err := runners.NewCairoRunner(program, "plain", false)
 	if err != nil {
 		t.Errorf("NewCairoRunner error in test: %s", err)
 	}

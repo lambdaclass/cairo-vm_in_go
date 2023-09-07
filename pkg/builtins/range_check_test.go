@@ -8,14 +8,14 @@ import (
 )
 
 func TestBaseRangeCheck(t *testing.T) {
-	check_range := builtins.NewRangeCheckBuiltinRunner(true)
+	check_range := builtins.NewRangeCheckBuiltinRunner()
 	if check_range.Base() != memory.NewRelocatable(0, 0) {
 		t.Errorf("Wrong base value in %s builtin", check_range.Name())
 	}
 }
 
 func TestInitializeSegmentsForRangeCheck(t *testing.T) {
-	check_range := builtins.NewRangeCheckBuiltinRunner(true)
+	check_range := builtins.NewRangeCheckBuiltinRunner()
 	segments := memory.NewMemorySegmentManager()
 	check_range.InitializeSegments(&segments)
 	if check_range.Base() != memory.NewRelocatable(0, 0) {
@@ -24,7 +24,7 @@ func TestInitializeSegmentsForRangeCheck(t *testing.T) {
 }
 
 func TestGetInitialStackForRangeCheckWithBase(t *testing.T) {
-	check_range := builtins.NewRangeCheckBuiltinRunner(true)
+	check_range := builtins.NewRangeCheckBuiltinRunner()
 	initialStack := check_range.InitialStack()
 	stackValue := initialStack[0]
 	expectedValue := memory.NewMaybeRelocatableRelocatable(check_range.Base())
@@ -34,7 +34,7 @@ func TestGetInitialStackForRangeCheckWithBase(t *testing.T) {
 }
 
 func TestDeduceMemoryCellRangeCheck(t *testing.T) {
-	check_range := builtins.NewRangeCheckBuiltinRunner(true)
+	check_range := builtins.NewRangeCheckBuiltinRunner()
 	a, b := check_range.DeduceMemoryCell(memory.NewRelocatable(0, 0), memory.NewMemory())
 	if a != nil || b != nil {
 		t.Errorf("Deduce memory cell on %s builtin should return (nil, nil)", check_range.Name())

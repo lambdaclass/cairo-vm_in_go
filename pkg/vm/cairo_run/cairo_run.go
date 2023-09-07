@@ -26,14 +26,14 @@ func CairoRunError(err error) error {
 	return errors.Wrapf(err, "Cairo Run Error\n")
 }
 
-func CairoRun(programPath string) (*runners.CairoRunner, error) {
+func CairoRun(programPath string, layout string, proofMode bool) (*runners.CairoRunner, error) {
 	compiledProgram, err := parser.Parse(programPath)
 	if err != nil {
 		return nil, CairoRunError(err)
 	}
 	programJson := vm.DeserializeProgramJson(compiledProgram)
 
-	cairoRunner, err := runners.NewCairoRunner(programJson)
+	cairoRunner, err := runners.NewCairoRunner(programJson, layout, proofMode)
 	if err != nil {
 		return nil, err
 	}

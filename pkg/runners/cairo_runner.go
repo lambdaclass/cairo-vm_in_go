@@ -2,6 +2,7 @@ package runners
 
 import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
+	"github.com/lambdaclass/cairo-vm.go/pkg/layouts"
 	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
@@ -18,35 +19,53 @@ type CairoRunner struct {
 	initialFp     memory.Relocatable
 	finalPc       memory.Relocatable
 	mainOffset    uint
+	layout        layouts.CairoLayout
+	proofMode     bool
 }
 
-func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
+func NewCairoRunner(program vm.Program, layoutName string, proofMode bool) (*CairoRunner, error) {
 	mainIdentifier, ok := (program.Identifiers)["__main__.main"]
 	main_offset := uint(0)
 	if ok {
 		main_offset = uint(mainIdentifier.PC)
 	}
-	runner := CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
-	for _, builtin_name := range program.Builtins {
-		switch builtin_name {
-		case builtins.BITWISE_BUILTIN_NAME:
-			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewBitwiseBuiltinRunner(true))
-		case builtins.CHECK_RANGE_BUILTIN_NAME:
-			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewRangeCheckBuiltinRunner(true))
-		case builtins.POSEIDON_BUILTIN_NAME:
-			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewPoseidonBuiltinRunner(true))
-		case builtins.OUTPUT_BUILTIN_NAME:
-			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewOutputBuiltinRunner(true))
-		default:
-			return nil, errors.Errorf("Invalid builtin: %s", builtin_name)
-		}
+
+	layoutBuiltinRunners, err := layouts.GetLayoutBuiltinRunners(layoutName)
+	if err != nil {
+		return nil, errors.New(err.Error())
 	}
+	layout := layouts.CairoLayout{Name: layoutName, Builtins: layoutBuiltinRunners}
+	runner := CairoRunner{
+		Program:    program,
+		Vm:         *vm.NewVirtualMachine(),
+		mainOffset: main_offset,
+		proofMode:  proofMode,
+		layout:     layout,
+	}
+	// for _, builtin_name := range program.Builtins {
+	// 	switch builtin_name {
+	// 	case builtins.BITWISE_BUILTIN_NAME:
+	// 		runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewBitwiseBuiltinRunner(true))
+	// 	case builtins.CHECK_RANGE_BUILTIN_NAME:
+	// 		runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewRangeCheckBuiltinRunner(true))
+	// 	case builtins.POSEIDON_BUILTIN_NAME:
+	// 		runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewPoseidonBuiltinRunner(true))
+	// 	case builtins.OUTPUT_BUILTIN_NAME:
+	// 		runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewOutputBuiltinRunner(true))
+	// 	default:
+	// 		return nil, errors.Errorf("Invalid builtin: %s", builtin_name)
+	// 	}
+	// }
 
 	return &runner, nil
 }
 
 // Performs the initialization step, returns the end pointer (pc upon which execution should stop)
 func (r *CairoRunner) Initialize() (memory.Relocatable, error) {
+	err := r.initializeBuiltins()
+	if err != nil {
+		return memory.Relocatable{}, errors.New(err.Error())
+	}
 	r.initializeSegments()
 	end, err := r.initializeMainEntrypoint()
 	if err == nil {
@@ -69,6 +88,30 @@ func (r *CairoRunner) initializeBuiltins() error {
 	if !utils.IsSubsequence(r.Program.Builtins, orderedBuiltinNames) {
 		return errors.Errorf("program builtins are not in appropiate order")
 	}
+
+	var builtinRunners []builtins.BuiltinRunner
+	programBuiltins := map[string]struct{}{}
+	for _, builtin := range r.Program.Builtins {
+		programBuiltins[builtin] = struct{}{}
+	}
+
+	for _, layoutBuiltin := range r.layout.Builtins {
+		_, included := programBuiltins[layoutBuiltin.Name()]
+		if included {
+			delete(programBuiltins, layoutBuiltin.Name())
+			layoutBuiltin.Include(true)
+			builtinRunners = append(builtinRunners, layoutBuiltin)
+		} else if r.proofMode {
+			layoutBuiltin.Include(false)
+			builtinRunners = append(builtinRunners, layoutBuiltin)
+		}
+	}
+
+	if len(programBuiltins) != 0 {
+		return errors.Errorf("Builtin(s) %v not present in layout %s", programBuiltins, r.layout.Name)
+	}
+
+	r.Vm.BuiltinRunners = builtinRunners
 
 	return nil
 }

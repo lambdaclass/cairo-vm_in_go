@@ -13,7 +13,7 @@ import (
 // - Asserting expected trace values
 // - Asserting memory_holes
 func TestFibonacci(t *testing.T) {
-	_, err := cairo_run.CairoRun("../../../cairo_programs/fibonacci.json")
+	_, err := cairo_run.CairoRun("../../../cairo_programs/fibonacci.json", "plain", false)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
@@ -21,21 +21,21 @@ func TestFibonacci(t *testing.T) {
 }
 
 func TestPoseidonBuiltin(t *testing.T) {
-	_, err := cairo_run.CairoRun("../../../cairo_programs/poseidon_builtin.json")
+	_, err := cairo_run.CairoRun("../../../cairo_programs/poseidon_builtin.json", "plain", false)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
 }
 
 func TestPoseidonHash(t *testing.T) {
-	_, err := cairo_run.CairoRun("../../../cairo_programs/poseidon_hash.json")
+	_, err := cairo_run.CairoRun("../../../cairo_programs/poseidon_hash.json", "plain", false)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
 }
 
 func TestSimplePrint(t *testing.T) {
-	_, err := cairo_run.CairoRun("../../../cairo_programs/simple_print.json")
+	_, err := cairo_run.CairoRun("../../../cairo_programs/simple_print.json", "plain", false)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}

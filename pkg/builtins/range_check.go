@@ -33,10 +33,8 @@ type RangeCheckBuiltinRunner struct {
 	included bool
 }
 
-func NewRangeCheckBuiltinRunner(included bool) *RangeCheckBuiltinRunner {
-	return &RangeCheckBuiltinRunner{
-		included: included,
-	}
+func NewRangeCheckBuiltinRunner() *RangeCheckBuiltinRunner {
+	return &RangeCheckBuiltinRunner{}
 }
 
 func (r *RangeCheckBuiltinRunner) Base() memory.Relocatable {
@@ -79,4 +77,8 @@ func ValidationRule(mem *memory.Memory, address memory.Relocatable) ([]memory.Re
 
 func (r *RangeCheckBuiltinRunner) AddValidationRule(mem *memory.Memory) {
 	mem.AddValidationRule(uint(r.base.SegmentIndex), ValidationRule)
+}
+
+func (r *RangeCheckBuiltinRunner) Include(include bool) {
+	r.included = include
 }

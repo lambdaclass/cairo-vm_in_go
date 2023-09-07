@@ -16,7 +16,7 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryValidAnd(t *testing.T) {
 	mem.Memory.Insert(memory.NewRelocatable(0, 6), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(12)))
 	mem.Memory.Insert(memory.NewRelocatable(0, 7), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0)))
 
-	builtin := builtins.NewBitwiseBuiltinRunner(true)
+	builtin := builtins.NewBitwiseBuiltinRunner()
 
 	address := memory.NewRelocatable(0, 7)
 
@@ -39,7 +39,7 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryValidXor(t *testing.T) {
 	mem.Memory.Insert(memory.NewRelocatable(0, 6), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(12)))
 	mem.Memory.Insert(memory.NewRelocatable(0, 8), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0)))
 
-	builtin := builtins.NewBitwiseBuiltinRunner(true)
+	builtin := builtins.NewBitwiseBuiltinRunner()
 
 	address := memory.NewRelocatable(0, 8)
 
@@ -64,7 +64,7 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryValidOr(t *testing.T) {
 	mem.Memory.Insert(memory.NewRelocatable(0, 6), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(12)))
 	mem.Memory.Insert(memory.NewRelocatable(0, 9), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0)))
 
-	builtin := builtins.NewBitwiseBuiltinRunner(true)
+	builtin := builtins.NewBitwiseBuiltinRunner()
 
 	address := memory.NewRelocatable(0, 9)
 
@@ -88,7 +88,7 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryIncorrectOffset(t *testing.T) {
 	mem.Memory.Insert(memory.NewRelocatable(0, 4), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(12)))
 	mem.Memory.Insert(memory.NewRelocatable(0, 5), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0)))
 
-	builtin := builtins.NewBitwiseBuiltinRunner(true)
+	builtin := builtins.NewBitwiseBuiltinRunner()
 
 	address := memory.NewRelocatable(0, 5)
 
@@ -110,7 +110,7 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryNoValuesToOperate(t *testing.T) {
 	mem.Memory.Insert(memory.NewRelocatable(0, 5), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(10)))
 	mem.Memory.Insert(memory.NewRelocatable(0, 7), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0)))
 
-	builtin := builtins.NewBitwiseBuiltinRunner(true)
+	builtin := builtins.NewBitwiseBuiltinRunner()
 
 	address := memory.NewRelocatable(0, 5)
 
@@ -128,7 +128,7 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryNoValuesToOperate(t *testing.T) {
 
 func TestIntegrationBitwise(t *testing.T) {
 	t.Helper()
-	_, err := cairo_run.CairoRun("../../cairo_programs/bitwise_builtin_test.json")
+	_, err := cairo_run.CairoRun("../../cairo_programs/bitwise_builtin_test.json", "small", false)
 	if err != nil {
 		t.Errorf("TestIntegrationBitwise failed with error:\n %v", err)
 	}
