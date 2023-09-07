@@ -15,6 +15,16 @@ func TestFromHex(t *testing.T) {
 	if result != expected {
 		t.Errorf("TestFromHex failed. Expected: %v, Got: %v", expected, result)
 	}
+}
+
+func TestToHex(t *testing.T) {
+	var expected = "0x1a"
+	felt := lambdaworks.FeltFromUint64(26)
+
+	result := felt.ToHexString()
+	if result != expected {
+		t.Errorf("TestFromHex failed. Expected: %v, Got: %v", expected, result)
+	}
 
 }
 
