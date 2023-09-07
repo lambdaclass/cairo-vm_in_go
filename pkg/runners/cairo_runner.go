@@ -138,10 +138,10 @@ func (r *CairoRunner) BuildHintDataMap(hintProcessor vm.HintProcessor) (map[uint
 
 func (r *CairoRunner) RunUntilPC(end memory.Relocatable, hintProcessor vm.HintProcessor) error {
 	hintDataMap, err := r.BuildHintDataMap(hintProcessor)
-	constants := r.Program.ExtractConstants()
 	if err != nil {
 		return err
 	}
+	constants := r.Program.ExtractConstants()
 	for r.Vm.RunContext.Pc != end {
 		err := r.Vm.Step(hintProcessor, &hintDataMap, &constants)
 		if err != nil {
