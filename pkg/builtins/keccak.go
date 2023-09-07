@@ -1,11 +1,11 @@
 package builtins
 
 import (
-    "errors"
-    "math/bits"
-    "encoding/binary"
+	"encoding/binary"
+	"errors"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+	"math/bits"
 )
 
 const KECCAK_CELLS_PER_INSTANCE = 16
@@ -63,47 +63,47 @@ func (k *KeccakBuiltinRunner) DeduceMemoryCell(address Relocatable, mem *Memory)
 
 	input_message := make([]byte, 0, 25*KECCAK_INPUT_CELLS_PER_INSTANCE)
 
-    // This for block creates an input message of 200 bytes. The slice is created fro
-    // from 8 chunks of 25 bytes which are felts. To make sure nothing breaks, the
-    // numbers are checked to need at most 25 bytes for their representation, if this
-    // doesn't hold, an error will be returned.
+	// This for block creates an input message of 200 bytes. The slice is created fro
+	// from 8 chunks of 25 bytes which are felts. To make sure nothing breaks, the
+	// numbers are checked to need at most 25 bytes for their representation, if this
+	// doesn't hold, an error will be returned.
 	for i := uint(0); i < KECCAK_INPUT_CELLS_PER_INSTANCE; i++ {
 		felt, err := mem.GetFelt(input_start_addr.AddUint(i))
 		if err != nil {
 			return nil, err
 		}
 
-        if !(felt.Bits() <= 200) {
-            return nil, errors.New("Expected integer to be smaller than 2^200")
-        }
-        // Padding should already occur
+		if !(felt.Bits() <= 200) {
+			return nil, errors.New("Expected integer to be smaller than 2^200")
+		}
+		// Padding should already occur
 		le_bytes := felt.ToLeBytes()
 		input_message = append(input_message, le_bytes[:25]...)
 	}
 
 	output_message_bytes := append(make([]byte, 0, 200), input_message...)
-    // Make sure output message is padded
-    output_message_bytes = output_message_bytes[:cap(output_message_bytes)]
+	// Make sure output message is padded
+	output_message_bytes = output_message_bytes[:cap(output_message_bytes)]
 
-    // Type conversions are needed to use keccakF1600
-    var output_message_u64 [25]uint64
-    for i := 0; i < 25; i++ {
-        output_message_u64[i] = binary.LittleEndian.Uint64(output_message_bytes[8*i:8*i+8])
-    }
-    keccakF1600(&output_message_u64)
+	// Type conversions are needed to use keccakF1600
+	var output_message_u64 [25]uint64
+	for i := 0; i < 25; i++ {
+		output_message_u64[i] = binary.LittleEndian.Uint64(output_message_bytes[8*i : 8*i+8])
+	}
+	keccakF1600(&output_message_u64)
 
-    // Convert back to bytes
+	// Convert back to bytes
 	output_message := make([]byte, 0, 200)
-    for _, num := range output_message_u64 {
-        var chunk []byte
-        chunk = binary.LittleEndian.AppendUint64(chunk, num)
-        output_message = append(output_message, chunk...)
-    }
+	for _, num := range output_message_u64 {
+		var chunk []byte
+		chunk = binary.LittleEndian.AppendUint64(chunk, num)
+		output_message = append(output_message, chunk...)
+	}
 
 	for i := uint(0); i < KECCAK_INPUT_CELLS_PER_INSTANCE; i++ {
 		bytes := output_message[25*i : 25*i+25]
-        var padded_bytes [32]byte
-        copy(padded_bytes[:], bytes)
+		var padded_bytes [32]byte
+		copy(padded_bytes[:], bytes)
 		felt := FeltFromLeBytes(&padded_bytes)
 		k.cache[output_start_address.AddUint(i)] = felt
 	}
@@ -515,4 +515,3 @@ func keccakF1600(a *[25]uint64) {
 		a[24] = bc4 ^ (bc1 &^ bc0)
 	}
 }
-
