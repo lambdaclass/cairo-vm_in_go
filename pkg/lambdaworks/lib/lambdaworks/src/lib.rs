@@ -1,9 +1,9 @@
+use lambdaworks_math::traits::ByteConversion;
 use lambdaworks_math::{
     field::element::FieldElement,
     field::fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
     unsigned_integer::element::UnsignedInteger, unsigned_integer::element::U256,
 };
-use lambdaworks_math::traits::ByteConversion;
 
 extern crate libc;
 // A 256 bit prime field represented as a Montgomery, 4-limb UnsignedInteger.
@@ -75,6 +75,16 @@ pub extern "C" fn from_dec_str(result: Limbs, value: *const libc::c_char) {
 pub extern "C" fn to_le_bytes(result: &mut [u8; 32], value: Limbs) {
     let value_felt = limbs_to_felt(value);
     *result = value_felt.to_bytes_le();
+}
+
+#[no_mangle]
+pub extern "C" fn to_hex_string(result: *mut libc::c_char, value: Limbs) {
+    let felt = limbs_to_felt(value);
+    let felt_str = felt.representative().to_string();
+    let ptr = felt_str.as_ptr() as *mut libc::c_char;
+    for i in 0..felt_str.len() {
+        unsafe { *result.offset(i as isize) = *ptr.offset(i as isize) }
+    }
 }
 
 #[no_mangle]
