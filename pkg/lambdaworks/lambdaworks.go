@@ -109,8 +109,7 @@ func (felt Felt) ToHexString() string {
 
 	var value C.felt_t = felt.toC()
 	C.to_hex_string(result_c, &value[0])
-	s := C.GoString(result_c)
-	return s
+	return C.GoString(result_c)
 }
 
 func FeltFromLeBytes(bytes *[32]byte) Felt {
