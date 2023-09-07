@@ -27,6 +27,7 @@ type VirtualMachine struct {
 	Trace           []TraceEntry
 	RelocatedTrace  []RelocatedTraceEntry
 	RelocatedMemory map[uint]lambdaworks.Felt
+	RunFinished     bool
 }
 
 func NewVirtualMachine() *VirtualMachine {
@@ -132,51 +133,50 @@ func (v *VirtualMachine) Relocate() error {
 
 // TODO: Add ExecScopes to this when it's done
 func (vm *VirtualMachine) EndRun() error {
+	err := vm.VerifyAutoDeductions()
+	if err != nil {
+		return err
+	}
 
+	vm.RunFinished = true
+
+	// TODO
+	// switch execScopes.len() {
+	// case 1:
+	// 	return nil
+	// default:
+	// 	return ErrNoScope
+	// }
+
+	return nil
 }
 
 // Makes sure that all assigned memory cells are consistent with their auto deduction rules.
 func (vm *VirtualMachine) VerifyAutoDeductions() error {
 	for _, builtin := range vm.BuiltinRunners {
 		var index = builtin.Base()
+		for relocatableAddress, value := range vm.Segments.Memory.Data {
+			if relocatableAddress.SegmentIndex != index.SegmentIndex {
+				continue
+			}
 
+			deducedMemoryCell, err := builtin.DeduceMemoryCell(relocatableAddress, &vm.Segments.Memory)
+			if err != nil {
+				return err
+			}
+
+			if deducedMemoryCell == nil {
+				continue
+			}
+
+			if *deducedMemoryCell != value {
+				return &VirtualMachineError{fmt.Sprintf("InconsistentAutoDeduction: %s", builtin.Name())}
+			}
+		}
 	}
+
+	return nil
 }
-
-// ///Makes sure that all assigned memory cells are consistent with their auto deduction rules.
-// pub fn verify_auto_deductions(&self) -> Result<(), VirtualMachineError> {
-// 	for builtin in self.builtin_runners.iter() {
-// 		let index: usize = builtin.base();
-// 		for (offset, value) in self.segments.memory.data[index].iter().enumerate() {
-// 			if let Some(deduced_memory_cell) = builtin
-// 				.deduce_memory_cell(
-// 					Relocatable::from((index as isize, offset)),
-// 					&self.segments.memory,
-// 				)
-// 				.map_err(VirtualMachineError::RunnerError)?
-// 			{
-// 				let value = value.as_ref().map(|x| x.get_value());
-// 				if Some(&deduced_memory_cell) != value && value.is_some() {
-// 					return Err(VirtualMachineError::InconsistentAutoDeduction(Box::new((
-// 						builtin.name(),
-// 						deduced_memory_cell,
-// 						value.cloned(),
-// 					))));
-// 				}
-// 			}
-// 		}
-// 	}
-// 	Ok(())
-// }
-
-// pub fn end_run(&mut self, exec_scopes: &ExecutionScopes) -> Result<(), VirtualMachineError> {
-// 	self.verify_auto_deductions()?;
-// 	self.run_finished = true;
-// 	match exec_scopes.data.len() {
-// 		1 => Ok(()),
-// 		_ => Err(ExecScopeError::NoScopeError.into()),
-// 	}
-// }
 
 type Operands struct {
 	Dst memory.MaybeRelocatable

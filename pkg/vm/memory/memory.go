@@ -26,7 +26,7 @@ type ValidationRule func(*Memory, Relocatable) ([]Relocatable, error)
 
 // Memory represents the Cairo VM's memory.
 type Memory struct {
-	data              map[Relocatable]MaybeRelocatable
+	Data              map[Relocatable]MaybeRelocatable
 	numSegments       uint
 	validationRules   map[uint]ValidationRule
 	validatedAdresses AddressSet
@@ -36,7 +36,7 @@ var ErrMissingSegmentUsize = errors.New("Segment effective sizes haven't been ca
 
 func NewMemory() *Memory {
 	return &Memory{
-		data:              make(map[Relocatable]MaybeRelocatable),
+		Data:              make(map[Relocatable]MaybeRelocatable),
 		validatedAdresses: NewAddressSet(),
 		validationRules:   make(map[uint]ValidationRule),
 	}
@@ -61,11 +61,11 @@ func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
 	}
 
 	// Check for possible overwrites
-	prev_elem, ok := m.data[addr]
+	prev_elem, ok := m.Data[addr]
 	if ok && prev_elem != *val {
 		return errors.New("Memory is write-once, cannot overwrite memory value")
 	}
-	m.data[addr] = *val
+	m.Data[addr] = *val
 	return m.validateAddress(addr)
 }
 
@@ -83,7 +83,7 @@ func (m *Memory) Get(addr Relocatable) (*MaybeRelocatable, error) {
 	// check if the value is a `Relocatable` with a negative
 	// segment index. Again, these are edge cases so not important
 	// right now. See cairo-vm code for details.
-	value, ok := m.data[addr]
+	value, ok := m.Data[addr]
 
 	if !ok {
 		return nil, errors.New("Memory Get: Value not found")
@@ -135,7 +135,7 @@ func (m *Memory) validateAddress(addr Relocatable) error {
 // Applies validation_rules to every memory address, if applicatble
 // Skips validation if the address is temporary or if it has been previously validated
 func (m *Memory) ValidateExistingMemory() error {
-	for addr := range m.data {
+	for addr := range m.Data {
 		err := m.validateAddress(addr)
 		if err != nil {
 			return err
