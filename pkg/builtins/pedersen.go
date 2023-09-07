@@ -1,9 +1,8 @@
 package builtins
 
 import (
-	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	starknet_crypto "github.com/lambdaclass/cairo-vm.go/pkg/starknet_crypto"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
-	"github.com/starkware-libs/crypto-cpp/src/starkware/crypto/ffi/crypto_lib"
 )
 
 const PEDERSEN_BUILTIN_NAME = "pedersen"
@@ -59,7 +58,7 @@ func (p *PedersenBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem
 	}
 	p.verified_addresses[address.Offset] = false
 
-	x := crypto_lib.Hash(*numA.ToHexString(), *numB.ToHexString())
+	x := starknet_crypto.PedersenHash(numA, numB)
 
-	return memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString(x)), nil
+	return memory.NewMaybeRelocatableFelt(x), nil
 }
