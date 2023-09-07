@@ -127,7 +127,19 @@ func ParseHintReference(reference parser.Reference) HintReference {
 	}
 	// Special subcases: Sometimes if the offset is 0 it gets omitted, so we get [reg] instead of [reg + 0]
 
-	// Reference with deref no off omitted: cast([reg], type)
+	// Reference off omitted: cast(reg, type)
+	_, err = fmt.Sscanf(valueString, "cast%c%c, %s", &off1Reg0, &off1Reg1, &valueType)
+	if err == nil {
+		off1Reg := getRegister(off1Reg0, off1Reg1)
+		return HintReference{
+			ApTrackingData: reference.ApTrackingData,
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1Reg},
+			Dereference:    dereference,
+			ValueType:      valueType,
+		}
+	}
+
+	// Reference with deref off omitted: cast([reg], type)
 	_, err = fmt.Sscanf(valueString, "cast[%c%c], %s", &off1Reg0, &off1Reg1, &valueType)
 	if err == nil {
 		off1Reg := getRegister(off1Reg0, off1Reg1)
