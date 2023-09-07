@@ -15,6 +15,7 @@ type HintReference struct {
 	Offset2        OffsetValue
 	Dereference    bool
 	ApTrackingData parser.ApTrackingData
+	ValueType      string
 }
 
 type OffsetValue struct {
@@ -54,6 +55,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 		return HintReference{
 			ApTrackingData: reference.ApTrackingData,
 			Offset1:        OffsetValue{Immediate: felt, ValueType: Immediate},
+			ValueType:      value_type,
 		}
 	}
 	var off_1_reg_0 byte
@@ -67,6 +69,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			ApTrackingData: reference.ApTrackingData,
 			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: off1},
 			Dereference:    dereference,
+			ValueType:      value_type,
 		}
 	}
 	var off2 int
@@ -79,6 +82,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: off1},
 			Offset2:        OffsetValue{Value: off2},
 			Dereference:    dereference,
+			ValueType:      value_type,
 		}
 	}
 	// Reference with deref 1 offset: cast([reg + off1], type)
@@ -89,6 +93,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			ApTrackingData: reference.ApTrackingData,
 			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: off1, Dereference: true},
 			Dereference:    dereference,
+			ValueType:      value_type,
 		}
 	}
 	// Reference with deref 2 offsets: cast([reg + off1] + off2, type)
@@ -100,6 +105,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: off1, Dereference: true},
 			Offset2:        OffsetValue{Value: off2},
 			Dereference:    dereference,
+			ValueType:      value_type,
 		}
 	}
 	var off_2_reg_0 byte
@@ -114,6 +120,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: off1, Dereference: true},
 			Offset2:        OffsetValue{ValueType: Reference, Register: off2_reg, Value: off2, Dereference: true},
 			Dereference:    dereference,
+			ValueType:      value_type,
 		}
 	}
 	// Special subcases: Sometimes if the offset is 0 it gets omitted, so we get [reg]
@@ -126,6 +133,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			ApTrackingData: reference.ApTrackingData,
 			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Dereference: true},
 			Dereference:    dereference,
+			ValueType:      value_type,
 		}
 	}
 	// Reference with deref 2 offsets no off1: cast([reg] + off2, type)
@@ -137,6 +145,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Dereference: true},
 			Offset2:        OffsetValue{Value: off2},
 			Dereference:    dereference,
+			ValueType:      value_type,
 		}
 	}
 
@@ -150,6 +159,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Dereference: true},
 			Offset2:        OffsetValue{ValueType: Reference, Register: off2_reg, Value: off2, Dereference: true},
 			Dereference:    dereference,
+			ValueType:      value_type,
 		}
 	}
 	// 2 dereferences no off2: cast([reg + off1] + [reg], type)
@@ -162,6 +172,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: off1, Dereference: true},
 			Offset2:        OffsetValue{ValueType: Reference, Register: off2_reg, Dereference: true},
 			Dereference:    dereference,
+			ValueType:      value_type,
 		}
 	}
 	// 2 dereferences no offs: cast([reg] + [reg], type)
@@ -174,6 +185,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Dereference: true},
 			Offset2:        OffsetValue{ValueType: Reference, Register: off2_reg, Dereference: true},
 			Dereference:    dereference,
+			ValueType:      value_type,
 		}
 	}
 
