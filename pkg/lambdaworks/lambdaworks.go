@@ -103,14 +103,13 @@ func (felt Felt) ToBeBytes() *[32]byte {
 	return result
 }
 
-func (felt Felt) ToHexString() *string {
-	var result_c [32]C.char
+func (felt Felt) ToHexString() string {
+	var result_c = C.CString("")
+	defer C.free(unsafe.Pointer(result_c))
+
 	var value C.felt_t = felt.toC()
-	C.to_hex_string(&result_c[0], &value[0])
-
-	result := (*string)(unsafe.Pointer(&result_c))
-
-	return result
+	C.to_hex_string(result_c, &value[0])
+	return C.GoString(result_c)
 }
 
 func FeltFromLeBytes(bytes *[32]byte) Felt {
@@ -188,5 +187,28 @@ func (a Felt) Bits() C.limb_t {
 	}
 	var a_c = a.toC()
 	return C.bits(&a_c[0])
+}
 
+func (a Felt) And(b Felt) Felt {
+	var result C.felt_t
+	var a_c C.felt_t = a.toC()
+	var b_c C.felt_t = b.toC()
+	C.felt_and(&a_c[0], &b_c[0], &result[0])
+	return fromC(result)
+}
+
+func (a Felt) Xor(b Felt) Felt {
+	var result C.felt_t
+	var a_c C.felt_t = a.toC()
+	var b_c C.felt_t = b.toC()
+	C.felt_xor(&a_c[0], &b_c[0], &result[0])
+	return fromC(result)
+}
+
+func (a Felt) Or(b Felt) Felt {
+	var result C.felt_t
+	var a_c C.felt_t = a.toC()
+	var b_c C.felt_t = b.toC()
+	C.felt_or(&a_c[0], &b_c[0], &result[0])
+	return fromC(result)
 }

@@ -2054,10 +2054,6 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 
 With all of our builtin logic integrated into the codebase, we can implement any builtin and use it in our cairo programs while worrying only about implementing the `BuiltinRunner` interface and creating the builtin in the `NewCairoRunner` function.
 
-[Next sections: Implementing each builtin runner]
-
-#### Implementing each builtin runner
-
 ##### RangeCheck
 
 The `RangeCheck` builtin does a very simple thing: it asserts that a given number is in the range $[0, 2^{128})$, i.e., that it's greater than zero and less than $2^{128}$. This might seem superficial but it is used for a lot of different things in Cairo, including comparing numbers. Whenever a program asserts that some number is less than other, the range check builtin is being called underneath. 
@@ -2479,7 +2475,104 @@ TODO
 
 #### Bitwise
 
-TODO
+This builtin provides a way to work with the basic bit operations `and`, `or` and `xor`. It implements the basic builtin interface methods:
+
+```go
+type BitwiseBuiltinRunner struct {
+	base     memory.Relocatable
+	included bool
+}
+```
+the getter methods: 
+
+```go
+func (b *BitwiseBuiltinRunner) Base() memory.Relocatable {
+	return r.base
+}
+
+func (b *BitwiseBuiltinRunner) Name() string {
+	return "range_check"
+}
+```
+
+For the `InitializeSegments` we just add a segment to the memory and store in the base attribute, the first adress of the segment. 
+
+```go
+func (b *BitwiseBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
+	r.base = segments.AddSegment()
+}
+```
+
+we also have `InitialStack` method that returns a stack the base address appended
+
+```go 
+func (b *BitwiseBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
+	if b.included {
+		return []memory.MaybeRelocatable{*memory.NewMaybeRelocatableRelocatable(b.base)}
+	} else {
+		return []memory.MaybeRelocatable{}
+	}
+}
+```
+
+The method `DeducedMemoryCell` fetches the operands from memory and performs the following operations: 
+- If the index is less than the number of input cells then the method returns nil
+- After the operands are fetched it is checks that both of them are felts because bitwise can not be performed on relocatable or nil values.
+- If the number of bits of any operand is greater than `TOTAL_N_BITS` the method fails because we are out of the field.
+- The index is used to know which bitwise operation is going to be performed, if is 2 then `and` is executed, if is 3 then `xor` and if is a 4 then `or` is executed
+- Otherwise nil value is returned
+
+```go 
+const BITWISE_CELLS_PER_INSTANCE = 5
+const BITWISE_TOTAL_N_BITS = 251
+const BIWISE_INPUT_CELLS_PER_INSTANCE = 2
+
+func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem *memory.Memory) (*memory.MaybeRelocatable, error) {
+	index := address.Offset % BITWISE_CELLS_PER_INSTANCE
+	if index < BIWISE_INPUT_CELLS_PER_INSTANCE {
+		return nil, nil
+	}
+
+	x_addr, _ := address.SubUint(index)
+	y_addr := x_addr.AddUint(1)
+
+	num_x_felt, err := mem.GetFelt(x_addr)
+	if err != nil {
+		return nil, nil
+	}
+	num_y_felt, err := mem.GetFelt(y_addr)
+	if err != nil {
+		return nil, nil
+	}
+
+	if num_x_felt.Bits() > BITWISE_TOTAL_N_BITS {
+		return nil, ErrFeltBiggerThanPowerOfTwo(num_x_felt)
+	}
+	if num_y_felt.Bits() > BITWISE_TOTAL_N_BITS {
+		return nil, ErrFeltBiggerThanPowerOfTwo(num_y_felt)
+	}
+
+	var res *memory.MaybeRelocatable
+	switch index {
+	case 2:
+		res = memory.NewMaybeRelocatableFelt(num_x_felt.And(num_y_felt))
+	case 3:
+		res = memory.NewMaybeRelocatableFelt(num_x_felt.Xor(num_y_felt))
+	case 4:
+		res = memory.NewMaybeRelocatableFelt(num_x_felt.Or(num_y_felt))
+	default:
+		res = nil
+	}
+	return res, nil
+
+}
+```
+
+Finally `AddValidationRule` is empty in this case
+
+``` go
+func (b *BitwiseBuiltinRunner) AddValidationRule(*memory.Memory) {}
+```
 
 #### EcOp
 
@@ -2491,4 +2584,5 @@ TODO
 
 #### Hints
 
-TODO
+
+

@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/big"
 	"os"
+
+	"github.com/pkg/errors"
 )
 
 type FlowTrackingData struct {
@@ -45,7 +48,7 @@ type Identifier struct {
 	PC         int            `json:"pc"`
 	Type       string         `json:"type"`
 	CairoType  string         `json:"cairo_type"`
-	Value      int            `json:"value"`
+	Value      big.Int        `json:"value"`
 }
 
 type ApTrackingData struct {
@@ -83,7 +86,11 @@ type CompiledJson struct {
 	ReferenceManager ReferenceManager      `json:"reference_manager"`
 }
 
-func Parse(jsonPath string) CompiledJson {
+func ParserError(err error) error {
+	return errors.Wrapf(err, "Parser error\n")
+}
+
+func Parse(jsonPath string) (CompiledJson, error) {
 	jsonFile, err := os.Open(jsonPath)
 
 	if err != nil {
@@ -97,9 +104,9 @@ func Parse(jsonPath string) CompiledJson {
 	err = json.Unmarshal(byteValue, &cJson)
 
 	if err != nil {
-		fmt.Println(err)
+		return CompiledJson{}, ParserError(err)
 	}
 
-	return cJson
+	return cJson, nil
 
 }

@@ -80,8 +80,11 @@ pub extern "C" fn to_le_bytes(result: &mut [u8; 32], value: Limbs) {
 #[no_mangle]
 pub extern "C" fn to_hex_string(result: *mut libc::c_char, value: Limbs) {
     let felt = limbs_to_felt(value);
-    let felt_str = felt.representative().to_string().as_ptr() as i8;
-    unsafe {*result = felt_str};
+    let felt_str = felt.representative().to_string();
+    let ptr = felt_str.as_ptr() as *mut libc::c_char;
+    for i in 0..felt_str.len() {
+        unsafe { *result.offset(i as isize) = *ptr.offset(i as isize) }
+    }
 }
 
 #[no_mangle]
@@ -141,3 +144,30 @@ pub extern "C" fn bits(limbs: Limbs) -> u64 {
         return UnsignedInteger::bits_le(&ui).try_into().unwrap();
     }
 }
+
+#[no_mangle]
+pub extern "C" fn felt_and(a: Limbs, b: Limbs, result: Limbs) {
+    let felt_a = limbs_to_felt(a).representative();
+    let felt_b = limbs_to_felt(b).representative();
+    let res = felt_a & felt_b;
+    felt_to_limbs(Felt::from(&res), result)
+}
+
+#[no_mangle]
+pub extern "C" fn felt_or(a: Limbs, b: Limbs, result: Limbs) {
+    let felt_a = limbs_to_felt(a).representative();
+    let felt_b = limbs_to_felt(b).representative();
+    let res = felt_a | felt_b;
+    felt_to_limbs(Felt::from(&res), result)
+}
+
+#[no_mangle]
+pub extern "C" fn felt_xor(a: Limbs, b: Limbs, result: Limbs) {
+    let felt_a = limbs_to_felt(a).representative();
+    let felt_b = limbs_to_felt(b).representative();
+
+    let res = felt_a ^ felt_b;
+
+    felt_to_limbs(Felt::from(&res), result)
+}
+
