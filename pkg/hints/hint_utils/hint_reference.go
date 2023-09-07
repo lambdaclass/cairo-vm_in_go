@@ -2,7 +2,6 @@ package hint_utils
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
@@ -35,169 +34,161 @@ const (
 )
 
 func ParseHintReference(reference parser.Reference) HintReference {
-	var value_string = reference.Value
+	var valueString = reference.Value
 	// Trim outer brackets if dereference
 	// example [cast(reg + offset1, type)] -> cast(reg + offset1, type), dereference = true
-	value_string, has_prefix := strings.CutPrefix(value_string, "[")
-	value_string, has_suffix := strings.CutSuffix(value_string, "]")
-	var dereference = has_prefix && has_suffix
-	var value_type string
+	valueString, HasPrefix := strings.CutPrefix(valueString, "[")
+	valueString, HasSuffix := strings.CutSuffix(valueString, "]")
+	var dereference = HasPrefix && HasSuffix
+	var valueType string
 	var immediate uint64
 	// Negative numbers com in the form (-N), we can scan -N, but need a special case for (-N)
 	// In order to avoid multipliying our cases, we will remove all "(" & ")" characters from our string
-	value_string = strings.ReplaceAll(value_string, "(", "")
-	value_string = strings.ReplaceAll(value_string, ")", "")
+	valueString = strings.ReplaceAll(valueString, "(", "")
+	valueString = strings.ReplaceAll(valueString, ")", "")
 	// Scan various types till a match is found
 	// Immediate: cast(number, type)
-	_, err := fmt.Sscanf(value_string, "cast%d, %s", &immediate, &value_type)
+	_, err := fmt.Sscanf(valueString, "cast%d, %s", &immediate, &valueType)
 	if err == nil {
 		var felt = FeltFromUint64(immediate)
 		return HintReference{
 			ApTrackingData: reference.ApTrackingData,
 			Offset1:        OffsetValue{Immediate: felt, ValueType: Immediate},
-			ValueType:      value_type,
+			ValueType:      valueType,
 		}
 	}
-	var off_1_reg_0 byte
-	var off_1_reg_1 byte
+	var off1Reg0 byte
+	var off1Reg1 byte
 	var off1 int
 	// Reference no deref 1 offset: cast(reg + off, type)
-	_, err = fmt.Sscanf(value_string, "cast%c%c + %d, %s", &off_1_reg_0, &off_1_reg_1, &off1, &value_type)
+	_, err = fmt.Sscanf(valueString, "cast%c%c + %d, %s", &off1Reg0, &off1Reg1, &off1, &valueType)
 	if err == nil {
-		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
+		off1Reg := getRegister(off1Reg0, off1Reg1)
 		return HintReference{
 			ApTrackingData: reference.ApTrackingData,
-			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: off1},
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1Reg, Value: off1},
 			Dereference:    dereference,
-			ValueType:      value_type,
+			ValueType:      valueType,
 		}
 	}
 	var off2 int
 	// Reference no deref 2 offsets: cast(reg + off1 + off2, type)
-	_, err = fmt.Sscanf(value_string, "cast%c%c + %d + %d, %s", &off_1_reg_0, &off_1_reg_1, &off1, &off2, &value_type)
+	_, err = fmt.Sscanf(valueString, "cast%c%c + %d + %d, %s", &off1Reg0, &off1Reg1, &off1, &off2, &valueType)
 	if err == nil {
-		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
+		off1Reg := getRegister(off1Reg0, off1Reg1)
 		return HintReference{
 			ApTrackingData: reference.ApTrackingData,
-			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: off1},
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1Reg, Value: off1},
 			Offset2:        OffsetValue{Value: off2},
 			Dereference:    dereference,
-			ValueType:      value_type,
+			ValueType:      valueType,
 		}
 	}
 	// Reference with deref 1 offset: cast([reg + off1], type)
-	_, err = fmt.Sscanf(value_string, "cast[%c%c + %d], %s", &off_1_reg_0, &off_1_reg_1, &off1, &value_type)
+	_, err = fmt.Sscanf(valueString, "cast[%c%c + %d], %s", &off1Reg0, &off1Reg1, &off1, &valueType)
 	if err == nil {
-		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
+		off1Reg := getRegister(off1Reg0, off1Reg1)
 		return HintReference{
 			ApTrackingData: reference.ApTrackingData,
-			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: off1, Dereference: true},
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1Reg, Value: off1, Dereference: true},
 			Dereference:    dereference,
-			ValueType:      value_type,
+			ValueType:      valueType,
 		}
 	}
 	// Reference with deref 2 offsets: cast([reg + off1] + off2, type)
-	_, err = fmt.Sscanf(value_string, "cast[%c%c + %d] + %d, %s", &off_1_reg_0, &off_1_reg_1, &off1, &off2, &value_type)
+	_, err = fmt.Sscanf(valueString, "cast[%c%c + %d] + %d, %s", &off1Reg0, &off1Reg1, &off1, &off2, &valueType)
 	if err == nil {
-		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
+		off1Reg := getRegister(off1Reg0, off1Reg1)
 		return HintReference{
 			ApTrackingData: reference.ApTrackingData,
-			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: off1, Dereference: true},
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1Reg, Value: off1, Dereference: true},
 			Offset2:        OffsetValue{Value: off2},
 			Dereference:    dereference,
-			ValueType:      value_type,
+			ValueType:      valueType,
 		}
 	}
-	var off_2_reg_0 byte
-	var off_2_reg_1 byte
+	var off2Reg0 byte
+	var off2Reg1 byte
 	// Two references with deref: cast([reg + off1] + [reg + off2], type)
-	_, err = fmt.Sscanf(value_string, "cast[%c%c + %d] + [%c%c + %d], %s", &off_1_reg_0, &off_1_reg_1, &off1, &off_2_reg_0, &off_2_reg_1, &off2, &value_type)
+	_, err = fmt.Sscanf(valueString, "cast[%c%c + %d] + [%c%c + %d], %s", &off1Reg0, &off1Reg1, &off1, &off2Reg0, &off2Reg1, &off2, &valueType)
 	if err == nil {
-		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
-		off2_reg := getRegister(off_2_reg_0, off_2_reg_1)
+		off1Reg := getRegister(off1Reg0, off1Reg1)
+		off2Reg := getRegister(off2Reg0, off2Reg1)
 		return HintReference{
 			ApTrackingData: reference.ApTrackingData,
-			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: off1, Dereference: true},
-			Offset2:        OffsetValue{ValueType: Reference, Register: off2_reg, Value: off2, Dereference: true},
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1Reg, Value: off1, Dereference: true},
+			Offset2:        OffsetValue{ValueType: Reference, Register: off2Reg, Value: off2, Dereference: true},
 			Dereference:    dereference,
-			ValueType:      value_type,
+			ValueType:      valueType,
 		}
 	}
 	// Special subcases: Sometimes if the offset is 0 it gets omitted, so we get [reg]
 
 	// Reference with deref no off: cast([reg], type)
-	_, err = fmt.Sscanf(value_string, "cast[%c%c], %s", &off_1_reg_0, &off_1_reg_1, &value_type)
+	_, err = fmt.Sscanf(valueString, "cast[%c%c], %s", &off1Reg0, &off1Reg1, &valueType)
 	if err == nil {
-		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
+		off1Reg := getRegister(off1Reg0, off1Reg1)
 		return HintReference{
 			ApTrackingData: reference.ApTrackingData,
-			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Dereference: true},
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1Reg, Dereference: true},
 			Dereference:    dereference,
-			ValueType:      value_type,
+			ValueType:      valueType,
 		}
 	}
 	// Reference with deref 2 offsets no off1: cast([reg] + off2, type)
-	_, err = fmt.Sscanf(value_string, "cast[%c%c] + %d, %s", &off_1_reg_0, &off_1_reg_1, &off2, &value_type)
+	_, err = fmt.Sscanf(valueString, "cast[%c%c] + %d, %s", &off1Reg0, &off1Reg1, &off2, &valueType)
 	if err == nil {
-		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
+		off1Reg := getRegister(off1Reg0, off1Reg1)
 		return HintReference{
 			ApTrackingData: reference.ApTrackingData,
-			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Dereference: true},
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1Reg, Dereference: true},
 			Offset2:        OffsetValue{Value: off2},
 			Dereference:    dereference,
-			ValueType:      value_type,
+			ValueType:      valueType,
 		}
 	}
 
 	// 2 dereferences no off1 : cast([reg] + [reg + off2], type)
-	_, err = fmt.Sscanf(value_string, "cast[%c%c] + [%c%c + %d], %s", &off_1_reg_0, &off_1_reg_1, &off_2_reg_0, &off_2_reg_1, &off2, &value_type)
+	_, err = fmt.Sscanf(valueString, "cast[%c%c] + [%c%c + %d], %s", &off1Reg0, &off1Reg1, &off2Reg0, &off2Reg1, &off2, &valueType)
 	if err == nil {
-		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
-		off2_reg := getRegister(off_2_reg_0, off_2_reg_1)
+		off1Reg := getRegister(off1Reg0, off1Reg1)
+		off2Reg := getRegister(off2Reg0, off2Reg1)
 		return HintReference{
 			ApTrackingData: reference.ApTrackingData,
-			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Dereference: true},
-			Offset2:        OffsetValue{ValueType: Reference, Register: off2_reg, Value: off2, Dereference: true},
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1Reg, Dereference: true},
+			Offset2:        OffsetValue{ValueType: Reference, Register: off2Reg, Value: off2, Dereference: true},
 			Dereference:    dereference,
-			ValueType:      value_type,
+			ValueType:      valueType,
 		}
 	}
 	// 2 dereferences no off2: cast([reg + off1] + [reg], type)
-	_, err = fmt.Sscanf(value_string, "cast[%c%c + %d] + [%c%c], %s", &off_1_reg_0, &off_1_reg_1, &off1, &off_2_reg_0, &off_2_reg_1, &value_type)
+	_, err = fmt.Sscanf(valueString, "cast[%c%c + %d] + [%c%c], %s", &off1Reg0, &off1Reg1, &off1, &off2Reg0, &off2Reg1, &valueType)
 	if err == nil {
-		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
-		off2_reg := getRegister(off_2_reg_0, off_2_reg_1)
+		off1Reg := getRegister(off1Reg0, off1Reg1)
+		off2Reg := getRegister(off2Reg0, off2Reg1)
 		return HintReference{
 			ApTrackingData: reference.ApTrackingData,
-			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: off1, Dereference: true},
-			Offset2:        OffsetValue{ValueType: Reference, Register: off2_reg, Dereference: true},
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1Reg, Value: off1, Dereference: true},
+			Offset2:        OffsetValue{ValueType: Reference, Register: off2Reg, Dereference: true},
 			Dereference:    dereference,
-			ValueType:      value_type,
+			ValueType:      valueType,
 		}
 	}
 	// 2 dereferences no offs: cast([reg] + [reg], type)
-	_, err = fmt.Sscanf(value_string, "cast[%c%c] + [%c%c], %s", &off_1_reg_0, &off_1_reg_1, &off_2_reg_0, &off_2_reg_1, &value_type)
+	_, err = fmt.Sscanf(valueString, "cast[%c%c] + [%c%c], %s", &off1Reg0, &off1Reg1, &off2Reg0, &off2Reg1, &valueType)
 	if err == nil {
-		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
-		off2_reg := getRegister(off_2_reg_0, off_2_reg_1)
+		off1Reg := getRegister(off1Reg0, off1Reg1)
+		off2Reg := getRegister(off2Reg0, off2Reg1)
 		return HintReference{
 			ApTrackingData: reference.ApTrackingData,
-			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Dereference: true},
-			Offset2:        OffsetValue{ValueType: Reference, Register: off2_reg, Dereference: true},
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1Reg, Dereference: true},
+			Offset2:        OffsetValue{ValueType: Reference, Register: off2Reg, Dereference: true},
 			Dereference:    dereference,
-			ValueType:      value_type,
+			ValueType:      valueType,
 		}
 	}
 
 	return HintReference{ApTrackingData: reference.ApTrackingData}
-}
-
-// Parses strings of type num/(-num)
-func offsetValueFromString(num string) int {
-	value_string, _ := strings.CutPrefix(num, "(")
-	value_string, _ = strings.CutSuffix(value_string, ")")
-	res, _ := strconv.ParseInt(num, 10, 32)
-	return int(res)
 }
 
 func getRegister(reg_0 byte, reg_1 byte) vm.Register {
