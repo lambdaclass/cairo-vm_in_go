@@ -331,3 +331,8 @@ func TestFeltIsNotZero(t *testing.T) {
 		t.Errorf("TestFeltIsNotZero failed. Expected false, Got: %v", is_zero)
 	}
 }
+
+func TestFeltToString(t *testing.T) {
+	f := lambdaworks.FeltFromDecString("-50")
+	f.ToString()
+}

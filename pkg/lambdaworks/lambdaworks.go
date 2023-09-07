@@ -8,7 +8,6 @@ package lambdaworks
 import "C"
 
 import (
-	"fmt"
 	"unsafe"
 
 	"github.com/pkg/errors"
@@ -172,9 +171,15 @@ func (a Felt) Div(b Felt) Felt {
 	return fromC(result)
 }
 
-// Todo: Call to_signed_int fromlambdaworks library
+// Returns the felt value as string
 func (f Felt) ToString() string {
-	return fmt.Sprintf("{%d}\n", f)
+	var f_c = f.toC()
+	bufferSize := 1024
+	buffer := make([]byte, bufferSize)
+	C.to_signed_felt(&f_c[0], (*C.char)(unsafe.Pointer(&buffer[0])), C.size_t(bufferSize))
+	goResult := string(buffer)
+	return goResult
+}
 
 // Returns the number of bits needed to represent the felt
 func (a Felt) Bits() C.limb_t {

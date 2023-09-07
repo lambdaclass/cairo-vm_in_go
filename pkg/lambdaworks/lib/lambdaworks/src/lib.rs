@@ -4,8 +4,10 @@ use lambdaworks_math::{
     unsigned_integer::element::UnsignedInteger, unsigned_integer::element::U256,
 };
 use lambdaworks_math::traits::ByteConversion;
+use num_bigint::BigInt;
 
 extern crate libc;
+use libc::c_char;
 // A 256 bit prime field represented as a Montgomery, 4-limb UnsignedInteger.
 type Felt = FieldElement<Stark252PrimeField>;
 
@@ -159,5 +161,24 @@ pub extern "C" fn felt_xor(a: Limbs, b: Limbs, result: Limbs) {
     let res = felt_a ^ felt_b;
 
     felt_to_limbs(Felt::from(&res), result)
+}
+
+#[no_mangle]
+pub extern "C" fn to_signed_felt(value: Limbs, buffer: *mut c_char, buffer_size: usize) {
+    let value_felt = limbs_to_felt(value);
+    let bigint_felt = BigInt::from_bytes_le(num_bigint::Sign::Plus, &value_felt.to_bytes_le());
+    let result = bigint_felt.to_string();
+
+    let result_bytes = result.as_bytes();
+    let result_len = result_bytes.len();
+
+    if result_len >= buffer_size {
+        panic!("Result too large for the provided buffer.");
+    }
+
+    unsafe {
+        std::ptr::copy_nonoverlapping(result_bytes.as_ptr(), buffer as *mut u8, result_len);
+        *((buffer as *mut u8).add(result_len)) = 0;
+    }
 }
 

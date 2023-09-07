@@ -490,9 +490,13 @@ func (vm *VirtualMachine) DeduceMemoryCell(addr memory.Relocatable) (*memory.May
 func (vm *VirtualMachine) WriteOutput(writer *bytes.Buffer) {
 	for _, builtin := range vm.BuiltinRunners {
 		if builtin.Name() == builtins.OUTPUT_BUILTIN_NAME {
-			outputSegmentSize := vm.Segments.SegmentSizes[uint(builtin.Base().SegmentIndex)]
+			segmentUsedSizes := vm.Segments.ComputeEffectiveSizes()
+			segmentIndex := builtin.Base().SegmentIndex
+			outputSegmentSize := segmentUsedSizes[uint(segmentIndex)]
+
 			for i := 0; i < int(outputSegmentSize); i++ {
-				formattedValue, err := vm.Segments.Memory.Get(memory.NewRelocatable(builtin.Base().SegmentIndex, uint(i)))
+				addr := memory.NewRelocatable(segmentIndex, uint(i))
+				formattedValue, err := vm.Segments.Memory.Get(addr)
 				if err != nil {
 					writer.WriteString("<missing>\n")
 				} else {
