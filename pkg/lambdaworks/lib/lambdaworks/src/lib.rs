@@ -1,9 +1,9 @@
+use lambdaworks_math::traits::ByteConversion;
 use lambdaworks_math::{
     field::element::FieldElement,
     field::fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
     unsigned_integer::element::UnsignedInteger, unsigned_integer::element::U256,
 };
-use lambdaworks_math::traits::ByteConversion;
 
 extern crate libc;
 // A 256 bit prime field represented as a Montgomery, 4-limb UnsignedInteger.
@@ -78,6 +78,13 @@ pub extern "C" fn to_le_bytes(result: &mut [u8; 32], value: Limbs) {
 }
 
 #[no_mangle]
+pub extern "C" fn to_hex_string(result: *const libc::c_char, value: Limbs) {
+    let felt = limbs_to_felt(value);
+    felt_str = felt.representative().to_string();
+    *result = result;
+}
+
+#[no_mangle]
 pub extern "C" fn to_be_bytes(result: &mut [u8; 32], value: Limbs) {
     let value_felt = limbs_to_felt(value);
     *result = value_felt.to_bytes_be();
@@ -131,6 +138,6 @@ pub extern "C" fn bits(limbs: Limbs) -> u64 {
         let slice: &mut [u64] = std::slice::from_raw_parts_mut(limbs, 4);
         let array: [u64; 4] = slice.try_into().unwrap();
         let ui = UnsignedInteger::from_limbs(array);
-        return UnsignedInteger::bits_le(&ui).try_into().unwrap()
+        return UnsignedInteger::bits_le(&ui).try_into().unwrap();
     }
 }

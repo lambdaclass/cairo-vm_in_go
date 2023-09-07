@@ -103,6 +103,16 @@ func (felt Felt) ToBeBytes() *[32]byte {
 	return result
 }
 
+func (felt Felt) ToHexString() *string {
+	var result_c [32]byte
+	var value C.felt_t = felt.toC()
+	C.to_hex_string(&result_c[0], &value[0])
+
+	result := (*string)(unsafe.Pointer(&result_c))
+
+	return result
+}
+
 func FeltFromLeBytes(bytes *[32]byte) Felt {
 	var result C.felt_t
 	bytes_ptr := (*[32]C.uint8_t)(unsafe.Pointer(bytes))
