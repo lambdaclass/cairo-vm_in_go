@@ -161,45 +161,35 @@ func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll b
 	// TODO: This seems to have to do with temporary segments
 	// vm.Segments.Memory.RelocateMemory()
 
+	err := vm.EndRun()
+	if err != nil {
+		return err
+	}
+
+	if disableFinalizeAll {
+		return nil
+	}
+
+	vm.Segments.ComputeEffectiveSizes()
+	if runner.ProofMode && !disableTracePadding {
+
+		// 		self.run_until_next_power_of_2(vm, hint_processor)?;
+		// 		loop {
+		// 			match self.check_used_cells(vm) {
+		// 				Ok(_) => break,
+		// 				Err(e) => match e {
+		// 					VirtualMachineError::Memory(MemoryError::InsufficientAllocatedCells(_)) => {
+		// 					}
+		// 					e => return Err(e),
+		// 				},
+		// 			}
+
+		// 			self.run_for_steps(1, vm, hint_processor)?;
+		// 			self.run_until_next_power_of_2(vm, hint_processor)?;
+		// 		}
+
+	}
+
+	runner.RunEnded = true
 	return nil
 }
-
-// pub fn end_run(
-// 	&mut self,
-// 	disable_trace_padding: bool,
-// 	disable_finalize_all: bool,
-// 	vm: &mut VirtualMachine,
-// 	hint_processor: &mut dyn HintProcessor,
-// ) -> Result<(), VirtualMachineError> {
-// 	if self.run_ended {
-// 		return Err(RunnerError::EndRunCalledTwice.into());
-// 	}
-
-// 	vm.segments.memory.relocate_memory()?;
-// 	vm.end_run(&self.exec_scopes)?;
-
-// 	if disable_finalize_all {
-// 		return Ok(());
-// 	}
-
-// 	vm.segments.compute_effective_sizes();
-// 	if self.proof_mode && !disable_trace_padding {
-// 		self.run_until_next_power_of_2(vm, hint_processor)?;
-// 		loop {
-// 			match self.check_used_cells(vm) {
-// 				Ok(_) => break,
-// 				Err(e) => match e {
-// 					VirtualMachineError::Memory(MemoryError::InsufficientAllocatedCells(_)) => {
-// 					}
-// 					e => return Err(e),
-// 				},
-// 			}
-
-// 			self.run_for_steps(1, vm, hint_processor)?;
-// 			self.run_until_next_power_of_2(vm, hint_processor)?;
-// 		}
-// 	}
-
-// 	self.run_ended = true;
-// 	Ok(())
-// }
