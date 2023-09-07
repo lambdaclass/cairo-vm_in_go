@@ -33,6 +33,8 @@ const (
 	Reference offsetValueType = 2
 )
 
+// Parses a Reference to a HintReference, decoding its Value field
+// Returns an emty reference if invalid
 func ParseHintReference(reference parser.Reference) HintReference {
 	var valueString = reference.Value
 	// Trim outer brackets if dereference
@@ -191,9 +193,10 @@ func ParseHintReference(reference parser.Reference) HintReference {
 	return HintReference{ApTrackingData: reference.ApTrackingData}
 }
 
-func getRegister(reg_0 byte, reg_1 byte) vm.Register {
+// Returns FP if reg0 is f and reg 1 is p, else returns AP
+func getRegister(reg0 byte, reg1 byte) vm.Register {
 	reg := vm.AP
-	if reg_0 == 'f' && reg_1 == 'p' {
+	if reg0 == 'f' && reg1 == 'p' {
 		reg = vm.FP
 	}
 	return reg
