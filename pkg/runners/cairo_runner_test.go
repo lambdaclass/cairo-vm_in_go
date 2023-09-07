@@ -6,7 +6,9 @@ import (
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/hints"
+	"github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
 	"github.com/lambdaclass/cairo-vm.go/pkg/runners"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
@@ -253,6 +255,65 @@ func TestBuildHintDataMapEmpty(t *testing.T) {
 	runner, _ := runners.NewCairoRunner(program)
 	hintProcessor := &hints.CairoVmHintProcessor{}
 	expectedHintDataMap := make(map[uint][]any)
+	hintDataMap, err := runner.BuildHintDataMap(hintProcessor)
+	if err != nil {
+		t.Errorf("Test failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(hintDataMap, expectedHintDataMap) {
+		t.Errorf("Wrong hintDataMap, expected %+v, got %+v", expectedHintDataMap, hintDataMap)
+	}
+}
+
+func TestBuildHintDataMapHappyPath(t *testing.T) {
+	program := vm.Program{
+		Hints: map[uint][]parser.HintParams{
+			0: {
+				{
+					Code: "ids.a = ids.b",
+					FlowTrackingData: parser.FlowTrackingData{
+						APTracking: parser.ApTrackingData{Group: 1, Offset: 2},
+					},
+					ReferenceIds: map[string]uint{"a": 0, "b": 1},
+				},
+			},
+		},
+		ReferenceManager: parser.ReferenceManager{
+			References: []parser.Reference{
+				{
+					Value: "cast(ap + (-2), felt)",
+				},
+				{
+					Value: "cast(ap + (-1), felt)",
+				},
+			},
+		},
+	}
+	runner, _ := runners.NewCairoRunner(program)
+	hintProcessor := &hints.CairoVmHintProcessor{}
+	expectedHintDataMap := map[uint][]any{
+		0: []any{
+			hints.HintData{
+				Ids: map[string]hint_utils.HintReference{
+					"a": {
+						Offset1: hint_utils.OffsetValue{
+							ValueType: hint_utils.Reference,
+							Value:     -2,
+						},
+						ValueType: "felt",
+					},
+					"b": {
+						Offset1: hint_utils.OffsetValue{
+							ValueType: hint_utils.Reference,
+							Value:     -1,
+						},
+						ValueType: "felt",
+					},
+				},
+				Code:       "ids.a = ids.b",
+				ApTracking: parser.ApTrackingData{Group: 1, Offset: 2},
+			},
+		},
+	}
 	hintDataMap, err := runner.BuildHintDataMap(hintProcessor)
 	if err != nil {
 		t.Errorf("Test failed with error: %s", err)
