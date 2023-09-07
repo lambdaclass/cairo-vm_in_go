@@ -15,7 +15,6 @@ func TestFromHex(t *testing.T) {
 	if result != expected {
 		t.Errorf("TestFromHex failed. Expected: %v, Got: %v", expected, result)
 	}
-
 }
 
 func TestToHex(t *testing.T) {
