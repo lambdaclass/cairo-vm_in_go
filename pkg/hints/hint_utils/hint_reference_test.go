@@ -35,6 +35,17 @@ func TestParseHintReferenceImmediateCustomType(t *testing.T) {
 	}
 }
 
+func TestParseHintReferenceDereferenceSimpleApBasedPositive(t *testing.T) {
+	reference := parser.Reference{Value: "[cast(ap + 1, felt)]"}
+	expected := HintReference{
+		Offset1:     OffsetValue{ValueType: Reference, Value: 1},
+		ValueType:   "felt",
+		Dereference: true,
+	}
+	if ParseHintReference(reference) != expected {
+		t.Errorf("Wrong parsed reference, %+v", ParseHintReference(reference))
+	}
+}
 func TestParseHintReferenceSimpleApBasedPositive(t *testing.T) {
 	reference := parser.Reference{Value: "cast(ap + 1, felt)"}
 	expected := HintReference{
@@ -286,6 +297,19 @@ func TestParseHintReferenceDoubleDerefBothOffOmitted(t *testing.T) {
 		Offset1:   OffsetValue{ValueType: Reference, Value: 0, Dereference: true},
 		Offset2:   OffsetValue{ValueType: Reference, Value: 0, Dereference: true},
 		ValueType: "felt",
+	}
+	if ParseHintReference(reference) != expected {
+		t.Errorf("Wrong parsed reference, %+v", ParseHintReference(reference))
+	}
+}
+
+func TestParseHintDereferenceReferenceDoubleDerefBothOffOmitted(t *testing.T) {
+	reference := parser.Reference{Value: "[cast([ap] + [ap], felt)]"}
+	expected := HintReference{
+		Offset1:     OffsetValue{ValueType: Reference, Value: 0, Dereference: true},
+		Offset2:     OffsetValue{ValueType: Reference, Value: 0, Dereference: true},
+		ValueType:   "felt",
+		Dereference: true,
 	}
 	if ParseHintReference(reference) != expected {
 		t.Errorf("Wrong parsed reference, %+v", ParseHintReference(reference))
