@@ -213,7 +213,7 @@ func (a Felt) Shl(num uint64) Felt {
 }
 
 func (a Felt) PowUint(p uint32) Felt {
-	var result C.felt_t 
+	var result C.felt_t
 	var a_c C.felt_t = a.toC()
 
 	C.felt_pow_uint(&a_c[0], C.uint(p), &result[0])

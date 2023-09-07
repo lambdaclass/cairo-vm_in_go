@@ -15,6 +15,7 @@ type EcOpBuiltinRunner struct {
 	cells_per_instance uint32
 	cache              map[memory.Relocatable]lambdaworks.Felt
 	n_input_cells      uint32
+	scalar_height      uint32
 }
 
 type EcPoint struct {
@@ -124,7 +125,7 @@ func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segmen
 	partial_sum := PartialSum{x: input_cells[0], y: input_cells[1]}
 	double_point := DoublePoint{x: input_cells[2], y: input_cells[3]}
 
-	result_x, result_y := ec.ec_op_impl(partial_sum, double_point, input_cells[4], alpha_big_int, prime)
+	result_x, result_y := ec.ec_op_impl(partial_sum, double_point, input_cells[4], alpha_big_int, prime, ec.scalar_height)
 
 	felt_result_x := lambdaworks.FeltFromHex(result_x.Text(16))
 	felt_result_y := lambdaworks.FeltFromHex(result_y.Text(16))
@@ -139,10 +140,13 @@ func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segmen
 	}
 }
 
-func (ec *EcOpBuiltinRunner) ec_op_impl(partial_sum PartialSum, double_point DoublePoint, m lambdaworks.Felt, alpha *big.Int, prime *big.Int) (big.Int, big.Int) {
+func (ec *EcOpBuiltinRunner) ec_op_impl(partial_sum PartialSum, double_point DoublePoint, m lambdaworks.Felt, alpha *big.Int, prime *big.Int, height uint32) (big.Int, big.Int) {
+
 	return *big.NewInt(1), *big.NewInt(1)
 }
 
 func (ec *EcOpBuiltinRunner) point_on_curve(x lambdaworks.Felt, y lambdaworks.Felt, alpha lambdaworks.Felt, beta lambdaworks.Felt) bool {
-	return true
+	yp := y.PowUint(2)
+	xp := x.PowUint(3).Add(alpha.Mul(x)).Add(beta)
+	return yp == xp
 }

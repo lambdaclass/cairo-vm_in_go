@@ -332,10 +332,9 @@ func TestFeltIsNotZero(t *testing.T) {
 	}
 }
 
-
 func TestPow2(t *testing.T) {
 	f0 := lambdaworks.FeltFromUint64(2)
-	var pow uint32= 2
+	var pow uint32 = 2
 
 	expected := lambdaworks.FeltFromUint64(4)
 	result := f0.PowUint(pow)
