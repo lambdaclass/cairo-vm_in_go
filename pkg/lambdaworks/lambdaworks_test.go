@@ -331,3 +331,40 @@ func TestFeltIsNotZero(t *testing.T) {
 		t.Errorf("TestFeltIsNotZero failed. Expected false, Got: %v", is_zero)
 	}
 }
+
+
+func TestPow2(t *testing.T) {
+	f0 := lambdaworks.FeltFromUint64(2)
+	var pow uint32= 2
+
+	expected := lambdaworks.FeltFromUint64(4)
+	result := f0.PowUint(pow)
+
+	if expected != result {
+		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
+	}
+}
+
+func TestPow0(t *testing.T) {
+	f0 := lambdaworks.FeltFromUint64(2)
+	var pow uint32 = 0
+
+	expected := lambdaworks.FeltFromUint64(1)
+	result := f0.PowUint(pow)
+
+	if expected != result {
+		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
+	}
+}
+
+func TestPow3(t *testing.T) {
+	f0 := lambdaworks.FeltFromUint64(3)
+	var pow uint32 = 2
+
+	expected := lambdaworks.FeltFromUint64(9)
+	result := f0.PowUint(pow)
+
+	if expected != result {
+		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
+	}
+}
