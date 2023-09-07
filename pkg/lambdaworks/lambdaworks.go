@@ -171,13 +171,12 @@ func (a Felt) Div(b Felt) Felt {
 	return fromC(result)
 }
 
-// Returns the felt value as string
+// Returns the felt
 func (f Felt) ToString() string {
 	var f_c = f.toC()
-	bufferSize := 1024
-	buffer := make([]byte, bufferSize)
-	C.to_signed_felt(&f_c[0], (*C.char)(unsafe.Pointer(&buffer[0])), C.size_t(bufferSize))
-	goResult := string(buffer)
+	resultPtr := C.to_signed_felt(&f_c[0])
+	defer C.free_string(resultPtr)
+	goResult := C.GoString(resultPtr)
 	return goResult
 }
 

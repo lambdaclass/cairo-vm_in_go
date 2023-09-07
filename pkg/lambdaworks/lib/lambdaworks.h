@@ -61,5 +61,6 @@ void felt_or(felt_t a, felt_t b, felt_t result);
 void felt_xor(felt_t a, felt_t b, felt_t result);
 
 /* returns the representation of a felt to string*/
-void to_signed_felt(felt_t value, char* buffer, size_t buffer_size);
+char* to_signed_felt(felt_t value);
 
+void free_string(char* ptr);

@@ -8,6 +8,8 @@ use num_bigint::BigInt;
 
 extern crate libc;
 use libc::c_char;
+use std::ffi::CString;
+
 // A 256 bit prime field represented as a Montgomery, 4-limb UnsignedInteger.
 type Felt = FieldElement<Stark252PrimeField>;
 
@@ -164,21 +166,24 @@ pub extern "C" fn felt_xor(a: Limbs, b: Limbs, result: Limbs) {
 }
 
 #[no_mangle]
-pub extern "C" fn to_signed_felt(value: Limbs, buffer: *mut c_char, buffer_size: usize) {
+pub extern "C" fn to_signed_felt(value: Limbs) -> *mut c_char {
     let value_felt = limbs_to_felt(value);
     let bigint_felt = BigInt::from_bytes_le(num_bigint::Sign::Plus, &value_felt.to_bytes_le());
     let result = bigint_felt.to_string();
 
-    let result_bytes = result.as_bytes();
-    let result_len = result_bytes.len();
+    // Convert the result into a C-compatible CString and return a pointer to it
+    let c_result = CString::new(result).unwrap();
+    c_result.into_raw()
+}
 
-    if result_len >= buffer_size {
-        panic!("Result too large for the provided buffer.");
+#[no_mangle]
+pub unsafe extern "C" fn free_string(ptr: *mut c_char) {
+    if ptr.is_null() {
+        return; // Do nothing if the pointer is null
     }
-
+    // Convert the pointer back to a CString and deallocate its memory
     unsafe {
-        std::ptr::copy_nonoverlapping(result_bytes.as_ptr(), buffer as *mut u8, result_len);
-        *((buffer as *mut u8).add(result_len)) = 0;
+        let _ = CString::from_raw(ptr);
     }
 }
 
