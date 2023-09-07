@@ -63,7 +63,7 @@ func (k *KeccakBuiltinRunner) DeduceMemoryCell(address Relocatable, mem *Memory)
 
 	input_message := make([]byte, 0, 25*KECCAK_INPUT_CELLS_PER_INSTANCE)
 
-	// This for block creates an input message of 200 bytes. The slice is created fro
+	// This for block creates an input message of 200 bytes. The slice is created
 	// from 8 chunks of 25 bytes which are felts. To make sure nothing breaks, the
 	// numbers are checked to need at most 25 bytes for their representation, if this
 	// doesn't hold, an error will be returned.
