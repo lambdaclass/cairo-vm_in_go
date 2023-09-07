@@ -18,6 +18,17 @@ func TestFromHex(t *testing.T) {
 
 }
 
+func TestToHex(t *testing.T) {
+	var expected = "0x1a"
+	felt := lambdaworks.FeltFromUint64(26)
+
+	result := felt.ToHexString()
+	if result != expected {
+		t.Errorf("TestFromHex failed. Expected: %v, Got: %v", expected, result)
+	}
+
+}
+
 func TestFromDecString(t *testing.T) {
 	var s_one = "435"
 	expected := lambdaworks.FeltFromUint64(435)
