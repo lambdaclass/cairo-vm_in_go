@@ -87,3 +87,67 @@ func TestParseHintReferenceTwoOffsetsNegPos(t *testing.T) {
 		t.Errorf("Wrong parsed reference, %+v", ParseHintReference(reference))
 	}
 }
+
+func TestParseHintReferenceDerefOneOffset(t *testing.T) {
+	reference := parser.Reference{Value: "cast([ap + 1], felt)"}
+	expected := HintReference{
+		Offset1: OffsetValue{ValueType: Reference, Value: 1, Dereference: true},
+	}
+	if ParseHintReference(reference) != expected {
+		t.Errorf("Wrong parsed reference, %+v", ParseHintReference(reference))
+	}
+}
+
+func TestParseHintReferenceDerefOneOffsetNegative(t *testing.T) {
+	reference := parser.Reference{Value: "cast([ap + (-1)], felt)"}
+	expected := HintReference{
+		Offset1: OffsetValue{ValueType: Reference, Value: -1, Dereference: true},
+	}
+	if ParseHintReference(reference) != expected {
+		t.Errorf("Wrong parsed reference, %+v", ParseHintReference(reference))
+	}
+}
+
+func TestParseHintReferenceDerefTwoOffsetsNegatives(t *testing.T) {
+	reference := parser.Reference{Value: "cast([ap + (-1)] + (-2), felt)"}
+	expected := HintReference{
+		Offset1: OffsetValue{ValueType: Reference, Value: -1, Dereference: true},
+		Offset2: OffsetValue{ValueType: Value, Value: -2},
+	}
+	if ParseHintReference(reference) != expected {
+		t.Errorf("Wrong parsed reference, %+v", ParseHintReference(reference))
+	}
+}
+
+func TestParseHintReferenceDerefTwoOffsetsPositives(t *testing.T) {
+	reference := parser.Reference{Value: "cast([ap + 1] + 2, felt)"}
+	expected := HintReference{
+		Offset1: OffsetValue{ValueType: Reference, Value: 1, Dereference: true},
+		Offset2: OffsetValue{ValueType: Value, Value: 2},
+	}
+	if ParseHintReference(reference) != expected {
+		t.Errorf("Wrong parsed reference, %+v", ParseHintReference(reference))
+	}
+}
+
+func TestParseHintReferenceDerefTwoOffsetsNegPos(t *testing.T) {
+	reference := parser.Reference{Value: "cast([ap + (-1)] + 2, felt)"}
+	expected := HintReference{
+		Offset1: OffsetValue{ValueType: Reference, Value: -1, Dereference: true},
+		Offset2: OffsetValue{ValueType: Value, Value: 2},
+	}
+	if ParseHintReference(reference) != expected {
+		t.Errorf("Wrong parsed reference, %+v", ParseHintReference(reference))
+	}
+}
+
+func TestParseHintReferenceDerefTwoOffsetsPosNeg(t *testing.T) {
+	reference := parser.Reference{Value: "cast([ap + 1] + (-2), felt)"}
+	expected := HintReference{
+		Offset1: OffsetValue{ValueType: Reference, Value: 1, Dereference: true},
+		Offset2: OffsetValue{ValueType: Value, Value: -2},
+	}
+	if ParseHintReference(reference) != expected {
+		t.Errorf("Wrong parsed reference, %+v", ParseHintReference(reference))
+	}
+}

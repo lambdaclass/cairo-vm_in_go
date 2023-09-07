@@ -120,30 +120,70 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			Dereference:    dereference,
 		}
 	}
-	// // Reference with deref 1 offset: cast([reg + off1], type)
-	// _, err = fmt.Sscanf(value_string, "cast([%c%c + %s], %s", &off_1_reg_0, &off_1_reg_1, &off1, &value_type)
-	// if err == nil {
-	// 	off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
-	// 	num_off1 := offsetValueFromString(off1)
-	// 	return HintReference{
-	// 		ApTrackingData: reference.ApTrackingData,
-	// 		Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: num_off1, Dereference: true},
-	// 		Dereference:    dereference,
-	// 	}
-	// }
-	// // Reference with deref 2 offsets: cast([reg + off1] + off2, type)
-	// _, err = fmt.Sscanf(value_string, "cast([%c%c + %s] + %s, %s", &off_1_reg_0, &off_1_reg_1, &off1, off2, &value_type)
-	// if err == nil {
-	// 	off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
-	// 	num_off1 := offsetValueFromString(off1)
-	// 	num_off2 := offsetValueFromString(off2)
-	// 	return HintReference{
-	// 		ApTrackingData: reference.ApTrackingData,
-	// 		Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: num_off1, Dereference: true},
-	// 		Offset2:        OffsetValue{Value: num_off2},
-	// 		Dereference:    dereference,
-	// 	}
-	// }
+	// Reference with deref 1 offset negative: cast([reg + (-off1)], type)
+	_, err = fmt.Sscanf(value_string, "cast([%c%c + (%d)], %s", &off_1_reg_0, &off_1_reg_1, &off1, &value_type)
+	if err == nil {
+		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
+		return HintReference{
+			ApTrackingData: reference.ApTrackingData,
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: off1, Dereference: true},
+			Dereference:    dereference,
+		}
+	}
+	// Reference with deref 1 offset: cast([reg + off1], type)
+	_, err = fmt.Sscanf(value_string, "cast([%c%c + %d], %s", &off_1_reg_0, &off_1_reg_1, &off1, &value_type)
+	if err == nil {
+		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
+		return HintReference{
+			ApTrackingData: reference.ApTrackingData,
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: off1, Dereference: true},
+			Dereference:    dereference,
+		}
+	}
+	// Reference with deref 2 offsets ( - + ): cast([reg + (-off1)] + off2, type)
+	_, err = fmt.Sscanf(value_string, "cast([%c%c + (%d)] + %d, %s", &off_1_reg_0, &off_1_reg_1, &off1, &off2, &value_type)
+	if err == nil {
+		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
+		return HintReference{
+			ApTrackingData: reference.ApTrackingData,
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: off1, Dereference: true},
+			Offset2:        OffsetValue{Value: off2},
+			Dereference:    dereference,
+		}
+	}
+	// Reference with deref 2 offsets ( - - ): cast([reg + (-off1)] + (-off2), type)
+	_, err = fmt.Sscanf(value_string, "cast([%c%c + (%d)] + (%d), %s", &off_1_reg_0, &off_1_reg_1, &off1, &off2, &value_type)
+	if err == nil {
+		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
+		return HintReference{
+			ApTrackingData: reference.ApTrackingData,
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: off1, Dereference: true},
+			Offset2:        OffsetValue{Value: off2},
+			Dereference:    dereference,
+		}
+	}
+	// Reference with deref 2 offsets ( + - ): cast([reg + off1] + (-off2), type)
+	_, err = fmt.Sscanf(value_string, "cast([%c%c + %d] + (%d), %s", &off_1_reg_0, &off_1_reg_1, &off1, &off2, &value_type)
+	if err == nil {
+		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
+		return HintReference{
+			ApTrackingData: reference.ApTrackingData,
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: off1, Dereference: true},
+			Offset2:        OffsetValue{Value: off2},
+			Dereference:    dereference,
+		}
+	}
+	// Reference with deref 2 offsets ( + + ): cast([reg + off1] + off2, type)
+	_, err = fmt.Sscanf(value_string, "cast([%c%c + %d] + %d, %s", &off_1_reg_0, &off_1_reg_1, &off1, &off2, &value_type)
+	if err == nil {
+		off1_reg := getRegister(off_1_reg_0, off_1_reg_1)
+		return HintReference{
+			ApTrackingData: reference.ApTrackingData,
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1_reg, Value: off1, Dereference: true},
+			Offset2:        OffsetValue{Value: off2},
+			Dereference:    dereference,
+		}
+	}
 	// // Reference with deref + reference with deref: cast([reg + off1] + [reg + off2], type)
 	// var off_2_reg_0 string
 	// var off_2_reg_1 string
