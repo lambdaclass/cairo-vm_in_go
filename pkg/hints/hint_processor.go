@@ -21,6 +21,9 @@ type CairoVmHintProcessor struct {
 func (p *CairoVmHintProcessor) CompileHint(hintParams *parser.HintParams, referenceManager *parser.ReferenceManager) (any, error) {
 	ids := make(map[string]HintReference, 0)
 	for name, n := range hintParams.ReferenceIds {
+		if int(n) >= len(referenceManager.References) {
+			return nil, errors.New("Reference not found in ReferenceManager")
+		}
 		ids[name] = ParseHintReference(referenceManager.References[n])
 	}
 	return HintData{Ids: ids, Code: hintParams.Code, ApTracking: hintParams.FlowTrackingData.APTracking}, nil

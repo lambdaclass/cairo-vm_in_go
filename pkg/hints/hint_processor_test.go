@@ -66,3 +66,15 @@ func TestCompileHintHappyPath(t *testing.T) {
 		t.Errorf("Wrong hint data, %+v", data)
 	}
 }
+
+func TestCompileHintMissingReference(t *testing.T) {
+	hintProcessor := &CairoVmHintProcessor{}
+	hintParams := &parser.HintParams{
+		ReferenceIds: map[string]uint{"a": 0, "b": 1},
+	}
+	referenceManager := &parser.ReferenceManager{}
+	_, err := hintProcessor.CompileHint(hintParams, referenceManager)
+	if err == nil {
+		t.Errorf("Should have failed")
+	}
+}
