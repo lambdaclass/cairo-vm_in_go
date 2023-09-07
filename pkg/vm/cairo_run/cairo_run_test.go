@@ -13,7 +13,17 @@ import (
 // - Asserting expected trace values
 // - Asserting memory_holes
 func TestFibonacci(t *testing.T) {
-	_, err := cairo_run.CairoRun("../../../cairo_programs/fibonacci.json")
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/fibonacci.json", cairoRunConfig)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+	fmt.Println(err)
+}
+
+func TestFactorial(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/factorial.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
@@ -21,21 +31,27 @@ func TestFibonacci(t *testing.T) {
 }
 
 func TestPoseidonBuiltin(t *testing.T) {
-	_, err := cairo_run.CairoRun("../../../cairo_programs/poseidon_builtin.json")
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false}
+
+	_, err := cairo_run.CairoRun("../../../cairo_programs/poseidon_builtin.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
 }
 
 func TestPoseidonHash(t *testing.T) {
-	_, err := cairo_run.CairoRun("../../../cairo_programs/poseidon_hash.json")
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false}
+
+	_, err := cairo_run.CairoRun("../../../cairo_programs/poseidon_hash.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
 }
 
 func TestSimplePrint(t *testing.T) {
-	_, err := cairo_run.CairoRun("../../../cairo_programs/simple_print.json")
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false}
+
+	_, err := cairo_run.CairoRun("../../../cairo_programs/simple_print.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}

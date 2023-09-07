@@ -15,7 +15,9 @@ func main() {
 	}
 	cli_args := os.Args[1:]
 	programPath := cli_args[0]
-	cairoRunner, err := cairo_run.CairoRun(programPath)
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false}
+
+	cairoRunner, err := cairo_run.CairoRun(programPath, cairoRunConfig)
 	if err != nil {
 		fmt.Printf("Failed with error: %s", err)
 		return

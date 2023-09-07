@@ -128,7 +128,8 @@ func TestDeduceMemoryCellBitwiseForPresetMemoryNoValuesToOperate(t *testing.T) {
 
 func TestIntegrationBitwise(t *testing.T) {
 	t.Helper()
-	_, err := cairo_run.CairoRun("../../cairo_programs/bitwise_builtin_test.json")
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false}
+	_, err := cairo_run.CairoRun("../../cairo_programs/bitwise_builtin_test.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("TestIntegrationBitwise failed with error:\n %v", err)
 	}

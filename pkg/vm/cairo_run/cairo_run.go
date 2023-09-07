@@ -18,15 +18,16 @@ type RunResources struct {
 }
 
 type CairoRunConfig struct {
-	TraceFile  *string
-	MemoryFile *string
+	// TraceFile           *string
+	// MemoryFile          *string
+	DisableTracePadding bool
 }
 
 func CairoRunError(err error) error {
 	return errors.Wrapf(err, "Cairo Run Error\n")
 }
 
-func CairoRun(programPath string) (*runners.CairoRunner, error) {
+func CairoRun(programPath string, cairoRunConfig CairoRunConfig) (*runners.CairoRunner, error) {
 	compiledProgram, err := parser.Parse(programPath)
 	if err != nil {
 		return nil, CairoRunError(err)
@@ -45,6 +46,11 @@ func CairoRun(programPath string) (*runners.CairoRunner, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = cairoRunner.EndRun(cairoRunConfig.DisableTracePadding, false, &cairoRunner.Vm)
+	if err != nil {
+		return nil, err
+	}
+
 	err = cairoRunner.Vm.Relocate()
 	return cairoRunner, err
 }

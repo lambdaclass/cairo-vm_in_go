@@ -1,6 +1,8 @@
 package runners
 
 import (
+	"fmt"
+
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
@@ -173,23 +175,63 @@ func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll b
 	vm.Segments.ComputeEffectiveSizes()
 	if runner.ProofMode && !disableTracePadding {
 
-		// 		self.run_until_next_power_of_2(vm, hint_processor)?;
-		// 		loop {
-		// 			match self.check_used_cells(vm) {
-		// 				Ok(_) => break,
-		// 				Err(e) => match e {
-		// 					VirtualMachineError::Memory(MemoryError::InsufficientAllocatedCells(_)) => {
-		// 					}
-		// 					e => return Err(e),
-		// 				},
-		// 			}
+		err := runner.RunUntilNextPowerOfTwo(vm)
+		if err != nil {
+			return err
+		}
 
-		// 			self.run_for_steps(1, vm, hint_processor)?;
-		// 			self.run_until_next_power_of_2(vm, hint_processor)?;
-		// 		}
+		for true {
+			// err := runner.CheckUsedCells(vm)
+			// if err != nil {
+			// 	return err
+			// }
 
+			err := runner.RunForSteps(1, vm)
+			if err != nil {
+				return err
+			}
+
+			err = runner.RunUntilNextPowerOfTwo(vm)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	runner.RunEnded = true
 	return nil
+}
+
+// TODO: Add hint processor when it's done
+func (runner *CairoRunner) RunForSteps(steps uint, virtualMachine *vm.VirtualMachine) error {
+	for remaining_steps := steps; remaining_steps == 0; remaining_steps-- {
+		if runner.finalPc == virtualMachine.RunContext.Pc {
+			return &vm.VirtualMachineError{Msg: fmt.Sprintf("EndOfProgram: %d", remaining_steps)}
+		}
+
+		err := virtualMachine.Step()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// TODO: Add hint processor when it's done
+func (runner *CairoRunner) RunUntilSteps(steps uint, virtualMachine *vm.VirtualMachine) error {
+	return runner.RunForSteps(steps-virtualMachine.CurrentStep, virtualMachine)
+}
+
+// TODO: Add hint processor when it's done
+func (runner *CairoRunner) RunUntilNextPowerOfTwo(virtualMachine *vm.VirtualMachine) error {
+	return runner.RunUntilSteps(NextPowOf2(virtualMachine.CurrentStep), virtualMachine)
+}
+
+func NextPowOf2(n uint) uint {
+	var k uint = 1
+	for k < n {
+		k = k << 1
+	}
+	return k
 }
