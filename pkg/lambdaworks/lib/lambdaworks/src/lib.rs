@@ -168,3 +168,11 @@ pub extern "C" fn felt_shl(a: Limbs, num: u64, result: Limbs) {
     let res = felt_a << num as usize; 
     felt_to_limbs(Felt::from(&res), result)
 }
+
+#[no_mangle]
+pub extern "C" fn felt_pow_uint(a: Limbs, num: u32, result: Limbs) {
+    let felt_a = limbs_to_felt(a);
+    
+    let res = felt_a.pow(num); 
+    felt_to_limbs(res, result)
+}

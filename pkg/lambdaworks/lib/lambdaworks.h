@@ -61,3 +61,6 @@ void felt_xor(felt_t a, felt_t b, felt_t result);
 
 /* writes the result variable with a << num */
 void felt_shl(felt_t a, uint64_t num, felt_t result);
+
+/* writes the result variable with a.pow(num) */
+void felt_pow_uint(felt_t a, uint32_t num, felt_t result);
