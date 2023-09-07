@@ -1,2 +1,4 @@
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
+github.com/starkware-libs/crypto-cpp v0.0.0-20220908131716-78e3ed8dc7a0 h1:c37UFjw8lJo6DDKfZ+8m7RqAtq811+efANvDDOdA4b4=
+github.com/starkware-libs/crypto-cpp v0.0.0-20220908131716-78e3ed8dc7a0/go.mod h1:vuegYwjpoGGN/sbWVhccwFSl1WZh9Pwc/po13FRFL3A=

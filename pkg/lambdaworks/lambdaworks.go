@@ -104,7 +104,7 @@ func (felt Felt) ToBeBytes() *[32]byte {
 }
 
 func (felt Felt) ToHexString() *string {
-	var result_c [32]byte
+	var result_c [32]C.char
 	var value C.felt_t = felt.toC()
 	C.to_hex_string(&result_c[0], &value[0])
 

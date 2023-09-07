@@ -78,10 +78,10 @@ pub extern "C" fn to_le_bytes(result: &mut [u8; 32], value: Limbs) {
 }
 
 #[no_mangle]
-pub extern "C" fn to_hex_string(result: *const libc::c_char, value: Limbs) {
+pub extern "C" fn to_hex_string(result: *mut libc::c_char, value: Limbs) {
     let felt = limbs_to_felt(value);
-    felt_str = felt.representative().to_string();
-    *result = result;
+    let felt_str = felt.representative().to_string().as_ptr() as i8;
+    unsafe {*result = felt_str};
 }
 
 #[no_mangle]

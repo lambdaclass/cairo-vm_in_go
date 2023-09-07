@@ -1,8 +1,9 @@
 package builtins
 
 import (
-	starknet_crypto "github.com/lambdaclass/cairo-vm.go/pkg/starknet_crypto"
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+	"github.com/starkware-libs/crypto-cpp/src/starkware/crypto/ffi/crypto_lib"
 )
 
 const PEDERSEN_BUILTIN_NAME = "pedersen"
@@ -52,14 +53,13 @@ func (p *PedersenBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem
 	if err != nil {
 		return nil, nil
 	}
-	numA
 
 	if len(p.verified_addresses) <= int(address.Offset) {
 		p.verified_addresses = append(p.verified_addresses, false)
 	}
 	p.verified_addresses[address.Offset] = false
 
-	starknet_crypto.PoseidonPermuteComp()
+	x := crypto_lib.Hash(*numA.ToHexString(), *numB.ToHexString())
 
-	return nil, nil
+	return memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString(x)), nil
 }
