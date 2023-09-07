@@ -119,9 +119,31 @@ func (r *CairoRunner) initializeVM() error {
 	return r.Vm.Segments.Memory.ValidateExistingMemory()
 }
 
-func (r *CairoRunner) RunUntilPC(end memory.Relocatable) error {
+func (r *CairoRunner) BuildHintDataMap(hintProcessor vm.HintProcessor) (map[uint][]any, error) {
+	hintDataMap := make(map[uint][]any, 0)
+	for pc, hintsParams := range r.Program.Hints {
+		hintDatas := make([]any, 0, len(hintsParams))
+		for _, hintParam := range hintsParams {
+			data, err := hintProcessor.CompileHint(&hintParam, &r.Program.ReferenceManager)
+			if err != nil {
+				return nil, err
+			}
+			hintDatas = append(hintDatas, data)
+		}
+		hintDataMap[pc] = hintDatas
+	}
+
+	return hintDataMap, nil
+}
+
+func (r *CairoRunner) RunUntilPC(end memory.Relocatable, hintProcessor vm.HintProcessor) error {
+	hintDataMap, err := r.BuildHintDataMap(hintProcessor)
+	constants := r.Program.ExtractConstants()
+	if err != nil {
+		return err
+	}
 	for r.Vm.RunContext.Pc != end {
-		err := r.Vm.Step()
+		err := r.Vm.Step(hintProcessor, &hintDataMap, &constants)
 		if err != nil {
 			return err
 		}
