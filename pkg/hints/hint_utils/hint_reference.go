@@ -35,6 +35,7 @@ const (
 
 // Parses a Reference to a HintReference, decoding its Value field
 // Returns an emty reference if invalid
+// Note: Current implementation is working, but can be quite slow due to Sscanf, should be replaced for a more performant version
 func ParseHintReference(reference parser.Reference) HintReference {
 	var valueString = reference.Value
 	// Trim outer brackets if dereference
@@ -124,9 +125,9 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			ValueType:      valueType,
 		}
 	}
-	// Special subcases: Sometimes if the offset is 0 it gets omitted, so we get [reg]
+	// Special subcases: Sometimes if the offset is 0 it gets omitted, so we get [reg] instead of [reg + 0]
 
-	// Reference with deref no off: cast([reg], type)
+	// Reference with deref no off omitted: cast([reg], type)
 	_, err = fmt.Sscanf(valueString, "cast[%c%c], %s", &off1Reg0, &off1Reg1, &valueType)
 	if err == nil {
 		off1Reg := getRegister(off1Reg0, off1Reg1)
@@ -137,7 +138,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			ValueType:      valueType,
 		}
 	}
-	// Reference with deref 2 offsets no off1: cast([reg] + off2, type)
+	// Reference with deref 2 offsets off1 omitted: cast([reg] + off2, type)
 	_, err = fmt.Sscanf(valueString, "cast[%c%c] + %d, %s", &off1Reg0, &off1Reg1, &off2, &valueType)
 	if err == nil {
 		off1Reg := getRegister(off1Reg0, off1Reg1)
@@ -150,7 +151,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 		}
 	}
 
-	// 2 dereferences no off1 : cast([reg] + [reg + off2], type)
+	// 2 dereferences off1 omitted: cast([reg] + [reg + off2], type)
 	_, err = fmt.Sscanf(valueString, "cast[%c%c] + [%c%c + %d], %s", &off1Reg0, &off1Reg1, &off2Reg0, &off2Reg1, &off2, &valueType)
 	if err == nil {
 		off1Reg := getRegister(off1Reg0, off1Reg1)
@@ -163,7 +164,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			ValueType:      valueType,
 		}
 	}
-	// 2 dereferences no off2: cast([reg + off1] + [reg], type)
+	// 2 dereferences off2 omitted: cast([reg + off1] + [reg], type)
 	_, err = fmt.Sscanf(valueString, "cast[%c%c + %d] + [%c%c], %s", &off1Reg0, &off1Reg1, &off1, &off2Reg0, &off2Reg1, &valueType)
 	if err == nil {
 		off1Reg := getRegister(off1Reg0, off1Reg1)
@@ -176,7 +177,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			ValueType:      valueType,
 		}
 	}
-	// 2 dereferences no offs: cast([reg] + [reg], type)
+	// 2 dereferences both offs omitted: cast([reg] + [reg], type)
 	_, err = fmt.Sscanf(valueString, "cast[%c%c] + [%c%c], %s", &off1Reg0, &off1Reg1, &off2Reg0, &off2Reg1, &valueType)
 	if err == nil {
 		off1Reg := getRegister(off1Reg0, off1Reg1)
@@ -189,7 +190,7 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			ValueType:      valueType,
 		}
 	}
-
+	// No matches (aka wrong format)
 	return HintReference{ApTrackingData: reference.ApTrackingData}
 }
 
