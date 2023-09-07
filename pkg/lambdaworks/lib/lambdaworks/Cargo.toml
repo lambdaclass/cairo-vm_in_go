@@ -10,7 +10,7 @@ libc = "0.2"
 lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git" }
 lambdaworks-crypto = { git = "https://github.com/lambdaclass/lambdaworks.git" }
 num-bigint = { version = "0.4", default-features = false }
-
+lazy_static = "1.4.0"
 
 [lib]
 crate-type = ["cdylib", "staticlib", "lib"]

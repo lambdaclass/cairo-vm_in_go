@@ -335,7 +335,7 @@ func TestFeltIsNotZero(t *testing.T) {
 
 func TestFeltNeg1ToString(t *testing.T) {
 	f_neg_1 := lambdaworks.FeltFromDecString("-1")
-	expected := "3618502788666131213697322783095070105623107215331596699973092056135872020480"
+	expected := "-1"
 	result := f_neg_1.ToString()
 	if expected != result {
 		t.Errorf("TestFeltNeg1ToString failed. Expected %s, Got: %s", expected, result)
@@ -344,7 +344,7 @@ func TestFeltNeg1ToString(t *testing.T) {
 
 func TestFeltNeg50ToString(t *testing.T) {
 	f_neg_1 := lambdaworks.FeltFromDecString("-50")
-	expected := "3618502788666131213697322783095070105623107215331596699973092056135872020431"
+	expected := "-50"
 	result := f_neg_1.ToString()
 	if expected != result {
 		t.Errorf("TestFeltNeg50ToString failed. Expected %s, Got: %s", expected, result)
@@ -371,7 +371,7 @@ func TestFelt50ToString(t *testing.T) {
 
 func TestRelocatableToString(t *testing.T) {
 	rel := memory.NewRelocatable(0, 0)
-	expected := "{0, 0}"
+	expected := "{0:0}"
 	result := rel.ToString()
 
 	if expected != result {
@@ -379,7 +379,7 @@ func TestRelocatableToString(t *testing.T) {
 	}
 
 	rel = memory.NewRelocatable(4, 3)
-	expected = "{4, 3}"
+	expected = "{4:3}"
 	result = rel.ToString()
 
 	if expected != result {

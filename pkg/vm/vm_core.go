@@ -501,6 +501,7 @@ func (vm *VirtualMachine) WriteOutput(writer *bytes.Buffer) {
 					writer.WriteString("<missing>\n")
 				} else {
 					writer.WriteString(formattedValue.ToString())
+					writer.WriteString("\n")
 				}
 			}
 			break

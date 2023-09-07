@@ -1,6 +1,7 @@
 package runners_test
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
@@ -245,4 +246,115 @@ func TestInitializeRunnerWithRangeCheckInvalid(t *testing.T) {
 		t.Errorf("Test failed: Expected error: %s, Actual error: %s", err.Error(), expected_error.Error())
 	}
 
+}
+
+func TestWriteOutputFromPresentMemory(t *testing.T) {
+	empty_identifiers := make(map[string]vm.Identifier, 0)
+	program_builtins := []string{builtins.OUTPUT_BUILTIN_NAME}
+	program := vm.Program{Identifiers: empty_identifiers, Builtins: program_builtins}
+	// Create CairoRunner
+	runner, err := runners.NewCairoRunner(program)
+	if err != nil {
+		t.Errorf("NewCairoRunner error in test: %s", err)
+	}
+	// Initialize the runner
+	_, err = runner.Initialize()
+	if err != nil {
+		t.Errorf("Initialize error in test: %s", err)
+	}
+
+	builtin := runner.Vm.BuiltinRunners[0]
+	if builtin.Name() != builtins.OUTPUT_BUILTIN_NAME {
+		t.Errorf("Wrong builtin name: expected: %s, got: %s", builtins.OUTPUT_BUILTIN_NAME, builtin.Name())
+	}
+
+	if builtin.Base().SegmentIndex != 2 {
+		t.Errorf("Wrong builtin base: expected: %d, got: %d", 2, builtin.Base().SegmentIndex)
+	}
+
+	runner.Vm.Segments.Memory.Insert(memory.NewRelocatable(2, 0), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	runner.Vm.Segments.Memory.Insert(memory.NewRelocatable(2, 1), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2)))
+
+	var buffer bytes.Buffer
+	runner.Vm.WriteOutput(&buffer)
+
+	expected := "1\n2\n"
+	result := buffer.String()
+
+	if expected != result {
+		t.Errorf("TestWriteOutputFromPresentMemory failed. Expected: %s, got: %s", expected, result)
+	}
+}
+
+func TestWriteOutputFromProgramGapRelocatableOutput(t *testing.T) {
+	program_data := make([]memory.MaybeRelocatable, 4)
+	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(4612671187288162301))
+	program_data[1] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5198983563776458752))
+	program_data[2] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2))
+	program_data[3] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2345108766317314046))
+	empty_identifiers := make(map[string]vm.Identifier, 0)
+	program_builtins := []string{builtins.OUTPUT_BUILTIN_NAME}
+	program := vm.Program{Data: program_data, Identifiers: empty_identifiers, Builtins: program_builtins}
+	// Create CairoRunner
+	runner, err := runners.NewCairoRunner(program)
+	if err != nil {
+		t.Errorf("NewCairoRunner error in test: %s", err)
+	}
+	// Initialize the runner
+	end, err := runner.Initialize()
+	if err != nil {
+		t.Errorf("Initialize error in test: %s", err)
+	}
+
+	err = runner.RunUntilPC(end)
+	if err != nil {
+		t.Errorf("RunUntilPC error in test: %s", err)
+	}
+
+	var buffer bytes.Buffer
+	runner.Vm.WriteOutput(&buffer)
+
+	expected := "<missing>\n{2:0}\n"
+	result := buffer.String()
+
+	if expected != result {
+		t.Errorf("TestWriteOutputFromProgramGapRelocatableOutput failed. Expected: %s, got: %s", expected, result)
+	}
+}
+
+func TestWriteOutputFromPresentMemoryNegOutput(t *testing.T) {
+	empty_identifiers := make(map[string]vm.Identifier, 0)
+	program_builtins := []string{builtins.OUTPUT_BUILTIN_NAME}
+	program := vm.Program{Identifiers: empty_identifiers, Builtins: program_builtins}
+	// Create CairoRunner
+	runner, err := runners.NewCairoRunner(program)
+	if err != nil {
+		t.Errorf("NewCairoRunner error in test: %s", err)
+	}
+	// Initialize the runner
+	_, err = runner.Initialize()
+	if err != nil {
+		t.Errorf("Initialize error in test: %s", err)
+	}
+
+	builtin := runner.Vm.BuiltinRunners[0]
+	if builtin.Name() != builtins.OUTPUT_BUILTIN_NAME {
+		t.Errorf("Wrong builtin name: expected: %s, got: %s", builtins.OUTPUT_BUILTIN_NAME, builtin.Name())
+	}
+
+	if builtin.Base().SegmentIndex != 2 {
+		t.Errorf("Wrong builtin base: expected: %d, got: %d", 2, builtin.Base().SegmentIndex)
+	}
+
+	runner.Vm.Segments.Memory.Insert(memory.NewRelocatable(2, 0), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("-1")))
+
+	var buffer bytes.Buffer
+	runner.Vm.WriteOutput(&buffer)
+
+	expected := "-1\n"
+	result := buffer.String()
+
+	if expected != result {
+		t.Errorf("TestWriteOutputFromPresentMemoryNegOutput failed. Expected: %s, got: %s", expected, result)
+	}
 }

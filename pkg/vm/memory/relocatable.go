@@ -242,5 +242,5 @@ func (m *MaybeRelocatable) ToString() string {
 }
 
 func (r *Relocatable) ToString() string {
-	return fmt.Sprintf("{%d, %d}", r.SegmentIndex, r.Offset)
+	return fmt.Sprintf("{%d:%d}", r.SegmentIndex, r.Offset)
 }

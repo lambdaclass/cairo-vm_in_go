@@ -50,7 +50,7 @@ func TestWriteOutputProgram(t *testing.T) {
 	var buffer bytes.Buffer
 	runner.Vm.WriteOutput(&buffer)
 
-	expected := "0"
+	expected := "0\n"
 	result := buffer.String()
 
 	if expected != result {
