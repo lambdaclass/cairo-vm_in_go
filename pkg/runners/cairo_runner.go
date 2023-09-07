@@ -8,6 +8,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+var ErrRunnerCalledTwice = errors.New("Cairo Runner was called twice")
+
 type CairoRunner struct {
 	Program       vm.Program
 	Vm            vm.VirtualMachine
@@ -18,6 +20,8 @@ type CairoRunner struct {
 	initialFp     memory.Relocatable
 	finalPc       memory.Relocatable
 	mainOffset    uint
+	ProofMode     bool
+	RunEnded      bool
 }
 
 func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
@@ -147,3 +151,55 @@ func (r *CairoRunner) RunUntilPC(end memory.Relocatable) error {
 	}
 	return nil
 }
+
+// TODO: Add HintProcessor as parameter once we have that
+func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll bool, vm *vm.VirtualMachine) error {
+	if runner.RunEnded {
+		return ErrRunnerCalledTwice
+	}
+
+	// TODO: This seems to have to do with temporary segments
+	// vm.Segments.Memory.RelocateMemory()
+
+	return nil
+}
+
+// pub fn end_run(
+// 	&mut self,
+// 	disable_trace_padding: bool,
+// 	disable_finalize_all: bool,
+// 	vm: &mut VirtualMachine,
+// 	hint_processor: &mut dyn HintProcessor,
+// ) -> Result<(), VirtualMachineError> {
+// 	if self.run_ended {
+// 		return Err(RunnerError::EndRunCalledTwice.into());
+// 	}
+
+// 	vm.segments.memory.relocate_memory()?;
+// 	vm.end_run(&self.exec_scopes)?;
+
+// 	if disable_finalize_all {
+// 		return Ok(());
+// 	}
+
+// 	vm.segments.compute_effective_sizes();
+// 	if self.proof_mode && !disable_trace_padding {
+// 		self.run_until_next_power_of_2(vm, hint_processor)?;
+// 		loop {
+// 			match self.check_used_cells(vm) {
+// 				Ok(_) => break,
+// 				Err(e) => match e {
+// 					VirtualMachineError::Memory(MemoryError::InsufficientAllocatedCells(_)) => {
+// 					}
+// 					e => return Err(e),
+// 				},
+// 			}
+
+// 			self.run_for_steps(1, vm, hint_processor)?;
+// 			self.run_until_next_power_of_2(vm, hint_processor)?;
+// 		}
+// 	}
+
+// 	self.run_ended = true;
+// 	Ok(())
+// }
