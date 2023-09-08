@@ -6,6 +6,7 @@ import (
 	"io"
 	"sort"
 
+	"github.com/lambdaclass/cairo-vm.go/pkg/hints"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
 	"github.com/lambdaclass/cairo-vm.go/pkg/runners"
@@ -41,7 +42,8 @@ func CairoRun(programPath string, layout string, proofMode bool) (*runners.Cairo
 	if err != nil {
 		return nil, err
 	}
-	err = cairoRunner.RunUntilPC(end)
+	hintProcessor := hints.CairoVmHintProcessor{}
+	err = cairoRunner.RunUntilPC(end, &hintProcessor)
 	if err != nil {
 		return nil, err
 	}

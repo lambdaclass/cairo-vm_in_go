@@ -60,7 +60,7 @@ func (r *RangeCheckBuiltinRunner) DeduceMemoryCell(addr memory.Relocatable, mem 
 	return nil, nil
 }
 
-func ValidationRule(mem *memory.Memory, address memory.Relocatable) ([]memory.Relocatable, error) {
+func RangeCheckValidationRule(mem *memory.Memory, address memory.Relocatable) ([]memory.Relocatable, error) {
 	res_val, err := mem.Get(address)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func ValidationRule(mem *memory.Memory, address memory.Relocatable) ([]memory.Re
 }
 
 func (r *RangeCheckBuiltinRunner) AddValidationRule(mem *memory.Memory) {
-	mem.AddValidationRule(uint(r.base.SegmentIndex), ValidationRule)
+	mem.AddValidationRule(uint(r.base.SegmentIndex), RangeCheckValidationRule)
 }
 
 func (r *RangeCheckBuiltinRunner) Include(include bool) {
