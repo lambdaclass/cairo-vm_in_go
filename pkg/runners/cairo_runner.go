@@ -1,6 +1,8 @@
 package runners
 
 import (
+	"fmt"
+
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/layouts"
 	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
@@ -85,6 +87,7 @@ func (r *CairoRunner) initializeBuiltins() error {
 		"keccak_builtin",
 		"poseidon_builtin",
 	}
+	fmt.Println("PROGRAM BUILTINS: %v", r.Program.Builtins)
 	if !utils.IsSubsequence(r.Program.Builtins, orderedBuiltinNames) {
 		return errors.Errorf("program builtins are not in appropiate order")
 	}

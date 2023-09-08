@@ -25,6 +25,7 @@ func TestInitializeSegmentsForRangeCheck(t *testing.T) {
 
 func TestGetInitialStackForRangeCheckWithBase(t *testing.T) {
 	check_range := builtins.NewRangeCheckBuiltinRunner()
+	check_range.Include(true)
 	initialStack := check_range.InitialStack()
 	stackValue := initialStack[0]
 	expectedValue := memory.NewMaybeRelocatableRelocatable(check_range.Base())
