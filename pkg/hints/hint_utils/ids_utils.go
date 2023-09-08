@@ -13,9 +13,18 @@ func InsertIds(name string, value *MaybeRelocatable, ids *map[string]HintReferen
 
 	addr, err := GetIdsAddr(name, ids, apTracking, vm)
 	if err != nil {
-		return nil
+		return err
 	}
 	return vm.Segments.Memory.Insert(addr, value)
+}
+
+// Returns the value of an ids as MaybeRelocatable
+func GetIds(name string, ids *map[string]HintReference, apTracking parser.ApTrackingData, vm *VirtualMachine) (*MaybeRelocatable, error) {
+	addr, err := GetIdsAddr(name, ids, apTracking, vm)
+	if err != nil {
+		return nil, err
+	}
+	return vm.Segments.Memory.Get(addr)
 }
 
 // Returns the address of an ids given its name
