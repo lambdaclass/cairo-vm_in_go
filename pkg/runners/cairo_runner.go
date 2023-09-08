@@ -43,6 +43,8 @@ func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewPoseidonBuiltinRunner(true))
 		case builtins.OUTPUT_BUILTIN_NAME:
 			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewOutputBuiltinRunner(true))
+		case builtins.KECCAK_BUILTIN_NAME:
+			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewKeccakBuiltinRunner(true))
 		default:
 			return nil, errors.Errorf("Invalid builtin: %s", builtin_name)
 		}
