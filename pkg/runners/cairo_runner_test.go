@@ -1,8 +1,8 @@
 package runners_test
 
 import (
-	"reflect"
 	"bytes"
+	"reflect"
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
