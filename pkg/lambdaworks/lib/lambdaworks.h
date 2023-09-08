@@ -24,6 +24,9 @@ void to_le_bytes(uint8_t result[32], felt_t value);
 /* Converts a felt_t to bytes in big-endian representation. */
 void to_be_bytes(uint8_t result[32], felt_t value);
 
+/* Converts a felt_t to a String representation. */
+void to_hex_string(char *string, felt_t value);
+
 /* Converts an array of bytes in little-endian representation to a felt_t. */
 void from_le_bytes(felt_t result, uint8_t bytes[32]);
 

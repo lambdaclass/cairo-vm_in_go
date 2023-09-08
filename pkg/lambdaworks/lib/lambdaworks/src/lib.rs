@@ -94,6 +94,16 @@ pub extern "C" fn to_le_bytes(result: &mut [u8; 32], value: Limbs) {
 }
 
 #[no_mangle]
+pub extern "C" fn to_hex_string(result: *mut libc::c_char, value: Limbs) {
+    let felt = limbs_to_felt(value);
+    let felt_str = felt.representative().to_string();
+    let ptr = felt_str.as_ptr() as *mut libc::c_char;
+    for i in 0..felt_str.len() {
+        unsafe { *result.offset(i as isize) = *ptr.offset(i as isize) }
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn to_be_bytes(result: &mut [u8; 32], value: Limbs) {
     let value_felt = limbs_to_felt(value);
     *result = value_felt.to_bytes_be();
@@ -184,7 +194,7 @@ pub extern "C" fn to_signed_felt(value: Limbs) -> *mut c_char {
     let bigint_felt = if biguint > *SIGNED_FELT_MAX {
         BigInt::from_biguint(num_bigint::Sign::Minus, &*CAIRO_PRIME_BIGUINT - &biguint)
     } else {
-        biguint.clone().into()
+        biguint.into()
     };
 
     let result = bigint_felt.to_string();

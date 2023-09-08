@@ -238,7 +238,7 @@ func (m *MaybeRelocatable) ToString() string {
 		rel, _ := m.GetRelocatable()
 		return rel.ToString()
 	}
-	return felt.ToString()
+	return felt.ToSignedFeltString()
 }
 
 func (r *Relocatable) ToString() string {
