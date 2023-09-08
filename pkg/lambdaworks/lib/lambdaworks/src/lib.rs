@@ -214,3 +214,11 @@ pub unsafe extern "C" fn free_string(ptr: *mut c_char) {
         let _ = CString::from_raw(ptr);
     }
 }
+pub extern "C" fn felt_shr(a: Limbs, b: usize, result: Limbs) {
+    let felt_a = limbs_to_felt(a).representative();
+
+    let res = felt_a << b;
+
+    felt_to_limbs(Felt::from(&res), result)
+}
+

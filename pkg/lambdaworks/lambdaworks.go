@@ -221,3 +221,12 @@ func (a Felt) Or(b Felt) Felt {
 	C.felt_or(&a_c[0], &b_c[0], &result[0])
 	return fromC(result)
 }
+
+func (a Felt) Shr(b uint) Felt {
+	var result C.felt_t
+	var a_c C.felt_t = a.toC()
+	//var b_c C._type_uint = b.toC()
+	C.felt_shr(&a_c[0], C.size_t(b), &result[0])
+	//C.felt_shr(&a_c[0], &b_c[0], &result[0])
+	return fromC(result)
+}
