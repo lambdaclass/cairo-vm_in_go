@@ -180,6 +180,15 @@ func (a Felt) Div(b Felt) Felt {
 	return fromC(result)
 }
 
+// Returns the felt
+func (f Felt) ToSignedFeltString() string {
+	var f_c = f.toC()
+	resultPtr := C.to_signed_felt(&f_c[0])
+	defer C.free_string(resultPtr)
+	goResult := C.GoString(resultPtr)
+	return goResult
+}
+
 // Returns the number of bits needed to represent the felt
 func (a Felt) Bits() C.limb_t {
 	if a.IsZero() {
