@@ -76,6 +76,7 @@ func TestPoseidonInitializeSegments(t *testing.T) {
 
 func TestPoseidonInitialStackIncluded(t *testing.T) {
 	poseidon := builtins.NewPoseidonBuiltinRunner()
+	poseidon.Include(true)
 	initial_stack := poseidon.InitialStack()
 	expected_stack := []memory.MaybeRelocatable{*memory.NewMaybeRelocatableRelocatable(poseidon.Base())}
 	if !reflect.DeepEqual(initial_stack, expected_stack) {

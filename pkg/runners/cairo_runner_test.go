@@ -163,10 +163,10 @@ func TestInitializeRunnerWithRangeCheckValid(t *testing.T) {
 	program_data := make([]memory.MaybeRelocatable, 1)
 	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1))
 	empty_identifiers := make(map[string]vm.Identifier, 0)
-	program_builtins := []string{builtins.CHECK_RANGE_BUILTIN_NAME}
+	program_builtins := []string{builtins.RANGE_CHECK_BUILTIN_NAME}
 	program := vm.Program{Data: program_data, Identifiers: empty_identifiers, Builtins: program_builtins}
 	// Create CairoRunner
-	runner, err := runners.NewCairoRunner(program, "plain", false)
+	runner, err := runners.NewCairoRunner(program, "small", false)
 	if err != nil {
 		t.Errorf("NewCairoRunner error in test: %s", err)
 	}
@@ -177,8 +177,8 @@ func TestInitializeRunnerWithRangeCheckValid(t *testing.T) {
 	}
 
 	builtin_runner := runner.Vm.BuiltinRunners[0]
-	if builtin_runner.Name() != builtins.CHECK_RANGE_BUILTIN_NAME {
-		t.Errorf("Name of runner builtin failed. Expected %s, got %s", builtin_runner.Name(), builtins.CHECK_RANGE_BUILTIN_NAME)
+	if builtin_runner.Name() != builtins.RANGE_CHECK_BUILTIN_NAME {
+		t.Errorf("Name of runner builtin failed. Expected %s, got %s", builtin_runner.Name(), builtins.RANGE_CHECK_BUILTIN_NAME)
 	}
 
 	builtin_base := builtin_runner.Base()
@@ -204,10 +204,10 @@ func TestInitializeRunnerWithRangeCheckInvalid(t *testing.T) {
 	program_data := make([]memory.MaybeRelocatable, 1)
 	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1))
 	empty_identifiers := make(map[string]vm.Identifier, 0)
-	program_builtins := []string{builtins.CHECK_RANGE_BUILTIN_NAME}
+	program_builtins := []string{builtins.RANGE_CHECK_BUILTIN_NAME}
 	program := vm.Program{Data: program_data, Identifiers: empty_identifiers, Builtins: program_builtins}
 	// Create CairoRunner
-	runner, err := runners.NewCairoRunner(program, "plain", false)
+	runner, err := runners.NewCairoRunner(program, "small", false)
 	if err != nil {
 		t.Errorf("NewCairoRunner error in test: %s", err)
 	}
@@ -218,8 +218,8 @@ func TestInitializeRunnerWithRangeCheckInvalid(t *testing.T) {
 	}
 
 	builtin_runner := runner.Vm.BuiltinRunners[0]
-	if builtin_runner.Name() != builtins.CHECK_RANGE_BUILTIN_NAME {
-		t.Errorf("Name of runner builtin failed. Expected %s, got %s", builtin_runner.Name(), builtins.CHECK_RANGE_BUILTIN_NAME)
+	if builtin_runner.Name() != builtins.RANGE_CHECK_BUILTIN_NAME {
+		t.Errorf("Name of runner builtin failed. Expected %s, got %s", builtin_runner.Name(), builtins.RANGE_CHECK_BUILTIN_NAME)
 	}
 
 	builtin_base := builtin_runner.Base()

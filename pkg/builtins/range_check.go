@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const CHECK_RANGE_BUILTIN_NAME = "range_check"
+const RANGE_CHECK_BUILTIN_NAME = "range_check"
 const INNER_RC_BOUND_SHIFT = 16
 const INNER_RC_BOUND_MASK = math.MaxUint16
 const CELLS_PER_RANGE_CHECK = 1
@@ -42,7 +42,7 @@ func (r *RangeCheckBuiltinRunner) Base() memory.Relocatable {
 }
 
 func (r *RangeCheckBuiltinRunner) Name() string {
-	return CHECK_RANGE_BUILTIN_NAME
+	return RANGE_CHECK_BUILTIN_NAME
 }
 
 func (r *RangeCheckBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {

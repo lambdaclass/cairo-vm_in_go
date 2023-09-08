@@ -1,8 +1,6 @@
 package runners
 
 import (
-	"fmt"
-
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/layouts"
 	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
@@ -32,6 +30,11 @@ func NewCairoRunner(program vm.Program, layoutName string, proofMode bool) (*Cai
 		main_offset = uint(mainIdentifier.PC)
 	}
 
+	err := utils.CheckBuiltinsSubsequence(program.Builtins)
+	if err != nil {
+		return nil, errors.New(err.Error())
+	}
+
 	layoutBuiltinRunners, err := layouts.GetLayoutBuiltinRunners(layoutName)
 	if err != nil {
 		return nil, errors.New(err.Error())
@@ -44,21 +47,6 @@ func NewCairoRunner(program vm.Program, layoutName string, proofMode bool) (*Cai
 		proofMode:  proofMode,
 		layout:     layout,
 	}
-	// for _, builtin_name := range program.Builtins {
-	// 	switch builtin_name {
-	// 	case builtins.BITWISE_BUILTIN_NAME:
-	// 		runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewBitwiseBuiltinRunner(true))
-	// 	case builtins.CHECK_RANGE_BUILTIN_NAME:
-	// 		runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewRangeCheckBuiltinRunner(true))
-	// 	case builtins.POSEIDON_BUILTIN_NAME:
-	// 		runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewPoseidonBuiltinRunner(true))
-	// 	case builtins.OUTPUT_BUILTIN_NAME:
-	// 		runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewOutputBuiltinRunner(true))
-	// 	default:
-	// 		return nil, errors.Errorf("Invalid builtin: %s", builtin_name)
-	// 	}
-	// }
-
 	return &runner, nil
 }
 
@@ -77,21 +65,6 @@ func (r *CairoRunner) Initialize() (memory.Relocatable, error) {
 }
 
 func (r *CairoRunner) initializeBuiltins() error {
-	orderedBuiltinNames := []string{
-		"output_builtin",
-		"pedersen_builtin",
-		"range_check_builtin",
-		"ecdsa_builtin",
-		"bitwise_builtin",
-		"ec_op_builtin",
-		"keccak_builtin",
-		"poseidon_builtin",
-	}
-	fmt.Println("PROGRAM BUILTINS: %v", r.Program.Builtins)
-	if !utils.IsSubsequence(r.Program.Builtins, orderedBuiltinNames) {
-		return errors.Errorf("program builtins are not in appropiate order")
-	}
-
 	var builtinRunners []builtins.BuiltinRunner
 	programBuiltins := map[string]struct{}{}
 	for _, builtin := range r.Program.Builtins {

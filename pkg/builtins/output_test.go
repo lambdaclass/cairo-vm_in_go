@@ -32,6 +32,7 @@ func TestOutputInitializeSegments(t *testing.T) {
 
 func TestOutputInitialStackIncluded(t *testing.T) {
 	output := builtins.NewOutputBuiltinRunner()
+	output.Include(true)
 	initial_stack := output.InitialStack()
 	expected_stack := []memory.MaybeRelocatable{*memory.NewMaybeRelocatableRelocatable(output.Base())}
 	if !reflect.DeepEqual(initial_stack, expected_stack) {

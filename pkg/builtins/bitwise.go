@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const BITWISE_BUILTIN_NAME = "bitwise_builtin"
+const BITWISE_BUILTIN_NAME = "bitwise"
 const BITWISE_CELLS_PER_INSTANCE = 5
 const BITWISE_TOTAL_N_BITS = 251
 const BIWISE_INPUT_CELLS_PER_INSTANCE = 2
