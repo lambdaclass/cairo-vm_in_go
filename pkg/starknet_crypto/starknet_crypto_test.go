@@ -56,7 +56,7 @@ func TestVerifySignatureShouldFail(t *testing.T) {
 
 	verified_signature := starknet_crypto.VerifySignature(signature, msg_hash, r, s)
 
-	if !verified_signature {
+	if verified_signature {
 		t.Errorf("Verified a bad signature")
 	}
 }
