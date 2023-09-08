@@ -64,6 +64,8 @@ func (r *CairoRunner) Initialize() (memory.Relocatable, error) {
 	return end, err
 }
 
+// Initializes builtin runners in accordance to the specified layout and
+// the builtins present in the running program.
 func (r *CairoRunner) initializeBuiltins() error {
 	var builtinRunners []builtins.BuiltinRunner
 	programBuiltins := map[string]struct{}{}
