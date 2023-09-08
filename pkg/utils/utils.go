@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"fmt"
-
 	"github.com/pkg/errors"
 )
 
@@ -35,7 +33,6 @@ func CheckBuiltinsSubsequence(programBuiltins []string) error {
 		"keccak",
 		"poseidon",
 	}
-	fmt.Println(programBuiltins)
 	if !IsSubsequence(programBuiltins, orderedBuiltinNames) {
 		return errors.Errorf("program builtins are not in appropiate order")
 	}

@@ -7,6 +7,7 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/runners"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/cairo_run"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -244,5 +245,24 @@ func TestInitializeRunnerWithRangeCheckInvalid(t *testing.T) {
 	if err.Error() != expected_error.Error() {
 		t.Errorf("Test failed: Expected error: %s, Actual error: %s", err.Error(), expected_error.Error())
 	}
+}
 
+func TestIncludedBuiltinsPlainLayoutNoProofMode(t *testing.T) {
+	// Testing for a program with no builtins
+	factorialRunner, err := cairo_run.CairoRun("../../cairo_programs/factorial.json", "plain", false)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+	if len(factorialRunner.Vm.BuiltinRunners) != 0 {
+		t.Errorf("The program should not have any builtins included, found %d", len(factorialRunner.Vm.BuiltinRunners))
+	}
+
+	// Testing with a program with output builtin
+	printRunner, err := cairo_run.CairoRun("../../cairo_programs/simple_print.json", "plain", false)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+	if len(printRunner.Vm.BuiltinRunners) != 1 {
+		t.Errorf("The program should not have any builtins included, found %d", len(factorialRunner.Vm.BuiltinRunners))
+	}
 }
