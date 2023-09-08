@@ -263,6 +263,38 @@ func TestIncludedBuiltinsPlainLayoutNoProofMode(t *testing.T) {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
 	if len(printRunner.Vm.BuiltinRunners) != 1 {
-		t.Errorf("The program should not have any builtins included, found %d", len(factorialRunner.Vm.BuiltinRunners))
+		t.Errorf("Expected only one builtin, found %d", len(factorialRunner.Vm.BuiltinRunners))
+	}
+
+	if printRunner.Vm.BuiltinRunners[0].Name() != "output" {
+		t.Errorf("Expected output builtin, found: %s", printRunner.Vm.BuiltinRunners[0].Name())
+	}
+}
+
+// FIXME: This test should changed once the `small` layout is properly implemented. ATM we don't have all
+// its builtins implemented.
+func TestIncludedBuiltinsSmallLayoutNoProofMode(t *testing.T) {
+	// Testing for a program with Poseidon builtin
+	poseidonRunner, err := cairo_run.CairoRun("../../cairo_programs/poseidon_builtin.json", "small", false)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+	if len(poseidonRunner.Vm.BuiltinRunners) != 1 {
+		t.Errorf("Expected only one builtin found: %d", len(poseidonRunner.Vm.BuiltinRunners))
+	}
+	if poseidonRunner.Vm.BuiltinRunners[0].Name() != "poseidon" {
+		t.Errorf("Expected poseidon buitlin, found %s", poseidonRunner.Vm.BuiltinRunners[0].Name())
+	}
+
+	// Testing with a program with bitwise builtin
+	bitwiseRunner, err := cairo_run.CairoRun("../../cairo_programs/bitwise_builtin_test.json", "small", false)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+	if len(bitwiseRunner.Vm.BuiltinRunners) != 1 {
+		t.Errorf("Expected only one builtin found: %d", len(bitwiseRunner.Vm.BuiltinRunners))
+	}
+	if bitwiseRunner.Vm.BuiltinRunners[0].Name() != "bitwise" {
+		t.Errorf("Expected poseidon buitlin, found %s", bitwiseRunner.Vm.BuiltinRunners[0].Name())
 	}
 }
