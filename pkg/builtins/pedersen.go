@@ -62,3 +62,6 @@ func (p *PedersenBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem
 
 	return memory.NewMaybeRelocatableFelt(x), nil
 }
+
+func (p *PedersenBuiltinRunner) AddValidationRule(*memory.Memory) {
+}
