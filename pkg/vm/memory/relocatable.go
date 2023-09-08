@@ -94,7 +94,7 @@ func (relocatable *Relocatable) AddInt(other int) (Relocatable, error) {
 	if other > 0 {
 		return relocatable.AddUint(uint(other)), nil
 	}
-	return relocatable.SubUint(uint(other))
+	return relocatable.SubUint(uint(-other))
 }
 
 // MaybeRelocatable is the type of the memory cells in the Cairo
