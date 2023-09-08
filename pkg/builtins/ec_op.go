@@ -73,7 +73,7 @@ func (ec *EcOpBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
 }
 
 func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segments *memory.Memory) (*memory.MaybeRelocatable, error) {
-	EC_POINT_INDICES := [3]EcPoint{EcPoint{x: 0, y: 1}, EcPoint{x: 2, y: 3}, EcPoint{x: 5, y: 6}}
+	EC_POINT_INDICES := [3]EcPoint{{x: 0, y: 1}, {x: 2, y: 3}, {x: 5, y: 6}}
 	OUTPUT_INDICES := EC_POINT_INDICES[2]
 	alpha := lambdaworks.FeltOne()
 	beta_low := lambdaworks.FeltFromHex("0x609ad26c15c915c1f4cdfcb99cee9e89")
@@ -120,7 +120,7 @@ func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segmen
 	for j := 0; j < len(EC_POINT_INDICES); j++ {
 		x := input_cells[EC_POINT_INDICES[j].x]
 		y := input_cells[EC_POINT_INDICES[j].y]
-		if !ec.point_on_curve(x, y, alpha, beta) {
+		if !PointOnCurve(x, y, alpha, beta) {
 			return nil, errors.New("Point not in curve")
 		}
 	}
@@ -135,7 +135,7 @@ func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segmen
 	partial_sum := PartialSum{x: input_cells[0], y: input_cells[1]}
 	double_point := DoublePoint{x: input_cells[2], y: input_cells[3]}
 
-	result, err := ec.ec_op_impl(partial_sum, double_point, input_cells[4], alpha_big_int, prime, ec.scalar_height)
+	result, err := ec.EcOnImpl(partial_sum, double_point, input_cells[4], alpha_big_int, prime, ec.scalar_height)
 
 	felt_result_x := lambdaworks.FeltFromHex(result.x.Text(16))
 	felt_result_y := lambdaworks.FeltFromHex(result.y.Text(16))
@@ -150,7 +150,7 @@ func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segmen
 	}
 }
 
-func line_slope(point_a PartialSumB, point_b DoublePointB, prime big.Int) (big.Int, error) {
+func LineSlope(point_a PartialSumB, point_b DoublePointB, prime big.Int) (big.Int, error) {
 	mod_value := new(big.Int).Sub(&point_a.x, &point_b.y)
 	mod_value.Mod(mod_value, &prime)
 
@@ -166,8 +166,8 @@ func line_slope(point_a PartialSumB, point_b DoublePointB, prime big.Int) (big.I
 	return *z, nil
 }
 
-func ec_add(point_a PartialSumB, point_b DoublePointB, prime big.Int) (PartialSumB, error) {
-	m, err := line_slope(point_a, point_b, prime)
+func EcAdd(point_a PartialSumB, point_b DoublePointB, prime big.Int) (PartialSumB, error) {
+	m, err := LineSlope(point_a, point_b, prime)
 	if err != nil {
 		return PartialSumB{}, err
 	}
@@ -183,7 +183,7 @@ func ec_add(point_a PartialSumB, point_b DoublePointB, prime big.Int) (PartialSu
 	return PartialSumB{x: *x, y: *y}, nil
 }
 
-func ec_double_slope(point DoublePointB, alpha big.Int, prime big.Int) (big.Int, error) {
+func EcDoubleSlope(point DoublePointB, alpha big.Int, prime big.Int) (big.Int, error) {
 	q := new(big.Int).Mod(&point.y, &prime)
 	if q == big.NewInt(0) {
 		return big.Int{}, errors.New("is multiple of prime")
@@ -201,7 +201,7 @@ func ec_double_slope(point DoublePointB, alpha big.Int, prime big.Int) (big.Int,
 }
 
 func ec_double(point DoublePointB, alpha big.Int, prime big.Int) (DoublePointB, error) {
-	m, err := ec_double_slope(point, alpha, prime)
+	m, err := EcDoubleSlope(point, alpha, prime)
 	if err != nil {
 		return DoublePointB{}, err
 	}
@@ -217,7 +217,7 @@ func ec_double(point DoublePointB, alpha big.Int, prime big.Int) (DoublePointB, 
 	return DoublePointB{x: *x, y: *y}, nil
 }
 
-func (ec *EcOpBuiltinRunner) ec_op_impl(partial_sum PartialSum, double_point DoublePoint, m lambdaworks.Felt, alpha *big.Int, prime *big.Int, height uint32) (PartialSumB, error) {
+func (ec *EcOpBuiltinRunner) EcOnImpl(partial_sum PartialSum, double_point DoublePoint, m lambdaworks.Felt, alpha *big.Int, prime *big.Int, height uint32) (PartialSumB, error) {
 	slope, _ := m.ToBigInt()
 	partial_sum_b_x, _ := partial_sum.x.ToBigInt()
 	partial_sum_b_y, _ := partial_sum.y.ToBigInt()
@@ -235,7 +235,7 @@ func (ec *EcOpBuiltinRunner) ec_op_impl(partial_sum PartialSum, double_point Dou
 			return PartialSumB{}, errors.New("Runner error EcOpSameXCoordinate")
 		}
 		if !((slope.And(&slope, big.NewInt(1))) == big.NewInt(0)) {
-			partial_sum_b, err = ec_add(partial_sum_b, double_point_b, *prime)
+			partial_sum_b, err = EcAdd(partial_sum_b, double_point_b, *prime)
 			if err != nil {
 				return PartialSumB{}, err
 			}
@@ -247,7 +247,7 @@ func (ec *EcOpBuiltinRunner) ec_op_impl(partial_sum PartialSum, double_point Dou
 	return partial_sum_b, nil
 }
 
-func (ec *EcOpBuiltinRunner) point_on_curve(x lambdaworks.Felt, y lambdaworks.Felt, alpha lambdaworks.Felt, beta lambdaworks.Felt) bool {
+func PointOnCurve(x lambdaworks.Felt, y lambdaworks.Felt, alpha lambdaworks.Felt, beta lambdaworks.Felt) bool {
 	yp := y.PowUint(2)
 	xp := x.PowUint(3).Add(alpha.Mul(x)).Add(beta)
 	return yp == xp
