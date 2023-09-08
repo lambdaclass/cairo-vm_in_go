@@ -381,8 +381,8 @@ func TestWriteOutputFromProgramGapRelocatableOutput(t *testing.T) {
 	if err != nil {
 		t.Errorf("Initialize error in test: %s", err)
 	}
-
-	err = runner.RunUntilPC(end)
+	hintProcessor := &hints.CairoVmHintProcessor{}
+	err = runner.RunUntilPC(end, hintProcessor)
 	if err != nil {
 		t.Errorf("RunUntilPC error in test: %s", err)
 	}
