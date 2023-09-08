@@ -48,7 +48,7 @@ func CairoRun(programPath string, cairoRunConfig CairoRunConfig) (*runners.Cairo
 	if err != nil {
 		return nil, err
 	}
-	err = cairoRunner.EndRun(cairoRunConfig.DisableTracePadding, false, &cairoRunner.Vm)
+	err = cairoRunner.EndRun(cairoRunConfig.DisableTracePadding, false, &cairoRunner.Vm, &hintProcessor)
 	if err != nil {
 		return nil, err
 	}

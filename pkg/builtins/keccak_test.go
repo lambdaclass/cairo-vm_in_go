@@ -130,7 +130,8 @@ func TestKeccakAddValidationRule(t *testing.T) {
 
 func TestIntegrationKeccak(t *testing.T) {
 	t.Helper()
-	_, err := cairo_run.CairoRun("../../cairo_programs/keccak_builtin.json")
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false}
+	_, err := cairo_run.CairoRun("../../cairo_programs/keccak_builtin.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("TestIntegrationKeccak failed with error:\n %v", err)
 	}

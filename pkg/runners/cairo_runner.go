@@ -179,7 +179,7 @@ func (r *CairoRunner) RunUntilPC(end memory.Relocatable, hintProcessor vm.HintPr
 }
 
 // TODO: Add HintProcessor as parameter once we have that
-func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll bool, vm *vm.VirtualMachine) error {
+func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll bool, vm *vm.VirtualMachine, hintProcessor vm.HintProcessor) error {
 	if runner.RunEnded {
 		return ErrRunnerCalledTwice
 	}
@@ -199,7 +199,7 @@ func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll b
 	vm.Segments.ComputeEffectiveSizes()
 	if runner.ProofMode && !disableTracePadding {
 
-		err := runner.RunUntilNextPowerOfTwo(vm)
+		err := runner.RunUntilNextPowerOfTwo(vm, hintProcessor)
 		if err != nil {
 			return err
 		}
@@ -210,12 +210,12 @@ func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll b
 			// 	return err
 			// }
 
-			err := runner.RunForSteps(1, vm)
+			err := runner.RunForSteps(1, vm, hintProcessor)
 			if err != nil {
 				return err
 			}
 
-			err = runner.RunUntilNextPowerOfTwo(vm)
+			err = runner.RunUntilNextPowerOfTwo(vm, hintProcessor)
 			if err != nil {
 				return err
 			}
@@ -227,13 +227,18 @@ func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll b
 }
 
 // TODO: Add hint processor when it's done
-func (runner *CairoRunner) RunForSteps(steps uint, virtualMachine *vm.VirtualMachine) error {
+func (runner *CairoRunner) RunForSteps(steps uint, virtualMachine *vm.VirtualMachine, hintProcessor vm.HintProcessor) error {
+	hintDataMap, err := runner.BuildHintDataMap(hintProcessor)
+	if err != nil {
+		return err
+	}
+	constants := runner.Program.ExtractConstants()
 	for remaining_steps := steps; remaining_steps == 0; remaining_steps-- {
 		if runner.finalPc == virtualMachine.RunContext.Pc {
 			return &vm.VirtualMachineError{Msg: fmt.Sprintf("EndOfProgram: %d", remaining_steps)}
 		}
 
-		err := virtualMachine.Step()
+		err := virtualMachine.Step(hintProcessor, &hintDataMap, &constants)
 		if err != nil {
 			return err
 		}
@@ -243,13 +248,13 @@ func (runner *CairoRunner) RunForSteps(steps uint, virtualMachine *vm.VirtualMac
 }
 
 // TODO: Add hint processor when it's done
-func (runner *CairoRunner) RunUntilSteps(steps uint, virtualMachine *vm.VirtualMachine) error {
-	return runner.RunForSteps(steps-virtualMachine.CurrentStep, virtualMachine)
+func (runner *CairoRunner) RunUntilSteps(steps uint, virtualMachine *vm.VirtualMachine, hintProcessor vm.HintProcessor) error {
+	return runner.RunForSteps(steps-virtualMachine.CurrentStep, virtualMachine, hintProcessor)
 }
 
 // TODO: Add hint processor when it's done
-func (runner *CairoRunner) RunUntilNextPowerOfTwo(virtualMachine *vm.VirtualMachine) error {
-	return runner.RunUntilSteps(NextPowOf2(virtualMachine.CurrentStep), virtualMachine)
+func (runner *CairoRunner) RunUntilNextPowerOfTwo(virtualMachine *vm.VirtualMachine, hintProcessor vm.HintProcessor) error {
+	return runner.RunUntilSteps(NextPowOf2(virtualMachine.CurrentStep), virtualMachine, hintProcessor)
 }
 
 func NextPowOf2(n uint) uint {

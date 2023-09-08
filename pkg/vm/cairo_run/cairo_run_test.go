@@ -59,7 +59,8 @@ func TestSimplePrint(t *testing.T) {
 }
 
 func TestWriteOutputProgram(t *testing.T) {
-	runner, err := cairo_run.CairoRun("../../../cairo_programs/bitwise_output.json")
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false}
+	runner, err := cairo_run.CairoRun("../../../cairo_programs/bitwise_output.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
