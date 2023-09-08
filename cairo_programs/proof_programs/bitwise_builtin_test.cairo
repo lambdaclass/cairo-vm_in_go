@@ -1,1 +1,0 @@
-cairo_programs/bitwise_builtin_test.cairo

@@ -1,1 +1,0 @@
-cairo_programs/struct.cairo

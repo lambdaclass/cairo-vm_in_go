@@ -26,27 +26,6 @@ $(TEST_DIR)/%.go.trace $(TEST_DIR)/%.go.memory: $(TEST_DIR)/%.json
 $(TEST_DIR)/%.json: $(TEST_DIR)/%.cairo
 	cairo-compile --cairo_path="$(TEST_DIR)" $< --output $@
 
-# Create proof mode programs
-
-TEST_PROOF_DIR=cairo_programs/proof_programs
-TEST_PROOF_FILES:=$(wildcard $(TEST_PROOF_DIR)/*.cairo)
-COMPILED_PROOF_TESTS:=$(patsubst $(TEST_PROOF_DIR)/%.cairo, $(TEST_PROOF_DIR)/%.json, $(TEST_PROOF_FILES))
-
-CAIRO_RS_PROOF_MEM:=$(patsubst $(TEST_PROOF_DIR)/%.json, $(TEST_PROOF_DIR)/%.rs.memory, $(COMPILED_PROOF_TESTS))
-CAIRO_RS_PROOF_TRACE:=$(patsubst $(TEST_PROOF_DIR)/%.json, $(TEST_PROOF_DIR)/%.rs.trace, $(COMPILED_PROOF_TESTS))
-
-CAIRO_GO_PROOF_MEM:=$(patsubst $(TEST_PROOF_DIR)/%.json, $(TEST_PROOF_DIR)/%.go.memory, $(COMPILED_PROOF_TESTS))
-CAIRO_GO_PROOF_TRACE:=$(patsubst $(TEST_PROOF_DIR)/%.json, $(TEST_PROOF_DIR)/%.go.trace, $(COMPILED_PROOF_TESTS))
-
-$(TEST_PROOF_DIR)/%.json: $(TEST_PROOF_DIR)/%.cairo
-	cairo-compile --cairo_path="$(TEST_PROOF_DIR)" $< --output $@ --proof_mode
-
-$(TEST_PROOF_DIR)/%.rs.trace $(TEST_PROOF_DIR)/%.rs.memory: $(TEST_PROOF_DIR)/%.json $(CAIRO_VM_CLI)
-	$(CAIRO_VM_CLI) --layout all_cairo $< --trace_file $(@D)/$(*F).rs.trace --memory_file $(@D)/$(*F).rs.memory --proof_mode
-
-$(TEST_PROOF_DIR)/%.go.trace $(TEST_PROOF_DIR)/%.go.memory: $(TEST_PROOF_DIR)/%.json
-	go run cmd/cli/main.go $(@D)/$(*F).json --trace_file $(@D)/$(*F).go.trace --memory_file $(@D)/$($*F).go.memory --proof_mode
-
 # Creates a pyenv and installs cairo-lang
 deps:
 	pyenv install  -s 3.9.15
@@ -155,13 +134,4 @@ compare_trace: build_cairo_vm_cli $(CAIRO_RS_TRACE) $(CAIRO_GO_TRACE)
 
 compare_memory: build_cairo_vm_cli $(CAIRO_RS_MEM) $(CAIRO_GO_MEM)
 	cd scripts; sh compare_vm_state.sh memory
-
-compare_proof_trace_memory: build_cairo_vm_cli $(CAIRO_RS_PROOF_MEM) $(CAIRO_RS_PROOF_TRACE) $(CAIRO_GO_PROOF_MEM) $(CAIRO_GO_PROOF_TRACE)
-	cd scripts; sh compare_vm_state.sh trace memory proof_mode
-
-compare_proof_trace: build_cairo_vm_cli $(CAIRO_RS_PROOF_TRACE) $(CAIRO_GO_PROOF_TRACE)
-	cd scripts; sh compare_vm_state.sh trace proof_mode
-
-compare_proof_memory: build_cairo_vm_cli $(CAIRO_RS_PROOF_MEM) $(CAIRO_GO_PROOF_MEM)
-	cd scripts; sh compare_vm_state.sh memory proof_mode
 

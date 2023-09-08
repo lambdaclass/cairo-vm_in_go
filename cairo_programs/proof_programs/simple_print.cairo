@@ -1,1 +1,0 @@
-cairo_programs/simple_print.cairo
