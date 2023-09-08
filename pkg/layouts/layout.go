@@ -6,6 +6,9 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 )
 
+// Representation of a cairo layout.
+// Stores the layout name and the particular builtin instances and
+// their configuration for it.
 type CairoLayout struct {
 	Name     string
 	Builtins []builtins.BuiltinRunner
@@ -19,10 +22,14 @@ type CairoLayout struct {
 	// cpuInstanceDef CpuInstanceDef
 }
 
+// Given a layout name, return the builtin runners configuration for that layout.
 func GetLayoutBuiltinRunners(layout string) ([]builtins.BuiltinRunner, error) {
 	switch layout {
 	case "plain":
 		return []builtins.BuiltinRunner{builtins.NewOutputBuiltinRunner()}, nil
+
+	// FIXME: Layout "small" does not really configure all these builtins, just adding them
+	// here until we have all builtins implemented.
 	case "small":
 		return []builtins.BuiltinRunner{
 			builtins.NewOutputBuiltinRunner(),
@@ -33,21 +40,3 @@ func GetLayoutBuiltinRunners(layout string) ([]builtins.BuiltinRunner, error) {
 		return nil, errors.Errorf("layout not supported: %s", layout)
 	}
 }
-
-// type BuiltinsInstance struct {
-// 	Output     bool
-// 	rangeCheck builtins.RangeCheckBuiltinRunner
-// 	bitwise    builtins.BitwiseBuiltinRunner
-// 	poseidon   builtins.PoseidonBuiltinRunner
-// }
-
-// func PlainBuiltinsInstance() BuiltinsInstance {
-// 	instance := new(BuiltinsInstance)
-// 	instance.output = false
-// 	return *instance
-// }
-
-// func PlainLayout() CairoLayout {
-// 	builtins := PlainBuiltinsInstance()
-// 	return CairoLayout{"plain", builtins}
-// }
