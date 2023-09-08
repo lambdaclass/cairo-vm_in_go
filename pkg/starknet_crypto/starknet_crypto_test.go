@@ -47,3 +47,38 @@ func TestPoseidonPermuteCompB(t *testing.T) {
 		t.Errorf("Wrong state after poseidon permutation.\n Expected %+v.\n Got: %+v", expected_poseidon_state, poseidon_state)
 	}
 }
+
+func TestVerifySignatureShouldFail(t *testing.T) {
+	signature := lambdaworks.FeltFromHex("0x1")
+	msg_hash := lambdaworks.FeltFromHex("0x1")
+	r := lambdaworks.FeltFromHex("0x1")
+	s := lambdaworks.FeltFromHex("0x1")
+
+	verified_signature := starknet_crypto.VerifySignature(signature, msg_hash, r, s)
+
+	if !verified_signature {
+		t.Errorf("Verified a bad signature")
+	}
+}
+
+func TestVerifyGoodSignature(t *testing.T) {
+
+	stark_key := lambdaworks.FeltFromHex(
+		"01ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca",
+	)
+	msg_hash := lambdaworks.FeltFromHex(
+		"0000000000000000000000000000000000000000000000000000000000000002",
+	)
+	r_felt := lambdaworks.FeltFromHex(
+		"0411494b501a98abd8262b0da1351e17899a0c4ef23dd2f96fec5ba847310b20",
+	)
+	s_felt := lambdaworks.FeltFromHex(
+		"0405c3191ab3883ef2b763af35bc5f5d15b3b4e99461d70e84c654a351a7c81b",
+	)
+
+	verified_signature := starknet_crypto.VerifySignature(stark_key, msg_hash, r_felt, s_felt)
+
+	if !verified_signature {
+		t.Errorf("Didn't verify a good signature")
+	}
+}
