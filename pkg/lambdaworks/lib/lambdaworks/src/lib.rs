@@ -214,6 +214,7 @@ pub unsafe extern "C" fn free_string(ptr: *mut c_char) {
         let _ = CString::from_raw(ptr);
     }
 }
+#[no_mangle]
 pub extern "C" fn felt_shr(a: Limbs, b: usize, result: Limbs) {
     let felt_a = limbs_to_felt(a).representative();
 
