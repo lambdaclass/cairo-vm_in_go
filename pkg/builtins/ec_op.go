@@ -135,10 +135,10 @@ func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segmen
 	partial_sum := PartialSum{x: input_cells[0], y: input_cells[1]}
 	double_point := DoublePoint{x: input_cells[2], y: input_cells[3]}
 
-	result_x, result_y, err := ec.ec_op_impl(partial_sum, double_point, input_cells[4], alpha_big_int, prime, ec.scalar_height)
+	result, err := ec.ec_op_impl(partial_sum, double_point, input_cells[4], alpha_big_int, prime, ec.scalar_height)
 
-	felt_result_x := lambdaworks.FeltFromHex(result_x.Text(16))
-	felt_result_y := lambdaworks.FeltFromHex(result_y.Text(16))
+	felt_result_x := lambdaworks.FeltFromHex(result.x.Text(16))
+	felt_result_y := lambdaworks.FeltFromHex(result.y.Text(16))
 
 	ec.cache[x_addr] = felt_result_x
 	ec.cache[x_addr.AddUint(1)] = felt_result_y
@@ -150,40 +150,89 @@ func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segmen
 	}
 }
 
-func line_slope(point_a PartialSumB, point_b DoublePointB, prime big.Int) {
-	point := point_a.x.Sub(&point_a.x, &point_b.x)
-	z, is_multiple_of := point.DivMod(point, prime, )
+func line_slope(point_a PartialSumB, point_b DoublePointB, prime big.Int) (big.Int, error) {
+	mod_value := new(big.Int).Sub(&point_a.x, &point_b.y)
+	mod_value.Mod(mod_value, &prime)
+
+	if mod_value ==  big.NewInt(0) {
+		return big.Int{}, errors.New("is multiple of prime")
+	}
+
+	n := new(big.Int).Sub(&point_a.y, &point_b.y)
+	m := new(big.Int).Sub(&point_a.x, &point_b.x)
+
+	z, _ := new(big.Int).DivMod(n, m, &prime)
+
+	return *z, nil
 }
 
-func ec_add(point_a PartialSumB, point_b DoublePointB, prime big.Int) PartialSumB {
-	m := line_slope(&point_a, &point_b, prime)
+func ec_add(point_a PartialSumB, point_b DoublePointB, prime big.Int) (PartialSumB, error) {
+	m, err := line_slope(point_a, point_b, prime)
+	if err != nil {
+		return PartialSumB{}, err
+	}
 
+	x := new(big.Int).Mul(&m, &m)
+	x.Sub(&point_a.x, &point_b.x)
+	x.Mod(x, &prime)
+
+	y := new(big.Int).Mul(&m, new(big.Int).Sub(&point_a.x, x))
+	y.Sub(y, &point_a.y)
+	y.Mod(y, &prime)
+
+	return PartialSumB{x: *x, y: *y}, nil
+}
+
+func ec_double_slope(point DoublePointB, alpha big.Int, prime big.Int) (big.Int, error) {
+	q := new(big.Int).Mod(&point.y, &prime)
+	if (q == big.NewInt(0)) {
+		return big.Int{}, errors.New("is multiple of prime")
+	}
+
+	n := new(big.Int).Mul(&point.x, &point.x)
+	n.Mul(n, big.NewInt(3))
+	n.Add(n, &alpha)
+	
+	m := new(big.Int).Mul(&point.y, big.NewInt(2))
+
+	z, _ := new(big.Int).DivMod(n, m, &prime)
+
+	return *z, nil
+}
+
+func ec_double(point DoublePointB, alpha big.Int, prime big.Int) (DoublePointB, error) {
+	m, err := ec_double_slope(point, alpha, prime)
+	if err != nil {
+		return DoublePointB{}, err
+	}
+
+	x := 
 }
 
 func (ec *EcOpBuiltinRunner) ec_op_impl(partial_sum PartialSum, double_point DoublePoint, m lambdaworks.Felt, alpha *big.Int, prime *big.Int, height uint32) (PartialSumB, error) {
-
-	slope, ok := m.ToBigInt()
-	partial_sum_b_x, ok := partial_sum.x.ToBigInt()
-	partial_sum_b_y, ok := partial_sum.y.ToBigInt()
+	slope, _ := m.ToBigInt()
+	partial_sum_b_x, _ := partial_sum.x.ToBigInt()
+	partial_sum_b_y, _ := partial_sum.y.ToBigInt()
 
 	partial_sum_b := PartialSumB{x: partial_sum_b_x, y: partial_sum_b_y}
 
-	double_point_b_x, ok := double_point.x.ToBigInt()
-	double_point_b_y, ok := double_point.y.ToBigInt()
+	double_point_b_x, _ := double_point.x.ToBigInt()
+	double_point_b_y, _ := double_point.y.ToBigInt()
 
 	double_point_b := DoublePointB{x: double_point_b_x, y: double_point_b_y}
 
-	for i:= 0; i < int(height); i++{
-		if(double_point_b.x.Sub(&double_point_b.x, &partial_sum_b.x)) == big.NewInt(0) {
+	for i := 0; i < int(height); i++ {
+		var err error
+		if (double_point_b.x.Sub(&double_point_b.x, &partial_sum_b.x)) == big.NewInt(0) {
 			return PartialSumB{}, errors.New("Runner error EcOpSameXCoordinate")
 		}
 		if !((slope.And(&slope, big.NewInt(1))) == big.NewInt(0)) {
-			partial_sum_b, err = ec_add(partial_sum_b, double_point_b, prime)
+			partial_sum_b, err = ec_add(partial_sum_b, double_point_b, *prime)
 			if err != nil {
 				return PartialSumB{}, err
 			}
 		}
-		double_point_b, err = ec_double(double_point_b, alpha, prime)
+		double_point_b, err = ec_double(double_point_b, *alpha, *prime)
 		slope = *slope.Rsh(&slope, 1)
 	}
 
