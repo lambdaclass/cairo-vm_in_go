@@ -90,6 +90,13 @@ func (relocatable *Relocatable) AddUint(other uint) Relocatable {
 	return NewRelocatable(relocatable.SegmentIndex, new_offset)
 }
 
+func (relocatable *Relocatable) AddInt(other int) (Relocatable, error) {
+	if other > 0 {
+		return relocatable.AddUint(uint(other)), nil
+	}
+	return relocatable.SubUint(uint(other))
+}
+
 // MaybeRelocatable is the type of the memory cells in the Cairo
 // VM. For now, `inner` will hold any type but it should be
 // instantiated only with `Relocatable` or `Int` types.
