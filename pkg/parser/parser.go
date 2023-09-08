@@ -11,7 +11,7 @@ import (
 )
 
 type FlowTrackingData struct {
-	APTracking   map[string]int `json:"ap_tracking"`
+	APTracking   ApTrackingData `json:"ap_tracking"`
 	ReferenceIDS map[string]int `json:"reference_ids"`
 }
 

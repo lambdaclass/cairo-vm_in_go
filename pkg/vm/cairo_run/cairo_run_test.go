@@ -1,6 +1,7 @@
 package cairo_run_test
 
 import (
+	"bytes"
 	"fmt"
 	"testing"
 
@@ -55,4 +56,21 @@ func TestSimplePrint(t *testing.T) {
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
+}
+
+func TestWriteOutputProgram(t *testing.T) {
+	runner, err := cairo_run.CairoRun("../../../cairo_programs/bitwise_output.json")
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+	var buffer bytes.Buffer
+	runner.Vm.WriteOutput(&buffer)
+
+	expected := "0\n"
+	result := buffer.String()
+
+	if expected != result {
+		t.Errorf("TestWriteOutputProgram failed. Expected: %s, got: %s", expected, result)
+	}
+
 }

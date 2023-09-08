@@ -43,6 +43,8 @@ func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
 			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewPoseidonBuiltinRunner(true))
 		case builtins.OUTPUT_BUILTIN_NAME:
 			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewOutputBuiltinRunner(true))
+		case builtins.KECCAK_BUILTIN_NAME:
+			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewKeccakBuiltinRunner(true))
 		default:
 			return nil, errors.Errorf("Invalid builtin: %s", builtin_name)
 		}
@@ -144,9 +146,31 @@ func (r *CairoRunner) initializeVM() error {
 	return r.Vm.Segments.Memory.ValidateExistingMemory()
 }
 
-func (r *CairoRunner) RunUntilPC(end memory.Relocatable) error {
+func (r *CairoRunner) BuildHintDataMap(hintProcessor vm.HintProcessor) (map[uint][]any, error) {
+	hintDataMap := make(map[uint][]any, 0)
+	for pc, hintsParams := range r.Program.Hints {
+		hintDatas := make([]any, 0, len(hintsParams))
+		for _, hintParam := range hintsParams {
+			data, err := hintProcessor.CompileHint(&hintParam, &r.Program.ReferenceManager)
+			if err != nil {
+				return nil, err
+			}
+			hintDatas = append(hintDatas, data)
+		}
+		hintDataMap[pc] = hintDatas
+	}
+
+	return hintDataMap, nil
+}
+
+func (r *CairoRunner) RunUntilPC(end memory.Relocatable, hintProcessor vm.HintProcessor) error {
+	hintDataMap, err := r.BuildHintDataMap(hintProcessor)
+	if err != nil {
+		return err
+	}
+	constants := r.Program.ExtractConstants()
 	for r.Vm.RunContext.Pc != end {
-		err := r.Vm.Step()
+		err := r.Vm.Step(hintProcessor, &hintDataMap, &constants)
 		if err != nil {
 			return err
 		}

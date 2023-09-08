@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 
@@ -38,7 +39,19 @@ func NewVirtualMachine() *VirtualMachine {
 	return &VirtualMachine{Segments: segments, BuiltinRunners: builtin_runners, Trace: trace, RelocatedTrace: relocatedTrace}
 }
 
-func (v *VirtualMachine) Step() error {
+func (v *VirtualMachine) Step(hintProcessor HintProcessor, hintDataMap *map[uint][]any, constants *map[string]lambdaworks.Felt) error {
+	// Run Hint
+	hintDatas, ok := (*hintDataMap)[v.RunContext.Pc.Offset]
+	if ok {
+		for i := 0; i < len(hintDatas); i++ {
+			err := hintProcessor.ExecuteHint(v, &hintDatas[i], constants)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	// Run Instruction
 	encoded_instruction, err := v.Segments.Memory.Get(v.RunContext.Pc)
 	if err != nil {
 		return fmt.Errorf("Failed to fetch instruction at %+v", v.RunContext.Pc)
@@ -530,4 +543,28 @@ func (vm *VirtualMachine) DeduceMemoryCell(addr memory.Relocatable) (*memory.May
 		}
 	}
 	return nil, nil
+}
+
+// Write the values hosted in the output builtin's segment.
+// Does nothing if the output builtin is not present in the program.
+func (vm *VirtualMachine) WriteOutput(writer *bytes.Buffer) {
+	for _, builtin := range vm.BuiltinRunners {
+		if builtin.Name() == builtins.OUTPUT_BUILTIN_NAME {
+			segmentUsedSizes := vm.Segments.ComputeEffectiveSizes()
+			segmentIndex := builtin.Base().SegmentIndex
+			outputSegmentSize := segmentUsedSizes[uint(segmentIndex)]
+
+			for i := 0; i < int(outputSegmentSize); i++ {
+				addr := memory.NewRelocatable(segmentIndex, uint(i))
+				formattedValue, err := vm.Segments.Memory.Get(addr)
+				if err != nil {
+					writer.WriteString("<missing>\n")
+				} else {
+					writer.WriteString(formattedValue.ToString())
+					writer.WriteString("\n")
+				}
+			}
+			break
+		}
+	}
 }
