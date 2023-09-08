@@ -9,6 +9,8 @@ import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
+// Identifier Manager
+// Provides methods that allow hints to interact with cairo variables given their identifier name
 type IdsManager struct {
 	References     map[string]HintReference
 	HintApTracking parser.ApTrackingData
@@ -21,7 +23,7 @@ func NewIdsManager(references map[string]HintReference, hintApTracking parser.Ap
 	}
 }
 
-// Inserts value into an ids given its name
+// Inserts value into memory given its identifier name
 func (ids *IdsManager) Insert(name string, value *MaybeRelocatable, vm *VirtualMachine) error {
 
 	addr, err := ids.GetAddr(name, vm)
@@ -31,7 +33,7 @@ func (ids *IdsManager) Insert(name string, value *MaybeRelocatable, vm *VirtualM
 	return vm.Segments.Memory.Insert(addr, value)
 }
 
-// Returns the value of an ids as Felt
+// Returns the value of an identifier as a Felt
 func (ids *IdsManager) GetFelt(name string, vm *VirtualMachine) (lambdaworks.Felt, error) {
 	val, err := ids.Get(name, vm)
 	if err != nil {
@@ -44,7 +46,7 @@ func (ids *IdsManager) GetFelt(name string, vm *VirtualMachine) (lambdaworks.Fel
 	return felt, nil
 }
 
-// Returns the value of an ids as Relocatable
+// Returns the value of an identifier as a Relocatable
 func (ids *IdsManager) GetRelocatable(name string, vm *VirtualMachine) (Relocatable, error) {
 	val, err := ids.Get(name, vm)
 	if err != nil {
@@ -57,7 +59,7 @@ func (ids *IdsManager) GetRelocatable(name string, vm *VirtualMachine) (Relocata
 	return relocatable, nil
 }
 
-// Returns the value of an ids as MaybeRelocatable
+// Returns the value of an identifier as a MaybeRelocatable
 func (ids *IdsManager) Get(name string, vm *VirtualMachine) (*MaybeRelocatable, error) {
 	addr, err := ids.GetAddr(name, vm)
 	if err != nil {
@@ -66,7 +68,7 @@ func (ids *IdsManager) Get(name string, vm *VirtualMachine) (*MaybeRelocatable, 
 	return vm.Segments.Memory.Get(addr)
 }
 
-// Returns the address of an ids given its name
+// Returns the address of an identifier given its name
 func (ids *IdsManager) GetAddr(name string, vm *VirtualMachine) (Relocatable, error) {
 	reference, ok := ids.References[name]
 	if ok {
@@ -78,7 +80,7 @@ func (ids *IdsManager) GetAddr(name string, vm *VirtualMachine) (Relocatable, er
 	return Relocatable{}, errors.Errorf("Unknow identifier %s", name)
 }
 
-// Inserts value into the address of the given ids variable
+// Inserts value into the address of the given identifier
 func insertIdsFromReference(value *MaybeRelocatable, reference *HintReference, apTracking parser.ApTrackingData, vm *VirtualMachine) error {
 	addr, ok := getAddressFromReference(reference, apTracking, vm)
 	if ok {
