@@ -18,7 +18,7 @@ func main() {
 	programPath := cliArgs[0]
 
 	// TODO: These values are hardcoded for the moment, we should get them through the CLI
-	layout := "plain"
+	layout := "small"
 	proofMode := false
 
 	cairoRunner, err := cairo_run.CairoRun(programPath, layout, proofMode)
