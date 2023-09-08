@@ -38,7 +38,19 @@ func NewVirtualMachine() *VirtualMachine {
 	return &VirtualMachine{Segments: segments, BuiltinRunners: builtin_runners, Trace: trace, RelocatedTrace: relocatedTrace}
 }
 
-func (v *VirtualMachine) Step() error {
+func (v *VirtualMachine) Step(hintProcessor HintProcessor, hintDataMap *map[uint][]any, constants *map[string]lambdaworks.Felt) error {
+	// Run Hint
+	hintDatas, ok := (*hintDataMap)[v.RunContext.Pc.Offset]
+	if ok {
+		for i := 0; i < len(hintDatas); i++ {
+			err := hintProcessor.ExecuteHint(v, &hintDatas[i], constants)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	// Run Instruction
 	encoded_instruction, err := v.Segments.Memory.Get(v.RunContext.Pc)
 	if err != nil {
 		return fmt.Errorf("Failed to fetch instruction at %+v", v.RunContext.Pc)
