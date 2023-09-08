@@ -3,6 +3,7 @@ package hint_utils
 import (
 	"github.com/pkg/errors"
 
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
@@ -28,6 +29,32 @@ func (ids *IdsManager) Insert(name string, value *MaybeRelocatable, vm *VirtualM
 		return err
 	}
 	return vm.Segments.Memory.Insert(addr, value)
+}
+
+// Returns the value of an ids as Felt
+func (ids *IdsManager) GetFelt(name string, vm *VirtualMachine) (lambdaworks.Felt, error) {
+	val, err := ids.Get(name, vm)
+	if err != nil {
+		return lambdaworks.Felt{}, err
+	}
+	felt, is_felt := val.GetFelt()
+	if !is_felt {
+		return lambdaworks.Felt{}, errors.Errorf("Identifier %s is not a Felt", name)
+	}
+	return felt, nil
+}
+
+// Returns the value of an ids as Relocatable
+func (ids *IdsManager) GetRelocatable(name string, vm *VirtualMachine) (Relocatable, error) {
+	val, err := ids.Get(name, vm)
+	if err != nil {
+		return Relocatable{}, err
+	}
+	relocatable, is_relocatable := val.GetRelocatable()
+	if !is_relocatable {
+		return Relocatable{}, errors.Errorf("Identifier %s is not a Relocatable", name)
+	}
+	return relocatable, nil
 }
 
 // Returns the value of an ids as MaybeRelocatable
