@@ -294,24 +294,26 @@ func TestBuildHintDataMapOneHint(t *testing.T) {
 	expectedHintDataMap := map[uint][]any{
 		0: {
 			hints.HintData{
-				Ids: map[string]hint_utils.HintReference{
-					"a": {
-						Offset1: hint_utils.OffsetValue{
-							ValueType: hint_utils.Reference,
-							Value:     -2,
+				Ids: hint_utils.IdsManager{
+					References: map[string]hint_utils.HintReference{
+						"a": {
+							Offset1: hint_utils.OffsetValue{
+								ValueType: hint_utils.Reference,
+								Value:     -2,
+							},
+							ValueType: "felt",
 						},
-						ValueType: "felt",
-					},
-					"b": {
-						Offset1: hint_utils.OffsetValue{
-							ValueType: hint_utils.Reference,
-							Value:     -1,
+						"b": {
+							Offset1: hint_utils.OffsetValue{
+								ValueType: hint_utils.Reference,
+								Value:     -1,
+							},
+							ValueType: "felt",
 						},
-						ValueType: "felt",
 					},
+					HintApTracking: parser.ApTrackingData{Group: 1, Offset: 2},
 				},
-				Code:       "ids.a = ids.b",
-				ApTracking: parser.ApTrackingData{Group: 1, Offset: 2},
+				Code: "ids.a = ids.b",
 			},
 		},
 	}

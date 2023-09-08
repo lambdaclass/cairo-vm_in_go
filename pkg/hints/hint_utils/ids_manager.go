@@ -8,10 +8,22 @@ import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
-// Inserts value into an ids given its name
-func InsertIds(name string, value *MaybeRelocatable, ids *map[string]HintReference, apTracking parser.ApTrackingData, vm *VirtualMachine) error {
+type IdsManager struct {
+	References     map[string]HintReference
+	HintApTracking parser.ApTrackingData
+}
 
-	addr, err := GetIdsAddr(name, ids, apTracking, vm)
+func NewIdsManager(references map[string]HintReference, hintApTracking parser.ApTrackingData) IdsManager {
+	return IdsManager{
+		References:     references,
+		HintApTracking: hintApTracking,
+	}
+}
+
+// Inserts value into an ids given its name
+func (ids *IdsManager) Insert(name string, value *MaybeRelocatable, vm *VirtualMachine) error {
+
+	addr, err := ids.GetAddr(name, vm)
 	if err != nil {
 		return err
 	}
@@ -19,8 +31,8 @@ func InsertIds(name string, value *MaybeRelocatable, ids *map[string]HintReferen
 }
 
 // Returns the value of an ids as MaybeRelocatable
-func GetIds(name string, ids *map[string]HintReference, apTracking parser.ApTrackingData, vm *VirtualMachine) (*MaybeRelocatable, error) {
-	addr, err := GetIdsAddr(name, ids, apTracking, vm)
+func (ids *IdsManager) Get(name string, vm *VirtualMachine) (*MaybeRelocatable, error) {
+	addr, err := ids.GetAddr(name, vm)
 	if err != nil {
 		return nil, err
 	}
@@ -28,10 +40,10 @@ func GetIds(name string, ids *map[string]HintReference, apTracking parser.ApTrac
 }
 
 // Returns the address of an ids given its name
-func GetIdsAddr(name string, ids *map[string]HintReference, apTracking parser.ApTrackingData, vm *VirtualMachine) (Relocatable, error) {
-	reference, ok := (*ids)[name]
+func (ids *IdsManager) GetAddr(name string, vm *VirtualMachine) (Relocatable, error) {
+	reference, ok := ids.References[name]
 	if ok {
-		addr, ok := GetAddressFromReference(&reference, apTracking, vm)
+		addr, ok := getAddressFromReference(&reference, ids.HintApTracking, vm)
 		if ok {
 			return addr, nil
 		}
@@ -40,8 +52,8 @@ func GetIdsAddr(name string, ids *map[string]HintReference, apTracking parser.Ap
 }
 
 // Inserts value into the address of the given ids variable
-func InsertIdsFromReference(value *MaybeRelocatable, reference *HintReference, apTracking parser.ApTrackingData, vm *VirtualMachine) error {
-	addr, ok := GetAddressFromReference(reference, apTracking, vm)
+func insertIdsFromReference(value *MaybeRelocatable, reference *HintReference, apTracking parser.ApTrackingData, vm *VirtualMachine) error {
+	addr, ok := getAddressFromReference(reference, apTracking, vm)
 	if ok {
 		return vm.Segments.Memory.Insert(addr, value)
 	}
@@ -49,7 +61,7 @@ func InsertIdsFromReference(value *MaybeRelocatable, reference *HintReference, a
 }
 
 // Returns the addr indicated by the reference
-func GetAddressFromReference(reference *HintReference, apTracking parser.ApTrackingData, vm *VirtualMachine) (Relocatable, bool) {
+func getAddressFromReference(reference *HintReference, apTracking parser.ApTrackingData, vm *VirtualMachine) (Relocatable, bool) {
 	if reference.Offset1.ValueType != Reference {
 		return Relocatable{}, false
 	}

@@ -44,7 +44,7 @@ func TestCompileHintHappyPath(t *testing.T) {
 		},
 	}
 	expectedData := HintData{
-		Ids: map[string]HintReference{
+		Ids: IdsManager{References: map[string]HintReference{
 			"a": {
 				Offset1: OffsetValue{
 					ValueType: Reference,
@@ -60,8 +60,9 @@ func TestCompileHintHappyPath(t *testing.T) {
 				ValueType: "felt",
 			},
 		},
-		Code:       "ids.a = ids.b",
-		ApTracking: parser.ApTrackingData{Group: 1, Offset: 2},
+			HintApTracking: parser.ApTrackingData{Group: 1, Offset: 2},
+		},
+		Code: "ids.a = ids.b",
 	}
 	data, err := hintProcessor.CompileHint(hintParams, referenceManager)
 	if err != nil {
