@@ -154,7 +154,7 @@ func line_slope(point_a PartialSumB, point_b DoublePointB, prime big.Int) (big.I
 	mod_value := new(big.Int).Sub(&point_a.x, &point_b.y)
 	mod_value.Mod(mod_value, &prime)
 
-	if mod_value ==  big.NewInt(0) {
+	if mod_value == big.NewInt(0) {
 		return big.Int{}, errors.New("is multiple of prime")
 	}
 
@@ -185,14 +185,14 @@ func ec_add(point_a PartialSumB, point_b DoublePointB, prime big.Int) (PartialSu
 
 func ec_double_slope(point DoublePointB, alpha big.Int, prime big.Int) (big.Int, error) {
 	q := new(big.Int).Mod(&point.y, &prime)
-	if (q == big.NewInt(0)) {
+	if q == big.NewInt(0) {
 		return big.Int{}, errors.New("is multiple of prime")
 	}
 
 	n := new(big.Int).Mul(&point.x, &point.x)
 	n.Mul(n, big.NewInt(3))
 	n.Add(n, &alpha)
-	
+
 	m := new(big.Int).Mul(&point.y, big.NewInt(2))
 
 	z, _ := new(big.Int).DivMod(n, m, &prime)
@@ -206,7 +206,15 @@ func ec_double(point DoublePointB, alpha big.Int, prime big.Int) (DoublePointB, 
 		return DoublePointB{}, err
 	}
 
-	x := 
+	x := new(big.Int).Mul(&m, &m)
+	x.Sub(x, new(big.Int).Mul(big.NewInt(2), &point.x))
+	x.Mod(x, &prime)
+
+	y := new(big.Int).Mul(&m, new(big.Int).Sub(&point.x, x))
+	y.Sub(y, &point.y)
+	y.Mod(y, &prime)
+
+	return DoublePointB{x: *x, y: *y}, nil
 }
 
 func (ec *EcOpBuiltinRunner) ec_op_impl(partial_sum PartialSum, double_point DoublePoint, m lambdaworks.Felt, alpha *big.Int, prime *big.Int, height uint32) (PartialSumB, error) {
