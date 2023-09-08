@@ -181,6 +181,15 @@ func (a Felt) Div(b Felt) Felt {
 	return fromC(result)
 }
 
+// Returns the felt
+func (f Felt) ToSignedFeltString() string {
+	var f_c = f.toC()
+	resultPtr := C.to_signed_felt(&f_c[0])
+	defer C.free_string(resultPtr)
+	goResult := C.GoString(resultPtr)
+	return goResult
+}
+
 // Returns the number of bits needed to represent the felt
 func (a Felt) Bits() C.limb_t {
 	if a.IsZero() {
@@ -237,4 +246,13 @@ func (a Felt) ToBigInt() (big.Int, error) {
 		return big.Int{}, errors.New("Could not convert to big int")
 	}
 	return *big_int, nil
+}
+
+func (a Felt) Shr(b uint) Felt {
+	var result C.felt_t
+	var a_c C.felt_t = a.toC()
+	//var b_c C._type_uint = b.toC()
+	C.felt_shr(&a_c[0], C.size_t(b), &result[0])
+	//C.felt_shr(&a_c[0], &b_c[0], &result[0])
+	return fromC(result)
 }

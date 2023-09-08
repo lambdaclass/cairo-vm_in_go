@@ -46,3 +46,14 @@ func PoseidonPermuteComp(poseidon_state *[3]lambdaworks.Felt) {
 	// Update poseidon state
 	*poseidon_state = new_poseidon_state
 }
+
+func VerifySignature(public_key lambdaworks.Felt, message lambdaworks.Felt, r lambdaworks.Felt, s lambdaworks.Felt) bool {
+	public_key_for_c := toC(public_key)
+	message_for_c := toC(message)
+	r_for_c := toC(r)
+	s_for_c := toC(s)
+
+	c_verify_status := C.verify_signature(&public_key_for_c[0], &message_for_c[0], &r_for_c[0], &s_for_c[0])
+
+	return bool(c_verify_status)
+}

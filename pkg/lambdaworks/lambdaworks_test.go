@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
 func TestFromHex(t *testing.T) {
@@ -376,4 +377,59 @@ func TestPow3(t *testing.T) {
 	if expected != result {
 		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
 	}
+}
+
+func TestFeltNeg1ToString(t *testing.T) {
+	f_neg_1 := lambdaworks.FeltFromDecString("-1")
+	expected := "-1"
+	result := f_neg_1.ToSignedFeltString()
+	if expected != result {
+		t.Errorf("TestFeltNeg1ToString failed. Expected %s, Got: %s", expected, result)
+	}
+}
+
+func TestFeltNeg50ToString(t *testing.T) {
+	f_neg_1 := lambdaworks.FeltFromDecString("-50")
+	expected := "-50"
+	result := f_neg_1.ToSignedFeltString()
+	if expected != result {
+		t.Errorf("TestFeltNeg50ToString failed. Expected %s, Got: %s", expected, result)
+	}
+}
+
+func TestFelt10ToString(t *testing.T) {
+	f_neg_1 := lambdaworks.FeltFromHex("a")
+	expected := "10"
+	result := f_neg_1.ToSignedFeltString()
+	if expected != result {
+		t.Errorf("TestFelt10ToString failed. Expected %s, Got: %s", expected, result)
+	}
+}
+
+func TestFelt50ToString(t *testing.T) {
+	f_neg_1 := lambdaworks.FeltFromHex("32")
+	expected := "50"
+	result := f_neg_1.ToSignedFeltString()
+	if expected != result {
+		t.Errorf("TestFelt50ToString failed. Expected %s, Got: %s", expected, result)
+	}
+}
+
+func TestRelocatableToString(t *testing.T) {
+	rel := memory.NewRelocatable(0, 0)
+	expected := "{0:0}"
+	result := rel.ToString()
+
+	if expected != result {
+		t.Errorf("TestRelocatableToString failed. Expected %s, Got: %s", expected, result)
+	}
+
+	rel = memory.NewRelocatable(4, 3)
+	expected = "{4:3}"
+	result = rel.ToString()
+
+	if expected != result {
+		t.Errorf("TestRelocatableToString failed. Expected %s, Got: %s", expected, result)
+	}
+
 }

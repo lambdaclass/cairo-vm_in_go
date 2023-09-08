@@ -18,9 +18,11 @@ type Identifier struct {
 }
 
 type Program struct {
-	Data        []memory.MaybeRelocatable
-	Builtins    []string
-	Identifiers map[string]Identifier
+	Data             []memory.MaybeRelocatable
+	Builtins         []string
+	Identifiers      map[string]Identifier
+	Hints            map[uint][]parser.HintParams
+	ReferenceManager parser.ReferenceManager
 }
 
 func DeserializeProgramJson(compiledProgram parser.CompiledJson) Program {
@@ -45,6 +47,18 @@ func DeserializeProgramJson(compiledProgram parser.CompiledJson) Program {
 		programIdentifier.Value = lambdaworks.FeltFromDecString(identifier.Value.String())
 		program.Identifiers[key] = programIdentifier
 	}
+	program.Hints = compiledProgram.Hints
+	program.ReferenceManager = compiledProgram.ReferenceManager
 
 	return program
+}
+
+func (p *Program) ExtractConstants() map[string]lambdaworks.Felt {
+	constants := make(map[string]lambdaworks.Felt)
+	for name, identifier := range p.Identifiers {
+		if identifier.Type == "constant" {
+			constants[name] = identifier.Value
+		}
+	}
+	return constants
 }
