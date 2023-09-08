@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stddef.h> 
 
 typedef uint64_t limb_t;
 
@@ -61,3 +62,10 @@ void felt_or(felt_t a, felt_t b, felt_t result);
 
 /* writes the result variable with a ^ b */
 void felt_xor(felt_t a, felt_t b, felt_t result);
+
+/* returns the representation of a felt to string */
+char* to_signed_felt(felt_t value);
+
+/* frees a pointer to a string */
+void free_string(char* ptr);
+void felt_shr(felt_t a, size_t b, felt_t result);
