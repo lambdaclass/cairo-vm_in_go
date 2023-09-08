@@ -1,10 +1,43 @@
 package hint_utils
 
 import (
+	"github.com/pkg/errors"
+
 	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
+
+// Inserts value into an ids given its name
+func InsertIds(name string, value *MaybeRelocatable, ids *map[string]HintReference, apTracking parser.ApTrackingData, vm *VirtualMachine) error {
+
+	addr, err := GetIdsAddr(name, ids, apTracking, vm)
+	if err != nil {
+		return nil
+	}
+	return vm.Segments.Memory.Insert(addr, value)
+}
+
+// Returns the address of an ids given its name
+func GetIdsAddr(name string, ids *map[string]HintReference, apTracking parser.ApTrackingData, vm *VirtualMachine) (Relocatable, error) {
+	reference, ok := (*ids)[name]
+	if ok {
+		addr, ok := GetAddressFromReference(&reference, apTracking, vm)
+		if ok {
+			return addr, nil
+		}
+	}
+	return Relocatable{}, errors.Errorf("Unknow identifier %s", name)
+}
+
+// Inserts value into the address of the given ids variable
+func InsertIdsFromReference(value *MaybeRelocatable, reference *HintReference, apTracking parser.ApTrackingData, vm *VirtualMachine) error {
+	addr, ok := GetAddressFromReference(reference, apTracking, vm)
+	if ok {
+		return vm.Segments.Memory.Insert(addr, value)
+	}
+	return errors.New("Failed to get ids addr")
+}
 
 // Returns the addr indicated by the reference
 func GetAddressFromReference(reference *HintReference, apTracking parser.ApTrackingData, vm *VirtualMachine) (Relocatable, bool) {
