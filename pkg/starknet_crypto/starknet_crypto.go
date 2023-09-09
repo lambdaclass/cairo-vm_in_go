@@ -51,8 +51,10 @@ func PedersenHash(f1 lambdaworks.Felt, f2 lambdaworks.Felt) lambdaworks.Felt {
 	felt_1 := toC(f1)
 	felt_2 := toC(f2)
 	var result C.felt_t
+
 	C.pedersen_hash(&felt_1[0], &felt_2[0], &result[0])
 
-	result_3 := fromC(result)
-	return result_3
+	hash := fromC(result)
+
+	return hash
 }

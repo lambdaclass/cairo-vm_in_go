@@ -54,9 +54,9 @@ func TestPersenHash(t *testing.T) {
 	f2 := lambdaworks.FeltFromHex("0x48")
 
 	// Run the poseidon permutation
-	x := starknet_crypto.PedersenHash(f1, f2)
+	hash := starknet_crypto.PedersenHash(f1, f2)
 
-	if x != lambdaworks.FeltFromHex("0x73b3ec210cccbb970f80c6826fb1c40ae9f487617696234ff147451405c339f") {
+	if hash != lambdaworks.FeltFromHex("0x73b3ec210cccbb970f80c6826fb1c40ae9f487617696234ff147451405c339f") {
 		t.Errorf("Error")
 	}
 }
