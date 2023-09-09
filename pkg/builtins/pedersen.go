@@ -43,22 +43,21 @@ func (p *PedersenBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem
 		return nil, nil
 	}
 
-	numA, err := mem.GetFelt(memory.Relocatable{SegmentIndex: address.SegmentIndex, Offset: address.Offset - 1})
+	feltA, err := mem.GetFelt(memory.Relocatable{SegmentIndex: address.SegmentIndex, Offset: address.Offset - 1})
 	if err != nil {
 		return nil, nil
 	}
 
-	numB, err := mem.GetFelt(memory.Relocatable{SegmentIndex: address.SegmentIndex, Offset: address.Offset - 2})
+	feltB, err := mem.GetFelt(memory.Relocatable{SegmentIndex: address.SegmentIndex, Offset: address.Offset - 2})
 	if err != nil {
 		return nil, nil
 	}
 
 	p.ResizeVerifiedAddresses(address)
 
-	x := starknet_crypto.PedersenHash(numA, numB)
+	hash := starknet_crypto.PedersenHash(feltB, feltA)
 
-	fmt.Printf("starknet_crypto.PedersenHash(numA, numB): = %x \n", x.ToSignedFeltString())
-	return memory.NewMaybeRelocatableFelt(x), nil
+	return memory.NewMaybeRelocatableFelt(hash), nil
 }
 
 func (p *PedersenBuiltinRunner) AddValidationRule(*memory.Memory) {
