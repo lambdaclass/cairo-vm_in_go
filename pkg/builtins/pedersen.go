@@ -39,7 +39,7 @@ func (p *PedersenBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
 }
 
 func (p *PedersenBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem *memory.Memory) (*memory.MaybeRelocatable, error) {
-	if address.Offset%PEDERSEN_CELLS_PER_INSTANCE != 2 || p.verified_addresses[address.Offset] {
+	if address.Offset%PEDERSEN_CELLS_PER_INSTANCE != 2 || p.CheckVerifiedAddresses(address) {
 		return nil, nil
 	}
 
@@ -53,15 +53,32 @@ func (p *PedersenBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem
 		return nil, nil
 	}
 
-	if len(p.verified_addresses) <= int(address.Offset) {
-		p.verified_addresses = append(p.verified_addresses, false)
-	}
-	p.verified_addresses[address.Offset] = false
+	p.ResizeVerifiedAddresses(address)
 
 	x := starknet_crypto.PedersenHash(numA, numB)
 
+	fmt.Printf("starknet_crypto.PedersenHash(numA, numB): = %x \n", x.ToSignedFeltString())
 	return memory.NewMaybeRelocatableFelt(x), nil
 }
 
 func (p *PedersenBuiltinRunner) AddValidationRule(*memory.Memory) {
+}
+
+func (p *PedersenBuiltinRunner) CheckVerifiedAddresses(address memory.Relocatable) bool {
+	if len(p.verified_addresses) < int(address.Offset) {
+		return false
+	}
+
+	return p.verified_addresses[address.Offset]
+}
+
+func (p *PedersenBuiltinRunner) ResizeVerifiedAddresses(address memory.Relocatable) {
+	num := int(address.Offset) - len(p.verified_addresses)
+	if num > 0 {
+		for i := 0; i <= num+1; i++ {
+			p.verified_addresses = append(p.verified_addresses, false)
+		}
+
+	}
+	p.verified_addresses[address.Offset] = true
 }
