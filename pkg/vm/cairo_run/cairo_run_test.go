@@ -58,3 +58,17 @@ func TestWriteOutputProgram(t *testing.T) {
 	}
 
 }
+
+func TestPedersenBuiltin(t *testing.T) {
+	_, err := cairo_run.CairoRun("../../../cairo_programs/pedersen_hash.json")
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
+
+func TestPedersenTest(t *testing.T) {
+	_, err := cairo_run.CairoRun("../../../cairo_programs/pedersen_test.json")
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
