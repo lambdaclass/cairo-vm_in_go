@@ -9,7 +9,6 @@ import (
 )
 
 // Things we are skipping for now:
-// - Initializing hint_executor and passing it to `cairo_run`
 // - cairo_run_config stuff
 // - Asserting expected trace values
 // - Asserting memory_holes
@@ -56,5 +55,11 @@ func TestWriteOutputProgram(t *testing.T) {
 	if expected != result {
 		t.Errorf("TestWriteOutputProgram failed. Expected: %s, got: %s", expected, result)
 	}
+}
 
+func TestAssertNNHint(t *testing.T) {
+	_, err := cairo_run.CairoRun("../../../cairo_programs/assert_nn.json", "small", false)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
 }
