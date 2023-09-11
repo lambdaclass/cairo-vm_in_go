@@ -13,7 +13,7 @@ const INNER_RC_BOUND_SHIFT = 16
 const INNER_RC_BOUND_MASK = math.MaxUint16
 const CELLS_PER_RANGE_CHECK = 1
 
-const N_PARTS = 8
+const RANGE_CHECK_N_PARTS = 8
 
 func RangeCheckError(err error) error {
 	return errors.Wrapf(err, "Range check error")
@@ -69,7 +69,7 @@ func RangeCheckValidationRule(mem *memory.Memory, address memory.Relocatable) ([
 	if !is_felt {
 		return nil, NotAFeltError(address, *res_val)
 	}
-	if felt.Bits() <= N_PARTS*INNER_RC_BOUND_SHIFT {
+	if felt.Bits() <= RANGE_CHECK_N_PARTS*INNER_RC_BOUND_SHIFT {
 		return []memory.Relocatable{address}, nil
 	}
 	return nil, OutsideBoundsError(felt)
