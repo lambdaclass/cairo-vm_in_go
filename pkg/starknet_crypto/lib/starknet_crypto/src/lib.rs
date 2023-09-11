@@ -1,4 +1,4 @@
-use starknet_crypto::{poseidon_permute_comp, FieldElement};
+use starknet_crypto::{poseidon_permute_comp, FieldElement, verify};
 extern crate libc;
 
 // C representation of a bit array: a raw pointer to a mutable unsigned 8 bits integer.
@@ -40,4 +40,25 @@ extern "C" fn poseidon_permute(
     bytes_from_field_element(state_array[0], first_state_felt);
     bytes_from_field_element(state_array[1], second_state_felt);
     bytes_from_field_element(state_array[2], third_state_felt);
+}
+
+#[no_mangle]
+extern "C" fn verify_signature(
+    public_key_bytes: Bytes,
+    message_bytes: Bytes,
+    r_bytes: Bytes,
+    s_bytes: Bytes
+) -> bool {
+    let public_key = field_element_from_bytes(public_key_bytes);
+    let message = field_element_from_bytes(message_bytes);
+    let r = field_element_from_bytes(r_bytes);
+    let s = field_element_from_bytes(s_bytes);
+    let verification_result = verify(&public_key, &message, &r, &s);
+    
+    // An error on the verification is an invalid signature
+    // That shouldn't verify
+    match verification_result {
+        Ok(verifies) => verifies,
+        Err(_) => false
+    }
 }

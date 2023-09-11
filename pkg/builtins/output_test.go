@@ -9,7 +9,7 @@ import (
 )
 
 func TestOutputDeduceMemoryCell(t *testing.T) {
-	output := builtins.NewOutputBuiltinRunner(true)
+	output := builtins.NewOutputBuiltinRunner()
 	a, b := output.DeduceMemoryCell(memory.NewRelocatable(0, 0), memory.NewMemory())
 	if a != nil || b != nil {
 		t.Errorf("DeduceMemoryCell should do nothing")
@@ -18,7 +18,7 @@ func TestOutputDeduceMemoryCell(t *testing.T) {
 
 func TestOutputInitializeSegments(t *testing.T) {
 	mem_manager := memory.NewMemorySegmentManager()
-	output := builtins.NewOutputBuiltinRunner(true)
+	output := builtins.NewOutputBuiltinRunner()
 	output.InitializeSegments(&mem_manager)
 
 	if mem_manager.Memory.NumSegments() != 1 {
@@ -31,7 +31,8 @@ func TestOutputInitializeSegments(t *testing.T) {
 }
 
 func TestOutputInitialStackIncluded(t *testing.T) {
-	output := builtins.NewOutputBuiltinRunner(true)
+	output := builtins.NewOutputBuiltinRunner()
+	output.Include(true)
 	initial_stack := output.InitialStack()
 	expected_stack := []memory.MaybeRelocatable{*memory.NewMaybeRelocatableRelocatable(output.Base())}
 	if !reflect.DeepEqual(initial_stack, expected_stack) {
@@ -40,7 +41,7 @@ func TestOutputInitialStackIncluded(t *testing.T) {
 }
 
 func TestOutputInitialStackNotIncluded(t *testing.T) {
-	output := builtins.NewOutputBuiltinRunner(false)
+	output := builtins.NewOutputBuiltinRunner()
 	if len(output.InitialStack()) != 0 {
 		t.Errorf("Initial stack should be empty if not included")
 	}
@@ -49,7 +50,7 @@ func TestOutputInitialStackNotIncluded(t *testing.T) {
 func TestOutputAddValidationRule(t *testing.T) {
 	empty_mem := memory.NewMemory()
 	mem := memory.NewMemory()
-	output := builtins.NewOutputBuiltinRunner(true)
+	output := builtins.NewOutputBuiltinRunner()
 	output.AddValidationRule(mem)
 	// Check that the memory is equal to a newly created one to check that
 	// no validation rules were added

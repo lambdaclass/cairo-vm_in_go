@@ -2,6 +2,7 @@ package hints
 
 import (
 	"errors"
+	"strings"
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
@@ -23,6 +24,8 @@ func (p *CairoVmHintProcessor) CompileHint(hintParams *parser.HintParams, refere
 		if int(n) >= len(referenceManager.References) {
 			return nil, errors.New("Reference not found in ReferenceManager")
 		}
+		split := strings.Split(name, ".")
+		name = split[len(split)-1]
 		references[name] = ParseHintReference(referenceManager.References[n])
 	}
 	ids := NewIdsManager(references, hintParams.FlowTrackingData.APTracking)
@@ -36,6 +39,6 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 	}
 	switch data.Code {
 	default:
-		return errors.New("Uknown Hint")
+		return errors.New("Unknown Hint")
 	}
 }
