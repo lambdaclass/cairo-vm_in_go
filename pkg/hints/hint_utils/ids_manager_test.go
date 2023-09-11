@@ -257,3 +257,31 @@ func TestIdsManagerGetFeltDeref(t *testing.T) {
 		t.Errorf("IdsManager.GetFelt returned wrong value")
 	}
 }
+
+func TestIdsManagerGetStructFieldTest(t *testing.T) {
+	ids := IdsManager{
+		References: map[string]HintReference{
+			"cat": {
+				Offset1: OffsetValue{
+					Register:  vm.FP,
+					ValueType: Reference,
+				},
+				Dereference: true,
+			},
+		},
+	}
+	vm := vm.NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.Memory.Insert(vm.RunContext.Fp, memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(7)))
+	vm.Segments.Memory.Insert(vm.RunContext.Fp.AddUint(1), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(4)))
+	lives, err_lives := ids.GetStructFieldFelt("cat", 0, vm)
+	paws, err_paws := ids.GetStructFieldFelt("cat", 1, vm)
+	if err_lives != nil || err_paws != nil {
+		t.Errorf("Error(s) in test: %s, %s", err_lives, err_paws)
+	}
+	expected_lives := lambdaworks.FeltFromUint64(7)
+	expected_paws := lambdaworks.FeltFromUint64(4)
+	if lives != expected_lives || paws != expected_paws {
+		t.Errorf("IdsManager.GetStructFieldFelt returned wrong values")
+	}
+}
