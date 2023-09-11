@@ -7,6 +7,7 @@ import (
 
 const PEDERSEN_BUILTIN_NAME = "pedersen"
 const PEDERSEN_CELLS_PER_INSTANCE = 3
+const PEDERSEN_INPUT_CELLS_PER_INSTANCE = 2
 
 type PedersenBuiltinRunner struct {
 	base               memory.Relocatable
@@ -43,7 +44,7 @@ func (p *PedersenBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
 }
 
 func (p *PedersenBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem *memory.Memory) (*memory.MaybeRelocatable, error) {
-	if address.Offset%PEDERSEN_CELLS_PER_INSTANCE != 2 || p.CheckVerifiedAddresses(address) {
+	if address.Offset%PEDERSEN_CELLS_PER_INSTANCE != PEDERSEN_INPUT_CELLS_PER_INSTANCE || p.CheckVerifiedAddresses(address) {
 		return nil, nil
 	}
 
