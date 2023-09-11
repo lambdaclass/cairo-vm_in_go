@@ -253,8 +253,9 @@ func TestInitializeRunnerWithRangeCheckInvalid(t *testing.T) {
 }
 
 func TestIncludedBuiltinsPlainLayoutNoProofMode(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "small", ProofMode: false}
 	// Testing for a program with no builtins
-	factorialRunner, err := cairo_run.CairoRun("../../cairo_programs/factorial.json", "plain", false)
+	factorialRunner, err := cairo_run.CairoRun("../../cairo_programs/factorial.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
@@ -263,7 +264,7 @@ func TestIncludedBuiltinsPlainLayoutNoProofMode(t *testing.T) {
 	}
 
 	// Testing with a program with output builtin
-	printRunner, err := cairo_run.CairoRun("../../cairo_programs/simple_print.json", "plain", false)
+	printRunner, err := cairo_run.CairoRun("../../cairo_programs/simple_print.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
@@ -279,8 +280,9 @@ func TestIncludedBuiltinsPlainLayoutNoProofMode(t *testing.T) {
 // FIXME: This test should changed once the `small` layout is properly implemented. ATM we don't have all
 // its builtins implemented.
 func TestIncludedBuiltinsSmallLayoutNoProofMode(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "small", ProofMode: false}
 	// Testing for a program with Poseidon builtin
-	poseidonRunner, err := cairo_run.CairoRun("../../cairo_programs/poseidon_builtin.json", "small", false)
+	poseidonRunner, err := cairo_run.CairoRun("../../cairo_programs/poseidon_builtin.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
@@ -292,7 +294,7 @@ func TestIncludedBuiltinsSmallLayoutNoProofMode(t *testing.T) {
 	}
 
 	// Testing with a program with bitwise builtin
-	bitwiseRunner, err := cairo_run.CairoRun("../../cairo_programs/bitwise_builtin_test.json", "small", false)
+	bitwiseRunner, err := cairo_run.CairoRun("../../cairo_programs/bitwise_builtin_test.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}

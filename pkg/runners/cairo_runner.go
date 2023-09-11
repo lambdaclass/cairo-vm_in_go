@@ -84,7 +84,7 @@ func (r *CairoRunner) initializeBuiltins() error {
 			delete(programBuiltins, layoutBuiltin.Name())
 			layoutBuiltin.Include(true)
 			builtinRunners = append(builtinRunners, layoutBuiltin)
-		} else if r.proofMode {
+		} else if r.ProofMode {
 			layoutBuiltin.Include(false)
 			builtinRunners = append(builtinRunners, layoutBuiltin)
 		}
