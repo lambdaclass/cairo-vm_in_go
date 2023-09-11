@@ -170,7 +170,7 @@ func getOffsetValueReference(offsetValue OffsetValue, refApTracking parser.ApTra
 func applyApTrackingCorrection(addr Relocatable, refApTracking parser.ApTrackingData, hintApTracking parser.ApTrackingData) (Relocatable, bool) {
 	// Reference & Hint ApTracking must belong to the same group
 	if refApTracking.Group == hintApTracking.Group {
-		addr, err := addr.SubUint(uint(hintApTracking.Offset - hintApTracking.Offset))
+		addr, err := addr.SubUint(uint(hintApTracking.Offset - refApTracking.Offset))
 		if err == nil {
 			return addr, true
 		}

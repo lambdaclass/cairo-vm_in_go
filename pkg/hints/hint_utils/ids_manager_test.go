@@ -5,6 +5,7 @@ import (
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
@@ -26,6 +27,32 @@ func TestIdsManagerGetAddressSimpleReference(t *testing.T) {
 		t.Errorf("Error in test: %s", err)
 	}
 	if addr != vm.RunContext.Fp {
+		t.Errorf("IdsManager.GetAddr returned wrong value")
+	}
+}
+
+func TestIdsManagerGetAddressWithApTrackingCorrection(t *testing.T) {
+	ids := IdsManager{
+		References: map[string]HintReference{
+			"val": {
+				Offset1: OffsetValue{
+					Register:  vm.AP,
+					ValueType: Reference,
+				},
+				ApTrackingData: parser.ApTrackingData{Group: 1, Offset: 2},
+			},
+		},
+		HintApTracking: parser.ApTrackingData{Group: 1, Offset: 5},
+	}
+	// Ap tracking correction ap - (hintOff - idsOff) = (1, 5) - (5 - 2) = (1, 5) - 3 = (1, 2)
+	vm := vm.NewVirtualMachine()
+	vm.RunContext.Ap = memory.NewRelocatable(1, 5)
+	addr, err := ids.GetAddr("val", vm)
+	if err != nil {
+		t.Errorf("Error in test: %s", err)
+	}
+	expected := memory.NewRelocatable(1, 2)
+	if addr != expected {
 		t.Errorf("IdsManager.GetAddr returned wrong value")
 	}
 }
