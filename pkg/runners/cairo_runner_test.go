@@ -302,6 +302,24 @@ func TestIncludedBuiltinsSmallLayoutNoProofMode(t *testing.T) {
 	if bitwiseRunner.Vm.BuiltinRunners[0].Name() != "bitwise" {
 		t.Errorf("Expected poseidon buitlin, found %s", bitwiseRunner.Vm.BuiltinRunners[0].Name())
 	}
+
+	// Testing with a program with output, pedersen and range_check builtins
+	pedersenRunner, err := cairo_run.CairoRun("../../cairo_programs/pedersen_test.json", "small", false)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+	if len(pedersenRunner.Vm.BuiltinRunners) != 3 {
+		t.Errorf("Expected only one builtin found: %d", len(pedersenRunner.Vm.BuiltinRunners))
+	}
+	if pedersenRunner.Vm.BuiltinRunners[0].Name() != "output" {
+		t.Errorf("Expected output buitlin, found %s", pedersenRunner.Vm.BuiltinRunners[0].Name())
+	}
+	if pedersenRunner.Vm.BuiltinRunners[1].Name() != "pedersen" {
+		t.Errorf("Expected pedersen buitlin, found %s", pedersenRunner.Vm.BuiltinRunners[1].Name())
+	}
+	if pedersenRunner.Vm.BuiltinRunners[2].Name() != "range_check" {
+		t.Errorf("Expected range_check buitlin, found %s", pedersenRunner.Vm.BuiltinRunners[2].Name())
+	}
 }
 
 func TestBuildHintDataMapEmpty(t *testing.T) {
