@@ -136,6 +136,28 @@ func (ids *IdsManager) GetStructFieldFelt(name string, field_off uint, vm *Virtu
 	return lambdaworks.Felt{}, errors.Errorf("Unknow identifier %s", name)
 }
 
+/*
+	 Inserts value into an ids' field (given that the identifier is a sruct)
+		For example:
+
+		struct cat {
+			lives felt
+			paws felt
+		}
+
+		to access each struct field, lives will be field 0 and paws will be field 1
+		, so to set the value of cat.paws we can use:
+		ids.InsertStructField("cat", 1, vm)
+*/
+func (ids *IdsManager) InsertStructField(name string, field_off uint, value *MaybeRelocatable, vm *VirtualMachine) error {
+
+	addr, err := ids.GetAddr(name, vm)
+	if err != nil {
+		return err
+	}
+	return vm.Segments.Memory.Insert(addr.AddUint(field_off), value)
+}
+
 // Inserts value into the address of the given identifier
 func insertIdsFromReference(value *MaybeRelocatable, reference *HintReference, apTracking parser.ApTrackingData, vm *VirtualMachine) error {
 	addr, ok := getAddressFromReference(reference, apTracking, vm)

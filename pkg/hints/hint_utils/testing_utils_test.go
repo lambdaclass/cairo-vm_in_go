@@ -85,3 +85,26 @@ func TestSetupIdsForTestStruct(t *testing.T) {
 		t.Error("Wrong ids values")
 	}
 }
+
+func TestSetupIdsForTestStructWithGap(t *testing.T) {
+	/* struct Cat {
+		lives : 7 // off 0
+		paws: 4 // off 1
+
+	}*/
+	vm := vm.NewVirtualMachine()
+	vm.Segments.AddSegment()
+	ids := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"cat":    {nil, nil},
+			"n_cats": {NewMaybeRelocatableFelt(FeltFromUint64(1))},
+		},
+		vm,
+	)
+	// Check that we have the appropiate gap at cat (we should be able to insert into it)
+	err_lives := ids.InsertStructField("cat", 0, NewMaybeRelocatableFelt(FeltFromUint64(7)), vm)
+	err_paws := ids.InsertStructField("cat", 1, NewMaybeRelocatableFelt(FeltFromUint64(7)), vm)
+	if err_lives != nil || err_paws != nil {
+		t.Error("Failed to insert ids")
+	}
+}
