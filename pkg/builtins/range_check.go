@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const CHECK_RANGE_BUILTIN_NAME = "range_check"
+const RANGE_CHECK_BUILTIN_NAME = "range_check"
 const INNER_RC_BOUND_SHIFT = 16
 const INNER_RC_BOUND_MASK = math.MaxUint16
 const CELLS_PER_RANGE_CHECK = 1
@@ -33,10 +33,8 @@ type RangeCheckBuiltinRunner struct {
 	included bool
 }
 
-func NewRangeCheckBuiltinRunner(included bool) *RangeCheckBuiltinRunner {
-	return &RangeCheckBuiltinRunner{
-		included: included,
-	}
+func NewRangeCheckBuiltinRunner() *RangeCheckBuiltinRunner {
+	return &RangeCheckBuiltinRunner{}
 }
 
 func (r *RangeCheckBuiltinRunner) Base() memory.Relocatable {
@@ -44,7 +42,7 @@ func (r *RangeCheckBuiltinRunner) Base() memory.Relocatable {
 }
 
 func (r *RangeCheckBuiltinRunner) Name() string {
-	return CHECK_RANGE_BUILTIN_NAME
+	return RANGE_CHECK_BUILTIN_NAME
 }
 
 func (r *RangeCheckBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
@@ -62,7 +60,7 @@ func (r *RangeCheckBuiltinRunner) DeduceMemoryCell(addr memory.Relocatable, mem 
 	return nil, nil
 }
 
-func ValidationRule(mem *memory.Memory, address memory.Relocatable) ([]memory.Relocatable, error) {
+func RangeCheckValidationRule(mem *memory.Memory, address memory.Relocatable) ([]memory.Relocatable, error) {
 	res_val, err := mem.Get(address)
 	if err != nil {
 		return nil, err
@@ -78,5 +76,9 @@ func ValidationRule(mem *memory.Memory, address memory.Relocatable) ([]memory.Re
 }
 
 func (r *RangeCheckBuiltinRunner) AddValidationRule(mem *memory.Memory) {
-	mem.AddValidationRule(uint(r.base.SegmentIndex), ValidationRule)
+	mem.AddValidationRule(uint(r.base.SegmentIndex), RangeCheckValidationRule)
+}
+
+func (r *RangeCheckBuiltinRunner) Include(include bool) {
+	r.included = include
 }

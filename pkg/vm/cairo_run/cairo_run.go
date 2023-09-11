@@ -6,6 +6,7 @@ import (
 	"io"
 	"sort"
 
+	"github.com/lambdaclass/cairo-vm.go/pkg/hints"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
 	"github.com/lambdaclass/cairo-vm.go/pkg/runners"
@@ -26,14 +27,14 @@ func CairoRunError(err error) error {
 	return errors.Wrapf(err, "Cairo Run Error\n")
 }
 
-func CairoRun(programPath string) (*runners.CairoRunner, error) {
+func CairoRun(programPath string, layout string, proofMode bool) (*runners.CairoRunner, error) {
 	compiledProgram, err := parser.Parse(programPath)
 	if err != nil {
 		return nil, CairoRunError(err)
 	}
 	programJson := vm.DeserializeProgramJson(compiledProgram)
 
-	cairoRunner, err := runners.NewCairoRunner(programJson)
+	cairoRunner, err := runners.NewCairoRunner(programJson, layout, proofMode)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +42,8 @@ func CairoRun(programPath string) (*runners.CairoRunner, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = cairoRunner.RunUntilPC(end)
+	hintProcessor := hints.CairoVmHintProcessor{}
+	err = cairoRunner.RunUntilPC(end, &hintProcessor)
 	if err != nil {
 		return nil, err
 	}

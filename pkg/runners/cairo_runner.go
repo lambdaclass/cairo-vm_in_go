@@ -2,6 +2,8 @@ package runners
 
 import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
+	"github.com/lambdaclass/cairo-vm.go/pkg/layouts"
+	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	"github.com/pkg/errors"
@@ -17,41 +19,79 @@ type CairoRunner struct {
 	initialFp     memory.Relocatable
 	finalPc       memory.Relocatable
 	mainOffset    uint
+	layout        layouts.CairoLayout
+	proofMode     bool
 }
 
-func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
+func NewCairoRunner(program vm.Program, layoutName string, proofMode bool) (*CairoRunner, error) {
 	mainIdentifier, ok := (program.Identifiers)["__main__.main"]
 	main_offset := uint(0)
 	if ok {
 		main_offset = uint(mainIdentifier.PC)
 	}
-	runner := CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
-	for _, builtin_name := range program.Builtins {
-		switch builtin_name {
-		case builtins.BITWISE_BUILTIN_NAME:
-			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewBitwiseBuiltinRunner(true))
-		case builtins.CHECK_RANGE_BUILTIN_NAME:
-			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewRangeCheckBuiltinRunner(true))
-		case builtins.POSEIDON_BUILTIN_NAME:
-			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewPoseidonBuiltinRunner(true))
-		case builtins.OUTPUT_BUILTIN_NAME:
-			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewOutputBuiltinRunner(true))
-		default:
-			return nil, errors.Errorf("Invalid builtin: %s", builtin_name)
-		}
+
+	err := utils.CheckBuiltinsSubsequence(program.Builtins)
+	if err != nil {
+		return nil, errors.New(err.Error())
 	}
 
+	layoutBuiltinRunners, err := layouts.GetLayoutBuiltinRunners(layoutName)
+	if err != nil {
+		return nil, errors.New(err.Error())
+	}
+	layout := layouts.CairoLayout{Name: layoutName, Builtins: layoutBuiltinRunners}
+	runner := CairoRunner{
+		Program:    program,
+		Vm:         *vm.NewVirtualMachine(),
+		mainOffset: main_offset,
+		proofMode:  proofMode,
+		layout:     layout,
+	}
 	return &runner, nil
 }
 
 // Performs the initialization step, returns the end pointer (pc upon which execution should stop)
 func (r *CairoRunner) Initialize() (memory.Relocatable, error) {
+	err := r.initializeBuiltins()
+	if err != nil {
+		return memory.Relocatable{}, errors.New(err.Error())
+	}
 	r.initializeSegments()
 	end, err := r.initializeMainEntrypoint()
 	if err == nil {
 		err = r.initializeVM()
 	}
 	return end, err
+}
+
+// Initializes builtin runners in accordance to the specified layout and
+// the builtins present in the running program.
+func (r *CairoRunner) initializeBuiltins() error {
+	var builtinRunners []builtins.BuiltinRunner
+	programBuiltins := map[string]struct{}{}
+	for _, builtin := range r.Program.Builtins {
+		programBuiltins[builtin] = struct{}{}
+	}
+
+	for _, layoutBuiltin := range r.layout.Builtins {
+		_, included := programBuiltins[layoutBuiltin.Name()]
+		if included {
+			delete(programBuiltins, layoutBuiltin.Name())
+			layoutBuiltin.Include(true)
+			builtinRunners = append(builtinRunners, layoutBuiltin)
+		} else if r.proofMode {
+			layoutBuiltin.Include(false)
+			builtinRunners = append(builtinRunners, layoutBuiltin)
+		}
+	}
+
+	if len(programBuiltins) != 0 {
+		return errors.Errorf("Builtin(s) %v not present in layout %s", programBuiltins, r.layout.Name)
+	}
+
+	r.Vm.BuiltinRunners = builtinRunners
+
+	return nil
 }
 
 // Creates program, execution and builtin segments
@@ -119,9 +159,31 @@ func (r *CairoRunner) initializeVM() error {
 	return r.Vm.Segments.Memory.ValidateExistingMemory()
 }
 
-func (r *CairoRunner) RunUntilPC(end memory.Relocatable) error {
+func (r *CairoRunner) BuildHintDataMap(hintProcessor vm.HintProcessor) (map[uint][]any, error) {
+	hintDataMap := make(map[uint][]any, 0)
+	for pc, hintsParams := range r.Program.Hints {
+		hintDatas := make([]any, 0, len(hintsParams))
+		for _, hintParam := range hintsParams {
+			data, err := hintProcessor.CompileHint(&hintParam, &r.Program.ReferenceManager)
+			if err != nil {
+				return nil, err
+			}
+			hintDatas = append(hintDatas, data)
+		}
+		hintDataMap[pc] = hintDatas
+	}
+
+	return hintDataMap, nil
+}
+
+func (r *CairoRunner) RunUntilPC(end memory.Relocatable, hintProcessor vm.HintProcessor) error {
+	hintDataMap, err := r.BuildHintDataMap(hintProcessor)
+	if err != nil {
+		return err
+	}
+	constants := r.Program.ExtractConstants()
 	for r.Vm.RunContext.Pc != end {
-		err := r.Vm.Step()
+		err := r.Vm.Step(hintProcessor, &hintDataMap, &constants)
 		if err != nil {
 			return err
 		}
