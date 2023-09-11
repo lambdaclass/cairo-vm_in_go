@@ -1,1 +1,1 @@
-cairo_programs/simple_print.cairo
+../simple_print.cairo

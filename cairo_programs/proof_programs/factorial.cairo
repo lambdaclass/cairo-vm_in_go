@@ -1,1 +1,1 @@
-cairo_programs/factorial.cairo
+../factorial.cairo

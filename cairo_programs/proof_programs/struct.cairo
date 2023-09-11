@@ -1,1 +1,1 @@
-cairo_programs/struct.cairo
+../struct.cairo

@@ -1,1 +1,1 @@
-cairo_programs/fibonacci.cairo
+../fibonacci.cairo
