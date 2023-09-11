@@ -36,6 +36,6 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 	}
 	switch data.Code {
 	default:
-		return errors.New("Uknown Hint")
+		return errors.New("Unknown Hint")
 	}
 }
