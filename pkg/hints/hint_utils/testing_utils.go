@@ -7,6 +7,7 @@ import (
 )
 
 // Receives a map and builds a setup for hints tests containing ids
+// For usage examples refer to testing_utils_test.go
 // Builds the IdsManager & Inserts ids into memory
 // Works as follows:
 // Each map entry represents an ids variable
