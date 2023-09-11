@@ -484,3 +484,28 @@ func TestWriteOutputFromPresentMemoryNegOutput(t *testing.T) {
 	}
 }
 */
+
+func TestPedersenInitialization(t *testing.T) {
+	empty_identifiers := make(map[string]vm.Identifier, 0)
+	program_builtins := []string{builtins.PEDERSEN_BUILTIN_NAME}
+	program := vm.Program{Identifiers: empty_identifiers, Builtins: program_builtins}
+	// Create CairoRunner
+	runner, err := runners.NewCairoRunner(program)
+	if err != nil {
+		t.Errorf("NewCairoRunner error in test: %s", err)
+	}
+	// Initialize the runner
+	_, err = runner.Initialize()
+	if err != nil {
+		t.Errorf("Initialize error in test: %s", err)
+	}
+
+	builtin := runner.Vm.BuiltinRunners[0]
+	if builtin.Name() != builtins.PEDERSEN_BUILTIN_NAME {
+		t.Errorf("Wrong builtin name: expected: %s, got: %s", builtins.OUTPUT_BUILTIN_NAME, builtin.Name())
+	}
+
+	if builtin.Base().SegmentIndex != 2 {
+		t.Errorf("Wrong builtin base: expected: %d, got: %d", 2, builtin.Base().SegmentIndex)
+	}
+}
