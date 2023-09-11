@@ -303,7 +303,7 @@ func TestIncludedBuiltinsSmallLayoutNoProofMode(t *testing.T) {
 		t.Errorf("Expected poseidon buitlin, found %s", bitwiseRunner.Vm.BuiltinRunners[0].Name())
 	}
 
-	// Testing with a program with output pedersen range_check builtins
+	// Testing with a program with output, pedersen and range_check builtins
 	pedersenRunner, err := cairo_run.CairoRun("../../cairo_programs/pedersen_test.json", "small", false)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
