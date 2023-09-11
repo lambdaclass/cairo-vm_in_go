@@ -60,3 +60,28 @@ func TestSetupIdsForTestSimpleValuesLeaveGap(t *testing.T) {
 		t.Error("Failed to insert ids")
 	}
 }
+
+func TestSetupIdsForTestStruct(t *testing.T) {
+	/* struct Cat {
+		lives : 7 // off 0
+		paws: 4 // off 1
+
+	}*/
+	vm := vm.NewVirtualMachine()
+	vm.Segments.AddSegment()
+	ids := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"cat": {NewMaybeRelocatableFelt(FeltFromUint64(7)), NewMaybeRelocatableFelt(FeltFromUint64(4))},
+		},
+		vm,
+	)
+	// Check that we can fetch the values from ids
+	lives, err_lives := ids.GetStructFieldFelt("cat", 0, vm)
+	paws, err_paws := ids.GetStructFieldFelt("cat", 1, vm)
+	if err_lives != nil || err_paws != nil {
+		t.Error("Fetching ids failed")
+	}
+	if lives != FeltFromUint64(7) || paws != FeltFromUint64(4) {
+		t.Error("Wrong ids values")
+	}
+}
