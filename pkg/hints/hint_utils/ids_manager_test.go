@@ -114,3 +114,119 @@ func TestIdsManagerGetAddressComplexReferenceOneDeref(t *testing.T) {
 		t.Errorf("IdsManager.GetAddr returned wrong value")
 	}
 }
+
+func TestIdsManagerGetNoDereference(t *testing.T) {
+	ids := IdsManager{
+		References: map[string]HintReference{
+			"val": {
+				Offset1: OffsetValue{
+					Register:  vm.FP,
+					ValueType: Reference,
+				},
+			},
+		},
+	}
+	vm := vm.NewVirtualMachine()
+	val, err := ids.Get("val", vm)
+	if err != nil {
+		t.Errorf("Error in test: %s", err)
+	}
+	expected := memory.NewMaybeRelocatableRelocatable(vm.RunContext.Fp)
+	if *val != *expected {
+		t.Errorf("IdsManager.Get returned wrong value, expected")
+	}
+}
+
+func TestIdsManagerGetRelocatableNoDereference(t *testing.T) {
+	ids := IdsManager{
+		References: map[string]HintReference{
+			"val": {
+				Offset1: OffsetValue{
+					Register:  vm.FP,
+					ValueType: Reference,
+				},
+			},
+		},
+	}
+	vm := vm.NewVirtualMachine()
+	val, err := ids.GetRelocatable("val", vm)
+	if err != nil {
+		t.Errorf("Error in test: %s", err)
+	}
+	expected := vm.RunContext.Fp
+	if val != expected {
+		t.Errorf("IdsManager.GetRelocatable returned wrong value")
+	}
+}
+
+func TestIdsManagerGetRelocatableDeref(t *testing.T) {
+	ids := IdsManager{
+		References: map[string]HintReference{
+			"val": {
+				Offset1: OffsetValue{
+					Register:  vm.FP,
+					ValueType: Reference,
+				},
+				Dereference: true,
+			},
+		},
+	}
+	vm := vm.NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.Memory.Insert(vm.RunContext.Fp, memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(1, 3)))
+	val, err := ids.GetRelocatable("val", vm)
+	if err != nil {
+		t.Errorf("Error in test: %s", err)
+	}
+	expected := memory.NewRelocatable(1, 3)
+	if val != expected {
+		t.Errorf("IdsManager.GetRelocatable returned wrong value")
+	}
+}
+
+func TestIdsManagerGetFeltImmediate(t *testing.T) {
+	ids := IdsManager{
+		References: map[string]HintReference{
+			"val": {
+				Offset1: OffsetValue{
+					Immediate: lambdaworks.FeltFromUint64(17),
+					ValueType: Immediate,
+				},
+			},
+		},
+	}
+	vm := vm.NewVirtualMachine()
+	val, err := ids.GetFelt("val", vm)
+	if err != nil {
+		t.Errorf("Error in test: %s", err)
+	}
+	expected := lambdaworks.FeltFromUint64(17)
+	if val != expected {
+		t.Errorf("IdsManager.GetFelt returned wrong value")
+	}
+}
+
+func TestIdsManagerGetFeltDeref(t *testing.T) {
+	ids := IdsManager{
+		References: map[string]HintReference{
+			"val": {
+				Offset1: OffsetValue{
+					Register:  vm.FP,
+					ValueType: Reference,
+				},
+				Dereference: true,
+			},
+		},
+	}
+	vm := vm.NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.Memory.Insert(vm.RunContext.Fp, memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(17)))
+	val, err := ids.GetFelt("val", vm)
+	if err != nil {
+		t.Errorf("Error in test: %s", err)
+	}
+	expected := lambdaworks.FeltFromUint64(17)
+	if val != expected {
+		t.Errorf("IdsManager.GetFelt returned wrong value")
+	}
+}

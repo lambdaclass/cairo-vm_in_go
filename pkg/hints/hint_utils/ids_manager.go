@@ -61,11 +61,14 @@ func (ids *IdsManager) GetRelocatable(name string, vm *VirtualMachine) (Relocata
 
 // Returns the value of an identifier as a MaybeRelocatable
 func (ids *IdsManager) Get(name string, vm *VirtualMachine) (*MaybeRelocatable, error) {
-	addr, err := ids.GetAddr(name, vm)
-	if err != nil {
-		return nil, err
+	reference, ok := ids.References[name]
+	if ok {
+		val, ok := getValueFromReference(&reference, ids.HintApTracking, vm)
+		if ok {
+			return val, nil
+		}
 	}
-	return vm.Segments.Memory.Get(addr)
+	return nil, errors.Errorf("Unknow identifier %s", name)
 }
 
 // Returns the address of an identifier given its name
@@ -87,6 +90,25 @@ func insertIdsFromReference(value *MaybeRelocatable, reference *HintReference, a
 		return vm.Segments.Memory.Insert(addr, value)
 	}
 	return errors.New("Failed to get ids addr")
+}
+
+func getValueFromReference(reference *HintReference, apTracking parser.ApTrackingData, vm *VirtualMachine) (*MaybeRelocatable, bool) {
+	// Handle the case of  immediate
+	if reference.Offset1.ValueType == Immediate {
+		return NewMaybeRelocatableFelt(reference.Offset1.Immediate), true
+	}
+	addr, ok := getAddressFromReference(reference, apTracking, vm)
+	if ok {
+		if reference.Dereference {
+			val, err := vm.Segments.Memory.Get(addr)
+			if err == nil {
+				return val, true
+			}
+		} else {
+			return NewMaybeRelocatableRelocatable(addr), true
+		}
+	}
+	return nil, false
 }
 
 // Returns the addr indicated by the reference
