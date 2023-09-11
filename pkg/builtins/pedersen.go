@@ -14,8 +14,12 @@ type PedersenBuiltinRunner struct {
 	verified_addresses []bool
 }
 
-func NewPedersenBuiltinRunner(included bool) *PedersenBuiltinRunner {
-	return &PedersenBuiltinRunner{included: included}
+func NewPedersenBuiltinRunner() *PedersenBuiltinRunner {
+	return &PedersenBuiltinRunner{}
+}
+
+func (r *PedersenBuiltinRunner) Include(include bool) {
+	r.included = include
 }
 
 func (p *PedersenBuiltinRunner) Base() memory.Relocatable {

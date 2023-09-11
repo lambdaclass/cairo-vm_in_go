@@ -1,4 +1,4 @@
-use starknet_crypto::{poseidon_permute_comp, FieldElement, pedersen_hash as starknet_crypto_pedersen_hash};
+use starknet_crypto::{poseidon_permute_comp, FieldElement, pedersen_hash as starknet_crypto_pedersen_hash, verify};
 extern crate libc;
 
 // C representation of a bit array: a raw pointer to a mutable unsigned 8 bits integer.
@@ -55,5 +55,25 @@ extern "C" fn pedersen_hash(
     // Call starknet_crypto::pedersen_hash
     let hash_in_felt = starknet_crypto_pedersen_hash(&f1, &f2);
     bytes_from_field_element(hash_in_felt, result);
+}
 
+#[no_mangle]
+extern "C" fn verify_signature(
+    public_key_bytes: Bytes,
+    message_bytes: Bytes,
+    r_bytes: Bytes,
+    s_bytes: Bytes
+) -> bool {
+    let public_key = field_element_from_bytes(public_key_bytes);
+    let message = field_element_from_bytes(message_bytes);
+    let r = field_element_from_bytes(r_bytes);
+    let s = field_element_from_bytes(s_bytes);
+    let verification_result = verify(&public_key, &message, &r, &s);
+    
+    // An error on the verification is an invalid signature
+    // That shouldn't verify
+    match verification_result {
+        Ok(verifies) => verifies,
+        Err(_) => false
+    }
 }

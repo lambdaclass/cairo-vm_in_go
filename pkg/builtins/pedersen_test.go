@@ -11,7 +11,7 @@ import (
 )
 
 func TestPedersenDeduceMemoryCell(t *testing.T) {
-	pedersen := builtins.NewPedersenBuiltinRunner(true)
+	pedersen := builtins.NewPedersenBuiltinRunner()
 	vmachine := vm.NewVirtualMachine()
 	vmachine.BuiltinRunners = append(vmachine.BuiltinRunners, pedersen)
 	// Insert input cells into memory
