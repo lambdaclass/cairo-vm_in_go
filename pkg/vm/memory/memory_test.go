@@ -394,3 +394,66 @@ func TestMemoryValidateExistingMemoryErr(t *testing.T) {
 		t.Errorf("ValidateExistingMemory should have failed")
 	}
 }
+
+func TestValidateMemoryForInvalidSignature(t *testing.T) {
+	builtin := builtins.NewSignatureBuiltinRunner(true)
+	mem_manager := memory.NewMemorySegmentManager()
+	mem_manager.AddSegment()
+	mem := mem_manager.Memory
+	builtin.InitializeSegments(&mem_manager)
+
+	address_of_r := memory.NewRelocatable(0, 0)
+	address_of_s := memory.NewRelocatable(0, 1)
+
+	r_felt := lambdaworks.FeltFromDecString("874739451078007766457464989774322083649278607533249481151382481072868806602")
+	s_felt := lambdaworks.FeltZero().Sub(lambdaworks.FeltFromDecString("1472574760335685482768423018116732869320670550222259018541069375211356613248"))
+
+	r := memory.NewMaybeRelocatableFelt(r_felt)
+	s := memory.NewMaybeRelocatableFelt(s_felt)
+
+	mem.Insert(address_of_r, r)
+	mem.Insert(address_of_s, s)
+
+	builtin.AddValidationRule(&mem_manager.Memory)
+
+	err := mem.ValidateExistingMemory()
+	if err != nil {
+		t.Errorf("ValidateExistingMemory error in test: %s", err)
+	}
+}
+func TestValidateMemoryForValidSignature(t *testing.T) {
+	signature_builtin := builtins.NewSignatureBuiltinRunner(true)
+	mem_manager := memory.NewMemorySegmentManager()
+	mem_manager.AddSegment()
+	mem := mem_manager.Memory
+	signature_builtin.InitializeSegments(&mem_manager)
+
+	signature_address := memory.NewRelocatable(1, 0)
+	signature_r_felt := lambdaworks.FeltFromDecString("1839793652349538280924927302501143912227271479439798783640887258675143576352")
+	signature_s_felt := lambdaworks.FeltZero().Sub(lambdaworks.FeltFromDecString("1819432147005223164874083361865404672584671743718628757598322238853218813979"))
+
+	signature := builtins.Signature{
+		R: signature_r_felt,
+		S: signature_s_felt,
+	}
+
+	builtins.AddSignature(&signature_builtin, signature_address, signature)
+
+	pub_key_address := memory.NewRelocatable(1, 0)
+	message_hash_address := memory.NewRelocatable(1, 1)
+	pub_key_felt := lambdaworks.FeltFromDecString("1839793652349538280924927302501143912227271479439798783640887258675143576352")
+	message_hash_felt := lambdaworks.FeltFromDecString("1839793652349538280924927302501143912227271479439798783640887258675143576352")
+
+	pub_key := memory.NewMaybeRelocatableFelt(pub_key_felt)
+	message_hash := memory.NewMaybeRelocatableFelt(message_hash_felt)
+
+	mem.Insert(pub_key_address, pub_key)
+	mem.Insert(message_hash_address, message_hash)
+
+	signature_builtin.AddValidationRule(&mem_manager.Memory)
+
+	err := mem.ValidateExistingMemory()
+	if err != nil {
+		t.Errorf("ValidateExistingMemory error in test: %s", err)
+	}
+}

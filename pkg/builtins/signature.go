@@ -13,8 +13,8 @@ const SIGNATURE_BUILTIN_NAME = "signature"
 const CELLS_PER_INSTANCE = 2
 
 type Signature struct {
-	r lambdaworks.Felt
-	s lambdaworks.Felt
+	R lambdaworks.Felt
+	S lambdaworks.Felt
 }
 type SignatureBuiltinRunner struct {
 	base       memory.Relocatable
@@ -65,9 +65,13 @@ func ValidationRuleSignature(mem *memory.Memory, address memory.Relocatable, sig
 
 	pub_key, _ := mem.GetFelt(pub_key_address)
 	message, _ := mem.GetFelt(message_addr)
-	signature := signatureBuiltin.signatures[pub_key_address]
+	signature, found_signature := signatureBuiltin.signatures[pub_key_address]
 
-	if starknet_crypto.VerifySignature(pub_key, message, signature.r, signature.s) {
+	if !found_signature {
+		return nil, SignatureVerificationError()
+	}
+
+	if starknet_crypto.VerifySignature(pub_key, message, signature.R, signature.S) {
 		return []memory.Relocatable{}, nil
 	} else {
 		return nil, SignatureVerificationError()
@@ -80,4 +84,17 @@ func NewSignatureBuiltinRunner(included bool) SignatureBuiltinRunner {
 		included,
 		map[memory.Relocatable]Signature{},
 	}
+}
+
+func (r *SignatureBuiltinRunner) AddValidationRule(mem *memory.Memory) {
+	mem.AddValidationRule(uint(r.base.SegmentIndex), RangeCheckValidationRule)
+}
+
+// Helper function to AddSignature
+func AddSignature(
+	signatureBuiltin *SignatureBuiltinRunner,
+	address memory.Relocatable,
+	signature Signature,
+) {
+	signatureBuiltin.signatures[address] = signature
 }
