@@ -9,8 +9,8 @@ type OutputBuiltinRunner struct {
 	included bool
 }
 
-func NewOutputBuiltinRunner(included bool) *OutputBuiltinRunner {
-	return &OutputBuiltinRunner{included: included}
+func NewOutputBuiltinRunner() *OutputBuiltinRunner {
+	return &OutputBuiltinRunner{}
 }
 
 func (r *OutputBuiltinRunner) Base() memory.Relocatable {
@@ -37,3 +37,7 @@ func (r *OutputBuiltinRunner) DeduceMemoryCell(rel memory.Relocatable, mem *memo
 }
 
 func (r *OutputBuiltinRunner) AddValidationRule(mem *memory.Memory) {}
+
+func (r *OutputBuiltinRunner) Include(include bool) {
+	r.included = include
+}

@@ -16,8 +16,8 @@ type PoseidonBuiltinRunner struct {
 	cache    map[memory.Relocatable]lambdaworks.Felt
 }
 
-func NewPoseidonBuiltinRunner(included bool) *PoseidonBuiltinRunner {
-	return &PoseidonBuiltinRunner{included: included, cache: make(map[memory.Relocatable]lambdaworks.Felt)}
+func NewPoseidonBuiltinRunner() *PoseidonBuiltinRunner {
+	return &PoseidonBuiltinRunner{cache: make(map[memory.Relocatable]lambdaworks.Felt)}
 }
 
 func (p *PoseidonBuiltinRunner) Base() memory.Relocatable {
@@ -77,4 +77,8 @@ func (p *PoseidonBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem
 }
 
 func (p *PoseidonBuiltinRunner) AddValidationRule(*memory.Memory) {
+}
+
+func (r *PoseidonBuiltinRunner) Include(include bool) {
+	r.included = include
 }
