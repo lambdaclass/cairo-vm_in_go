@@ -2,6 +2,7 @@ package hints
 
 import (
 	"errors"
+	"strings"
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
@@ -24,6 +25,8 @@ func (p *CairoVmHintProcessor) CompileHint(hintParams *parser.HintParams, refere
 		if int(n) >= len(referenceManager.References) {
 			return nil, errors.New("Reference not found in ReferenceManager")
 		}
+		split := strings.Split(name, ".")
+		name = split[len(split)-1]
 		ids[name] = ParseHintReference(referenceManager.References[n])
 	}
 	return HintData{Ids: ids, Code: hintParams.Code, ApTracking: hintParams.FlowTrackingData.APTracking}, nil
