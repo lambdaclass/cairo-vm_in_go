@@ -93,7 +93,7 @@ func (ids *IdsManager) GetAddr(name string, vm *VirtualMachine) (Relocatable, er
 		}
 
 		to access each struct field, lives will be field 0 and paws will be field 1, so to access them we can use:
-		ids_lives := ids.GetStructField("cat", 0, vm) or ids_lives := ids.Get("cat", 0, vm)
+		ids_lives := ids.GetStructField("cat", 0, vm) or ids_lives := ids.Get("cat", vm)
 		ids_paws := ids.GetStructField("cat", 1, vm)
 */
 func (ids *IdsManager) GetStructField(name string, field_off uint, vm *VirtualMachine) (*MaybeRelocatable, error) {
@@ -117,8 +117,8 @@ func (ids *IdsManager) GetStructField(name string, field_off uint, vm *VirtualMa
 		}
 
 		to access each struct field, lives will be field 0 and paws will be field 1, so to access them we can use:
-		ids_lives := ids.GetStructField("cat", 0, vm) or ids_lives := ids.Get("cat", 0, vm)
-		ids_paws := ids.GetStructField("cat", 1, vm)
+		ids_lives := ids.GetStructFieldFelt("cat", 0, vm) or ids_lives := ids.Get("cat", vm)
+		ids_paws := ids.GetStructFieldFelt("cat", 1, vm)
 */
 func (ids *IdsManager) GetStructFieldFelt(name string, field_off uint, vm *VirtualMachine) (lambdaworks.Felt, error) {
 	reference, ok := ids.References[name]
