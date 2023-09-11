@@ -16,8 +16,8 @@ func TestSetupIdsForTestSimpleValues(t *testing.T) {
 	vm.Segments.AddSegment()
 	ids := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
-			"a": []*MaybeRelocatable{NewMaybeRelocatableFelt(FeltFromUint64(17))},
-			"b": []*MaybeRelocatable{NewMaybeRelocatableFelt(FeltFromUint64(7))},
+			"a": {NewMaybeRelocatableFelt(FeltFromUint64(17))},
+			"b": {NewMaybeRelocatableFelt(FeltFromUint64(7))},
 		},
 		vm,
 	)
@@ -39,9 +39,9 @@ func TestSetupIdsForTestSimpleValuesLeaveGap(t *testing.T) {
 	vm.Segments.AddSegment()
 	ids := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
-			"a": []*MaybeRelocatable{NewMaybeRelocatableFelt(FeltFromUint64(17))},
-			"b": []*MaybeRelocatable{nil},
-			"c": []*MaybeRelocatable{NewMaybeRelocatableFelt(FeltFromUint64(7))},
+			"a": {NewMaybeRelocatableFelt(FeltFromUint64(17))},
+			"b": {nil},
+			"c": {NewMaybeRelocatableFelt(FeltFromUint64(7))},
 		},
 		vm,
 	)
