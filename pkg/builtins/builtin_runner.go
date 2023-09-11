@@ -1,6 +1,9 @@
 package builtins
 
-import "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+import (
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+)
 
 type BuiltinRunner interface {
 	// Returns the first address of the builtin's memory segment
@@ -29,11 +32,11 @@ type BuiltinRunner interface {
 	// GetAllocatedMemoryUnits(*vm.VirtualMachine) (uint, error) // proof-mode end_run logic
 	// // Returns the list of memory addresses used by the builtin
 	// GetMemoryAccesses(*memory.MemorySegmentManager) ([]memory.Relocatable, error) // proof-mode end_run logic
-	// GetUsedCells(*memory.MemorySegmentManager) (uint, error)                      // proof-mode end_run logic
+	GetUsedCells(*memory.MemorySegmentManager) (uint, error) // proof-mode end_run logic
 	// GetRangeCheckUsage(*memory.Memory) (*uint, *uint)                             // proof-mode end_run logic
 	// GetUsedPermRangeCheckLimits(*vm.VirtualMachine) (uint, error)                 // proof-mode end_run logic
 	// GetUsedDilutedCheckUnits(diluted_spacing uint, diluted_n_bits uint) uint      // proof-mode end_run logic
-	// GetUsedCellsAndAllocatedSizes(*vm.VirtualMachine) (uint, uint, error)         // proof-mode end_run logic + finalize_segments
+	GetUsedCellsAndAllocatedSizes(*vm.VirtualMachine) (uint, uint, error) // proof-mode end_run logic + finalize_segments
 	// // II. SECURITY (secure-run flag cairo-run || verify-secure flag run_from_entrypoint)
 	// RunSecurityChecks(*vm.VirtualMachine) error // verify_secure_runner logic
 	// // Returns the base & stop_ptr, stop_ptr can be nil

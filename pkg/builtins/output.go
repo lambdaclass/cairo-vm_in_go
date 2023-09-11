@@ -1,6 +1,9 @@
 package builtins
 
-import "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+import (
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+)
 
 const OUTPUT_BUILTIN_NAME = "output"
 
@@ -40,4 +43,20 @@ func (r *OutputBuiltinRunner) AddValidationRule(mem *memory.Memory) {}
 
 func (r *OutputBuiltinRunner) Include(include bool) {
 	r.included = include
+}
+
+func (r *OutputBuiltinRunner) GetUsedCells(segments *memory.MemorySegmentManager) (uint, error) {
+	used, err := segments.GetSegmentUsedSize(uint(r.base.SegmentIndex))
+	if err != nil {
+		return 0, err
+	}
+	return used, nil
+}
+
+func (r *OutputBuiltinRunner) GetUsedCellsAndAllocatedSizes(vm *vm.VirtualMachine) (uint, uint, error) {
+	used, err := r.GetUsedCells(&vm.Segments)
+	if err != nil {
+		return 0, 0, err
+	}
+	return used, used, nil
 }
