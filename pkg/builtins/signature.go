@@ -16,39 +16,12 @@ type Signature struct {
 	r lambdaworks.Felt
 	s lambdaworks.Felt
 }
-
-/*
-	SignatureBuiltinRunner {
-		base: 0,
-		included,
-		ratio: instance_def.ratio,
-		cells_per_instance: 2,
-		n_input_cells: 2,
-		_total_n_bits: 251,
-		stop_ptr: None,
-		instances_per_component: 1,
-		signatures: Rc::new(RefCell::new(HashMap::new())),
-	}
-*/
 type SignatureBuiltinRunner struct {
 	base       memory.Relocatable
 	included   bool
 	signatures map[memory.Relocatable](Signature)
 }
 
-/*
-	SignatureBuiltinRunner {
-	    base: 0,
-	    included,
-	    ratio: instance_def.ratio,
-	    cells_per_instance: 2,
-	    n_input_cells: 2,
-	    _total_n_bits: 251,
-	    stop_ptr: None,
-	    instances_per_component: 1,
-	    signatures: Rc::new(RefCell::new(HashMap::new())),
-	}
-*/
 func (signatureRunner *SignatureBuiltinRunner) Base() memory.Relocatable {
 	return signatureRunner.base
 }
@@ -108,19 +81,3 @@ func NewSignatureBuiltinRunner(included bool) SignatureBuiltinRunner {
 		map[memory.Relocatable]Signature{},
 	}
 }
-
-/*
-   pub(crate) fn new(instance_def: &EcdsaInstanceDef, included: bool) -> Self {
-       SignatureBuiltinRunner {
-           base: 0,
-           included,
-           ratio: instance_def.ratio,
-           cells_per_instance: 2,
-           n_input_cells: 2,
-           _total_n_bits: 251,
-           stop_ptr: None,
-           instances_per_component: 1,
-           signatures: Rc::new(RefCell::new(HashMap::new())),
-       }
-   }
-*/
