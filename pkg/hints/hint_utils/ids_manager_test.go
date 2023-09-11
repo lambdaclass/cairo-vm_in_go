@@ -47,7 +47,7 @@ func TestIdsManagerGetAddressUnknownIdentifier(t *testing.T) {
 	}
 }
 
-func TestIdsManagerGetAddressComplexReference(t *testing.T) {
+func TestIdsManagerGetAddressComplexReferenceDoubleDeref(t *testing.T) {
 	// reference: [ap + 1] + [fp + 2] = (1, 0) + 3 = (1, 3)
 	ids := IdsManager{
 		References: map[string]HintReference{
@@ -78,6 +78,38 @@ func TestIdsManagerGetAddressComplexReference(t *testing.T) {
 		t.Errorf("Error in test: %s", err)
 	}
 	expected_addr := memory.Relocatable{SegmentIndex: 1, Offset: 3}
+	if addr != expected_addr {
+		t.Errorf("IdsManager.GetAddr returned wrong value")
+	}
+}
+
+func TestIdsManagerGetAddressComplexReferenceOneDeref(t *testing.T) {
+	// reference: [ap + 1] + 2 = (1, 0) + 2 = (1, 2)
+	ids := IdsManager{
+		References: map[string]HintReference{
+			"val": {
+				Offset1: OffsetValue{
+					Register:    vm.AP,
+					Value:       1,
+					ValueType:   Reference,
+					Dereference: true,
+				},
+				Offset2: OffsetValue{
+					Value:     2,
+					ValueType: Value,
+				},
+			},
+		},
+	}
+	vm := vm.NewVirtualMachine()
+	vm.Segments.AddSegment()
+	// [ap + 1] = (1, 0)
+	vm.Segments.Memory.Insert(vm.RunContext.Ap.AddUint(1), memory.NewMaybeRelocatableRelocatable(memory.Relocatable{SegmentIndex: 1, Offset: 0}))
+	addr, err := ids.GetAddr("val", vm)
+	if err != nil {
+		t.Errorf("Error in test: %s", err)
+	}
+	expected_addr := memory.Relocatable{SegmentIndex: 1, Offset: 2}
 	if addr != expected_addr {
 		t.Errorf("IdsManager.GetAddr returned wrong value")
 	}
