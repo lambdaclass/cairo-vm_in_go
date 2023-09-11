@@ -83,6 +83,81 @@ func (ids *IdsManager) GetAddr(name string, vm *VirtualMachine) (Relocatable, er
 	return Relocatable{}, errors.Errorf("Unknow identifier %s", name)
 }
 
+/*
+	 Returns the value of an ids' field (given that the identifier is a sruct)
+		For example:
+
+		struct cat {
+			lives felt
+			paws felt
+		}
+
+		to access each struct field, lives will be field 0 and paws will be field 1, so to access them we can use:
+		ids_lives := ids.GetStructField("cat", 0, vm) or ids_lives := ids.Get("cat", vm)
+		ids_paws := ids.GetStructField("cat", 1, vm)
+*/
+func (ids *IdsManager) GetStructField(name string, field_off uint, vm *VirtualMachine) (*MaybeRelocatable, error) {
+	reference, ok := ids.References[name]
+	if ok {
+		val, ok := getStructFieldFromReference(&reference, field_off, ids.HintApTracking, vm)
+		if ok {
+			return val, nil
+		}
+	}
+	return nil, errors.Errorf("Unknow identifier %s", name)
+}
+
+/*
+	 Returns the value of an ids' field (given that the identifier is a sruct) as a Felt
+		For example:
+
+		struct cat {
+			lives felt
+			paws felt
+		}
+
+		to access each struct field, lives will be field 0 and paws will be field 1, so to access them we can use:
+		ids_lives := ids.GetStructFieldFelt("cat", 0, vm) or ids_lives := ids.Get("cat", vm)
+		ids_paws := ids.GetStructFieldFelt("cat", 1, vm)
+*/
+func (ids *IdsManager) GetStructFieldFelt(name string, field_off uint, vm *VirtualMachine) (lambdaworks.Felt, error) {
+	reference, ok := ids.References[name]
+	if ok {
+		val, ok := getStructFieldFromReference(&reference, field_off, ids.HintApTracking, vm)
+		if ok {
+			felt, is_felt := val.GetFelt()
+			if !is_felt {
+				return lambdaworks.Felt{}, errors.Errorf("Identifier %s is not a Felt", name)
+			}
+			return felt, nil
+		}
+	}
+
+	return lambdaworks.Felt{}, errors.Errorf("Unknow identifier %s", name)
+}
+
+/*
+	 Inserts value into an ids' field (given that the identifier is a sruct)
+		For example:
+
+		struct cat {
+			lives felt
+			paws felt
+		}
+
+		to access each struct field, lives will be field 0 and paws will be field 1
+		, so to set the value of cat.paws we can use:
+		ids.InsertStructField("cat", 1, vm)
+*/
+func (ids *IdsManager) InsertStructField(name string, field_off uint, value *MaybeRelocatable, vm *VirtualMachine) error {
+
+	addr, err := ids.GetAddr(name, vm)
+	if err != nil {
+		return err
+	}
+	return vm.Segments.Memory.Insert(addr.AddUint(field_off), value)
+}
+
 // Inserts value into the address of the given identifier
 func insertIdsFromReference(value *MaybeRelocatable, reference *HintReference, apTracking parser.ApTrackingData, vm *VirtualMachine) error {
 	addr, ok := getAddressFromReference(reference, apTracking, vm)
@@ -106,6 +181,19 @@ func getValueFromReference(reference *HintReference, apTracking parser.ApTrackin
 			}
 		} else {
 			return NewMaybeRelocatableRelocatable(addr), true
+		}
+	}
+	return nil, false
+}
+
+func getStructFieldFromReference(reference *HintReference, field_off uint, apTracking parser.ApTrackingData, vm *VirtualMachine) (*MaybeRelocatable, bool) {
+	addr, ok := getAddressFromReference(reference, apTracking, vm)
+	if ok {
+		if reference.Dereference {
+			val, err := vm.Segments.Memory.Get(addr.AddUint(field_off))
+			if err == nil {
+				return val, true
+			}
 		}
 	}
 	return nil, false
