@@ -2,6 +2,10 @@ package builtins
 
 import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
+
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	"github.com/pkg/errors"
 )
@@ -12,8 +16,10 @@ const BITWISE_TOTAL_N_BITS = 251
 const BIWISE_INPUT_CELLS_PER_INSTANCE = 2
 
 type BitwiseBuiltinRunner struct {
-	base     memory.Relocatable
-	included bool
+	base                  memory.Relocatable
+	ratio                 uint
+	instancesPerComponent uint
+	included              bool
 }
 
 func BitwiseError(err error) error {
@@ -85,11 +91,64 @@ func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem 
 		res = nil
 	}
 	return res, nil
-
 }
 
 func (b *BitwiseBuiltinRunner) AddValidationRule(*memory.Memory) {}
 
-func (r *BitwiseBuiltinRunner) Include(include bool) {
-	r.included = include
+func (b *BitwiseBuiltinRunner) Include(include bool) {
+	b.included = include
+}
+
+func (b *BitwiseBuiltinRunner) Ratio() uint {
+	return b.ratio
+}
+
+func (b *BitwiseBuiltinRunner) CellsPerInstance() uint {
+	return BITWISE_CELLS_PER_INSTANCE
+}
+
+func (b *BitwiseBuiltinRunner) GetAllocatedMemoryUnits(vm *vm.VirtualMachine) (uint, error) {
+	// This condition corresponds to an uninitialized ratio for the builtin, which should only
+	// happen when layout is `dynamic`
+	if b.Ratio() == 0 {
+		// Dynamic layout has the exact number of instances it needs (up to a power of 2).
+		segments := vm.Segments
+		used, err := segments.GetSegmentUsedSize(uint(b.base.SegmentIndex))
+		if err != nil {
+			return 0, err
+		}
+		instances := used / b.CellsPerInstance()
+		components := utils.NextPowOf2(instances / b.instancesPerComponent)
+		size := b.CellsPerInstance() * b.instancesPerComponent * components
+
+		return size, nil
+	}
+
+	minStep := b.ratio * b.instancesPerComponent
+	if vm.CurrentStep < minStep {
+		return 0, errors.Errorf("number of steps must be at least %d for the %s builtin", minStep, b.Name())
+	}
+	value, err := utils.SafeDiv(vm.CurrentStep, b.ratio)
+
+	if err != nil {
+		return 0, errors.Errorf("error calculating builtin memory units: %s", err)
+	}
+
+	return b.CellsPerInstance() * value, nil
+}
+
+func (b *BitwiseBuiltinRunner) GetUsedCellsAndAllocatedSizes(vm *vm.VirtualMachine) (uint, uint, error) {
+	segments := vm.Segments
+	used, err := segments.GetSegmentUsedSize(uint(b.base.SegmentIndex))
+	if err != nil {
+		return 0, 0, err
+	}
+
+	size, err := b.GetAllocatedMemoryUnits(vm)
+
+	if used > size {
+		return 0, 0, errors.Errorf("The builtin %s used %d cells but the capacity is %d", b.Name(), used, size)
+	}
+
+	return used, size, nil
 }

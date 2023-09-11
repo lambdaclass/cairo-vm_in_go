@@ -26,13 +26,12 @@ type BuiltinRunner interface {
 	// // Most of them depend on Layouts being implemented
 	// // Use cases:
 	// // I. PROOF_MODE
-	// // Returns the builtin's ratio, can be nil if the layout is dynamic
-	// Ratio() *uint // proof-mode end_run logic
-	// // Returns the builtin's allocated memory units
-	// GetAllocatedMemoryUnits(*vm.VirtualMachine) (uint, error) // proof-mode end_run logic
+	// Returns the builtin's ratio, can be nil if the layout is dynamic
+	Ratio() *uint // proof-mode end_run logic
+	// Returns the builtin's allocated memory units
+	GetAllocatedMemoryUnits(*vm.VirtualMachine) (uint, error) // proof-mode end_run logic
 	// // Returns the list of memory addresses used by the builtin
 	// GetMemoryAccesses(*memory.MemorySegmentManager) ([]memory.Relocatable, error) // proof-mode end_run logic
-	GetUsedCells(*memory.MemorySegmentManager) (uint, error) // proof-mode end_run logic
 	// GetRangeCheckUsage(*memory.Memory) (*uint, *uint)                             // proof-mode end_run logic
 	// GetUsedPermRangeCheckLimits(*vm.VirtualMachine) (uint, error)                 // proof-mode end_run logic
 	// GetUsedDilutedCheckUnits(diluted_spacing uint, diluted_n_bits uint) uint      // proof-mode end_run logic

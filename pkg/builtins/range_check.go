@@ -4,6 +4,8 @@ import (
 	"math"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	"github.com/pkg/errors"
 )
@@ -29,8 +31,10 @@ func NotAFeltError(addr memory.Relocatable, val memory.MaybeRelocatable) error {
 }
 
 type RangeCheckBuiltinRunner struct {
-	base     memory.Relocatable
-	included bool
+	base                  memory.Relocatable
+	included              bool
+	ratio                 uint
+	instancesPerComponent uint
 }
 
 func NewRangeCheckBuiltinRunner() *RangeCheckBuiltinRunner {
@@ -81,4 +85,58 @@ func (r *RangeCheckBuiltinRunner) AddValidationRule(mem *memory.Memory) {
 
 func (r *RangeCheckBuiltinRunner) Include(include bool) {
 	r.included = include
+}
+
+func (r *RangeCheckBuiltinRunner) Ratio() uint {
+	return r.ratio
+}
+
+func (r *RangeCheckBuiltinRunner) CellsPerInstance() uint {
+	return CELLS_PER_RANGE_CHECK
+}
+
+func (r *RangeCheckBuiltinRunner) GetAllocatedMemoryUnits(vm *vm.VirtualMachine) (uint, error) {
+	// This condition corresponds to an uninitialized ratio for the builtin, which should only
+	// happen when layout is `dynamic`
+	if r.Ratio() == 0 {
+		// Dynamic layout has the exact number of instances it needs (up to a power of 2).
+		segments := vm.Segments
+		used, err := segments.GetSegmentUsedSize(uint(r.base.SegmentIndex))
+		if err != nil {
+			return 0, err
+		}
+		instances := used / r.CellsPerInstance()
+		components := utils.NextPowOf2(instances / r.instancesPerComponent)
+		size := r.CellsPerInstance() * r.instancesPerComponent * components
+
+		return size, nil
+	}
+
+	minStep := r.ratio * r.instancesPerComponent
+	if vm.CurrentStep < minStep {
+		return 0, errors.Errorf("number of steps must be at least %d for the %s builtin", minStep, r.Name())
+	}
+	value, err := utils.SafeDiv(vm.CurrentStep, r.ratio)
+
+	if err != nil {
+		return 0, errors.Errorf("error calculating builtin memory units: %s", err)
+	}
+
+	return r.CellsPerInstance() * value, nil
+}
+
+func (r *RangeCheckBuiltinRunner) GetUsedCellsAndAllocatedSizes(vm *vm.VirtualMachine) (uint, uint, error) {
+	segments := vm.Segments
+	used, err := segments.GetSegmentUsedSize(uint(r.base.SegmentIndex))
+	if err != nil {
+		return 0, 0, err
+	}
+
+	size, err := r.GetAllocatedMemoryUnits(vm)
+
+	if used > size {
+		return 0, 0, errors.Errorf("The builtin %s used %d cells but the capacity is %d", r.Name(), used, size)
+	}
+
+	return used, size, nil
 }

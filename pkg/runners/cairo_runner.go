@@ -272,13 +272,5 @@ func (runner *CairoRunner) RunUntilSteps(steps uint, virtualMachine *vm.VirtualM
 
 // TODO: Add hint processor when it's done
 func (runner *CairoRunner) RunUntilNextPowerOfTwo(virtualMachine *vm.VirtualMachine, hintProcessor vm.HintProcessor) error {
-	return runner.RunUntilSteps(NextPowOf2(virtualMachine.CurrentStep), virtualMachine, hintProcessor)
-}
-
-func NextPowOf2(n uint) uint {
-	var k uint = 1
-	for k < n {
-		k = k << 1
-	}
-	return k
+	return runner.RunUntilSteps(utils.NextPowOf2(virtualMachine.CurrentStep), virtualMachine, hintProcessor)
 }

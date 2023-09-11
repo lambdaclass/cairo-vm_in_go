@@ -2,10 +2,13 @@ package builtins
 
 import (
 	"encoding/binary"
-	"errors"
 	"math/bits"
 
+	"github.com/pkg/errors"
+
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -15,9 +18,11 @@ const KECCAK_INPUT_BIT_LENTGH = 200
 const KECCAK_INPUT_BYTES_LENTGH = 25
 
 type KeccakBuiltinRunner struct {
-	base     Relocatable
-	included bool
-	cache    map[Relocatable]Felt
+	base                  Relocatable
+	included              bool
+	cache                 map[Relocatable]Felt
+	ratio                 uint
+	instancesPerComponent uint
 }
 
 func NewKeccakBuiltinRunner() *KeccakBuiltinRunner {
@@ -517,6 +522,60 @@ func keccakF1600(a *[25]uint64) {
 	}
 }
 
-func (r *KeccakBuiltinRunner) Include(include bool) {
-	r.included = include
+func (k *KeccakBuiltinRunner) Include(include bool) {
+	k.included = include
+}
+
+func (k *KeccakBuiltinRunner) Ratio() uint {
+	return k.ratio
+}
+
+func (k *KeccakBuiltinRunner) CellsPerInstance() uint {
+	return KECCAK_CELLS_PER_INSTANCE
+}
+
+func (k *KeccakBuiltinRunner) GetAllocatedMemoryUnits(vm *vm.VirtualMachine) (uint, error) {
+	// This condition corresponds to an uninitialized ratio for the builtin, which should only
+	// happen when layout is `dynamic`
+	if k.Ratio() == 0 {
+		// Dynamic layout has the exact number of instances it needs (up to a power of 2).
+		segments := vm.Segments
+		used, err := segments.GetSegmentUsedSize(uint(k.base.SegmentIndex))
+		if err != nil {
+			return 0, err
+		}
+		instances := used / k.CellsPerInstance()
+		components := utils.NextPowOf2(instances / k.instancesPerComponent)
+		size := k.CellsPerInstance() * k.instancesPerComponent * components
+
+		return size, nil
+	}
+
+	minStep := k.ratio * k.instancesPerComponent
+	if vm.CurrentStep < minStep {
+		return 0, errors.Errorf("number of steps must be at least %d for the %s builtin", minStep, k.Name())
+	}
+	value, err := utils.SafeDiv(vm.CurrentStep, k.ratio)
+
+	if err != nil {
+		return 0, errors.Errorf("error calculating builtin memory units: %s", err)
+	}
+
+	return k.CellsPerInstance() * value, nil
+}
+
+func (k *KeccakBuiltinRunner) GetUsedCellsAndAllocatedSizes(vm *vm.VirtualMachine) (uint, uint, error) {
+	segments := vm.Segments
+	used, err := segments.GetSegmentUsedSize(uint(k.base.SegmentIndex))
+	if err != nil {
+		return 0, 0, err
+	}
+
+	size, err := k.GetAllocatedMemoryUnits(vm)
+
+	if used > size {
+		return 0, 0, errors.Errorf("The builtin %s used %d cells but the capacity is %d", k.Name(), used, size)
+	}
+
+	return used, size, nil
 }

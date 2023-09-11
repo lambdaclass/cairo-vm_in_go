@@ -16,45 +16,50 @@ func NewOutputBuiltinRunner() *OutputBuiltinRunner {
 	return &OutputBuiltinRunner{}
 }
 
-func (r *OutputBuiltinRunner) Base() memory.Relocatable {
-	return r.base
+func (o *OutputBuiltinRunner) Base() memory.Relocatable {
+	return o.base
 }
 
-func (r *OutputBuiltinRunner) Name() string {
+func (o *OutputBuiltinRunner) Name() string {
 	return OUTPUT_BUILTIN_NAME
 }
 
-func (r *OutputBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
-	r.base = segments.AddSegment()
+func (o *OutputBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
+	o.base = segments.AddSegment()
 }
 
-func (r *OutputBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
-	if r.included {
-		return []memory.MaybeRelocatable{*memory.NewMaybeRelocatableRelocatable(r.base)}
+func (o *OutputBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
+	if o.included {
+		return []memory.MaybeRelocatable{*memory.NewMaybeRelocatableRelocatable(o.base)}
 	}
 	return []memory.MaybeRelocatable{}
 }
 
-func (r *OutputBuiltinRunner) DeduceMemoryCell(rel memory.Relocatable, mem *memory.Memory) (*memory.MaybeRelocatable, error) {
+func (o *OutputBuiltinRunner) DeduceMemoryCell(rel memory.Relocatable, mem *memory.Memory) (*memory.MaybeRelocatable, error) {
 	return nil, nil
 }
 
-func (r *OutputBuiltinRunner) AddValidationRule(mem *memory.Memory) {}
+func (o *OutputBuiltinRunner) AddValidationRule(mem *memory.Memory) {}
 
-func (r *OutputBuiltinRunner) Include(include bool) {
-	r.included = include
+func (o *OutputBuiltinRunner) Include(include bool) {
+	o.included = include
 }
 
-func (r *OutputBuiltinRunner) GetUsedCells(segments *memory.MemorySegmentManager) (uint, error) {
-	used, err := segments.GetSegmentUsedSize(uint(r.base.SegmentIndex))
-	if err != nil {
-		return 0, err
-	}
-	return used, nil
+// func (r *OutputBuiltinRunner) GetUsedCells(segments *memory.MemorySegmentManager) (uint, error) {
+// 	used, err := segments.GetSegmentUsedSize(uint(r.base.SegmentIndex))
+// 	if err != nil {
+// 		return 0, err
+// 	}
+// 	return used, nil
+// }
+
+func (o *OutputBuiltinRunner) GetAllocatedMemoryUnits(vm *vm.VirtualMachine) (uint, error) {
+	return 0, nil
 }
 
-func (r *OutputBuiltinRunner) GetUsedCellsAndAllocatedSizes(vm *vm.VirtualMachine) (uint, uint, error) {
-	used, err := r.GetUsedCells(&vm.Segments)
+func (o *OutputBuiltinRunner) GetUsedCellsAndAllocatedSizes(vm *vm.VirtualMachine) (uint, uint, error) {
+	segments := vm.Segments
+	used, err := segments.GetSegmentUsedSize(uint(o.base.SegmentIndex))
 	if err != nil {
 		return 0, 0, err
 	}
