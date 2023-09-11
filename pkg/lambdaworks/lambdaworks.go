@@ -8,6 +8,7 @@ package lambdaworks
 import "C"
 
 import (
+	"fmt"
 	"math/big"
 	"unsafe"
 
@@ -227,7 +228,7 @@ func (a Felt) Shl(num uint64) Felt {
 	var result C.felt_t
 	var a_c C.felt_t = a.toC()
 
-	C.felt_shl(&a_c[0], C.ulonglong(num), &result[0])
+	C.felt_shl(&a_c[0], C.ulong(num), &result[0])
 	return fromC(result)
 }
 
@@ -240,6 +241,7 @@ func (a Felt) PowUint(p uint32) Felt {
 }
 
 func (a Felt) ToBigInt() (big.Int, error) {
+	fmt.Println(a)
 	hex := a.ToHexString()
 	big_int, ok := new(big.Int).SetString(hex, 16)
 	if !ok {

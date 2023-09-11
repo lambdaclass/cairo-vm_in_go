@@ -75,5 +75,6 @@ char* to_signed_felt(felt_t value);
 /* frees a pointer to a string */
 void free_string(char* ptr);
 
+/* writes the result variable with a >> num */
 void felt_shr(felt_t a, size_t b, felt_t result);
 
