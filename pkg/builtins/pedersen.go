@@ -74,7 +74,7 @@ func (p *PedersenBuiltinRunner) CheckVerifiedAddresses(address memory.Relocatabl
 func (p *PedersenBuiltinRunner) ResizeVerifiedAddresses(address memory.Relocatable) {
 	num := int(address.Offset) - len(p.verified_addresses)
 	if num > 0 {
-		for i := 0; i <= num+1; i++ {
+		for i := 0; i <= num; i++ {
 			p.verified_addresses = append(p.verified_addresses, false)
 		}
 
