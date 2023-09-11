@@ -325,9 +325,9 @@ func TestBuildHintDataMapOneHint(t *testing.T) {
 				{
 					Code: "ids.a = ids.b",
 					FlowTrackingData: parser.FlowTrackingData{
-						APTracking: parser.ApTrackingData{Group: 1, Offset: 2},
+						APTracking:   parser.ApTrackingData{Group: 1, Offset: 2},
+						ReferenceIds: map[string]uint{"a": 0, "b": 1},
 					},
-					ReferenceIds: map[string]uint{"a": 0, "b": 1},
 				},
 			},
 		},
