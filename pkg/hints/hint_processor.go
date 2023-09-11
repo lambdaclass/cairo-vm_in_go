@@ -38,8 +38,6 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return errors.New("Wrong Hint Data")
 	}
 	switch data.Code {
-	case ASSERT_NN:
-		return assert_nn(data.Ids, vm)
 	default:
 		return errors.New("Unknown Hint")
 	}
