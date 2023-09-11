@@ -24,7 +24,7 @@ $(TEST_DIR)/%.go.trace $(TEST_DIR)/%.go.memory: $(TEST_DIR)/%.json
 	go run cmd/cli/main.go $(@D)/$(*F).json
 
 $(TEST_DIR)/%.json: $(TEST_DIR)/%.cairo
-	cairo-compile --cairo_path="$(TEST_DIR)" $< --output $@
+	. cairo-vm-env/bin/activate && cairo-compile --cairo_path="$(TEST_DIR)" $< --output $@
 
 # Creates a pyenv and installs cairo-lang
 deps:
@@ -84,7 +84,7 @@ clean_files:
 
 demo_fibonacci: clean_files build_cairo_vm_cli build
 	@echo "Compiling fibonacci program..."
-	@cairo-compile --cairo_path="$(TEST_DIR)" cairo_programs/fibonacci.cairo --output cairo_programs/fibonacci.json
+	@. cairo-vm-env/bin/activate && cairo-compile --cairo_path="$(TEST_DIR)" cairo_programs/fibonacci.cairo --output cairo_programs/fibonacci.json
 	@echo "Running fibonacci program with Go implementation..."
 	@go run cmd/cli/main.go cairo_programs/fibonacci.json
 	@echo "Running fibonacci program with Rust implementation..."
@@ -105,7 +105,7 @@ demo_fibonacci: clean_files build_cairo_vm_cli build
 
 demo_factorial: clean_files build_cairo_vm_cli build
 	@echo "Compiling factorial program..."
-	@cairo-compile --cairo_path="$(TEST_DIR)" cairo_programs/factorial.cairo --output cairo_programs/factorial.json
+	@. cairo-vm-env/bin/activate && cairo-compile --cairo_path="$(TEST_DIR)" cairo_programs/factorial.cairo --output cairo_programs/factorial.json
 	@echo "Running factorial program with Go implementation..."
 	@go run cmd/cli/main.go cairo_programs/factorial.json
 	@echo "Running factorial program with Rust implementation..."
