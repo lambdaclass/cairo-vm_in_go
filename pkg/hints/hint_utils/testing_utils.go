@@ -1,6 +1,7 @@
 package hint_utils
 
 import (
+	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
@@ -15,7 +16,7 @@ import (
 // All references will be FP-based, so please don't update the value of FP after calling this function,
 // and make sure that the memory at fp's segment is clear from its current offset onwards
 func SetupIdsForTest(ids map[string][]*memory.MaybeRelocatable, vm *vm.VirtualMachine) IdsManager {
-	manager := IdsManager{}
+	manager := NewIdsManager(make(map[string]HintReference), parser.ApTrackingData{})
 	base_addr := vm.RunContext.Fp
 	current_offset := 0
 	for name, elems := range ids {
