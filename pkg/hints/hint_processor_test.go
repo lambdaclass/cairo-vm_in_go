@@ -31,7 +31,7 @@ func TestCompileHintHappyPath(t *testing.T) {
 		FlowTrackingData: parser.FlowTrackingData{
 			APTracking: parser.ApTrackingData{Group: 1, Offset: 2},
 		},
-		ReferenceIds: map[string]uint{"__main.__a": 0, "__main__.b": 1},
+		ReferenceIds: map[string]uint{"__main.__.a": 0, "__main__.b": 1},
 	}
 	referenceManager := &parser.ReferenceManager{
 		References: []parser.Reference{
