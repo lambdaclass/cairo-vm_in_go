@@ -13,11 +13,15 @@ func main() {
 		fmt.Println("Wrong argument count: Use go run cmd/cli/main.go COMPILED_JSON")
 		return
 	}
-	cli_args := os.Args[1:]
-	programPath := cli_args[0]
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false}
+
+	cliArgs := os.Args[1:]
+	programPath := cliArgs[0]
+
+	// TODO: These values are hardcoded for the moment, we should get them through the CLI
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, ProofMode: false, Layout: "small"}
 
 	cairoRunner, err := cairo_run.CairoRun(programPath, cairoRunConfig)
+
 	if err != nil {
 		fmt.Printf("Failed with error: %s", err)
 		return

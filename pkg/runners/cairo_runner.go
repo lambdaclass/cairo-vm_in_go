@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
+	"github.com/lambdaclass/cairo-vm.go/pkg/layouts"
 	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
@@ -24,37 +25,42 @@ type CairoRunner struct {
 	mainOffset    uint
 	ProofMode     bool
 	RunEnded      bool
+	layout        layouts.CairoLayout
 }
 
-func NewCairoRunner(program vm.Program) (*CairoRunner, error) {
+func NewCairoRunner(program vm.Program, layoutName string, proofMode bool) (*CairoRunner, error) {
 	mainIdentifier, ok := (program.Identifiers)["__main__.main"]
 	main_offset := uint(0)
 	if ok {
 		main_offset = uint(mainIdentifier.PC)
 	}
-	runner := CairoRunner{Program: program, Vm: *vm.NewVirtualMachine(), mainOffset: main_offset}
-	for _, builtin_name := range program.Builtins {
-		switch builtin_name {
-		case builtins.BITWISE_BUILTIN_NAME:
-			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewBitwiseBuiltinRunner(true))
-		case builtins.CHECK_RANGE_BUILTIN_NAME:
-			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewRangeCheckBuiltinRunner(true))
-		case builtins.POSEIDON_BUILTIN_NAME:
-			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewPoseidonBuiltinRunner(true))
-		case builtins.OUTPUT_BUILTIN_NAME:
-			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewOutputBuiltinRunner(true))
-		case builtins.KECCAK_BUILTIN_NAME:
-			runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtins.NewKeccakBuiltinRunner(true))
-		default:
-			return nil, errors.Errorf("Invalid builtin: %s", builtin_name)
-		}
+
+	err := utils.CheckBuiltinsSubsequence(program.Builtins)
+	if err != nil {
+		return nil, errors.New(err.Error())
 	}
 
+	layoutBuiltinRunners, err := layouts.GetLayoutBuiltinRunners(layoutName)
+	if err != nil {
+		return nil, errors.New(err.Error())
+	}
+	layout := layouts.CairoLayout{Name: layoutName, Builtins: layoutBuiltinRunners}
+	runner := CairoRunner{
+		Program:    program,
+		Vm:         *vm.NewVirtualMachine(),
+		mainOffset: main_offset,
+		ProofMode:  proofMode,
+		layout:     layout,
+	}
 	return &runner, nil
 }
 
 // Performs the initialization step, returns the end pointer (pc upon which execution should stop)
 func (r *CairoRunner) Initialize() (memory.Relocatable, error) {
+	err := r.initializeBuiltins()
+	if err != nil {
+		return memory.Relocatable{}, errors.New(err.Error())
+	}
 	r.initializeSegments()
 	end, err := r.initializeMainEntrypoint()
 	if err == nil {
@@ -63,20 +69,32 @@ func (r *CairoRunner) Initialize() (memory.Relocatable, error) {
 	return end, err
 }
 
+// Initializes builtin runners in accordance to the specified layout and
+// the builtins present in the running program.
 func (r *CairoRunner) initializeBuiltins() error {
-	orderedBuiltinNames := []string{
-		"output_builtin",
-		"pedersen_builtin",
-		"range_check_builtin",
-		"ecdsa_builtin",
-		"bitwise_builtin",
-		"ec_op_builtin",
-		"keccak_builtin",
-		"poseidon_builtin",
+	var builtinRunners []builtins.BuiltinRunner
+	programBuiltins := map[string]struct{}{}
+	for _, builtin := range r.Program.Builtins {
+		programBuiltins[builtin] = struct{}{}
 	}
-	if !utils.IsSubsequence(r.Program.Builtins, orderedBuiltinNames) {
-		return errors.Errorf("program builtins are not in appropiate order")
+
+	for _, layoutBuiltin := range r.layout.Builtins {
+		_, included := programBuiltins[layoutBuiltin.Name()]
+		if included {
+			delete(programBuiltins, layoutBuiltin.Name())
+			layoutBuiltin.Include(true)
+			builtinRunners = append(builtinRunners, layoutBuiltin)
+		} else if r.proofMode {
+			layoutBuiltin.Include(false)
+			builtinRunners = append(builtinRunners, layoutBuiltin)
+		}
 	}
+
+	if len(programBuiltins) != 0 {
+		return errors.Errorf("Builtin(s) %v not present in layout %s", programBuiltins, r.layout.Name)
+	}
+
+	r.Vm.BuiltinRunners = builtinRunners
 
 	return nil
 }

@@ -14,7 +14,7 @@ import (
 // - Asserting expected trace values
 // - Asserting memory_holes
 func TestFibonacci(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false}
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "plain", ProofMode: false}
 	_, err := cairo_run.CairoRun("../../../cairo_programs/fibonacci.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
@@ -23,7 +23,7 @@ func TestFibonacci(t *testing.T) {
 }
 
 func TestFactorial(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false}
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "plain", ProofMode: false}
 	_, err := cairo_run.CairoRun("../../../cairo_programs/factorial.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
@@ -32,7 +32,7 @@ func TestFactorial(t *testing.T) {
 }
 
 func TestPoseidonBuiltin(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false}
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "small", ProofMode: false}
 
 	_, err := cairo_run.CairoRun("../../../cairo_programs/poseidon_builtin.json", cairoRunConfig)
 	if err != nil {
@@ -41,7 +41,7 @@ func TestPoseidonBuiltin(t *testing.T) {
 }
 
 func TestPoseidonHash(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false}
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "small", ProofMode: false}
 
 	_, err := cairo_run.CairoRun("../../../cairo_programs/poseidon_hash.json", cairoRunConfig)
 	if err != nil {
@@ -50,7 +50,7 @@ func TestPoseidonHash(t *testing.T) {
 }
 
 func TestSimplePrint(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false}
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "small", ProofMode: false}
 
 	_, err := cairo_run.CairoRun("../../../cairo_programs/simple_print.json", cairoRunConfig)
 	if err != nil {
@@ -59,7 +59,7 @@ func TestSimplePrint(t *testing.T) {
 }
 
 func TestWriteOutputProgram(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false}
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "small", ProofMode: false}
 	runner, err := cairo_run.CairoRun("../../../cairo_programs/bitwise_output.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)

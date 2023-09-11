@@ -3,9 +3,10 @@ package builtins
 import (
 	"encoding/binary"
 	"errors"
+	"math/bits"
+
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
-	"math/bits"
 )
 
 const KECCAK_CELLS_PER_INSTANCE = 16
@@ -19,8 +20,8 @@ type KeccakBuiltinRunner struct {
 	cache    map[Relocatable]Felt
 }
 
-func NewKeccakBuiltinRunner(included bool) *KeccakBuiltinRunner {
-	return &KeccakBuiltinRunner{included: included, cache: make(map[Relocatable]Felt)}
+func NewKeccakBuiltinRunner() *KeccakBuiltinRunner {
+	return &KeccakBuiltinRunner{cache: make(map[Relocatable]Felt)}
 }
 
 const KECCAK_BUILTIN_NAME = "keccak"
@@ -514,4 +515,8 @@ func keccakF1600(a *[25]uint64) {
 		a[23] = bc3 ^ (bc0 &^ bc4)
 		a[24] = bc4 ^ (bc1 &^ bc0)
 	}
+}
+
+func (r *KeccakBuiltinRunner) Include(include bool) {
+	r.included = include
 }

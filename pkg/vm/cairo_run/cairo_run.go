@@ -22,6 +22,8 @@ type CairoRunConfig struct {
 	// TraceFile           *string
 	// MemoryFile          *string
 	DisableTracePadding bool
+	ProofMode           bool
+	Layout              string
 }
 
 func CairoRunError(err error) error {
@@ -35,7 +37,10 @@ func CairoRun(programPath string, cairoRunConfig CairoRunConfig) (*runners.Cairo
 	}
 	programJson := vm.DeserializeProgramJson(compiledProgram)
 
-	cairoRunner, err := runners.NewCairoRunner(programJson)
+	layout := cairoRunConfig.Layout
+	proofMode := cairoRunConfig.ProofMode
+
+	cairoRunner, err := runners.NewCairoRunner(programJson, layout, proofMode)
 	if err != nil {
 		return nil, err
 	}
