@@ -28,6 +28,16 @@ func TestToHex(t *testing.T) {
 	}
 }
 
+func TestToHexPrimeMinusOne(t *testing.T) {
+	var expected = "0x800000000000011000000000000000000000000000000000000000000000000"
+	felt := lambdaworks.FeltFromDecString("-1")
+
+	result := felt.ToHexString()
+	if result != expected {
+		t.Errorf("TestFromHex failed. Expected: %v, Got: %v", expected, result)
+	}
+}
+
 func TestFromDecString(t *testing.T) {
 	var s_one = "435"
 	expected := lambdaworks.FeltFromUint64(435)
