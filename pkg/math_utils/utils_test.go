@@ -32,3 +32,27 @@ func div_mod_fail(t *testing.T) {
         t.Errorf("DivMod expected to fail with division by zero")
     }
 }
+
+func isqrt_ok(t *testing.T) {
+    var x, y *big.Int
+    x.SetString("4573659632505831259480", 10)
+    y.Mul(x, x)
+
+    sqr_y, err := ISqrt(y)
+    if err != nil {
+        t.Errorf("ISqrt failed with error: %s", err)
+    }
+    if x.Cmp(sqr_y) != 0 {
+        t.Errorf("Failed to get square root of x^2, x: %s", x)
+    }
+}
+
+func isqrt_fail(t *testing.T) {
+    x := big.NewInt(-1)
+
+    _, err := ISqrt(x)
+    if err == nil {
+        t.Errorf("expected ISqrt to fail")
+    }
+}
+

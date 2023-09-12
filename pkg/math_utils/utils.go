@@ -16,3 +16,11 @@ func DivMod(n *big.Int, m *big.Int, p *big.Int) (*big.Int, error) {
     res.Mod(res, p)
     return res, nil
 }
+
+func ISqrt(x *big.Int) (*big.Int, error) {
+    if x.Sign() == -1 {
+        errors.Errorf("Expected x: %s to be non-negative", x)
+    }
+    var res *big.Int
+    return res.Sqrt(x), nil
+}
