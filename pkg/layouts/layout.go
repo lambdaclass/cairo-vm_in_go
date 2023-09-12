@@ -33,9 +33,9 @@ func GetLayoutBuiltinRunners(layout string) ([]builtins.BuiltinRunner, error) {
 	case "small":
 		return []builtins.BuiltinRunner{
 			builtins.NewOutputBuiltinRunner(),
-			builtins.NewRangeCheckBuiltinRunner(),
+			builtins.DefaultRangeCheckBuiltinRunner(),
 			builtins.DefaultBitwiseBuiltinRunner(),
-			builtins.NewKeccakBuiltinRunner(),
+			builtins.DefaultKeccakBuiltinRunner(),
 			builtins.NewPoseidonBuiltinRunner()}, nil
 	default:
 		return nil, errors.Errorf("layout not supported: %s", layout)

@@ -60,13 +60,6 @@ func TestOutputAddValidationRule(t *testing.T) {
 	}
 }
 
-// fn get_allocated_memory_units_output() {
-// 	let builtin = BuiltinRunner::Output(OutputBuiltinRunner::new(true));
-// 	let vm = vm!();
-
-//		// In this case, the function always return Ok(0)
-//		assert_eq!(builtin.get_allocated_memory_units(&vm), Ok(0));
-//	}
 func TestGetAllocatedMemoryUnitsOutput(t *testing.T) {
 	output := builtins.NewOutputBuiltinRunner()
 	vm := vm.NewVirtualMachine()

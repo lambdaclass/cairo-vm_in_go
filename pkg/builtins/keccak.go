@@ -25,8 +25,12 @@ type KeccakBuiltinRunner struct {
 	instancesPerComponent uint
 }
 
-func NewKeccakBuiltinRunner() *KeccakBuiltinRunner {
-	return &KeccakBuiltinRunner{cache: make(map[Relocatable]Felt)}
+func NewKeccakBuiltinRunner(ratio uint) *KeccakBuiltinRunner {
+	return &KeccakBuiltinRunner{ratio: ratio, cache: make(map[Relocatable]Felt), instancesPerComponent: 16}
+}
+
+func DefaultKeccakBuiltinRunner() *KeccakBuiltinRunner {
+	return NewKeccakBuiltinRunner(2048)
 }
 
 const KECCAK_BUILTIN_NAME = "keccak"

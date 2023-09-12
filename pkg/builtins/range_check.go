@@ -36,8 +36,12 @@ type RangeCheckBuiltinRunner struct {
 	instancesPerComponent uint
 }
 
-func NewRangeCheckBuiltinRunner() *RangeCheckBuiltinRunner {
-	return &RangeCheckBuiltinRunner{}
+func NewRangeCheckBuiltinRunner(ratio uint) *RangeCheckBuiltinRunner {
+	return &RangeCheckBuiltinRunner{ratio: ratio, instancesPerComponent: 1}
+}
+
+func DefaultRangeCheckBuiltinRunner() *RangeCheckBuiltinRunner {
+	return NewRangeCheckBuiltinRunner(8)
 }
 
 func (r *RangeCheckBuiltinRunner) Base() memory.Relocatable {
