@@ -46,3 +46,26 @@ func PoseidonPermuteComp(poseidon_state *[3]lambdaworks.Felt) {
 	// Update poseidon state
 	*poseidon_state = new_poseidon_state
 }
+
+func PedersenHash(f1 lambdaworks.Felt, f2 lambdaworks.Felt) lambdaworks.Felt {
+	felt_1 := toC(f1)
+	felt_2 := toC(f2)
+	var result C.felt_t
+
+	C.pedersen_hash(&felt_1[0], &felt_2[0], &result[0])
+
+	hash := fromC(result)
+
+	return hash
+}
+
+func VerifySignature(public_key lambdaworks.Felt, message lambdaworks.Felt, r lambdaworks.Felt, s lambdaworks.Felt) bool {
+	public_key_for_c := toC(public_key)
+	message_for_c := toC(message)
+	r_for_c := toC(r)
+	s_for_c := toC(s)
+
+	c_verify_status := C.verify_signature(&public_key_for_c[0], &message_for_c[0], &r_for_c[0], &s_for_c[0])
+
+	return bool(c_verify_status)
+}

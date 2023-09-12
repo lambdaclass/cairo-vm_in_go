@@ -17,6 +17,8 @@ type BuiltinRunner interface {
 	// Adds a validation rule to the memory
 	// Validation rules are applied when a value is inserted into the builtin's segment
 	AddValidationRule(*memory.Memory)
+	// Sets the inclusion of the Builtin Runner in the Cairo Runner
+	Include(bool)
 	// TODO: Later additions -> Some of them could depend on a Default Implementation
 	// // Most of them depend on Layouts being implemented
 	// // Use cases:

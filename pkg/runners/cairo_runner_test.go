@@ -2,12 +2,17 @@ package runners_test
 
 import (
 	"bytes"
+	"reflect"
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
+	"github.com/lambdaclass/cairo-vm.go/pkg/hints"
+	"github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
 	"github.com/lambdaclass/cairo-vm.go/pkg/runners"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/cairo_run"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -18,7 +23,7 @@ func TestNewCairoRunnerInvalidBuiltin(t *testing.T) {
 	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltOne())
 	program := vm.Program{Data: program_data, Builtins: []string{"fake_builtin"}, Identifiers: empty_identifiers}
 	// Create CairoRunner
-	_, err := runners.NewCairoRunner(program)
+	_, err := runners.NewCairoRunner(program, "plain", false)
 	if err == nil {
 		t.Errorf("Expected creating a CairoRunner with fake builtin to fail")
 	}
@@ -29,7 +34,7 @@ func TestInitializeRunnerNoBuiltinsNoProofModeEmptyProgram(t *testing.T) {
 	empty_identifiers := make(map[string]vm.Identifier, 0)
 	program := vm.Program{Data: program_data, Identifiers: empty_identifiers}
 	// Create CairoRunner
-	runner, err := runners.NewCairoRunner(program)
+	runner, err := runners.NewCairoRunner(program, "plain", false)
 	if err != nil {
 		t.Errorf("NewCairoRunner error in test: %s", err)
 	}
@@ -95,7 +100,7 @@ func TestInitializeRunnerNoBuiltinsNoProofModeNonEmptyProgram(t *testing.T) {
 	empty_identifiers := make(map[string]vm.Identifier, 0)
 	program := vm.Program{Data: program_data, Identifiers: empty_identifiers}
 	// Create CairoRunner
-	runner, err := runners.NewCairoRunner(program)
+	runner, err := runners.NewCairoRunner(program, "plain", false)
 	if err != nil {
 		t.Errorf("NewCairoRunner error in test: %s", err)
 	}
@@ -164,10 +169,10 @@ func TestInitializeRunnerWithRangeCheckValid(t *testing.T) {
 	program_data := make([]memory.MaybeRelocatable, 1)
 	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1))
 	empty_identifiers := make(map[string]vm.Identifier, 0)
-	program_builtins := []string{builtins.CHECK_RANGE_BUILTIN_NAME}
+	program_builtins := []string{builtins.RANGE_CHECK_BUILTIN_NAME}
 	program := vm.Program{Data: program_data, Identifiers: empty_identifiers, Builtins: program_builtins}
 	// Create CairoRunner
-	runner, err := runners.NewCairoRunner(program)
+	runner, err := runners.NewCairoRunner(program, "small", false)
 	if err != nil {
 		t.Errorf("NewCairoRunner error in test: %s", err)
 	}
@@ -178,8 +183,8 @@ func TestInitializeRunnerWithRangeCheckValid(t *testing.T) {
 	}
 
 	builtin_runner := runner.Vm.BuiltinRunners[0]
-	if builtin_runner.Name() != builtins.CHECK_RANGE_BUILTIN_NAME {
-		t.Errorf("Name of runner builtin failed. Expected %s, got %s", builtin_runner.Name(), builtins.CHECK_RANGE_BUILTIN_NAME)
+	if builtin_runner.Name() != builtins.RANGE_CHECK_BUILTIN_NAME {
+		t.Errorf("Name of runner builtin failed. Expected %s, got %s", builtin_runner.Name(), builtins.RANGE_CHECK_BUILTIN_NAME)
 	}
 
 	builtin_base := builtin_runner.Base()
@@ -205,10 +210,10 @@ func TestInitializeRunnerWithRangeCheckInvalid(t *testing.T) {
 	program_data := make([]memory.MaybeRelocatable, 1)
 	program_data[0] = *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1))
 	empty_identifiers := make(map[string]vm.Identifier, 0)
-	program_builtins := []string{builtins.CHECK_RANGE_BUILTIN_NAME}
+	program_builtins := []string{builtins.RANGE_CHECK_BUILTIN_NAME}
 	program := vm.Program{Data: program_data, Identifiers: empty_identifiers, Builtins: program_builtins}
 	// Create CairoRunner
-	runner, err := runners.NewCairoRunner(program)
+	runner, err := runners.NewCairoRunner(program, "small", false)
 	if err != nil {
 		t.Errorf("NewCairoRunner error in test: %s", err)
 	}
@@ -219,8 +224,8 @@ func TestInitializeRunnerWithRangeCheckInvalid(t *testing.T) {
 	}
 
 	builtin_runner := runner.Vm.BuiltinRunners[0]
-	if builtin_runner.Name() != builtins.CHECK_RANGE_BUILTIN_NAME {
-		t.Errorf("Name of runner builtin failed. Expected %s, got %s", builtin_runner.Name(), builtins.CHECK_RANGE_BUILTIN_NAME)
+	if builtin_runner.Name() != builtins.RANGE_CHECK_BUILTIN_NAME {
+		t.Errorf("Name of runner builtin failed. Expected %s, got %s", builtin_runner.Name(), builtins.RANGE_CHECK_BUILTIN_NAME)
 	}
 
 	builtin_base := builtin_runner.Base()
@@ -245,7 +250,149 @@ func TestInitializeRunnerWithRangeCheckInvalid(t *testing.T) {
 	if err.Error() != expected_error.Error() {
 		t.Errorf("Test failed: Expected error: %s, Actual error: %s", err.Error(), expected_error.Error())
 	}
+}
 
+func TestIncludedBuiltinsPlainLayoutNoProofMode(t *testing.T) {
+	// Testing for a program with no builtins
+	factorialRunner, err := cairo_run.CairoRun("../../cairo_programs/factorial.json", "plain", false)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+	if len(factorialRunner.Vm.BuiltinRunners) != 0 {
+		t.Errorf("The program should not have any builtins included, found %d", len(factorialRunner.Vm.BuiltinRunners))
+	}
+
+	// Testing with a program with output builtin
+	printRunner, err := cairo_run.CairoRun("../../cairo_programs/simple_print.json", "plain", false)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+	if len(printRunner.Vm.BuiltinRunners) != 1 {
+		t.Errorf("Expected only one builtin, found %d", len(factorialRunner.Vm.BuiltinRunners))
+	}
+
+	if printRunner.Vm.BuiltinRunners[0].Name() != "output" {
+		t.Errorf("Expected output builtin, found: %s", printRunner.Vm.BuiltinRunners[0].Name())
+	}
+}
+
+// FIXME: This test should changed once the `small` layout is properly implemented. ATM we don't have all
+// its builtins implemented.
+func TestIncludedBuiltinsSmallLayoutNoProofMode(t *testing.T) {
+	// Testing for a program with Poseidon builtin
+	poseidonRunner, err := cairo_run.CairoRun("../../cairo_programs/poseidon_builtin.json", "small", false)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+	if len(poseidonRunner.Vm.BuiltinRunners) != 1 {
+		t.Errorf("Expected only one builtin found: %d", len(poseidonRunner.Vm.BuiltinRunners))
+	}
+	if poseidonRunner.Vm.BuiltinRunners[0].Name() != "poseidon" {
+		t.Errorf("Expected poseidon buitlin, found %s", poseidonRunner.Vm.BuiltinRunners[0].Name())
+	}
+
+	// Testing with a program with bitwise builtin
+	bitwiseRunner, err := cairo_run.CairoRun("../../cairo_programs/bitwise_builtin_test.json", "small", false)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+	if len(bitwiseRunner.Vm.BuiltinRunners) != 1 {
+		t.Errorf("Expected only one builtin found: %d", len(bitwiseRunner.Vm.BuiltinRunners))
+	}
+	if bitwiseRunner.Vm.BuiltinRunners[0].Name() != "bitwise" {
+		t.Errorf("Expected poseidon buitlin, found %s", bitwiseRunner.Vm.BuiltinRunners[0].Name())
+	}
+
+	// Testing with a program with output, pedersen and range_check builtins
+	pedersenRunner, err := cairo_run.CairoRun("../../cairo_programs/pedersen_test.json", "small", false)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+	if len(pedersenRunner.Vm.BuiltinRunners) != 3 {
+		t.Errorf("Expected only one builtin found: %d", len(pedersenRunner.Vm.BuiltinRunners))
+	}
+	if pedersenRunner.Vm.BuiltinRunners[0].Name() != "output" {
+		t.Errorf("Expected output buitlin, found %s", pedersenRunner.Vm.BuiltinRunners[0].Name())
+	}
+	if pedersenRunner.Vm.BuiltinRunners[1].Name() != "pedersen" {
+		t.Errorf("Expected pedersen buitlin, found %s", pedersenRunner.Vm.BuiltinRunners[1].Name())
+	}
+	if pedersenRunner.Vm.BuiltinRunners[2].Name() != "range_check" {
+		t.Errorf("Expected range_check buitlin, found %s", pedersenRunner.Vm.BuiltinRunners[2].Name())
+	}
+}
+
+func TestBuildHintDataMapEmpty(t *testing.T) {
+	program := vm.Program{}
+	runner, _ := runners.NewCairoRunner(program, "plain", false)
+	hintProcessor := &hints.CairoVmHintProcessor{}
+	expectedHintDataMap := make(map[uint][]any)
+	hintDataMap, err := runner.BuildHintDataMap(hintProcessor)
+	if err != nil {
+		t.Errorf("Test failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(hintDataMap, expectedHintDataMap) {
+		t.Errorf("Wrong hintDataMap, expected %+v, got %+v", expectedHintDataMap, hintDataMap)
+	}
+}
+
+func TestBuildHintDataMapOneHint(t *testing.T) {
+	program := vm.Program{
+		Hints: map[uint][]parser.HintParams{
+			0: {
+				{
+					Code: "ids.a = ids.b",
+					FlowTrackingData: parser.FlowTrackingData{
+						APTracking: parser.ApTrackingData{Group: 1, Offset: 2},
+					},
+					ReferenceIds: map[string]uint{"a": 0, "b": 1},
+				},
+			},
+		},
+		ReferenceManager: parser.ReferenceManager{
+			References: []parser.Reference{
+				{
+					Value: "cast(ap + (-2), felt)",
+				},
+				{
+					Value: "cast(ap + (-1), felt)",
+				},
+			},
+		},
+	}
+	runner, _ := runners.NewCairoRunner(program, "plain", false)
+	hintProcessor := &hints.CairoVmHintProcessor{}
+	expectedHintDataMap := map[uint][]any{
+		0: {
+			hints.HintData{
+				Ids: map[string]hint_utils.HintReference{
+					"a": {
+						Offset1: hint_utils.OffsetValue{
+							ValueType: hint_utils.Reference,
+							Value:     -2,
+						},
+						ValueType: "felt",
+					},
+					"b": {
+						Offset1: hint_utils.OffsetValue{
+							ValueType: hint_utils.Reference,
+							Value:     -1,
+						},
+						ValueType: "felt",
+					},
+				},
+				Code:       "ids.a = ids.b",
+				ApTracking: parser.ApTrackingData{Group: 1, Offset: 2},
+			},
+		},
+	}
+	hintDataMap, err := runner.BuildHintDataMap(hintProcessor)
+	if err != nil {
+		t.Errorf("Test failed with error: %s", err)
+	}
+	if !reflect.DeepEqual(hintDataMap, expectedHintDataMap) {
+		t.Errorf("Wrong hintDataMap, expected %+v, got %+v", expectedHintDataMap, hintDataMap)
+	}
 }
 
 func TestWriteOutputFromPresentMemory(t *testing.T) {
@@ -253,7 +400,7 @@ func TestWriteOutputFromPresentMemory(t *testing.T) {
 	program_builtins := []string{builtins.OUTPUT_BUILTIN_NAME}
 	program := vm.Program{Identifiers: empty_identifiers, Builtins: program_builtins}
 	// Create CairoRunner
-	runner, err := runners.NewCairoRunner(program)
+	runner, err := runners.NewCairoRunner(program, "plain", false)
 	if err != nil {
 		t.Errorf("NewCairoRunner error in test: %s", err)
 	}
@@ -296,7 +443,7 @@ func TestWriteOutputFromProgramGapRelocatableOutput(t *testing.T) {
 	program_builtins := []string{builtins.OUTPUT_BUILTIN_NAME}
 	program := vm.Program{Data: program_data, Identifiers: empty_identifiers, Builtins: program_builtins}
 	// Create CairoRunner
-	runner, err := runners.NewCairoRunner(program)
+	runner, err := runners.NewCairoRunner(program, "plain", false)
 	if err != nil {
 		t.Errorf("NewCairoRunner error in test: %s", err)
 	}
@@ -305,8 +452,8 @@ func TestWriteOutputFromProgramGapRelocatableOutput(t *testing.T) {
 	if err != nil {
 		t.Errorf("Initialize error in test: %s", err)
 	}
-
-	err = runner.RunUntilPC(end)
+	hintProcessor := &hints.CairoVmHintProcessor{}
+	err = runner.RunUntilPC(end, hintProcessor)
 	if err != nil {
 		t.Errorf("RunUntilPC error in test: %s", err)
 	}
@@ -327,7 +474,7 @@ func TestWriteOutputFromPresentMemoryNegOutput(t *testing.T) {
 	program_builtins := []string{builtins.OUTPUT_BUILTIN_NAME}
 	program := vm.Program{Identifiers: empty_identifiers, Builtins: program_builtins}
 	// Create CairoRunner
-	runner, err := runners.NewCairoRunner(program)
+	runner, err := runners.NewCairoRunner(program, "plain", false)
 	if err != nil {
 		t.Errorf("NewCairoRunner error in test: %s", err)
 	}
