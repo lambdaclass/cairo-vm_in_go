@@ -10,7 +10,7 @@ import (
 const SIGNATURE_BUILTIN_NAME = "signature"
 
 // Notice changing this to any other number breaks the code
-const CELLS_PER_INSTANCE = 2
+const SIGNATURE_CELLS_PER_INSTANCE = 2
 
 type Signature struct {
 	R lambdaworks.Felt
@@ -55,7 +55,7 @@ func (r *SignatureBuiltinRunner) Include(include bool) {
 }
 
 func ValidationRuleSignature(mem *memory.Memory, address memory.Relocatable, signatureBuiltin *SignatureBuiltinRunner) ([]memory.Relocatable, error) {
-	cell_index := address.Offset % CELLS_PER_INSTANCE
+	cell_index := address.Offset % SIGNATURE_CELLS_PER_INSTANCE
 	var pub_key_address, message_addr memory.Relocatable
 
 	if cell_index == 0 {
