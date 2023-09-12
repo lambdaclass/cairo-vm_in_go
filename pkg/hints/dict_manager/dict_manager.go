@@ -98,6 +98,9 @@ func (d *Dictionary) Get(key *MaybeRelocatable) *MaybeRelocatable {
 	if ok {
 		return &val
 	}
+	if d.defaultValue != nil {
+		d.dict[*key] = *d.defaultValue
+	}
 	return d.defaultValue
 }
 
