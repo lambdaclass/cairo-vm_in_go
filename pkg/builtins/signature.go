@@ -67,11 +67,11 @@ func ValidationRuleSignature(mem *memory.Memory, address memory.Relocatable, sig
 		message_addr = address
 	}
 
-	pub_key, _ := mem.GetFelt(pub_key_address)
-	message, _ := mem.GetFelt(message_addr)
+	pub_key, get_pubkey_error := mem.GetFelt(pub_key_address)
+	message, get_message_error := mem.GetFelt(message_addr)
 	signature, found_signature := signatureBuiltin.signatures[pub_key_address]
 
-	if !found_signature {
+	if !found_signature || get_pubkey_error != nil || get_message_error != nil {
 		return nil, SignatureVerificationError()
 	}
 
@@ -82,8 +82,8 @@ func ValidationRuleSignature(mem *memory.Memory, address memory.Relocatable, sig
 	}
 }
 
-func NewSignatureBuiltinRunner() *RangeCheckBuiltinRunner {
-	return &RangeCheckBuiltinRunner{}
+func NewSignatureBuiltinRunner() *SignatureBuiltinRunner {
+	return &SignatureBuiltinRunner{}
 }
 
 func (r *SignatureBuiltinRunner) AddValidationRule(mem *memory.Memory) {

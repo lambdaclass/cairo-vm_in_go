@@ -396,7 +396,7 @@ func TestMemoryValidateExistingMemoryErr(t *testing.T) {
 }
 
 func TestValidateMemoryForInvalidSignature(t *testing.T) {
-	builtin := builtins.NewSignatureBuiltinRunner(true)
+	builtin := builtins.NewSignatureBuiltinRunner()
 	mem_manager := memory.NewMemorySegmentManager()
 	mem_manager.AddSegment()
 	mem := mem_manager.Memory
@@ -422,7 +422,7 @@ func TestValidateMemoryForInvalidSignature(t *testing.T) {
 	}
 }
 func TestValidateMemoryForValidSignature(t *testing.T) {
-	signature_builtin := builtins.NewSignatureBuiltinRunner(true)
+	signature_builtin := builtins.NewSignatureBuiltinRunner()
 	mem_manager := memory.NewMemorySegmentManager()
 	mem_manager.AddSegment()
 	mem := mem_manager.Memory
@@ -437,7 +437,7 @@ func TestValidateMemoryForValidSignature(t *testing.T) {
 		S: signature_s_felt,
 	}
 
-	builtins.AddSignature(&signature_builtin, signature_address, signature)
+	builtins.AddSignature(signature_builtin, signature_address, signature)
 
 	pub_key_address := memory.NewRelocatable(1, 0)
 	message_hash_address := memory.NewRelocatable(1, 1)
