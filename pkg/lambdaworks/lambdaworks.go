@@ -105,6 +105,7 @@ func (felt Felt) ToBeBytes() *[32]byte {
 }
 
 func (felt Felt) ToHexString() string {
+	// We need to make sure enough space is allocated to fit the longest possible string
 	var result_c = C.CString("                                                                 ")
 	defer C.free(unsafe.Pointer(result_c))
 
