@@ -83,7 +83,7 @@ func ValidationRuleSignature(mem *memory.Memory, address memory.Relocatable, sig
 }
 
 func NewSignatureBuiltinRunner() *SignatureBuiltinRunner {
-	return &SignatureBuiltinRunner{}
+	return &SignatureBuiltinRunner{signatures: map[memory.Relocatable]Signature{}}
 }
 
 func (r *SignatureBuiltinRunner) AddValidationRule(mem *memory.Memory) {
