@@ -230,3 +230,27 @@ func TestMaybeRelocatableSubRelFromFelt(t *testing.T) {
 		t.Errorf("Subtraction of relocatable from felt should fail")
 	}
 }
+
+func TestRelocatableAddIntPositive(t *testing.T) {
+	rel := memory.Relocatable{2, 4}
+	res, err := rel.AddInt(24)
+	expected := memory.Relocatable{2, 28}
+	if err != nil {
+		t.Errorf("Relocatable.AddInt failed with error: %s", err)
+	}
+	if res != expected {
+		t.Errorf("got wrong value from Relocatable.AddInt, expected: %v, got: %v", expected, res)
+	}
+}
+
+func TestRelocatableAddIntNegative(t *testing.T) {
+	rel := memory.Relocatable{2, 24}
+	res, err := rel.AddInt(-4)
+	expected := memory.Relocatable{2, 20}
+	if err != nil {
+		t.Errorf("Relocatable.AddInt failed with error: %s", err)
+	}
+	if res != expected {
+		t.Errorf("got wrong value from Relocatable.AddInt, expected: %v, got: %v", expected, res)
+	}
+}
