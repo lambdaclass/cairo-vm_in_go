@@ -26,12 +26,30 @@ func assert_nn(ids IdsManager, vm *VirtualMachine) error {
 	return nil
 }
 
+// Implements hint:from starkware.cairo.common.math.cairo
+//
+//	%{
+//	    from starkware.cairo.common.math_utils import assert_integer
+//	    assert_integer(ids.value)
+//	    assert ids.value % PRIME != 0, f'assert_not_zero failed: {ids.value} = 0.'
+//
+// %}
+
+func assert_not_zero(ids IdsManager, vm *VirtualMachine) error {
+	value, err := ids.GetFelt("value", vm)
+	if err != nil {
+		return err
+	}
+	if value.IsZero() {
+		return errors.Errorf("Assertion failed, %s %% PRIME is equal to 0", value.ToHexString())
+	}
+	return nil
+}
+
 func verify_edsa_signature(ids IdsManager, vm *VirtualMachine) error {
 	r, err := ids.GetFelt("signature_r", vm)
 	s, err := ids.GetFelt("signature_s", vm)
 	ecdsa_ptr, err := ids.GetRelocatable("ecdsa_ptr", vm)
 
 	// vm.get_signature_builtin?
-
-	return nil
 }
