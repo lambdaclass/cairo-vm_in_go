@@ -1,12 +1,21 @@
 package lambdaworks_test
 
 import (
+	"math/big"
 	"reflect"
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
+
+func TestToBigInt(t *testing.T) {
+	felt := lambdaworks.FeltFromUint64(26)
+	bigInt := felt.ToBigInt()
+	if !reflect.DeepEqual(bigInt, new(big.Int).SetUint64(26)) {
+		t.Errorf("TestToBigInt failed. Expected: %v, Got: %v", 26, bigInt)
+	}
+}
 
 func TestFromHex(t *testing.T) {
 	var h_one = "1a"

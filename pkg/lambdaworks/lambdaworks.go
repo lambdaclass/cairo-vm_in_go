@@ -8,6 +8,7 @@ package lambdaworks
 import "C"
 
 import (
+	"math/big"
 	"strings"
 	"unsafe"
 
@@ -232,4 +233,21 @@ func (a Felt) Shr(b uint) Felt {
 	C.felt_shr(&a_c[0], C.size_t(b), &result[0])
 	//C.felt_shr(&a_c[0], &b_c[0], &result[0])
 	return fromC(result)
+}
+
+func (f Felt) ToBigInt() *big.Int {
+	return new(big.Int).SetBytes(f.ToBeBytes()[:32])
+}
+
+const CAIRO_PRIME_HEX = "0x800000000000011000000000000000000000000000000000000000000000000"
+const SIGNED_FELT_MAX_HEX = "0x400000000000008800000000000000000000000000000000000000000000000"
+
+func (f Felt) ToSigned() *big.Int {
+	n := f.ToBigInt()
+	signedFeltMax, _ := new(big.Int).SetString(SIGNED_FELT_MAX_HEX, 16)
+	if n.Cmp(signedFeltMax) == 1 {
+		cairoPrime, _ := new(big.Int).SetString(CAIRO_PRIME_HEX, 16)
+		return new(big.Int).Neg(new(big.Int).Sub(cairoPrime, n))
+	}
+	return n
 }
