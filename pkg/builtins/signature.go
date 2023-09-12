@@ -50,6 +50,10 @@ func SignatureVerificationError() error {
 	return errors.New("Signature is not valid")
 }
 
+func (r *SignatureBuiltinRunner) Include(include bool) {
+	r.included = include
+}
+
 func ValidationRuleSignature(mem *memory.Memory, address memory.Relocatable, signatureBuiltin *SignatureBuiltinRunner) ([]memory.Relocatable, error) {
 	cell_index := address.Offset % CELLS_PER_INSTANCE
 	var pub_key_address, message_addr memory.Relocatable
@@ -78,12 +82,8 @@ func ValidationRuleSignature(mem *memory.Memory, address memory.Relocatable, sig
 	}
 }
 
-func NewSignatureBuiltinRunner(included bool) SignatureBuiltinRunner {
-	return SignatureBuiltinRunner{
-		memory.NewRelocatable(0, 0),
-		included,
-		map[memory.Relocatable]Signature{},
-	}
+func NewSignatureBuiltinRunner() *RangeCheckBuiltinRunner {
+	return &RangeCheckBuiltinRunner{}
 }
 
 func (r *SignatureBuiltinRunner) AddValidationRule(mem *memory.Memory) {
