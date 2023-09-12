@@ -79,3 +79,10 @@ func TestPedersenAndBitwiseBuiltinsWithAllocLocals(t *testing.T) {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
 }
+
+func TestAllocAddSegmentHint(t *testing.T) {
+	_, err := cairo_run.CairoRun("../../../cairo_programs/if_reloc_equal.json", "small", false)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
