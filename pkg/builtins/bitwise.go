@@ -28,8 +28,12 @@ func ErrFeltBiggerThanPowerOfTwo(felt lambdaworks.Felt) error {
 	return BitwiseError(errors.Errorf("Expected felt %d to be smaller than  2**%d", felt, BITWISE_TOTAL_N_BITS))
 }
 
-func NewBitwiseBuiltinRunner() *BitwiseBuiltinRunner {
-	return &BitwiseBuiltinRunner{}
+func NewBitwiseBuiltinRunner(ratio uint) *BitwiseBuiltinRunner {
+	return &BitwiseBuiltinRunner{ratio: ratio, instancesPerComponent: 1}
+}
+
+func DefaultBitwiseBuiltinRunner() *BitwiseBuiltinRunner {
+	return NewBitwiseBuiltinRunner(256)
 }
 
 func (b *BitwiseBuiltinRunner) Base() memory.Relocatable {

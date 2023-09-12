@@ -21,8 +21,8 @@ func SafeDiv(x uint, y uint) (uint, error) {
 	}
 	rem := math.Remainder(float64(x), float64(y))
 	if rem != 0 {
-
 		return 0, errors.Errorf("%d is not divisible by %d", x, y)
 	}
-	return x % y, nil
+
+	return x / y, nil
 }

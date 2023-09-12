@@ -34,7 +34,7 @@ func GetLayoutBuiltinRunners(layout string) ([]builtins.BuiltinRunner, error) {
 		return []builtins.BuiltinRunner{
 			builtins.NewOutputBuiltinRunner(),
 			builtins.NewRangeCheckBuiltinRunner(),
-			builtins.NewBitwiseBuiltinRunner(),
+			builtins.DefaultBitwiseBuiltinRunner(),
 			builtins.NewKeccakBuiltinRunner(),
 			builtins.NewPoseidonBuiltinRunner()}, nil
 	default:
