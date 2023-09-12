@@ -153,14 +153,15 @@ func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segmen
 
 func LineSlope(point_a PartialSumB, point_b DoublePointB, prime big.Int) (big.Int, error) {
 
-	//fmt.Println(point_a)
-	//fmt.Println(point_b)
-	//	fmt.Println("inside line slope")
+	//fmt.Println("point_a: ", point_a.X.Text(10), point_a.Y.Text(10))
+	//fmt.Println("point_b: ", point_b.X.Text(10), point_b.Y.Text(10))
+
 	mod_value := new(big.Int).Sub(&point_a.X, &point_b.X)
-	//	fmt.Println("after mod value")
+	//fmt.Println("after mod value")
+
 	mod_value.Mod(mod_value, &prime)
-	//	fmt.Println("after mod ")
-	if mod_value == big.NewInt(0) {
+
+	if mod_value.Cmp(big.NewInt(0)) == 0 {
 		return big.Int{}, errors.New("is multiple of prime")
 	}
 
@@ -171,10 +172,11 @@ func LineSlope(point_a PartialSumB, point_b DoublePointB, prime big.Int) (big.In
 	//fmt.Println(n)
 	//fmt.Println(m)
 
-	z, _ := new(big.Int).DivMod(n, m, &prime)
+	_, z := new(big.Int).DivMod(n, m, &prime)
 
 	//fmt.Println("line slope: ", z)
-
+	//fmt.Println("m: ", m2)
+	fmt.Println("")
 	return *z, nil
 }
 
@@ -208,19 +210,28 @@ func EcDoubleSlope(point DoublePointB, alpha big.Int, prime big.Int) (big.Int, e
 	n := new(big.Int).Mul(&point.X, &point.X)
 	n.Mul(n, big.NewInt(3))
 	n.Add(n, &alpha)
+	fmt.Println("n: ", n.Text(10))
 
 	m := new(big.Int).Mul(&point.Y, big.NewInt(2))
+	fmt.Println("m: ", m.Text(10))
 
-	z, _ := new(big.Int).DivMod(n, m, &prime)
+	q, z := new(big.Int).DivMod(n, m, &prime)
+
+	fmt.Println("quotient: ", q)
 
 	return *z, nil
 }
 
 func EcDouble(point DoublePointB, alpha big.Int, prime big.Int) (DoublePointB, error) {
+	fmt.Println("alpha: ", alpha.Text(10))
+	fmt.Println("prime: ", prime.Text(10))
 	m, err := EcDoubleSlope(point, alpha, prime)
 	if err != nil {
 		return DoublePointB{}, err
 	}
+	fmt.Println("ec double slope: ", m.Text(10))
+
+	fmt.Println("")
 
 	x := new(big.Int).Mul(&m, &m)
 	x.Sub(x, new(big.Int).Mul(big.NewInt(2), &point.X))
@@ -243,19 +254,20 @@ func EcOnImpl(partial_sum PartialSum, double_point DoublePoint, m lambdaworks.Fe
 	double_point_b_x, _ := double_point.X.ToBigInt()
 	double_point_b_y, _ := double_point.Y.ToBigInt()
 	double_point_b := DoublePointB{X: double_point_b_x, Y: double_point_b_y}
+	fmt.Println("double_point_b: ", double_point_b.X.Text(10), double_point_b.Y.Text(10))
 
-	for i := 0; i < int(height); i++ {
+	for i := 0; i < 1; i++ {
 		var err error
 		if (new(big.Int).Sub(&double_point_b.X, &partial_sum_b.X)) == big.NewInt(0) {
 			return PartialSumB{}, errors.New("Runner error EcOpSameXCoordinate")
 		}
-
-		fmt.Println("result of AND operation: ", new(big.Int).And(&slope, big.NewInt(1)))
-		fmt.Println("result of comparing with 0: ", !reflect.DeepEqual(*new(big.Int).And(&slope, big.NewInt(1)), *big.NewInt(0)))
-		fmt.Println("slope:  ", slope)
-
-		if (new(big.Int).And(&slope, big.NewInt(1))) != big.NewInt(0) {
-			fmt.Println("inside second if")
+		and_operation := (new(big.Int).And(&slope, big.NewInt(1)))
+		// fmt.Println("result of AND operation: ", new(big.Int).And(&slope, big.NewInt(1)))
+		// fmt.Println("result of comparing with 0: ", and_operation.Cmp(big.NewInt(0)) > 0)
+		// fmt.Println("slope:  ", slope)
+		
+		if and_operation.Cmp(big.NewInt(0)) > 0 {
+			//fmt.Println("inside second if")
 			partial_sum_b, err = EcAdd(partial_sum_b, double_point_b, *prime)
 			if err != nil {
 				return PartialSumB{}, err
@@ -263,11 +275,14 @@ func EcOnImpl(partial_sum PartialSum, double_point DoublePoint, m lambdaworks.Fe
 		}
 
 		double_point_b, err = EcDouble(double_point_b, *alpha, *prime)
+		fmt.Println("double_point_b: ", double_point_b.X.Text(10), double_point_b.Y.Text(10))
+		
 		slope = *slope.Rsh(&slope, 1)
 	}
 	fmt.Println("after loop")
 	return partial_sum_b, nil
 }
+
 
 func PointOnCurve(x lambdaworks.Felt, y lambdaworks.Felt, alpha lambdaworks.Felt, beta lambdaworks.Felt) bool {
 	yp := y.PowUint(2)

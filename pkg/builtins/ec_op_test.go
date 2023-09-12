@@ -1,8 +1,8 @@
 package builtins_test
 
 import (
+	"fmt"
 	"math/big"
-	"reflect"
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
@@ -61,10 +61,16 @@ func TestComputeEcOpImplValidA(t *testing.T) {
 	expected_x, _ := new(big.Int).SetString("1977874238339000383330315148209250828062304908491266318460063803060754089297", 10)
 	expected_y, _ := new(big.Int).SetString("2969386888251099938335087541720168257053975603483053253007176033556822156706", 10)
 
-	if !reflect.DeepEqual(result_x, expected_x) {
+	fmt.Println("result x:   expected:  ", result_x, expected_x)
+	fmt.Println("comparison x:  ", result_x.Cmp(expected_x))
+	fmt.Println("result y:   expected:  ", result_y, expected_y)
+	fmt.Println("comparison y:  ", result_y.Cmp(expected_y))
+
+	if result_x.Cmp(expected_x) != 0 {
 		t.Errorf("Got different X result in Ec On Impl")
 	}
-	if !reflect.DeepEqual(result_y, expected_y) {
+
+	if result_y.Cmp(expected_y) != 0 {
 		t.Errorf("Got different Y result in Ec On Impl")
 	}
 }

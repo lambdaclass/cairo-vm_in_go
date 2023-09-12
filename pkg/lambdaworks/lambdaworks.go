@@ -8,7 +8,6 @@ package lambdaworks
 import "C"
 
 import (
-	"fmt"
 	"math/big"
 	"unsafe"
 
@@ -241,8 +240,8 @@ func (a Felt) PowUint(p uint32) Felt {
 }
 
 func (a Felt) ToBigInt() (big.Int, error) {
-	fmt.Println("to big int")
-	fmt.Println(a)
+	//fmt.Println("to big int")
+	//fmt.Println(a)
 	hex := a.ToHexString()
 	//fmt.Println("hex")
 	//fmt.Println(hex)
