@@ -87,8 +87,8 @@ func TestAssertNNHint(t *testing.T) {
 	}
 }
 
-func TestAbsValueArray(t *testing.T) {
-	_, err := cairo_run.CairoRun("../../../cairo_programs/abs_value_array.json", "small", false)
+func TestAbsValue(t *testing.T) {
+	_, err := cairo_run.CairoRun("../../../cairo_programs/abs_value.json", "small", false)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
