@@ -1,4 +1,4 @@
-use starknet_crypto::{poseidon_permute_comp, FieldElement, verify};
+use starknet_crypto::{poseidon_permute_comp, FieldElement, pedersen_hash as starknet_crypto_pedersen_hash, verify};
 extern crate libc;
 
 // C representation of a bit array: a raw pointer to a mutable unsigned 8 bits integer.
@@ -40,6 +40,21 @@ extern "C" fn poseidon_permute(
     bytes_from_field_element(state_array[0], first_state_felt);
     bytes_from_field_element(state_array[1], second_state_felt);
     bytes_from_field_element(state_array[2], third_state_felt);
+}
+
+#[no_mangle]
+extern "C" fn pedersen_hash(
+    felt_1: Bytes,
+    felt_2: Bytes,
+    result: Bytes,
+){
+    // Convert Felts from C representation to FieldElement
+    let f1 = field_element_from_bytes(felt_1);
+    let f2 = field_element_from_bytes(felt_2);
+
+    // Call starknet_crypto::pedersen_hash
+    let hash_in_felt = starknet_crypto_pedersen_hash(&f1, &f2);
+    bytes_from_field_element(hash_in_felt, result);
 }
 
 #[no_mangle]

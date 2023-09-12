@@ -12,7 +12,8 @@ import (
 )
 
 func TestKeccakDeduceMemoryCellValid(t *testing.T) {
-	keccak := builtins.NewKeccakBuiltinRunner(true)
+	keccak := builtins.NewKeccakBuiltinRunner()
+	keccak.Include(true)
 	vmachine := vm.NewVirtualMachine()
 	vmachine.BuiltinRunners = append(vmachine.BuiltinRunners, keccak)
 
@@ -65,7 +66,8 @@ func TestKeccakDeduceMemoryCellValid(t *testing.T) {
 }
 
 func TestKeccakDeduceMemoryCellNoInputCells(t *testing.T) {
-	keccak := builtins.NewKeccakBuiltinRunner(true)
+	keccak := builtins.NewKeccakBuiltinRunner()
+	keccak.Include(true)
 	vmachine := vm.NewVirtualMachine()
 	vmachine.BuiltinRunners = append(vmachine.BuiltinRunners, keccak)
 	addr := memory.NewRelocatable(0, 10)
@@ -75,7 +77,8 @@ func TestKeccakDeduceMemoryCellNoInputCells(t *testing.T) {
 	}
 }
 func TestKeccakDeduceMemoryCellInputCell(t *testing.T) {
-	keccak := builtins.NewKeccakBuiltinRunner(true)
+	keccak := builtins.NewKeccakBuiltinRunner()
+	keccak.Include(true)
 	vmachine := vm.NewVirtualMachine()
 	vmachine.BuiltinRunners = append(vmachine.BuiltinRunners, keccak)
 	addr := memory.NewRelocatable(0, 1)
@@ -87,7 +90,8 @@ func TestKeccakDeduceMemoryCellInputCell(t *testing.T) {
 
 func TestKeccakInitializeSegments(t *testing.T) {
 	mem_manager := memory.NewMemorySegmentManager()
-	keccak := builtins.NewKeccakBuiltinRunner(true)
+	keccak := builtins.NewKeccakBuiltinRunner()
+	keccak.Include(true)
 	keccak.InitializeSegments(&mem_manager)
 
 	if mem_manager.Memory.NumSegments() != 1 {
@@ -100,7 +104,8 @@ func TestKeccakInitializeSegments(t *testing.T) {
 }
 
 func TestKeccakInitialStackIncluded(t *testing.T) {
-	keccak := builtins.NewKeccakBuiltinRunner(true)
+	keccak := builtins.NewKeccakBuiltinRunner()
+	keccak.Include(true)
 	initial_stack := keccak.InitialStack()
 	expected_stack := []memory.MaybeRelocatable{*memory.NewMaybeRelocatableRelocatable(keccak.Base())}
 	if !reflect.DeepEqual(initial_stack, expected_stack) {
@@ -109,7 +114,8 @@ func TestKeccakInitialStackIncluded(t *testing.T) {
 }
 
 func TestKeccakInitialStackNotIncluded(t *testing.T) {
-	keccak := builtins.NewKeccakBuiltinRunner(false)
+	keccak := builtins.NewKeccakBuiltinRunner()
+	keccak.Include(false)
 	if len(keccak.InitialStack()) != 0 {
 		t.Errorf("Initial stack should be empty if not included")
 	}
@@ -118,7 +124,8 @@ func TestKeccakInitialStackNotIncluded(t *testing.T) {
 func TestKeccakAddValidationRule(t *testing.T) {
 	empty_mem := memory.NewMemory()
 	mem := memory.NewMemory()
-	keccak := builtins.NewKeccakBuiltinRunner(true)
+	keccak := builtins.NewKeccakBuiltinRunner()
+	keccak.Include(true)
 	keccak.AddValidationRule(mem)
 	// Check that the memory is equal to a newly created one to check that
 	// no validation rules were added
@@ -130,7 +137,7 @@ func TestKeccakAddValidationRule(t *testing.T) {
 
 func TestIntegrationKeccak(t *testing.T) {
 	t.Helper()
-	_, err := cairo_run.CairoRun("../../cairo_programs/keccak_builtin.json")
+	_, err := cairo_run.CairoRun("../../cairo_programs/keccak_builtin.json", "small", false)
 	if err != nil {
 		t.Errorf("TestIntegrationKeccak failed with error:\n %v", err)
 	}
