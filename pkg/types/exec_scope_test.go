@@ -21,7 +21,7 @@ func TestGetLocalVariables(t *testing.T) {
 	scopes := types.NewExecutionScopes()
 	scopes.EnterScope(scope)
 
-	result, err := scopes.Get("key")
+	result, err := scopes.Get("k")
 	if err != nil {
 		t.Errorf("TestGetLocalVariables failed with error: %s", err)
 
@@ -31,5 +31,4 @@ func TestGetLocalVariables(t *testing.T) {
 	if expected != f_res {
 		t.Errorf("TestGetLocalVariables failed, expected: %s, got: %s", expected.ToSignedFeltString(), f_res.ToSignedFeltString())
 	}
-
 }
