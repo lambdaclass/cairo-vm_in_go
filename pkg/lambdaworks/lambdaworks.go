@@ -105,8 +105,6 @@ func (felt Felt) ToBeBytes() *[32]byte {
 
 func (felt Felt) ToHexString() string {
 	var result_c = C.CString("")
-	defer C.free(unsafe.Pointer(result_c))
-
 	var value C.felt_t = felt.toC()
 	C.to_hex_string(result_c, &value[0])
 	return C.GoString(result_c)
