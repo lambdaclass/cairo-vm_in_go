@@ -1,13 +1,18 @@
 package math_utils_test
 
 import (
-	. "github.com/lambdaclass/cairo-vm.go/pkg/math_utils"
 	"math/big"
 	"testing"
+
+	. "github.com/lambdaclass/cairo-vm.go/pkg/math_utils"
 )
 
-func div_mod_ok(t *testing.T) {
-	var a, b, prime, expected *big.Int
+func TestDivModOk(t *testing.T) {
+	a := new(big.Int)
+	b := new(big.Int)
+	prime := new(big.Int)
+	expected := new(big.Int)
+
 	a.SetString("11260647941622813594563746375280766662237311019551239924981511729608487775604310196863705127454617186486639011517352066501847110680463498585797912894788", 10)
 	b.SetString("4020711254448367604954374443741161860304516084891705811279711044808359405970", 10)
 	prime.SetString("800000000000011000000000000000000000000000000000000000000000001", 16)
@@ -22,8 +27,11 @@ func div_mod_ok(t *testing.T) {
 	}
 }
 
-func div_mod_fail(t *testing.T) {
-	var a, b, prime *big.Int
+func TestDivModFail(t *testing.T) {
+	a := new(big.Int)
+	b := new(big.Int)
+	prime := new(big.Int)
+
 	a.SetString("11260647941622813594563746375280766662237311019551239924981511729608487775604310196863705127454617186486639011517352066501847110680463498585797912894788", 10)
 	prime.SetString("800000000000011000000000000000000000000000000000000000000000001", 16)
 
