@@ -26,7 +26,6 @@ func TestToHex(t *testing.T) {
 	if result != expected {
 		t.Errorf("TestFromHex failed. Expected: %v, Got: %v", expected, result)
 	}
-
 }
 
 func TestFromDecString(t *testing.T) {
