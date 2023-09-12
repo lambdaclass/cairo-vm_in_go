@@ -12,6 +12,10 @@ func ExecutionScopesError(err error) error {
 	return errors.Wrapf(err, "Execution scopes error")
 }
 
+func ErrVariableNotInScope(varName string) error {
+	return ExecutionScopesError(errors.Errorf("Variable %s not in scope", varName))
+}
+
 func NewExecutionScopes() *ExecutionScopes {
 	return &ExecutionScopes{
 		data: make([]map[string]interface{}, 1),
@@ -42,7 +46,7 @@ func (es *ExecutionScopes) getLocalVariablesMut() (*map[string]interface{}, erro
 	return nil, ExecutionScopesError(errors.Errorf("Every enter_scope() requires a corresponding exit_scope()."))
 }
 
-func (es *ExecutionScopes) getLocalVariables() (map[string]interface{}, error) {
+func (es *ExecutionScopes) GetLocalVariables() (map[string]interface{}, error) {
 	if len(es.data) > 0 {
 		return es.data[len(es.data)-1], nil
 	}
@@ -67,19 +71,19 @@ func (es *ExecutionScopes) AssignOrUpdateVariable(varName string, varValue inter
 }
 
 func (es *ExecutionScopes) Get(varName string) (interface{}, error) {
-	locals, err := es.getLocalVariables()
+	locals, err := es.GetLocalVariables()
 	if err != nil {
 		return nil, err
 	}
 	val, prs := locals[varName]
 	if !prs {
-		return nil, ExecutionScopesError(errors.Errorf("Variable %s not in scope", varName))
+		return nil, ErrVariableNotInScope(varName)
 	}
 	return val, nil
 }
 
 func (es *ExecutionScopes) GetRef(varName string) (*interface{}, error) {
-	locals, err := es.getLocalVariables()
+	locals, err := es.GetLocalVariables()
 	if err != nil {
 		return nil, err
 	}
