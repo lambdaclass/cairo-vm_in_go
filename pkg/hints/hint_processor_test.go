@@ -29,9 +29,9 @@ func TestCompileHintHappyPath(t *testing.T) {
 	hintParams := &parser.HintParams{
 		Code: "ids.a = ids.b",
 		FlowTrackingData: parser.FlowTrackingData{
-			APTracking: parser.ApTrackingData{Group: 1, Offset: 2},
+			APTracking:   parser.ApTrackingData{Group: 1, Offset: 2},
+			ReferenceIds: map[string]uint{"__main.__.a": 0, "__main__.b": 1},
 		},
-		ReferenceIds: map[string]uint{"__main.__.a": 0, "__main__.b": 1},
 	}
 	referenceManager := &parser.ReferenceManager{
 		References: []parser.Reference{
@@ -44,7 +44,7 @@ func TestCompileHintHappyPath(t *testing.T) {
 		},
 	}
 	expectedData := HintData{
-		Ids: map[string]HintReference{
+		Ids: IdsManager{References: map[string]HintReference{
 			"a": {
 				Offset1: OffsetValue{
 					ValueType: Reference,
@@ -60,8 +60,9 @@ func TestCompileHintHappyPath(t *testing.T) {
 				ValueType: "felt",
 			},
 		},
-		Code:       "ids.a = ids.b",
-		ApTracking: parser.ApTrackingData{Group: 1, Offset: 2},
+			HintApTracking: parser.ApTrackingData{Group: 1, Offset: 2},
+		},
+		Code: "ids.a = ids.b",
 	}
 	data, err := hintProcessor.CompileHint(hintParams, referenceManager)
 	if err != nil {
@@ -75,7 +76,9 @@ func TestCompileHintHappyPath(t *testing.T) {
 func TestCompileHintMissingReference(t *testing.T) {
 	hintProcessor := &CairoVmHintProcessor{}
 	hintParams := &parser.HintParams{
-		ReferenceIds: map[string]uint{"a": 0, "b": 1},
+		FlowTrackingData: parser.FlowTrackingData{
+			ReferenceIds: map[string]uint{"a": 0, "b": 1},
+		},
 	}
 	referenceManager := &parser.ReferenceManager{}
 	_, err := hintProcessor.CompileHint(hintParams, referenceManager)
