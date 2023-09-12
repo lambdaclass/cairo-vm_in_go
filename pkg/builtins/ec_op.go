@@ -2,11 +2,11 @@ package builtins
 
 import (
 	"errors"
-	"fmt"
 	"math/big"
 	"reflect"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/math_utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -152,37 +152,22 @@ func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segmen
 }
 
 func LineSlope(point_a PartialSumB, point_b DoublePointB, prime big.Int) (big.Int, error) {
-
-	//fmt.Println("point_a: ", point_a.X.Text(10), point_a.Y.Text(10))
-	//fmt.Println("point_b: ", point_b.X.Text(10), point_b.Y.Text(10))
-
 	mod_value := new(big.Int).Sub(&point_a.X, &point_b.X)
-	//fmt.Println("after mod value")
-
 	mod_value.Mod(mod_value, &prime)
 
 	if mod_value.Cmp(big.NewInt(0)) == 0 {
 		return big.Int{}, errors.New("is multiple of prime")
 	}
 
-	//fmt.Println(point_a.Y)
-	//fmt.Println(point_b.Y)
 	n := new(big.Int).Sub(&point_a.Y, &point_b.Y)
 	m := new(big.Int).Sub(&point_a.X, &point_b.X)
-	//fmt.Println(n)
-	//fmt.Println(m)
 
-	_, z := new(big.Int).DivMod(n, m, &prime)
-
-	//fmt.Println("line slope: ", z)
-	//fmt.Println("m: ", m2)
-	fmt.Println("")
+	z, _ := math_utils.DivMod(n, m, &prime)
 	return *z, nil
 }
 
 func EcAdd(point_a PartialSumB, point_b DoublePointB, prime big.Int) (PartialSumB, error) {
 	m, err := LineSlope(point_a, point_b, prime)
-	// fmt.Println("after line slope")
 	if err != nil {
 		return PartialSumB{}, err
 	}
@@ -196,8 +181,6 @@ func EcAdd(point_a PartialSumB, point_b DoublePointB, prime big.Int) (PartialSum
 	y.Sub(y, &point_a.Y)
 	y.Mod(y, &prime)
 
-	// fmt.Println("after the y")
-
 	return PartialSumB{X: *x, Y: *y}, nil
 }
 
@@ -206,33 +189,21 @@ func EcDoubleSlope(point DoublePointB, alpha big.Int, prime big.Int) (big.Int, e
 	if q == big.NewInt(0) {
 		return big.Int{}, errors.New("is multiple of prime")
 	}
-
 	n := new(big.Int).Mul(&point.X, &point.X)
 	n.Mul(n, big.NewInt(3))
 	n.Add(n, &alpha)
-	fmt.Println("n: ", n.Text(10))
 
 	m := new(big.Int).Mul(&point.Y, big.NewInt(2))
-	fmt.Println("m: ", m.Text(10))
-
-	q, z := new(big.Int).DivMod(n, m, &prime)
-
-	fmt.Println("quotient: ", q)
+	z, _ := math_utils.DivMod(n, m, &prime)
 
 	return *z, nil
 }
 
 func EcDouble(point DoublePointB, alpha big.Int, prime big.Int) (DoublePointB, error) {
-	fmt.Println("alpha: ", alpha.Text(10))
-	fmt.Println("prime: ", prime.Text(10))
 	m, err := EcDoubleSlope(point, alpha, prime)
 	if err != nil {
 		return DoublePointB{}, err
 	}
-	fmt.Println("ec double slope: ", m.Text(10))
-
-	fmt.Println("")
-
 	x := new(big.Int).Mul(&m, &m)
 	x.Sub(x, new(big.Int).Mul(big.NewInt(2), &point.X))
 	x.Mod(x, &prime)
@@ -248,26 +219,20 @@ func EcOnImpl(partial_sum PartialSum, double_point DoublePoint, m lambdaworks.Fe
 	slope, _ := m.ToBigInt()
 	partial_sum_b_x, _ := partial_sum.X.ToBigInt()
 	partial_sum_b_y, _ := partial_sum.Y.ToBigInt()
-
 	partial_sum_b := PartialSumB{X: partial_sum_b_x, Y: partial_sum_b_y}
 
 	double_point_b_x, _ := double_point.X.ToBigInt()
 	double_point_b_y, _ := double_point.Y.ToBigInt()
 	double_point_b := DoublePointB{X: double_point_b_x, Y: double_point_b_y}
-	fmt.Println("double_point_b: ", double_point_b.X.Text(10), double_point_b.Y.Text(10))
 
-	for i := 0; i < 1; i++ {
+	for i := 0; i < int(height); i++ {
 		var err error
 		if (new(big.Int).Sub(&double_point_b.X, &partial_sum_b.X)) == big.NewInt(0) {
 			return PartialSumB{}, errors.New("Runner error EcOpSameXCoordinate")
 		}
+
 		and_operation := (new(big.Int).And(&slope, big.NewInt(1)))
-		// fmt.Println("result of AND operation: ", new(big.Int).And(&slope, big.NewInt(1)))
-		// fmt.Println("result of comparing with 0: ", and_operation.Cmp(big.NewInt(0)) > 0)
-		// fmt.Println("slope:  ", slope)
-		
 		if and_operation.Cmp(big.NewInt(0)) > 0 {
-			//fmt.Println("inside second if")
 			partial_sum_b, err = EcAdd(partial_sum_b, double_point_b, *prime)
 			if err != nil {
 				return PartialSumB{}, err
@@ -275,11 +240,8 @@ func EcOnImpl(partial_sum PartialSum, double_point DoublePoint, m lambdaworks.Fe
 		}
 
 		double_point_b, err = EcDouble(double_point_b, *alpha, *prime)
-		fmt.Println("double_point_b: ", double_point_b.X.Text(10), double_point_b.Y.Text(10))
-		
 		slope = *slope.Rsh(&slope, 1)
 	}
-	fmt.Println("after loop")
 	return partial_sum_b, nil
 }
 
