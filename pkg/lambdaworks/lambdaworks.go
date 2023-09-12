@@ -239,14 +239,15 @@ func (f Felt) ToBigInt() *big.Int {
 	return new(big.Int).SetBytes(f.ToBeBytes()[:32])
 }
 
-const CAIRO_PRIME_HEX = "0x800000000000011000000000000000000000000000000000000000000000000"
+const CAIRO_PRIME_HEX = "0x800000000000011000000000000000000000000000000000000000000000001"
 const SIGNED_FELT_MAX_HEX = "0x400000000000008800000000000000000000000000000000000000000000000"
 
+// Implements `as_int` behaviour
 func (f Felt) ToSigned() *big.Int {
 	n := f.ToBigInt()
-	signedFeltMax, _ := new(big.Int).SetString(SIGNED_FELT_MAX_HEX, 16)
+	signedFeltMax, _ := new(big.Int).SetString(SIGNED_FELT_MAX_HEX, 0)
 	if n.Cmp(signedFeltMax) == 1 {
-		cairoPrime, _ := new(big.Int).SetString(CAIRO_PRIME_HEX, 16)
+		cairoPrime, _ := new(big.Int).SetString(CAIRO_PRIME_HEX, 0)
 		return new(big.Int).Neg(new(big.Int).Sub(cairoPrime, n))
 	}
 	return n
