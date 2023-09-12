@@ -22,4 +22,3 @@ func AddSegmentHintOk(t *testing.T) {
 		t.Errorf("ADD_SEGMENT fail expected: %d segments, got: %d", initial_segments+1, vm.Segments.Memory.NumSegments())
 	}
 }
-

@@ -222,11 +222,8 @@ func (m MaybeRelocatable) Sub(other MaybeRelocatable) (MaybeRelocatable, error) 
 		return *NewMaybeRelocatableRelocatable(relocatable), nil
 
 	} else if is_rel_m && is_rel_other {
-		offset_diff, err := m_rel.Sub(other_rel)
-		if err != nil {
-			return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
-		}
-		return *NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(uint64(offset_diff))), nil
+		offset_diff := lambdaworks.FeltFromUint64(uint64(m_rel.Offset)).Sub(lambdaworks.FeltFromUint64(uint64(other_rel.Offset)))
+		return *NewMaybeRelocatableFelt(offset_diff), nil
 	} else {
 		return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), errors.New("Cant sub Relocatable from Felt")
 	}
