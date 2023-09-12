@@ -4,7 +4,6 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	starknet_crypto "github.com/lambdaclass/cairo-vm.go/pkg/starknet_crypto"
 	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
-	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	"github.com/pkg/errors"
 )
@@ -96,12 +95,11 @@ func (p *PoseidonBuiltinRunner) CellsPerInstance() uint {
 	return POSEIDON_CELLS_PER_INSTANCE
 }
 
-func (p *PoseidonBuiltinRunner) GetAllocatedMemoryUnits(vm *vm.VirtualMachine) (uint, error) {
+func (p *PoseidonBuiltinRunner) GetAllocatedMemoryUnits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
 	// This condition corresponds to an uninitialized ratio for the builtin, which should only
 	// happen when layout is `dynamic`
 	if p.Ratio() == 0 {
 		// Dynamic layout has the exact number of instances it needs (up to a power of 2).
-		segments := vm.Segments
 		used, err := segments.GetSegmentUsedSize(uint(p.base.SegmentIndex))
 		if err != nil {
 			return 0, err
@@ -114,10 +112,10 @@ func (p *PoseidonBuiltinRunner) GetAllocatedMemoryUnits(vm *vm.VirtualMachine) (
 	}
 
 	minStep := p.ratio * p.instancesPerComponent
-	if vm.CurrentStep < minStep {
+	if currentStep < minStep {
 		return 0, errors.Errorf("number of steps must be at least %d for the %s builtin", minStep, p.Name())
 	}
-	value, err := utils.SafeDiv(vm.CurrentStep, p.ratio)
+	value, err := utils.SafeDiv(currentStep, p.ratio)
 
 	if err != nil {
 		return 0, errors.Errorf("error calculating builtin memory units: %s", err)
@@ -126,14 +124,13 @@ func (p *PoseidonBuiltinRunner) GetAllocatedMemoryUnits(vm *vm.VirtualMachine) (
 	return p.CellsPerInstance() * value, nil
 }
 
-func (p *PoseidonBuiltinRunner) GetUsedCellsAndAllocatedSizes(vm *vm.VirtualMachine) (uint, uint, error) {
-	segments := vm.Segments
+func (p *PoseidonBuiltinRunner) GetUsedCellsAndAllocatedSizes(segments *memory.MemorySegmentManager, currentStep uint) (uint, uint, error) {
 	used, err := segments.GetSegmentUsedSize(uint(p.base.SegmentIndex))
 	if err != nil {
 		return 0, 0, err
 	}
 
-	size, err := p.GetAllocatedMemoryUnits(vm)
+	size, err := p.GetAllocatedMemoryUnits(segments, currentStep)
 
 	if used > size {
 		return 0, 0, errors.Errorf("The builtin %s used %d cells but the capacity is %d", p.Name(), used, size)

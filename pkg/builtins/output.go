@@ -1,7 +1,6 @@
 package builtins
 
 import (
-	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -45,6 +44,10 @@ func (o *OutputBuiltinRunner) Include(include bool) {
 	o.included = include
 }
 
+func (o *OutputBuiltinRunner) Ratio() uint {
+	return 0
+}
+
 // func (r *OutputBuiltinRunner) GetUsedCells(segments *memory.MemorySegmentManager) (uint, error) {
 // 	used, err := segments.GetSegmentUsedSize(uint(r.base.SegmentIndex))
 // 	if err != nil {
@@ -53,12 +56,11 @@ func (o *OutputBuiltinRunner) Include(include bool) {
 // 	return used, nil
 // }
 
-func (o *OutputBuiltinRunner) GetAllocatedMemoryUnits(vm *vm.VirtualMachine) (uint, error) {
+func (o *OutputBuiltinRunner) GetAllocatedMemoryUnits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
 	return 0, nil
 }
 
-func (o *OutputBuiltinRunner) GetUsedCellsAndAllocatedSizes(vm *vm.VirtualMachine) (uint, uint, error) {
-	segments := vm.Segments
+func (o *OutputBuiltinRunner) GetUsedCellsAndAllocatedSizes(segments *memory.MemorySegmentManager, currentStep uint) (uint, uint, error) {
 	used, err := segments.GetSegmentUsedSize(uint(o.base.SegmentIndex))
 	if err != nil {
 		return 0, 0, err
