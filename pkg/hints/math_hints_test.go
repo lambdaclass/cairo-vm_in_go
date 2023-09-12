@@ -75,3 +75,50 @@ func TestIsPositiveOkPositive(t *testing.T) {
 		t.Errorf("IS_POSITIVE hint test incorrect value for ids.is_positive")
 	}
 }
+
+func TestIsPositiveOkNegative(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value":       {NewMaybeRelocatableFelt(FeltFromDecString("-1"))},
+			"is_positive": {nil},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: IS_POSITIVE,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	if err != nil {
+		t.Errorf("IS_POSITIVE hint test failed with error %s", err)
+	}
+	// Check ids.is_positive
+	is_positive, err := idsManager.GetFelt("is_positive", vm)
+	if err != nil || is_positive != FeltFromUint64(0) {
+		t.Errorf("IS_POSITIVE hint test incorrect value for ids.is_positive")
+	}
+}
+
+func TestIsPositiveOutOfRange(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value":       {NewMaybeRelocatableFelt(FeltFromDecString("340282366920938463463374607431768211457"))},
+			"is_positive": {nil},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: IS_POSITIVE,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	if err == nil {
+		t.Errorf("IS_POSITIVE hint test should have failed")
+	}
+}
