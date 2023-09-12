@@ -49,3 +49,23 @@ func TestIsNNHintFail(t *testing.T) {
 		t.Errorf("ASSERT_NN hint should have failed")
 	}
 }
+
+func TestDummy(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"a": {NewMaybeRelocatableFelt(FeltFromDecString("-1"))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: ASSERT_NN,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	if err == nil {
+		t.Errorf("ASSERT_NN hint should have failed")
+	}
+}

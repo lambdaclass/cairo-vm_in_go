@@ -40,6 +40,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 	switch data.Code {
 	case ASSERT_NN:
 		return assert_nn(data.Ids, vm)
+	case VERIFY_ECDSA_SIGNATURE:
+		return verify_edsa_signature(data.Ids, vm)
 	default:
 		return errors.New("Unknown Hint")
 	}
