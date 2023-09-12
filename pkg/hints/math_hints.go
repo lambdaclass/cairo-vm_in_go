@@ -45,7 +45,7 @@ func assert_not_zero(ids IdsManager, vm *VirtualMachine) error {
 	return nil
 }
 
-func assert_not_equal(ids *IdsManager, vm *VirtualMachine) error {
+func assert_not_equal(ids IdsManager, vm *VirtualMachine) error {
 	// Extract Ids Variables
 	a, err := ids.Get("a", vm)
 	if err != nil {
