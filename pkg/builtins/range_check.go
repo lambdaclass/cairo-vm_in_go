@@ -12,6 +12,7 @@ import (
 const RANGE_CHECK_BUILTIN_NAME = "range_check"
 const INNER_RC_BOUND_SHIFT = 16
 const INNER_RC_BOUND_MASK = math.MaxUint16
+const INNER_RC_BOUND uint64 = 1 << INNER_RC_BOUND_SHIFT
 const CELLS_PER_RANGE_CHECK = 1
 
 const N_PARTS = 8
@@ -50,6 +51,10 @@ func (r *RangeCheckBuiltinRunner) Base() memory.Relocatable {
 
 func (r *RangeCheckBuiltinRunner) Name() string {
 	return RANGE_CHECK_BUILTIN_NAME
+}
+
+func (r *RangeCheckBuiltinRunner) SetBase(value memory.Relocatable) {
+	r.base = value
 }
 
 func (r *RangeCheckBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
@@ -114,11 +119,11 @@ func (r *RangeCheckBuiltinRunner) GetAllocatedMemoryUnits(segments *memory.Memor
 		return size, nil
 	}
 
-	minStep := r.ratio * r.instancesPerComponent
+	minStep := r.Ratio() * r.instancesPerComponent
 	if currentStep < minStep {
 		return 0, errors.Errorf("number of steps must be at least %d for the %s builtin", minStep, r.Name())
 	}
-	value, err := utils.SafeDiv(currentStep, r.ratio)
+	value, err := utils.SafeDiv(currentStep, r.Ratio())
 
 	if err != nil {
 		return 0, errors.Errorf("error calculating builtin memory units: %s", err)
@@ -140,4 +145,47 @@ func (r *RangeCheckBuiltinRunner) GetUsedCellsAndAllocatedSizes(segments *memory
 	}
 
 	return used, size, nil
+}
+
+func (runner *RangeCheckBuiltinRunner) GetRangeCheckUsage(memory *memory.Memory) (*uint, *uint) {
+	rangeCheckSegment := memory.GetSegment(runner.base.SegmentIndex)
+
+	if rangeCheckSegment == nil {
+		return nil, nil
+	}
+
+	var rcMin = new(uint)
+	var rcMax = new(uint)
+
+	for _, value := range rangeCheckSegment {
+		feltValue, isFelt := value.GetFelt()
+
+		if !isFelt {
+			// Is this correct? Feels a little weird, like we should return an error
+			return nil, nil
+		}
+
+		feltDigits := feltValue.ToLeBytes()
+		for i := 0; i < 32; i += 2 {
+			var tempValue = (uint16(feltDigits[i+1]) << 8) | uint16((feltDigits[i]))
+
+			if rcMin == nil {
+				*rcMin = uint(tempValue)
+			}
+
+			if rcMax == nil {
+				*rcMax = uint(tempValue)
+			}
+
+			if uint(tempValue) < *rcMin {
+				*rcMin = uint(tempValue)
+			}
+
+			if uint(tempValue) > *rcMax {
+				*rcMax = uint(tempValue)
+			}
+		}
+	}
+
+	return rcMin, rcMax
 }
