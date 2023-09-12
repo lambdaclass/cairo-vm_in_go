@@ -8,6 +8,7 @@ package lambdaworks
 import "C"
 
 import (
+	"strings"
 	"unsafe"
 
 	"github.com/pkg/errors"
@@ -104,12 +105,14 @@ func (felt Felt) ToBeBytes() *[32]byte {
 }
 
 func (felt Felt) ToHexString() string {
-	var result_c = C.CString("")
+	// We need to make sure enough space is allocated to fit the longest possible string
+	var result_c = C.CString(strings.Repeat(" ", 65))
 	defer C.free(unsafe.Pointer(result_c))
 
 	var value C.felt_t = felt.toC()
 	C.to_hex_string(result_c, &value[0])
-	return C.GoString(result_c)
+	res := C.GoString(result_c)
+	return strings.TrimSpace(res)
 }
 
 func FeltFromLeBytes(bytes *[32]byte) Felt {

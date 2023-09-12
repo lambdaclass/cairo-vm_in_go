@@ -11,25 +11,25 @@ import (
 )
 
 type HintData struct {
-	Ids        map[string]HintReference
-	Code       string
-	ApTracking parser.ApTrackingData
+	Ids  IdsManager
+	Code string
 }
 
 type CairoVmHintProcessor struct {
 }
 
 func (p *CairoVmHintProcessor) CompileHint(hintParams *parser.HintParams, referenceManager *parser.ReferenceManager) (any, error) {
-	ids := make(map[string]HintReference, 0)
-	for name, n := range hintParams.ReferenceIds {
+	references := make(map[string]HintReference, 0)
+	for name, n := range hintParams.FlowTrackingData.ReferenceIds {
 		if int(n) >= len(referenceManager.References) {
 			return nil, errors.New("Reference not found in ReferenceManager")
 		}
 		split := strings.Split(name, ".")
 		name = split[len(split)-1]
-		ids[name] = ParseHintReference(referenceManager.References[n])
+		references[name] = ParseHintReference(referenceManager.References[n])
 	}
-	return HintData{Ids: ids, Code: hintParams.Code, ApTracking: hintParams.FlowTrackingData.APTracking}, nil
+	ids := NewIdsManager(references, hintParams.FlowTrackingData.APTracking)
+	return HintData{Ids: ids, Code: hintParams.Code}, nil
 }
 
 func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any, constants *map[string]Felt) error {
@@ -40,6 +40,10 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 	switch data.Code {
 	case ADD_SEGMENT:
 		return add_segment(vm)
+	case ASSERT_NN:
+		return assert_nn(data.Ids, vm)
+	case ASSERT_NOT_ZERO:
+		return assert_not_zero(data.Ids, vm)
 	default:
 		return errors.New("Unknown Hint")
 	}

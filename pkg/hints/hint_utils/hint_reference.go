@@ -9,6 +9,8 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 )
 
+// Contains data used to calculate the address or value of a cairo identifier
+// Default value (aka HintReference{}) will consist of a reference to ap without dereference (ap)
 type HintReference struct {
 	Offset1        OffsetValue
 	Offset2        OffsetValue
