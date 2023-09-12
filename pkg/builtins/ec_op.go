@@ -245,7 +245,6 @@ func EcOnImpl(partial_sum PartialSum, double_point DoublePoint, m lambdaworks.Fe
 	return partial_sum_b, nil
 }
 
-
 func PointOnCurve(x lambdaworks.Felt, y lambdaworks.Felt, alpha lambdaworks.Felt, beta lambdaworks.Felt) bool {
 	yp := y.PowUint(2)
 	xp := x.PowUint(3).Add(alpha.Mul(x)).Add(beta)
