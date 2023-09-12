@@ -46,7 +46,7 @@ func TestComputeEcOpImplValidA(t *testing.T) {
 	m := lambdaworks.FeltFromUint64(34)
 	alpha := big.NewInt(1)
 	heigth := 256
-	const PRIME = "0x800000000000011000000000000000000000000000000000000000000000001"
+	const PRIME = "800000000000011000000000000000000000000000000000000000000000001"
 	prime, _ := new(big.Int).SetString(PRIME, 16)
 
 	result, err := builtins.EcOnImpl(partial_sum, double_point, m, alpha, prime, uint32(heigth))

@@ -101,6 +101,7 @@ pub extern "C" fn to_hex_string(result: *mut libc::c_char, value: Limbs) {
     for i in 0..felt_str.len() {
         unsafe { *result.offset(i as isize) = *ptr.offset(i as isize) }
     }
+    unsafe { *result.offset((felt_str.len()+ (1_usize)) as isize) = 0}
 }
 
 #[no_mangle]

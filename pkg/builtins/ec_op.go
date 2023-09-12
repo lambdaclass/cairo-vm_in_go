@@ -152,34 +152,49 @@ func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segmen
 }
 
 func LineSlope(point_a PartialSumB, point_b DoublePointB, prime big.Int) (big.Int, error) {
-	mod_value := new(big.Int).Sub(&point_a.X, &point_b.Y)
-	mod_value.Mod(mod_value, &prime)
 
+	//fmt.Println(point_a)
+	//fmt.Println(point_b)
+	//	fmt.Println("inside line slope")
+	mod_value := new(big.Int).Sub(&point_a.X, &point_b.X)
+	//	fmt.Println("after mod value")
+	mod_value.Mod(mod_value, &prime)
+	//	fmt.Println("after mod ")
 	if mod_value == big.NewInt(0) {
 		return big.Int{}, errors.New("is multiple of prime")
 	}
 
+	//fmt.Println(point_a.Y)
+	//fmt.Println(point_b.Y)
 	n := new(big.Int).Sub(&point_a.Y, &point_b.Y)
 	m := new(big.Int).Sub(&point_a.X, &point_b.X)
+	//fmt.Println(n)
+	//fmt.Println(m)
 
 	z, _ := new(big.Int).DivMod(n, m, &prime)
+
+	//fmt.Println("line slope: ", z)
 
 	return *z, nil
 }
 
 func EcAdd(point_a PartialSumB, point_b DoublePointB, prime big.Int) (PartialSumB, error) {
 	m, err := LineSlope(point_a, point_b, prime)
+	// fmt.Println("after line slope")
 	if err != nil {
 		return PartialSumB{}, err
 	}
 
 	x := new(big.Int).Mul(&m, &m)
-	x.Sub(&point_a.X, &point_b.X)
+	x.Sub(x, &point_a.X)
+	x.Sub(x, &point_b.X)
 	x.Mod(x, &prime)
 
 	y := new(big.Int).Mul(&m, new(big.Int).Sub(&point_a.X, x))
 	y.Sub(y, &point_a.Y)
 	y.Mod(y, &prime)
+
+	// fmt.Println("after the y")
 
 	return PartialSumB{X: *x, Y: *y}, nil
 }
@@ -219,40 +234,38 @@ func EcDouble(point DoublePointB, alpha big.Int, prime big.Int) (DoublePointB, e
 }
 
 func EcOnImpl(partial_sum PartialSum, double_point DoublePoint, m lambdaworks.Felt, alpha *big.Int, prime *big.Int, height uint32) (PartialSumB, error) {
-	fmt.Println("before slope")
 	slope, _ := m.ToBigInt()
-	fmt.Println("after slope")
-
-	
 	partial_sum_b_x, _ := partial_sum.X.ToBigInt()
-	fmt.Println("after sum b x")
 	partial_sum_b_y, _ := partial_sum.Y.ToBigInt()
 
-	fmt.Println("partial sum b slope")
-
 	partial_sum_b := PartialSumB{X: partial_sum_b_x, Y: partial_sum_b_y}
-	fmt.Println("after partial suim b")
+
 	double_point_b_x, _ := double_point.X.ToBigInt()
 	double_point_b_y, _ := double_point.Y.ToBigInt()
-
 	double_point_b := DoublePointB{X: double_point_b_x, Y: double_point_b_y}
 
-	fmt.Println("before loop")
 	for i := 0; i < int(height); i++ {
 		var err error
-		if (double_point_b.X.Sub(&double_point_b.X, &partial_sum_b.X)) == big.NewInt(0) {
+		if (new(big.Int).Sub(&double_point_b.X, &partial_sum_b.X)) == big.NewInt(0) {
 			return PartialSumB{}, errors.New("Runner error EcOpSameXCoordinate")
 		}
-		if !((slope.And(&slope, big.NewInt(1))) == big.NewInt(0)) {
+
+		fmt.Println("result of AND operation: ", new(big.Int).And(&slope, big.NewInt(1)))
+		fmt.Println("result of comparing with 0: ", !reflect.DeepEqual(*new(big.Int).And(&slope, big.NewInt(1)), *big.NewInt(0)))
+		fmt.Println("slope:  ", slope)
+
+		if (new(big.Int).And(&slope, big.NewInt(1))) != big.NewInt(0) {
+			fmt.Println("inside second if")
 			partial_sum_b, err = EcAdd(partial_sum_b, double_point_b, *prime)
 			if err != nil {
 				return PartialSumB{}, err
 			}
 		}
+
 		double_point_b, err = EcDouble(double_point_b, *alpha, *prime)
 		slope = *slope.Rsh(&slope, 1)
 	}
-	fmt.Println("before loop")
+	fmt.Println("after loop")
 	return partial_sum_b, nil
 }
 

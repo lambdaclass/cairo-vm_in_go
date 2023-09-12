@@ -106,7 +106,7 @@ func (felt Felt) ToBeBytes() *[32]byte {
 }
 
 func (felt Felt) ToHexString() string {
-	var result_c = C.CString("")
+	var result_c = C.CString(string(make([]byte, 65)))
 	defer C.free(unsafe.Pointer(result_c))
 
 	var value C.felt_t = felt.toC()
@@ -228,7 +228,7 @@ func (a Felt) Shl(num uint64) Felt {
 	var result C.felt_t
 	var a_c C.felt_t = a.toC()
 
-	C.felt_shl(&a_c[0], C.ulong(num), &result[0])
+	C.felt_shl(&a_c[0], C.ulonglong(num), &result[0])
 	return fromC(result)
 }
 
@@ -241,9 +241,12 @@ func (a Felt) PowUint(p uint32) Felt {
 }
 
 func (a Felt) ToBigInt() (big.Int, error) {
+	fmt.Println("to big int")
 	fmt.Println(a)
 	hex := a.ToHexString()
-	big_int, ok := new(big.Int).SetString(hex, 16)
+	//fmt.Println("hex")
+	//fmt.Println(hex)
+	big_int, ok := new(big.Int).SetString(hex[2:], 16)
 	if !ok {
 		return big.Int{}, errors.New("Could not convert to big int")
 	}

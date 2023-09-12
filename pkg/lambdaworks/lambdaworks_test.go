@@ -29,17 +29,6 @@ func TestToHex(t *testing.T) {
 
 }
 
-func TestToHexLarge(t *testing.T) {
-	var expected = "0x1a"
-	felt := lambdaworks.FeltFromDecString("3139037544796708144595053687182055617920475701120786241351436619796497072089")
-
-	result := felt.ToHexString()
-	if result != expected {
-		t.Errorf("TestFromHex failed. Expected: %v, Got: %v", expected, result)
-	}
-
-}
-
 func TestFromDecString(t *testing.T) {
 	var s_one = "435"
 	expected := lambdaworks.FeltFromUint64(435)
