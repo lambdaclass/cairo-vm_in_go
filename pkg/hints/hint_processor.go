@@ -38,6 +38,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return errors.New("Wrong Hint Data")
 	}
 	switch data.Code {
+	case ADD_SEGMENT:
+		return add_segment(vm)
 	default:
 		return errors.New("Unknown Hint")
 	}
