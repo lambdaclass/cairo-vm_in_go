@@ -48,6 +48,19 @@ func TestPoseidonPermuteCompB(t *testing.T) {
 	}
 }
 
+func TestPersenHash(t *testing.T) {
+	// Set initial state values
+	f1 := lambdaworks.FeltFromHex("0x20")
+	f2 := lambdaworks.FeltFromHex("0x48")
+
+	// Run the poseidon permutation
+	hash := starknet_crypto.PedersenHash(f1, f2)
+
+	if hash != lambdaworks.FeltFromHex("0x73b3ec210cccbb970f80c6826fb1c40ae9f487617696234ff147451405c339f") {
+		t.Errorf("Error")
+	}
+}
+
 func TestVerifySignatureShouldFail(t *testing.T) {
 	signature := lambdaworks.FeltFromHex("0x1")
 	msg_hash := lambdaworks.FeltFromHex("0x1")

@@ -11,8 +11,8 @@ import (
 )
 
 type FlowTrackingData struct {
-	APTracking   ApTrackingData `json:"ap_tracking"`
-	ReferenceIDS map[string]int `json:"reference_ids"`
+	APTracking   ApTrackingData  `json:"ap_tracking"`
+	ReferenceIds map[string]uint `json:"reference_ids"`
 }
 
 type Location struct {
@@ -69,8 +69,7 @@ type ReferenceManager struct {
 type HintParams struct {
 	Code             string           `json:"code"`
 	AccessibleScopes []string         `json:"accessible_scopes"`
-	FlowTrackingData FlowTrackingData `json:"flow_trackingData"`
-	ReferenceIds     map[string]uint  `json:"reference_ids"`
+	FlowTrackingData FlowTrackingData `json:"flow_tracking_data"`
 }
 
 type CompiledJson struct {

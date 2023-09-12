@@ -58,3 +58,24 @@ func TestWriteOutputProgram(t *testing.T) {
 	}
 
 }
+
+func TestPedersenBuiltin(t *testing.T) {
+	_, err := cairo_run.CairoRun("../../../cairo_programs/pedersen_test.json", "small", false)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
+
+func TestPedersenAndBitwiseBuiltins(t *testing.T) {
+	_, err := cairo_run.CairoRun("../../../cairo_programs/pedersen_and_bitwise_builtins.json", "small", false)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
+
+func TestPedersenAndBitwiseBuiltinsWithAllocLocals(t *testing.T) {
+	_, err := cairo_run.CairoRun("../../../cairo_programs/pedersen_and_bitwise_builtins_with_alloc_locals.json", "small", false)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
