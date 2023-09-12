@@ -69,11 +69,12 @@ func ValidationRuleSignature(mem *memory.Memory, address memory.Relocatable, sig
 
 	pub_key, get_pubkey_error := mem.GetFelt(pub_key_address)
 	message, get_message_error := mem.GetFelt(message_addr)
-	signature, found_signature := signatureBuiltin.signatures[pub_key_address]
-
+	// If input is not complete, validation rule is not run
 	if (get_pubkey_error != nil && cell_index == 1) || (get_message_error != nil && cell_index == 0) {
 		return []memory.Relocatable{}, nil
 	}
+
+	signature, found_signature := signatureBuiltin.signatures[pub_key_address]
 
 	if !found_signature || get_pubkey_error != nil || get_message_error != nil {
 		return nil, SignatureVerificationError()
