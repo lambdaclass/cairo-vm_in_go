@@ -6,6 +6,7 @@ import (
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/types"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	"github.com/pkg/errors"
 )
@@ -41,12 +42,12 @@ func NewVirtualMachine() *VirtualMachine {
 	return &VirtualMachine{Segments: segments, BuiltinRunners: builtin_runners, Trace: trace, RelocatedTrace: relocatedTrace}
 }
 
-func (v *VirtualMachine) Step(hintProcessor HintProcessor, hintDataMap *map[uint][]any, constants *map[string]lambdaworks.Felt) error {
+func (v *VirtualMachine) Step(hintProcessor HintProcessor, hintDataMap *map[uint][]any, constants *map[string]lambdaworks.Felt, execScopes *types.ExecutionScopes) error {
 	// Run Hint
 	hintDatas, ok := (*hintDataMap)[v.RunContext.Pc.Offset]
 	if ok {
 		for i := 0; i < len(hintDatas); i++ {
-			err := hintProcessor.ExecuteHint(v, &hintDatas[i], constants)
+			err := hintProcessor.ExecuteHint(v, &hintDatas[i], constants, execScopes)
 			if err != nil {
 				return err
 			}

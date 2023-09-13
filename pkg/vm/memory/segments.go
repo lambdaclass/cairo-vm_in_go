@@ -1,8 +1,6 @@
 package memory
 
 import (
-	"fmt"
-
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/pkg/errors"
 )
@@ -126,7 +124,6 @@ func (m *MemorySegmentManager) GetMemoryHoles(builtinCount uint) (uint, error) {
 		accessedCellsBySegment[uint(address.SegmentIndex)]++
 	}
 
-	fmt.Println(m.SegmentSizes)
 	for segmentIndex, size := range m.SegmentSizes {
 		if segmentIndex > builtinSegmentsStart && segmentIndex <= builtinSegmentsEnd {
 			continue

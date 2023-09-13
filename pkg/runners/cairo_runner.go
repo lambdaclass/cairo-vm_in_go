@@ -5,6 +5,7 @@ import (
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/layouts"
+	"github.com/lambdaclass/cairo-vm.go/pkg/types"
 	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
@@ -26,6 +27,7 @@ type CairoRunner struct {
 	ProofMode     bool
 	RunEnded      bool
 	Layout        layouts.CairoLayout
+	execScopes    types.ExecutionScopes
 }
 
 func NewCairoRunner(program vm.Program, layoutName string, proofMode bool) (*CairoRunner, error) {
@@ -51,6 +53,7 @@ func NewCairoRunner(program vm.Program, layoutName string, proofMode bool) (*Cai
 		mainOffset: main_offset,
 		ProofMode:  proofMode,
 		Layout:     layout,
+		execScopes: *types.NewExecutionScopes(),
 	}
 	return &runner, nil
 }
@@ -193,7 +196,7 @@ func (r *CairoRunner) RunUntilPC(end memory.Relocatable, hintProcessor vm.HintPr
 	}
 	constants := r.Program.ExtractConstants()
 	for r.Vm.RunContext.Pc != end {
-		err := r.Vm.Step(hintProcessor, &hintDataMap, &constants)
+		err := r.Vm.Step(hintProcessor, &hintDataMap, &constants, &r.execScopes)
 		if err != nil {
 			return err
 		}
@@ -424,7 +427,7 @@ func (runner *CairoRunner) RunForSteps(steps uint, virtualMachine *vm.VirtualMac
 			return &vm.VirtualMachineError{Msg: fmt.Sprintf("EndOfProgram: %d", remaining_steps)}
 		}
 
-		err := virtualMachine.Step(hintProcessor, &hintDataMap, &constants)
+		err := virtualMachine.Step(hintProcessor, &hintDataMap, &constants, &runner.execScopes)
 		if err != nil {
 			return err
 		}
