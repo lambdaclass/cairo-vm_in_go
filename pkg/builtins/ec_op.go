@@ -216,14 +216,14 @@ func EcDouble(point DoublePointB, alpha big.Int, prime big.Int) (DoublePointB, e
 }
 
 func EcOnImpl(partial_sum PartialSum, double_point DoublePoint, m lambdaworks.Felt, alpha *big.Int, prime *big.Int, height uint32) (PartialSumB, error) {
-	slope, _ := m.ToBigInt()
-	partial_sum_b_x, _ := partial_sum.X.ToBigInt()
-	partial_sum_b_y, _ := partial_sum.Y.ToBigInt()
-	partial_sum_b := PartialSumB{X: partial_sum_b_x, Y: partial_sum_b_y}
+	slope := m.ToBigInt()
+	partial_sum_b_x := partial_sum.X.ToBigInt()
+	partial_sum_b_y := partial_sum.Y.ToBigInt()
+	partial_sum_b := PartialSumB{X: *partial_sum_b_x, Y: *partial_sum_b_y}
 
-	double_point_b_x, _ := double_point.X.ToBigInt()
-	double_point_b_y, _ := double_point.Y.ToBigInt()
-	double_point_b := DoublePointB{X: double_point_b_x, Y: double_point_b_y}
+	double_point_b_x := double_point.X.ToBigInt()
+	double_point_b_y := double_point.Y.ToBigInt()
+	double_point_b := DoublePointB{X: *double_point_b_x, Y: *double_point_b_y}
 
 	for i := 0; i < int(height); i++ {
 		var err error
@@ -231,7 +231,7 @@ func EcOnImpl(partial_sum PartialSum, double_point DoublePoint, m lambdaworks.Fe
 			return PartialSumB{}, errors.New("Runner error EcOpSameXCoordinate")
 		}
 
-		and_operation := (new(big.Int).And(&slope, big.NewInt(1)))
+		and_operation := (new(big.Int).And(slope, big.NewInt(1)))
 		if and_operation.Cmp(big.NewInt(0)) > 0 {
 			partial_sum_b, err = EcAdd(partial_sum_b, double_point_b, *prime)
 			if err != nil {
@@ -240,7 +240,7 @@ func EcOnImpl(partial_sum PartialSum, double_point DoublePoint, m lambdaworks.Fe
 		}
 
 		double_point_b, err = EcDouble(double_point_b, *alpha, *prime)
-		slope = *slope.Rsh(&slope, 1)
+		slope = slope.Rsh(slope, 1)
 	}
 	return partial_sum_b, nil
 }
