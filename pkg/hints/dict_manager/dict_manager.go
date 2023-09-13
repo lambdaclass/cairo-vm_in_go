@@ -35,8 +35,8 @@ func (d *DictManager) GetTracker(dict_ptr Relocatable) (*DictTracker, error) {
 	if !ok {
 		return nil, errors.Errorf("Dict Error: No dict tracker found for segment %d", dict_ptr.SegmentIndex)
 	}
-	if tracker.currentPtr != dict_ptr {
-		return nil, errors.Errorf("Dict Error: Wrong dict pointer supplied. Got %v, expected %v", dict_ptr, tracker.currentPtr)
+	if tracker.CurrentPtr != dict_ptr {
+		return nil, errors.Errorf("Dict Error: Wrong dict pointer supplied. Got %v, expected %v", dict_ptr, tracker.CurrentPtr)
 	}
 	return &tracker, nil
 }
@@ -45,20 +45,20 @@ func (d *DictManager) GetTracker(dict_ptr Relocatable) (*DictTracker, error) {
 type DictTracker struct {
 	data Dictionary
 	// Pointer to the first unused position in the dict segment.
-	currentPtr Relocatable
+	CurrentPtr Relocatable
 }
 
 func NewDictTrackerForDictionary(base Relocatable, dict *map[MaybeRelocatable]MaybeRelocatable) DictTracker {
 	return DictTracker{
 		data:       NewDictionary(dict),
-		currentPtr: base,
+		CurrentPtr: base,
 	}
 }
 
 func NewDictTrackerForDefaultDictionary(base Relocatable, defaultValue *MaybeRelocatable) DictTracker {
 	return DictTracker{
 		data:       NewDefaultDictionary(defaultValue),
-		currentPtr: base,
+		CurrentPtr: base,
 	}
 }
 
