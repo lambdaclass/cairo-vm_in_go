@@ -1,13 +1,12 @@
 package hints
 
 import (
-	"errors"
-
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/dict_manager"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+	"github.com/pkg/errors"
 )
 
 const DICT_ACCESS_SIZE = 3
@@ -94,5 +93,44 @@ func dictWrite(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) erro
 	}
 	ids.Insert("prev_value", prev_val, vm)
 	tracker.InsertValue(key, new_value)
+	return nil
+}
+
+func dictUpdate(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error {
+	// Extract Variables
+	dictManager, ok := FetchDictManager(scopes)
+	if !ok {
+		return errors.New("Variable __dict_manager not present in current execution scope")
+	}
+	dict_ptr, err := ids.GetRelocatable("dict_ptr", vm)
+	if err != nil {
+		return err
+	}
+	key, err := ids.Get("key", vm)
+	if err != nil {
+		return err
+	}
+	new_value, err := ids.Get("new_value", vm)
+	if err != nil {
+		return err
+	}
+	prev_value, err := ids.Get("prev_value", vm)
+	if err != nil {
+		return err
+	}
+	// Hint Logic
+	tracker, err := dictManager.GetTracker(dict_ptr)
+	if err != nil {
+		return err
+	}
+	current_value, err := tracker.GetValue(key)
+	if err != nil {
+		return err
+	}
+	if *prev_value != *current_value {
+		return errors.Errorf("Wrong previous value in dict. Got %v, expected %v.", *current_value, *prev_value)
+	}
+	tracker.InsertValue(key, new_value)
+	tracker.CurrentPtr.Offset += DICT_ACCESS_SIZE
 	return nil
 }
