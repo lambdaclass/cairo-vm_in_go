@@ -520,3 +520,13 @@ func (vm *VirtualMachine) WriteOutput(writer *bytes.Buffer) {
 		}
 	}
 }
+
+func (vm *VirtualMachine) GetBuiltinRunner(built_in_name string) (*builtins.BuiltinRunner, error) {
+
+	for _, builtin := range vm.BuiltinRunners {
+		if builtin.Name() == built_in_name {
+			return &builtin, nil
+		}
+	}
+	return nil, &VirtualMachineError{"BuiltinNotFound"}
+}
