@@ -244,52 +244,52 @@ func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll b
 	return nil
 }
 
-func (runner *CairoRunner) CheckRangeCheckUsage(virtualMachine *vm.VirtualMachine) {
+func (runner *CairoRunner) CheckRangeCheckUsage(virtualMachine *vm.VirtualMachine) error {
+	var rcMin, rcMax *uint
 
+	for _, builtin := range runner.Vm.BuiltinRunners {
+		resultMin, resultMax := builtin.GetRangeCheckUsage(&runner.Vm.Segments.Memory)
+
+		if resultMin != nil {
+			rcMin = resultMin
+		}
+
+		if resultMax != nil {
+			rcMax = resultMax
+		}
+	}
+
+	if rcMin == nil || rcMax == nil {
+		return nil
+	}
+
+	if runner.Vm.RcLimitsMax != nil && (*runner.Vm.RcLimitsMax > *rcMax) {
+		rcMax = runner.Vm.RcLimitsMax
+	}
+
+	if runner.Vm.RcLimitsMin != nil && (*runner.Vm.RcLimitsMin > *rcMin) {
+		rcMin = runner.Vm.RcLimitsMin
+	}
+
+	var rcUnitsUsedByBuiltins uint = 0
+
+	for _, builtin := range runner.Vm.BuiltinRunners {
+		usedUnits, err := builtin.GetUsedPermRangeCheckLimits(&virtualMachine.Segments, virtualMachine.CurrentStep)
+		if err != nil {
+			return err
+		}
+
+		rcUnitsUsedByBuiltins += usedUnits
+	}
+
+	unusedRcUnits := (runner.layout.RcUnits-3)*virtualMachine.CurrentStep - uint(rcUnitsUsedByBuiltins)
+
+	if unusedRcUnits < (*rcMax - *rcMin) {
+		return errors.Errorf("Insufficient Allocated Cells: Unused RC Units: %d, Size: %d", unusedRcUnits, (*rcMax - *rcMin))
+	}
+
+	return nil
 }
-
-func (runner *CairoRunner) GetPermRangeCheckLimits(virtualMachine *vm.VirtualMachine) {
-
-}
-
-// pub fn get_perm_range_check_limits(&self, vm: &VirtualMachine) -> Option<(isize, isize)> {
-// 	let runner_usages = vm
-// 		.builtin_runners
-// 		.iter()
-// 		.filter_map(|runner| runner.get_range_check_usage(&vm.segments.memory))
-// 		.map(|(rc_min, rc_max)| (rc_min as isize, rc_max as isize));
-// 	let rc_bounds = vm.rc_limits.iter().copied().chain(runner_usages);
-// 	rc_bounds.reduce(|(min1, max1), (min2, max2)| (min1.min(min2), max1.max(max2)))
-// }
-
-// /// Checks that there are enough trace cells to fill the entire range check
-//     /// range.
-//     pub fn check_range_check_usage(&self, vm: &VirtualMachine) -> Result<(), VirtualMachineError> {
-//         let Some((rc_min, rc_max)) = self.get_perm_range_check_limits(vm) else {
-//             return Ok(());
-//         };
-
-//         let rc_units_used_by_builtins: usize = vm
-//             .builtin_runners
-//             .iter()
-//             .map(|runner| runner.get_used_perm_range_check_units(vm))
-//             .sum::<Result<usize, MemoryError>>()
-//             .map_err(Into::<VirtualMachineError>::into)?;
-
-//         let unused_rc_units =
-//             (self.layout.rc_units as usize - 3) * vm.current_step - rc_units_used_by_builtins;
-//         if unused_rc_units < (rc_max - rc_min) as usize {
-//             return Err(MemoryError::InsufficientAllocatedCells(
-//                 InsufficientAllocatedCellsError::RangeCheckUnits(Box::new((
-//                     unused_rc_units,
-//                     (rc_max - rc_min) as usize,
-//                 ))),
-//             )
-//             .into());
-//         }
-
-//         Ok(())
-//     }
 
 // TODO: Add hint processor when it's done
 func (runner *CairoRunner) RunForSteps(steps uint, virtualMachine *vm.VirtualMachine, hintProcessor vm.HintProcessor) error {

@@ -189,3 +189,13 @@ func (runner *RangeCheckBuiltinRunner) GetRangeCheckUsage(memory *memory.Memory)
 
 	return rcMin, rcMax
 }
+
+func (runner *RangeCheckBuiltinRunner) GetUsedPermRangeCheckLimits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
+	usedCells, _, err := runner.GetUsedCellsAndAllocatedSizes(segments, currentStep)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return usedCells * N_PARTS, nil
+}

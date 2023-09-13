@@ -138,3 +138,11 @@ func (p *PoseidonBuiltinRunner) GetUsedCellsAndAllocatedSizes(segments *memory.M
 
 	return used, size, nil
 }
+
+func (runner *PoseidonBuiltinRunner) GetRangeCheckUsage(memory *memory.Memory) (*uint, *uint) {
+	return nil, nil
+}
+
+func (runner *PoseidonBuiltinRunner) GetUsedPermRangeCheckLimits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
+	return 0, nil
+}

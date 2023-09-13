@@ -67,3 +67,11 @@ func (o *OutputBuiltinRunner) GetUsedCellsAndAllocatedSizes(segments *memory.Mem
 	}
 	return used, used, nil
 }
+
+func (runner *OutputBuiltinRunner) GetRangeCheckUsage(memory *memory.Memory) (*uint, *uint) {
+	return nil, nil
+}
+
+func (runner *OutputBuiltinRunner) GetUsedPermRangeCheckLimits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
+	return 0, nil
+}

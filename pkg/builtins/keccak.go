@@ -581,3 +581,11 @@ func (k *KeccakBuiltinRunner) GetUsedCellsAndAllocatedSizes(segments *memory.Mem
 
 	return used, size, nil
 }
+
+func (runner *KeccakBuiltinRunner) GetRangeCheckUsage(memory *memory.Memory) (*uint, *uint) {
+	return nil, nil
+}
+
+func (runner *KeccakBuiltinRunner) GetUsedPermRangeCheckLimits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
+	return 0, nil
+}

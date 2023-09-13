@@ -28,11 +28,11 @@ type BuiltinRunner interface {
 	// Returns the builtin's ratio, can be nil if the layout is dynamic
 	Ratio() uint
 	// Returns the builtin's allocated memory units
-	GetAllocatedMemoryUnits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) // proof-mode end_run logic
+	GetAllocatedMemoryUnits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error)
 	// // Returns the list of memory addresses used by the builtin
 	// GetMemoryAccesses(*memory.MemorySegmentManager) ([]memory.Relocatable, error) // proof-mode end_run logic
-	// GetRangeCheckUsage(*memory.Memory) (*uint, *uint)
-	// GetUsedPermRangeCheckLimits(*vm.VirtualMachine) (uint, error)                 // proof-mode end_run logic
+	GetRangeCheckUsage(*memory.Memory) (*uint, *uint)
+	GetUsedPermRangeCheckLimits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error)
 	// GetUsedDilutedCheckUnits(diluted_spacing uint, diluted_n_bits uint) uint      // proof-mode end_run logic
 	GetUsedCellsAndAllocatedSizes(segments *memory.MemorySegmentManager, currentStep uint) (uint, uint, error) // proof-mode end_run logic + finalize_segments
 	// // II. SECURITY (secure-run flag cairo-run || verify-secure flag run_from_entrypoint)

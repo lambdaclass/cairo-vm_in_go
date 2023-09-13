@@ -152,3 +152,11 @@ func (b *BitwiseBuiltinRunner) GetUsedCellsAndAllocatedSizes(segments *memory.Me
 
 	return used, size, nil
 }
+
+func (runner *BitwiseBuiltinRunner) GetRangeCheckUsage(memory *memory.Memory) (*uint, *uint) {
+	return nil, nil
+}
+
+func (runner *BitwiseBuiltinRunner) GetUsedPermRangeCheckLimits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
+	return 0, nil
+}

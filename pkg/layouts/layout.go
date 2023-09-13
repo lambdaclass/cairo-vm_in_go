@@ -14,7 +14,7 @@ type CairoLayout struct {
 	Builtins []builtins.BuiltinRunner
 	// TODO - Add when necessary:
 	// cpuComponentStep uint,
-	// rcUnits uint,
+	RcUnits uint
 	// publicMemoryFraction uint,
 	// memoryUnitsPerStep uint,
 	// dilutedPoolInstanceDef DilutedPoolInstanceDef

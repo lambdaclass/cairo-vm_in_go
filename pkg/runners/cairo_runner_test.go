@@ -539,3 +539,69 @@ func TestWriteOutputFromPresentMemoryNegOutput(t *testing.T) {
 	}
 }
 */
+
+func TestCheckRangeCheckUsagePermRangeLimitsNone(t *testing.T) {
+	program := vm.Program{Data: nil, Builtins: nil, Identifiers: nil, Hints: nil, ReferenceManager: parser.ReferenceManager{}}
+
+	runner, err := runners.NewCairoRunner(program, "plain", false)
+	if err != nil {
+		t.Error("Could not initialize Cairo Runner")
+	}
+	virtualMachine := vm.NewVirtualMachine()
+
+	virtualMachine.Trace = make([]vm.TraceEntry, 0)
+
+	err = runner.CheckRangeCheckUsage(virtualMachine)
+	if err != nil {
+		t.Errorf("Check Range Usage Failed With Error %s", err)
+	}
+}
+
+func TestCheckRangeCheckUsageWithoutBuiltins(t *testing.T) {
+	program := vm.Program{Data: nil, Builtins: nil, Identifiers: nil, Hints: nil, ReferenceManager: parser.ReferenceManager{}}
+
+	runner, err := runners.NewCairoRunner(program, "plain", false)
+	if err != nil {
+		t.Error("Could not initialize Cairo Runner")
+	}
+	virtualMachine := vm.NewVirtualMachine()
+
+	virtualMachine.Trace = make([]vm.TraceEntry, 0)
+	virtualMachine.CurrentStep = 1000
+	virtualMachine.Segments.Memory.Insert(
+		memory.NewRelocatable(0, 0),
+		memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromHex("0x80FF80000530")),
+	)
+
+	virtualMachine.Trace = make([]vm.TraceEntry, 1)
+	virtualMachine.Trace[0] = vm.TraceEntry{Pc: memory.NewRelocatable(0, 0), Ap: memory.NewRelocatable(0, 0), Fp: memory.NewRelocatable(0, 0)}
+	err = runner.CheckRangeCheckUsage(virtualMachine)
+	if err != nil {
+		t.Errorf("Check Range Usage Failed With Error %s", err)
+	}
+}
+
+func TestCheckRangeUsageInsufficientAllocatedCells(t *testing.T) {
+	program := vm.Program{Data: nil, Builtins: nil, Identifiers: nil, Hints: nil, ReferenceManager: parser.ReferenceManager{}}
+
+	runner, err := runners.NewCairoRunner(program, "plain", false)
+	if err != nil {
+		t.Error("Could not initialize Cairo Runner")
+	}
+	runner.Vm.Trace = make([]vm.TraceEntry, 0)
+	builtin := builtins.NewRangeCheckBuiltinRunner(8)
+	runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtin)
+	runner.Vm.Segments.AddSegment()
+	runner.Vm.Segments.Memory.Insert(
+		memory.NewRelocatable(0, 0),
+		memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromHex("0x80FF80000530")),
+	)
+
+	runner.Vm.Trace = make([]vm.TraceEntry, 1)
+	runner.Vm.Trace[0] = vm.TraceEntry{Pc: memory.NewRelocatable(0, 0), Ap: memory.NewRelocatable(0, 0), Fp: memory.NewRelocatable(0, 0)}
+	runner.Vm.Segments.ComputeEffectiveSizes()
+	err = runner.CheckRangeCheckUsage(&runner.Vm)
+	if err == nil {
+		t.Error("Check Range Usage Should Have Failed With Insufficient Allocated Cells Error")
+	}
+}
