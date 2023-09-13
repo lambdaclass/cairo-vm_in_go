@@ -156,3 +156,14 @@ func TestIntegrationKeccak(t *testing.T) {
 		t.Errorf("TestIntegrationKeccak failed with error:\n %v", err)
 	}
 }
+
+func TestGetUsedDilutedCheckUnitsResult(t *testing.T) {
+	builtin := builtins.NewKeccakBuiltinRunner(2048)
+	result := builtin.GetUsedDilutedCheckUnits(0, 16)
+	var expected uint = 16384
+
+	if result != expected {
+		t.Errorf("GetUsedDilutedCheckUnits returned the wrong result: Expected %d, got %d", expected, result)
+	}
+
+}

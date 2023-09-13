@@ -17,7 +17,7 @@ type CairoLayout struct {
 	RcUnits uint
 	// publicMemoryFraction uint,
 	// memoryUnitsPerStep uint,
-	// dilutedPoolInstanceDef DilutedPoolInstanceDef
+	DilutedPoolInstance *DilutedPoolInstanceDef
 	// nTraceColums uint
 	// cpuInstanceDef CpuInstanceDef
 }

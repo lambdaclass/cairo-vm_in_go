@@ -33,7 +33,7 @@ type BuiltinRunner interface {
 	// GetMemoryAccesses(*memory.MemorySegmentManager) ([]memory.Relocatable, error) // proof-mode end_run logic
 	GetRangeCheckUsage(*memory.Memory) (*uint, *uint)
 	GetUsedPermRangeCheckLimits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error)
-	// GetUsedDilutedCheckUnits(diluted_spacing uint, diluted_n_bits uint) uint      // proof-mode end_run logic
+	GetUsedDilutedCheckUnits(dilutedSpacing uint, dilutedNBits uint) uint
 	GetUsedCellsAndAllocatedSizes(segments *memory.MemorySegmentManager, currentStep uint) (uint, uint, error) // proof-mode end_run logic + finalize_segments
 	// // II. SECURITY (secure-run flag cairo-run || verify-secure flag run_from_entrypoint)
 	// RunSecurityChecks(*vm.VirtualMachine) error // verify_secure_runner logic

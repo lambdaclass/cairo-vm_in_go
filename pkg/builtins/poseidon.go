@@ -146,3 +146,7 @@ func (runner *PoseidonBuiltinRunner) GetRangeCheckUsage(memory *memory.Memory) (
 func (runner *PoseidonBuiltinRunner) GetUsedPermRangeCheckLimits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
 	return 0, nil
 }
+
+func (runner *PoseidonBuiltinRunner) GetUsedDilutedCheckUnits(dilutedSpacing uint, dilutedNBits uint) uint {
+	return 0
+}

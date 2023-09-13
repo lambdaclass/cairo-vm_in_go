@@ -152,3 +152,33 @@ func TestIntegrationBitwise(t *testing.T) {
 		t.Errorf("TestIntegrationBitwise failed with error:\n %v", err)
 	}
 }
+
+func TestGetUsedDilutedCheckUnitsA(t *testing.T) {
+	builtin := builtins.NewBitwiseBuiltinRunner(256)
+
+	result := builtin.GetUsedDilutedCheckUnits(12, 2)
+	var expected uint = 535
+	if result != expected {
+		t.Errorf("Wrong Value for GetUsedDilutedChecks, should be %d, got %d", expected, result)
+	}
+}
+
+func TestGetUsedDilutedCheckUnitsB(t *testing.T) {
+	builtin := builtins.NewBitwiseBuiltinRunner(256)
+
+	result := builtin.GetUsedDilutedCheckUnits(30, 56)
+	var expected uint = 150
+	if result != expected {
+		t.Errorf("Wrong Value for GetUsedDilutedChecks, should be %d, got %d", expected, result)
+	}
+}
+
+func TestGetUsedDilutedCheckUnitsC(t *testing.T) {
+	builtin := builtins.NewBitwiseBuiltinRunner(256)
+
+	result := builtin.GetUsedDilutedCheckUnits(50, 25)
+	var expected uint = 250
+	if result != expected {
+		t.Errorf("Wrong Value for GetUsedDilutedChecks, should be %d, got %d", expected, result)
+	}
+}

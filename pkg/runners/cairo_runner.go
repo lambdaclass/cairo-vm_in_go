@@ -25,7 +25,7 @@ type CairoRunner struct {
 	mainOffset    uint
 	ProofMode     bool
 	RunEnded      bool
-	layout        layouts.CairoLayout
+	Layout        layouts.CairoLayout
 }
 
 func NewCairoRunner(program vm.Program, layoutName string, proofMode bool) (*CairoRunner, error) {
@@ -44,13 +44,13 @@ func NewCairoRunner(program vm.Program, layoutName string, proofMode bool) (*Cai
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}
-	layout := layouts.CairoLayout{Name: layoutName, Builtins: layoutBuiltinRunners}
+	layout := layouts.CairoLayout{Name: layoutName, Builtins: layoutBuiltinRunners, DilutedPoolInstance: layouts.DefaultDilutedPoolInstance()}
 	runner := CairoRunner{
 		Program:    program,
 		Vm:         *vm.NewVirtualMachine(),
 		mainOffset: main_offset,
 		ProofMode:  proofMode,
-		layout:     layout,
+		Layout:     layout,
 	}
 	return &runner, nil
 }
@@ -78,7 +78,7 @@ func (r *CairoRunner) initializeBuiltins() error {
 		programBuiltins[builtin] = struct{}{}
 	}
 
-	for _, layoutBuiltin := range r.layout.Builtins {
+	for _, layoutBuiltin := range r.Layout.Builtins {
 		_, included := programBuiltins[layoutBuiltin.Name()]
 		if included {
 			delete(programBuiltins, layoutBuiltin.Name())
@@ -91,7 +91,7 @@ func (r *CairoRunner) initializeBuiltins() error {
 	}
 
 	if len(programBuiltins) != 0 {
-		return errors.Errorf("Builtin(s) %v not present in layout %s", programBuiltins, r.layout.Name)
+		return errors.Errorf("Builtin(s) %v not present in layout %s", programBuiltins, r.Layout.Name)
 	}
 
 	r.Vm.BuiltinRunners = builtinRunners
@@ -263,10 +263,42 @@ func (runner *CairoRunner) CheckUsedCells(virtualMachine *vm.VirtualMachine) err
 	// 	return err
 	// }
 
-	// err = runner.CheckDilutecHeckUsage(virtualMachine)
-	// if err != nil {
-	// 	return err
-	// }
+	err = runner.CheckDilutedCheckUsage(virtualMachine)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (runner *CairoRunner) CheckDilutedCheckUsage(virtualMachine *vm.VirtualMachine) error {
+	dilutedPoolInstance := runner.Layout.DilutedPoolInstance
+	if dilutedPoolInstance == nil {
+		return nil
+	}
+
+	var usedUnitsByBuiltins uint = 0
+
+	for _, builtin := range virtualMachine.BuiltinRunners {
+		usedUnits := builtin.GetUsedDilutedCheckUnits(dilutedPoolInstance.Spacing, dilutedPoolInstance.NBits)
+
+		multiplier, err := utils.SafeDiv(virtualMachine.CurrentStep, builtin.Ratio())
+
+		if err != nil {
+			return err
+		}
+
+		usedUnitsByBuiltins += usedUnits * multiplier
+	}
+
+	var dilutedUnits uint = dilutedPoolInstance.UnitsPerStep * virtualMachine.CurrentStep
+	var unusedDilutedUnits uint = dilutedUnits - usedUnitsByBuiltins
+
+	var dilutedUsageUpperBound uint = 1 << dilutedPoolInstance.NBits
+
+	if unusedDilutedUnits < dilutedUsageUpperBound {
+		return errors.New("Insufficient Allocated Cells")
+	}
 
 	return nil
 }
@@ -322,7 +354,7 @@ func (runner *CairoRunner) CheckRangeCheckUsage(virtualMachine *vm.VirtualMachin
 		rcUnitsUsedByBuiltins += usedUnits
 	}
 
-	unusedRcUnits := (runner.layout.RcUnits-3)*virtualMachine.CurrentStep - uint(rcUnitsUsedByBuiltins)
+	unusedRcUnits := (runner.Layout.RcUnits-3)*virtualMachine.CurrentStep - uint(rcUnitsUsedByBuiltins)
 
 	if unusedRcUnits < (*rcMax - *rcMin) {
 		return errors.Errorf("Insufficient Allocated Cells: Unused RC Units: %d, Size: %d", unusedRcUnits, (*rcMax - *rcMin))

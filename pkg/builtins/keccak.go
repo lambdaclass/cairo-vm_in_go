@@ -589,3 +589,23 @@ func (runner *KeccakBuiltinRunner) GetRangeCheckUsage(memory *memory.Memory) (*u
 func (runner *KeccakBuiltinRunner) GetUsedPermRangeCheckLimits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
 	return 0, nil
 }
+
+func (runner *KeccakBuiltinRunner) GetUsedDilutedCheckUnits(dilutedSpacing uint, dilutedNBits uint) uint {
+	// The diluted cells are:
+	// state - 25 rounds times 1600 elements.
+	// parity - 24 rounds times 1600/5 elements times 3 auxiliaries.
+	// after_theta_rho_pi - 24 rounds times 1600 elements.
+	// theta_aux - 24 rounds times 1600 elements.
+	// chi_iota_aux - 24 rounds times 1600 elements times 2 auxiliaries.
+	// In total 25 * 1600 + 24 * 320 * 3 + 24 * 1600 + 24 * 1600 + 24 * 1600 * 2 = 216640.
+	// But we actually allocate 4 virtual columns, of dimensions 64 * 1024, in which we embed the
+	// real cells, and we don't free the unused ones.
+	// So the real number is 4 * 64 * 1024 = 262144.
+	result, err := utils.SafeDiv(262144, dilutedNBits)
+
+	if err != nil {
+		return 0
+	}
+
+	return result
+}

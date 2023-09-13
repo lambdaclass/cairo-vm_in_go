@@ -605,3 +605,95 @@ func TestCheckRangeUsageInsufficientAllocatedCells(t *testing.T) {
 		t.Error("Check Range Usage Should Have Failed With Insufficient Allocated Cells Error")
 	}
 }
+
+func TestCheckDilutedCheckUsageWithoutPoolInstance(t *testing.T) {
+	program := vm.Program{Data: nil, Builtins: nil, Identifiers: nil, Hints: nil, ReferenceManager: parser.ReferenceManager{}}
+
+	runner, err := runners.NewCairoRunner(program, "plain", false)
+	if err != nil {
+		t.Error("Could not initialize Cairo Runner")
+	}
+	virtualMachine := vm.NewVirtualMachine()
+
+	runner.Layout.DilutedPoolInstance = nil
+
+	err = runner.CheckDilutedCheckUsage(virtualMachine)
+	if err != nil {
+		t.Errorf("Check Diluted Check Usage Failed With Error %s", err)
+	}
+}
+
+func TestCheckDilutedCheckUsageWithoutBuiltinRunners(t *testing.T) {
+	program := vm.Program{Data: nil, Builtins: nil, Identifiers: nil, Hints: nil, ReferenceManager: parser.ReferenceManager{}}
+
+	runner, err := runners.NewCairoRunner(program, "plain", false)
+	if err != nil {
+		t.Error("Could not initialize Cairo Runner")
+	}
+	virtualMachine := vm.NewVirtualMachine()
+
+	virtualMachine.CurrentStep = 10000
+	virtualMachine.BuiltinRunners = make([]builtins.BuiltinRunner, 0)
+
+	err = runner.CheckDilutedCheckUsage(virtualMachine)
+	if err != nil {
+		t.Errorf("Check Diluted Check Usage Failed With Error %s", err)
+	}
+}
+
+func TestCheckDilutedCheckUsageInsufficientAllocatedCells(t *testing.T) {
+	program := vm.Program{Data: nil, Builtins: nil, Identifiers: nil, Hints: nil, ReferenceManager: parser.ReferenceManager{}}
+
+	runner, err := runners.NewCairoRunner(program, "plain", false)
+	if err != nil {
+		t.Error("Could not initialize Cairo Runner")
+	}
+	virtualMachine := vm.NewVirtualMachine()
+
+	virtualMachine.CurrentStep = 100
+	virtualMachine.BuiltinRunners = make([]builtins.BuiltinRunner, 0)
+
+	err = runner.CheckDilutedCheckUsage(virtualMachine)
+	if err == nil {
+		t.Errorf("Check Diluted Check Usage Should Have failed With Insufficient Allocated Cells Error")
+	}
+}
+
+func TestCheckDilutedCheckUsage(t *testing.T) {
+	program := vm.Program{Data: nil, Builtins: nil, Identifiers: nil, Hints: nil, ReferenceManager: parser.ReferenceManager{}}
+
+	runner, err := runners.NewCairoRunner(program, "plain", false)
+	if err != nil {
+		t.Error("Could not initialize Cairo Runner")
+	}
+	virtualMachine := vm.NewVirtualMachine()
+
+	virtualMachine.CurrentStep = 8192
+	virtualMachine.BuiltinRunners = make([]builtins.BuiltinRunner, 0)
+	virtualMachine.BuiltinRunners = append(virtualMachine.BuiltinRunners, builtins.NewBitwiseBuiltinRunner(256))
+
+	err = runner.CheckDilutedCheckUsage(virtualMachine)
+	if err != nil {
+		t.Errorf("Check Diluted Check Usage Failed With Error %s", err)
+	}
+}
+
+// This test is a huge meme, revisit
+func TestCheckUsedCellsDilutedCheckUsageError(t *testing.T) {
+	program := vm.Program{Data: nil, Builtins: nil, Identifiers: nil, Hints: nil, ReferenceManager: parser.ReferenceManager{}}
+
+	runner, err := runners.NewCairoRunner(program, "plain", false)
+	if err != nil {
+		t.Error("Could not initialize Cairo Runner")
+	}
+	virtualMachine := vm.NewVirtualMachine()
+
+	virtualMachine.Segments.SegmentSizes = make(map[uint]uint)
+	virtualMachine.Segments.SegmentSizes[0] = 4
+	virtualMachine.Trace = []vm.TraceEntry{}
+
+	err = runner.CheckUsedCells(virtualMachine)
+	if err == nil {
+		t.Errorf("Check Used Cells Should Have failed With Insufficient Allocated Cells Error")
+	}
+}

@@ -199,3 +199,7 @@ func (runner *RangeCheckBuiltinRunner) GetUsedPermRangeCheckLimits(segments *mem
 
 	return usedCells * N_PARTS, nil
 }
+
+func (runner *RangeCheckBuiltinRunner) GetUsedDilutedCheckUnits(dilutedSpacing uint, dilutedNBits uint) uint {
+	return 0
+}

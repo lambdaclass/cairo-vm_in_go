@@ -18,6 +18,7 @@ type BitwiseBuiltinRunner struct {
 	ratio                 uint
 	instancesPerComponent uint
 	included              bool
+	TotalNBits            uint
 }
 
 func BitwiseError(err error) error {
@@ -29,7 +30,7 @@ func ErrFeltBiggerThanPowerOfTwo(felt lambdaworks.Felt) error {
 }
 
 func NewBitwiseBuiltinRunner(ratio uint) *BitwiseBuiltinRunner {
-	return &BitwiseBuiltinRunner{ratio: ratio, instancesPerComponent: 1}
+	return &BitwiseBuiltinRunner{ratio: ratio, instancesPerComponent: 1, TotalNBits: BITWISE_TOTAL_N_BITS}
 }
 
 func DefaultBitwiseBuiltinRunner() *BitwiseBuiltinRunner {
@@ -159,4 +160,29 @@ func (runner *BitwiseBuiltinRunner) GetRangeCheckUsage(memory *memory.Memory) (*
 
 func (runner *BitwiseBuiltinRunner) GetUsedPermRangeCheckLimits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
 	return 0, nil
+}
+
+func (runner *BitwiseBuiltinRunner) GetUsedDilutedCheckUnits(dilutedSpacing uint, dilutedNBits uint) uint {
+	totalNBits := runner.TotalNBits
+	partition := make([]uint, 0)
+	var i uint
+	for i = 0; i < totalNBits; i += (dilutedSpacing * dilutedNBits) {
+		var j uint
+		for j = 0; j < dilutedSpacing; j++ {
+			if i+j < totalNBits {
+				partition = append(partition, i+j)
+			}
+		}
+	}
+
+	partitionLength := uint(len(partition))
+	var numTrimmed uint
+
+	for _, element := range partition {
+		if (element + dilutedSpacing*(dilutedNBits-1) + 1) > totalNBits {
+			numTrimmed++
+		}
+	}
+
+	return 4*partitionLength + numTrimmed
 }

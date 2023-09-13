@@ -75,3 +75,7 @@ func (runner *OutputBuiltinRunner) GetRangeCheckUsage(memory *memory.Memory) (*u
 func (runner *OutputBuiltinRunner) GetUsedPermRangeCheckLimits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
 	return 0, nil
 }
+
+func (runner *OutputBuiltinRunner) GetUsedDilutedCheckUnits(dilutedSpacing uint, dilutedNBits uint) uint {
+	return 0
+}
