@@ -85,7 +85,12 @@ func TestDictTrackerDefaultGetValuePresent(t *testing.T) {
 		initialDict,
 	)
 	// Check GetValue
-	if *dictTracker.GetValue(NewMaybeRelocatableFelt(FeltFromUint64(1))) != *NewMaybeRelocatableFelt(FeltFromUint64(2)) {
+	val, err := dictTracker.GetValue(NewMaybeRelocatableFelt(FeltFromUint64(1)))
+	if err != nil {
+		t.Errorf("GetValue failed with error %s", err)
+	}
+
+	if *val != *NewMaybeRelocatableFelt(FeltFromUint64(2)) {
 		t.Error("Wrong value returned by GetValue")
 	}
 }
@@ -100,7 +105,12 @@ func TestDictTrackerDefaultGetValueNotPresent(t *testing.T) {
 		initialDict,
 	)
 	// Check that the default value is returned
-	if *dictTracker.GetValue(NewMaybeRelocatableFelt(FeltFromUint64(2))) != *NewMaybeRelocatableFelt(FeltFromUint64(17)) {
+	val, err := dictTracker.GetValue(NewMaybeRelocatableFelt(FeltFromUint64(2)))
+	if err != nil {
+		t.Errorf("GetValue failed with error %s", err)
+	}
+
+	if *val != *NewMaybeRelocatableFelt(FeltFromUint64(17)) {
 		t.Error("Wrong value returned by GetValue")
 	}
 	// Check that the default value was written to the Dictionary
@@ -119,8 +129,9 @@ func TestDictTrackerGetValueNotPresent(t *testing.T) {
 		initialDict,
 	)
 	// Check GetValue
-	if dictTracker.GetValue(NewMaybeRelocatableFelt(FeltFromUint64(2))) != nil {
-		t.Error("Wrong value returned by GetValue")
+	_, err := dictTracker.GetValue(NewMaybeRelocatableFelt(FeltFromUint64(1)))
+	if err != nil {
+		t.Error("GetValue should have failed")
 	}
 }
 
@@ -133,7 +144,12 @@ func TestDictTrackerGetValuePresent(t *testing.T) {
 		initialDict,
 	)
 	// Check GetValue
-	if *dictTracker.GetValue(NewMaybeRelocatableFelt(FeltFromUint64(1))) != *NewMaybeRelocatableFelt(FeltFromUint64(2)) {
+	val, err := dictTracker.GetValue(NewMaybeRelocatableFelt(FeltFromUint64(1)))
+	if err != nil {
+		t.Errorf("GetValue failed with error %s", err)
+	}
+
+	if *val != *NewMaybeRelocatableFelt(FeltFromUint64(2)) {
 		t.Error("Wrong value returned by GetValue")
 	}
 }
@@ -147,7 +163,12 @@ func TestDictTrackerInsertValue(t *testing.T) {
 	// InsertValue
 	dictTracker.InsertValue(NewMaybeRelocatableFelt(FeltFromUint64(7)), NewMaybeRelocatableFelt(FeltFromUint64(8)))
 	// Check GetValue
-	if *dictTracker.GetValue(NewMaybeRelocatableFelt(FeltFromUint64(7))) != *NewMaybeRelocatableFelt(FeltFromUint64(8)) {
+	val, err := dictTracker.GetValue(NewMaybeRelocatableFelt(FeltFromUint64(7)))
+	if err != nil {
+		t.Errorf("GetValue failed with error %s", err)
+	}
+
+	if *val != *NewMaybeRelocatableFelt(FeltFromUint64(8)) {
 		t.Error("Wrong value returned by GetValue")
 	}
 }

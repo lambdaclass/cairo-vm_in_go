@@ -66,8 +66,12 @@ func (d *DictTracker) CopyDictionary() map[MaybeRelocatable]MaybeRelocatable {
 	return d.data.dict
 }
 
-func (d *DictTracker) GetValue(key *MaybeRelocatable) *MaybeRelocatable {
-	return d.data.Get(key)
+func (d *DictTracker) GetValue(key *MaybeRelocatable) (*MaybeRelocatable, error) {
+	val := d.data.Get(key)
+	if val == nil {
+		return nil, errors.Errorf("Dict Error: No value found for key: %v", key)
+	}
+	return val, nil
 }
 
 func (d *DictTracker) InsertValue(key *MaybeRelocatable, val *MaybeRelocatable) {
