@@ -92,6 +92,18 @@ func (m *Memory) Get(addr Relocatable) (*MaybeRelocatable, error) {
 	return &value, nil
 }
 
+func (memory *Memory) GetSegment(segmentIndex int) []MaybeRelocatable {
+	var ret []MaybeRelocatable
+
+	for address, value := range memory.Data {
+		if address.SegmentIndex == segmentIndex {
+			ret = append(ret, value)
+		}
+	}
+
+	return ret
+}
+
 // Gets the felt value stored in the memory address `addr`.
 // Fails if the value doesn't exist or is not a felt
 func (m *Memory) GetFelt(addr Relocatable) (lambdaworks.Felt, error) {

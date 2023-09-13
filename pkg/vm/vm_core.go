@@ -2,12 +2,12 @@ package vm
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+	"github.com/pkg/errors"
 )
 
 type VirtualMachineError struct {
@@ -29,6 +29,8 @@ type VirtualMachine struct {
 	RelocatedTrace  []RelocatedTraceEntry
 	RelocatedMemory map[uint]lambdaworks.Felt
 	RunFinished     bool
+	RcLimitsMin     *uint
+	RcLimitsMax     *uint
 }
 
 func NewVirtualMachine() *VirtualMachine {

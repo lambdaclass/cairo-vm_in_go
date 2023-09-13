@@ -14,10 +14,10 @@ type CairoLayout struct {
 	Builtins []builtins.BuiltinRunner
 	// TODO - Add when necessary:
 	// cpuComponentStep uint,
-	// rcUnits uint,
+	RcUnits uint
 	// publicMemoryFraction uint,
 	// memoryUnitsPerStep uint,
-	// dilutedPoolInstanceDef DilutedPoolInstanceDef
+	DilutedPoolInstance *DilutedPoolInstanceDef
 	// nTraceColums uint
 	// cpuInstanceDef CpuInstanceDef
 }
@@ -33,9 +33,9 @@ func GetLayoutBuiltinRunners(layout string) ([]builtins.BuiltinRunner, error) {
 	case "small":
 		return []builtins.BuiltinRunner{
 			builtins.NewOutputBuiltinRunner(),
-			builtins.NewRangeCheckBuiltinRunner(),
-			builtins.NewBitwiseBuiltinRunner(),
-			builtins.NewKeccakBuiltinRunner(),
+			builtins.DefaultRangeCheckBuiltinRunner(),
+			builtins.DefaultBitwiseBuiltinRunner(),
+			builtins.DefaultKeccakBuiltinRunner(),
 			builtins.NewPoseidonBuiltinRunner()}, nil
 	default:
 		return nil, errors.Errorf("layout not supported: %s", layout)

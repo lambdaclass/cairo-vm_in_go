@@ -12,7 +12,7 @@ import (
 )
 
 func TestKeccakDeduceMemoryCellValid(t *testing.T) {
-	keccak := builtins.NewKeccakBuiltinRunner()
+	keccak := builtins.DefaultKeccakBuiltinRunner()
 	keccak.Include(true)
 	vmachine := vm.NewVirtualMachine()
 	vmachine.BuiltinRunners = append(vmachine.BuiltinRunners, keccak)
@@ -66,7 +66,7 @@ func TestKeccakDeduceMemoryCellValid(t *testing.T) {
 }
 
 func TestKeccakDeduceMemoryCellNoInputCells(t *testing.T) {
-	keccak := builtins.NewKeccakBuiltinRunner()
+	keccak := builtins.DefaultKeccakBuiltinRunner()
 	keccak.Include(true)
 	vmachine := vm.NewVirtualMachine()
 	vmachine.BuiltinRunners = append(vmachine.BuiltinRunners, keccak)
@@ -77,7 +77,7 @@ func TestKeccakDeduceMemoryCellNoInputCells(t *testing.T) {
 	}
 }
 func TestKeccakDeduceMemoryCellInputCell(t *testing.T) {
-	keccak := builtins.NewKeccakBuiltinRunner()
+	keccak := builtins.DefaultBitwiseBuiltinRunner()
 	keccak.Include(true)
 	vmachine := vm.NewVirtualMachine()
 	vmachine.BuiltinRunners = append(vmachine.BuiltinRunners, keccak)
@@ -90,7 +90,7 @@ func TestKeccakDeduceMemoryCellInputCell(t *testing.T) {
 
 func TestKeccakInitializeSegments(t *testing.T) {
 	mem_manager := memory.NewMemorySegmentManager()
-	keccak := builtins.NewKeccakBuiltinRunner()
+	keccak := builtins.DefaultKeccakBuiltinRunner()
 	keccak.Include(true)
 	keccak.InitializeSegments(&mem_manager)
 
@@ -104,7 +104,7 @@ func TestKeccakInitializeSegments(t *testing.T) {
 }
 
 func TestKeccakInitialStackIncluded(t *testing.T) {
-	keccak := builtins.NewKeccakBuiltinRunner()
+	keccak := builtins.DefaultKeccakBuiltinRunner()
 	keccak.Include(true)
 	initial_stack := keccak.InitialStack()
 	expected_stack := []memory.MaybeRelocatable{*memory.NewMaybeRelocatableRelocatable(keccak.Base())}
@@ -114,7 +114,7 @@ func TestKeccakInitialStackIncluded(t *testing.T) {
 }
 
 func TestKeccakInitialStackNotIncluded(t *testing.T) {
-	keccak := builtins.NewKeccakBuiltinRunner()
+	keccak := builtins.DefaultKeccakBuiltinRunner()
 	keccak.Include(false)
 	if len(keccak.InitialStack()) != 0 {
 		t.Errorf("Initial stack should be empty if not included")
@@ -124,7 +124,7 @@ func TestKeccakInitialStackNotIncluded(t *testing.T) {
 func TestKeccakAddValidationRule(t *testing.T) {
 	empty_mem := memory.NewMemory()
 	mem := memory.NewMemory()
-	keccak := builtins.NewKeccakBuiltinRunner()
+	keccak := builtins.DefaultKeccakBuiltinRunner()
 	keccak.Include(true)
 	keccak.AddValidationRule(mem)
 	// Check that the memory is equal to a newly created one to check that
@@ -132,7 +132,20 @@ func TestKeccakAddValidationRule(t *testing.T) {
 	if !reflect.DeepEqual(mem, empty_mem) {
 		t.Errorf("AddValidationRule should do nothing")
 	}
+}
 
+func TestGetAllocatedMemoryUnitsKeccak(t *testing.T) {
+	keccak := builtins.DefaultKeccakBuiltinRunner()
+	vm := vm.NewVirtualMachine()
+	vm.CurrentStep = 32768
+
+	mem_units, err := keccak.GetAllocatedMemoryUnits(&vm.Segments, vm.CurrentStep)
+	if err != nil {
+		t.Error("test failed with error: ", err)
+	}
+	if mem_units != 256 {
+		t.Errorf("expected memory units to be 256, got: %d", mem_units)
+	}
 }
 
 func TestIntegrationKeccak(t *testing.T) {
@@ -142,4 +155,15 @@ func TestIntegrationKeccak(t *testing.T) {
 	if err != nil {
 		t.Errorf("TestIntegrationKeccak failed with error:\n %v", err)
 	}
+}
+
+func TestGetUsedDilutedCheckUnitsResult(t *testing.T) {
+	builtin := builtins.NewKeccakBuiltinRunner(2048)
+	result := builtin.GetUsedDilutedCheckUnits(0, 16)
+	var expected uint = 16384
+
+	if result != expected {
+		t.Errorf("GetUsedDilutedCheckUnits returned the wrong result: Expected %d, got %d", expected, result)
+	}
+
 }

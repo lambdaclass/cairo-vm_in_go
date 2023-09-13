@@ -25,7 +25,7 @@ type CairoRunner struct {
 	mainOffset    uint
 	ProofMode     bool
 	RunEnded      bool
-	layout        layouts.CairoLayout
+	Layout        layouts.CairoLayout
 }
 
 func NewCairoRunner(program vm.Program, layoutName string, proofMode bool) (*CairoRunner, error) {
@@ -44,13 +44,13 @@ func NewCairoRunner(program vm.Program, layoutName string, proofMode bool) (*Cai
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}
-	layout := layouts.CairoLayout{Name: layoutName, Builtins: layoutBuiltinRunners}
+	layout := layouts.CairoLayout{Name: layoutName, Builtins: layoutBuiltinRunners, DilutedPoolInstance: layouts.DefaultDilutedPoolInstance()}
 	runner := CairoRunner{
 		Program:    program,
 		Vm:         *vm.NewVirtualMachine(),
 		mainOffset: main_offset,
 		ProofMode:  proofMode,
-		layout:     layout,
+		Layout:     layout,
 	}
 	return &runner, nil
 }
@@ -78,7 +78,7 @@ func (r *CairoRunner) initializeBuiltins() error {
 		programBuiltins[builtin] = struct{}{}
 	}
 
-	for _, layoutBuiltin := range r.layout.Builtins {
+	for _, layoutBuiltin := range r.Layout.Builtins {
 		_, included := programBuiltins[layoutBuiltin.Name()]
 		if included {
 			delete(programBuiltins, layoutBuiltin.Name())
@@ -91,7 +91,7 @@ func (r *CairoRunner) initializeBuiltins() error {
 	}
 
 	if len(programBuiltins) != 0 {
-		return errors.Errorf("Builtin(s) %v not present in layout %s", programBuiltins, r.layout.Name)
+		return errors.Errorf("Builtin(s) %v not present in layout %s", programBuiltins, r.Layout.Name)
 	}
 
 	r.Vm.BuiltinRunners = builtinRunners
@@ -223,12 +223,12 @@ func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll b
 		}
 
 		for true {
-			// err := runner.CheckUsedCells(vm)
-			// if err != nil {
-			// 	return err
-			// }
+			err := runner.CheckUsedCells(vm)
+			if err != nil {
+				return err
+			}
 
-			err := runner.RunForSteps(1, vm, hintProcessor)
+			err = runner.RunForSteps(1, vm, hintProcessor)
 			if err != nil {
 				return err
 			}
@@ -241,6 +241,125 @@ func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll b
 	}
 
 	runner.RunEnded = true
+	return nil
+}
+
+func (runner *CairoRunner) CheckUsedCells(virtualMachine *vm.VirtualMachine) error {
+	for _, builtin := range virtualMachine.BuiltinRunners {
+		// I guess we call this just in case it errors out, even though later on we also call it?
+		_, _, err := builtin.GetUsedCellsAndAllocatedSizes(&virtualMachine.Segments, virtualMachine.CurrentStep)
+		if err != nil {
+			return err
+		}
+	}
+
+	err := runner.CheckRangeCheckUsage(virtualMachine)
+	if err != nil {
+		return err
+	}
+
+	// err = runner.CheckMemoryUsage(virtualMachine)
+	// if err != nil {
+	// 	return err
+	// }
+
+	err = runner.CheckDilutedCheckUsage(virtualMachine)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (runner *CairoRunner) CheckDilutedCheckUsage(virtualMachine *vm.VirtualMachine) error {
+	dilutedPoolInstance := runner.Layout.DilutedPoolInstance
+	if dilutedPoolInstance == nil {
+		return nil
+	}
+
+	var usedUnitsByBuiltins uint = 0
+
+	for _, builtin := range virtualMachine.BuiltinRunners {
+		usedUnits := builtin.GetUsedDilutedCheckUnits(dilutedPoolInstance.Spacing, dilutedPoolInstance.NBits)
+
+		multiplier, err := utils.SafeDiv(virtualMachine.CurrentStep, builtin.Ratio())
+
+		if err != nil {
+			return err
+		}
+
+		usedUnitsByBuiltins += usedUnits * multiplier
+	}
+
+	var dilutedUnits uint = dilutedPoolInstance.UnitsPerStep * virtualMachine.CurrentStep
+	var unusedDilutedUnits uint = dilutedUnits - usedUnitsByBuiltins
+
+	var dilutedUsageUpperBound uint = 1 << dilutedPoolInstance.NBits
+
+	if unusedDilutedUnits < dilutedUsageUpperBound {
+		return errors.New("Insufficient Allocated Cells")
+	}
+
+	return nil
+}
+
+// // Returns Ok(()) if there are enough allocated cells for the builtins.
+//     // If not, the number of steps should be increased or a different layout should be used.
+//     pub fn check_used_cells(&self, vm: &VirtualMachine) -> Result<(), VirtualMachineError> {
+//         vm.builtin_runners
+//             .iter()
+//             .map(|builtin_runner| builtin_runner.get_used_cells_and_allocated_size(vm))
+//             .collect::<Result<Vec<(usize, usize)>, MemoryError>>()?;
+//         self.check_range_check_usage(vm)?;
+//         self.check_memory_usage(vm)?;
+//         self.check_diluted_check_usage(vm)?;
+//         Ok(())
+//     }
+
+func (runner *CairoRunner) CheckRangeCheckUsage(virtualMachine *vm.VirtualMachine) error {
+	var rcMin, rcMax *uint
+
+	for _, builtin := range runner.Vm.BuiltinRunners {
+		resultMin, resultMax := builtin.GetRangeCheckUsage(&runner.Vm.Segments.Memory)
+
+		if resultMin != nil {
+			rcMin = resultMin
+		}
+
+		if resultMax != nil {
+			rcMax = resultMax
+		}
+	}
+
+	if rcMin == nil || rcMax == nil {
+		return nil
+	}
+
+	if runner.Vm.RcLimitsMax != nil && (*runner.Vm.RcLimitsMax > *rcMax) {
+		rcMax = runner.Vm.RcLimitsMax
+	}
+
+	if runner.Vm.RcLimitsMin != nil && (*runner.Vm.RcLimitsMin > *rcMin) {
+		rcMin = runner.Vm.RcLimitsMin
+	}
+
+	var rcUnitsUsedByBuiltins uint = 0
+
+	for _, builtin := range runner.Vm.BuiltinRunners {
+		usedUnits, err := builtin.GetUsedPermRangeCheckLimits(&virtualMachine.Segments, virtualMachine.CurrentStep)
+		if err != nil {
+			return err
+		}
+
+		rcUnitsUsedByBuiltins += usedUnits
+	}
+
+	unusedRcUnits := (runner.Layout.RcUnits-3)*virtualMachine.CurrentStep - uint(rcUnitsUsedByBuiltins)
+
+	if unusedRcUnits < (*rcMax - *rcMin) {
+		return errors.Errorf("Insufficient Allocated Cells: Unused RC Units: %d, Size: %d", unusedRcUnits, (*rcMax - *rcMin))
+	}
+
 	return nil
 }
 
@@ -272,13 +391,5 @@ func (runner *CairoRunner) RunUntilSteps(steps uint, virtualMachine *vm.VirtualM
 
 // TODO: Add hint processor when it's done
 func (runner *CairoRunner) RunUntilNextPowerOfTwo(virtualMachine *vm.VirtualMachine, hintProcessor vm.HintProcessor) error {
-	return runner.RunUntilSteps(NextPowOf2(virtualMachine.CurrentStep), virtualMachine, hintProcessor)
-}
-
-func NextPowOf2(n uint) uint {
-	var k uint = 1
-	for k < n {
-		k = k << 1
-	}
-	return k
+	return runner.RunUntilSteps(utils.NextPowOf2(virtualMachine.CurrentStep), virtualMachine, hintProcessor)
 }
