@@ -18,7 +18,7 @@ func main() {
 	programPath := cliArgs[0]
 
 	// TODO: These values are hardcoded for the moment, we should get them through the CLI
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, ProofMode: false, Layout: "small"}
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, ProofMode: true, Layout: "small"}
 
 	cairoRunner, err := cairo_run.CairoRun(programPath, cairoRunConfig)
 

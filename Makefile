@@ -7,26 +7,9 @@ $(CAIRO_VM_CLI):
 	git clone --depth 1 -b v0.8.5 https://github.com/lambdaclass/cairo-vm
 	cd cairo-vm; cargo b --release --bin cairo-vm-cli
 
-TEST_DIR=cairo_programs
-TEST_FILES:=$(wildcard $(TEST_DIR)/*.cairo)
-COMPILED_TESTS:=$(patsubst $(TEST_DIR)/%.cairo, $(TEST_DIR)/%.json, $(TEST_FILES))
-
-CAIRO_RS_MEM:=$(patsubst $(TEST_DIR)/%.json, $(TEST_DIR)/%.rs.memory, $(COMPILED_TESTS))
-CAIRO_RS_TRACE:=$(patsubst $(TEST_DIR)/%.json, $(TEST_DIR)/%.rs.trace, $(COMPILED_TESTS))
-
-CAIRO_GO_MEM:=$(patsubst $(TEST_DIR)/%.json, $(TEST_DIR)/%.go.memory, $(COMPILED_TESTS))
-CAIRO_GO_TRACE:=$(patsubst $(TEST_DIR)/%.json, $(TEST_DIR)/%.go.trace, $(COMPILED_TESTS))
-
-$(TEST_DIR)/%.rs.trace $(TEST_DIR)/%.rs.memory: $(TEST_DIR)/%.json $(CAIRO_VM_CLI)
-	$(CAIRO_VM_CLI) --layout all_cairo $< --trace_file $(@D)/$(*F).rs.trace --memory_file $(@D)/$(*F).rs.memory
-
-$(TEST_DIR)/%.go.trace $(TEST_DIR)/%.go.memory: $(TEST_DIR)/%.json
-	go run cmd/cli/main.go $(@D)/$(*F).json
-
-$(TEST_DIR)/%.json: $(TEST_DIR)/%.cairo
-	cairo-compile --cairo_path="$(TEST_DIR)" $< --output $@
-
-# Create proof mode programs
+# Create proof mode programs. 
+# NOTE: This is super flaky, DO NOT move this section below the non proof mode one
+# or things will go wrong.
 
 TEST_PROOF_DIR=cairo_programs/proof_programs
 TEST_PROOF_FILES:=$(wildcard $(TEST_PROOF_DIR)/*.cairo)
@@ -46,6 +29,27 @@ $(TEST_PROOF_DIR)/%.rs.trace $(TEST_PROOF_DIR)/%.rs.memory: $(TEST_PROOF_DIR)/%.
 
 $(TEST_PROOF_DIR)/%.go.trace $(TEST_PROOF_DIR)/%.go.memory: $(TEST_PROOF_DIR)/%.json
 	go run cmd/cli/main.go $(@D)/$(*F).json --trace_file $(@D)/$(*F).go.trace --memory_file $(@D)/$($*F).go.memory --proof_mode
+
+# Non Proof mode programs
+
+TEST_DIR=cairo_programs
+TEST_FILES:=$(wildcard $(TEST_DIR)/*.cairo)
+COMPILED_TESTS:=$(patsubst $(TEST_DIR)/%.cairo, $(TEST_DIR)/%.json, $(TEST_FILES))
+
+CAIRO_RS_MEM:=$(patsubst $(TEST_DIR)/%.json, $(TEST_DIR)/%.rs.memory, $(COMPILED_TESTS))
+CAIRO_RS_TRACE:=$(patsubst $(TEST_DIR)/%.json, $(TEST_DIR)/%.rs.trace, $(COMPILED_TESTS))
+
+CAIRO_GO_MEM:=$(patsubst $(TEST_DIR)/%.json, $(TEST_DIR)/%.go.memory, $(COMPILED_TESTS))
+CAIRO_GO_TRACE:=$(patsubst $(TEST_DIR)/%.json, $(TEST_DIR)/%.go.trace, $(COMPILED_TESTS))
+
+$(TEST_DIR)/%.rs.trace $(TEST_DIR)/%.rs.memory: $(TEST_DIR)/%.json $(CAIRO_VM_CLI)
+	$(CAIRO_VM_CLI) --layout all_cairo $< --trace_file $(@D)/$(*F).rs.trace --memory_file $(@D)/$(*F).rs.memory
+
+$(TEST_DIR)/%.go.trace $(TEST_DIR)/%.go.memory: $(TEST_DIR)/%.json
+	go run cmd/cli/main.go $(@D)/$(*F).json
+
+$(TEST_DIR)/%.json: $(TEST_DIR)/%.cairo
+	cairo-compile --cairo_path="$(TEST_DIR)" $< --output $@
 
 # Creates a pyenv and installs cairo-lang
 deps:
