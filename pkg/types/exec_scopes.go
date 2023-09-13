@@ -8,6 +8,8 @@ type ExecutionScopes struct {
 	data []map[string]interface{}
 }
 
+var ErrCannotExitMainScop error = ExecutionScopesError(errors.Errorf("Cannot exit main scope."))
+
 func ExecutionScopesError(err error) error {
 	return errors.Wrapf(err, "Execution scopes error")
 }
@@ -32,10 +34,12 @@ func (es *ExecutionScopes) EnterScope(newScopeLocals map[string]interface{}) {
 }
 
 func (es *ExecutionScopes) ExitScope() error {
-	if len(es.data) == 1 {
-		return ExecutionScopesError(errors.Errorf("Cannot exit main scope."))
+	if len(es.Data()) < 2 {
+		return ErrCannotExitMainScop
 	}
-	es.data = es.data[:len(es.data)-1]
+	i := len(es.Data()) - 1
+	es.data = append(es.Data()[:i], es.Data()[i+1:]...)
+
 	return nil
 }
 
