@@ -39,6 +39,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return errors.New("Wrong Hint Data")
 	}
 	switch data.Code {
+	case ADD_SEGMENT:
+		return add_segment(vm)
 	case ASSERT_NN:
 		return assert_nn(data.Ids, vm)
 	case ASSERT_NOT_ZERO:
