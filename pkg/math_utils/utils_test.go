@@ -56,6 +56,54 @@ func TestIsSqrtOk(t *testing.T) {
 	}
 }
 
+func TestCalculateIsqrtA(t *testing.T) {
+	x := new(big.Int)
+	x.SetString("81", 10)
+	sqrt, err := ISqrt(x)
+	if err != nil {
+		t.Error("ISqrt failed")
+	}
+
+	expected := new(big.Int)
+	expected.SetString("9", 10)
+
+	if sqrt.Cmp(expected) != 0 {
+		t.Errorf("ISqrt failed, expected %d, got %d", expected, sqrt)
+	}
+}
+
+func TestCalculateIsqrtB(t *testing.T) {
+	x := new(big.Int)
+	x.SetString("4573659632505831259480", 10)
+	square := new(big.Int)
+	square = square.Mul(x, x)
+
+	sqrt, err := ISqrt(square)
+	if err != nil {
+		t.Error("ISqrt failed")
+	}
+
+	if sqrt.Cmp(x) != 0 {
+		t.Errorf("ISqrt failed, expected %d, got %d", x, sqrt)
+	}
+}
+
+func TestCalculateIsqrtC(t *testing.T) {
+	x := new(big.Int)
+	x.SetString("3618502788666131213697322783095070105623107215331596699973092056135872020481", 10)
+	square := new(big.Int)
+	square = square.Mul(x, x)
+
+	sqrt, err := ISqrt(square)
+	if err != nil {
+		t.Error("ISqrt failed")
+	}
+
+	if sqrt.Cmp(x) != 0 {
+		t.Errorf("ISqrt failed, expected %d, got %d", x, sqrt)
+	}
+}
+
 func TestIsSqrtFail(t *testing.T) {
 	x := big.NewInt(-1)
 
