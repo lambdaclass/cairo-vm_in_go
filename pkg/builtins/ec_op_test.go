@@ -195,7 +195,7 @@ func TestDeduceMemoryCellEcOpForPresetMemoryNonIntegerInput(t *testing.T) {
 	mem.Memory.Insert(memory.NewRelocatable(3, 0), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("2962412995502985605007699495352191122971573493113767820301112397466445942584")))
 	mem.Memory.Insert(memory.NewRelocatable(3, 1), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("214950771763870898744428659242275426967582168179217139798831865603966154129")))
 	mem.Memory.Insert(memory.NewRelocatable(3, 2), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("874739451078007766457464989774322083649278607533249481151382481072868806602")))
-	mem.Memory.Insert(memory.NewRelocatable(3, 3), memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(1,2)))
+	mem.Memory.Insert(memory.NewRelocatable(3, 3), memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(1, 2)))
 	mem.Memory.Insert(memory.NewRelocatable(3, 4), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(34)))
 	mem.Memory.Insert(memory.NewRelocatable(3, 5), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("2778063437308421278851140253538604815869848682781135193774472480292420096757")))
 
