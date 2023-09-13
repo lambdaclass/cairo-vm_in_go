@@ -66,7 +66,7 @@ func TestDictTrackerDefaultDictCopyDict(t *testing.T) {
 		NewMaybeRelocatableFelt(FeltFromUint64(17)),
 	)
 	// Check CopyDict
-	if reflect.DeepEqual(dictTracker.CopyDictionary(), *initialDict) {
+	if !reflect.DeepEqual(dictTracker.CopyDictionary(), *initialDict) {
 		t.Error("Wrong dict returned by CopyDictionary")
 	}
 }
