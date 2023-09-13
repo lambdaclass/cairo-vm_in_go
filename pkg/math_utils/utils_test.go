@@ -41,8 +41,9 @@ func TestDivModFail(t *testing.T) {
 	}
 }
 
-func isqrt_ok(t *testing.T) {
-	var x, y *big.Int
+func TestIsSqrtOk(t *testing.T) {
+	x := new(big.Int)
+	y := new(big.Int)
 	x.SetString("4573659632505831259480", 10)
 	y.Mul(x, x)
 
@@ -55,7 +56,7 @@ func isqrt_ok(t *testing.T) {
 	}
 }
 
-func isqrt_fail(t *testing.T) {
+func TestIsSqrtFail(t *testing.T) {
 	x := big.NewInt(-1)
 
 	_, err := ISqrt(x)
