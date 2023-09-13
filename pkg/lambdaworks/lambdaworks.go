@@ -230,7 +230,7 @@ func (a Felt) Shl(num uint64) Felt {
 	var result C.felt_t
 	var a_c C.felt_t = a.toC()
 
-	C.felt_shl(&a_c[0], C.ulonglong(num), &result[0])
+	C.felt_shl(&a_c[0], C.uint64_t(num), &result[0])
 	return fromC(result)
 }
 
