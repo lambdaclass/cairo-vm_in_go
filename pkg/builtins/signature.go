@@ -95,10 +95,9 @@ func (r *SignatureBuiltinRunner) AddValidationRule(mem *memory.Memory) {
 }
 
 // Helper function to AddSignature
-func AddSignature(
-	signatureBuiltin *SignatureBuiltinRunner,
+func (r *SignatureBuiltinRunner) AddSignature(
 	address memory.Relocatable,
 	signature Signature,
 ) {
-	signatureBuiltin.signatures[address] = signature
+	r.signatures[address] = signature
 }

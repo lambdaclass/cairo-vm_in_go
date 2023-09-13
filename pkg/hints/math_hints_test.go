@@ -3,10 +3,13 @@ package hints_test
 import (
 	"testing"
 
+	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -142,6 +145,26 @@ func TestAssertNotZeroHintOk(t *testing.T) {
 	}
 }
 
+/*
+ vm.segments = segments![
+            ((1, 0), (0, 0)),
+            (
+                (1, 1),
+                (
+                    "3086480810278599376317923499561306189851900463386393948998357832163236918254",
+                    10
+                )
+            ),
+            (
+                (1, 2),
+                (
+                    "598673427589502599949712887611119751108407514580626464031881322743364689811",
+                    10
+                )
+            )
+        ];
+*/
+
 func TestAssertNotZeroHintFail(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()
@@ -159,5 +182,79 @@ func TestAssertNotZeroHintFail(t *testing.T) {
 	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
 	if err == nil {
 		t.Errorf("ASSERT_NOT_ZERO hint should have failed")
+	}
+}
+
+func TestVerifyValidSignature(t *testing.T) {
+	vm := NewVirtualMachine()
+	signature_builtin := builtins.NewSignatureBuiltinRunner()
+	vm.BuiltinRunners = append(vm.BuiltinRunners, signature_builtin)
+
+	hintProcessor := CairoVmHintProcessor{}
+	vm.Segments.AddSegment()
+
+	r_felt := lambdaworks.FeltFromDecString("3086480810278599376317923499561306189851900463386393948998357832163236918254")
+	s_felt := lambdaworks.FeltFromDecString("598673427589502599949712887611119751108407514580626464031881322743364689811")
+	zero := memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero())
+	r := memory.NewMaybeRelocatableFelt(r_felt)
+	s := memory.NewMaybeRelocatableFelt(s_felt)
+
+	vm.RunContext.Fp = memory.NewRelocatable(1, 3)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"ecdsa_ptr":   {zero},
+			"signature_r": {r},
+			"signature_s": {s},
+		},
+		vm,
+	)
+
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: VERIFY_ECDSA_SIGNATURE,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+
+	if err != nil {
+		t.Errorf("Verify signature hint for correct signature failed")
+	}
+}
+
+func VerifySignatureInvalidEcdsaPointer(t *testing.T) {
+	vm := NewVirtualMachine()
+	signature_builtin := builtins.NewSignatureBuiltinRunner()
+	vm.BuiltinRunners = append(vm.BuiltinRunners, signature_builtin)
+
+	hintProcessor := CairoVmHintProcessor{}
+	vm.Segments.AddSegment()
+
+	r_felt := lambdaworks.FeltFromDecString("3086480810278599376317923499561306189851900463386393948998357832163236918254")
+	s_felt := lambdaworks.FeltFromDecString("598673427589502599949712887611119751108407514580626464031881322743364689811")
+	three := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(3))
+	r := memory.NewMaybeRelocatableFelt(r_felt)
+	s := memory.NewMaybeRelocatableFelt(s_felt)
+
+	vm.RunContext.Fp = memory.NewRelocatable(1, 3)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"ecdsa_ptr":   {three},
+			"signature_r": {r},
+			"signature_s": {s},
+		},
+		vm,
+	)
+
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: VERIFY_ECDSA_SIGNATURE,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+
+	if err == nil {
+		t.Errorf("Verified a signature with an invalid pointer")
 	}
 }

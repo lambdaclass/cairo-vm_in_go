@@ -65,10 +65,33 @@ func assert_not_zero(ids IdsManager, vm *VirtualMachine) error {
 	return nil
 }
 
-func verify_edsa_signature(ids IdsManager, vm *VirtualMachine) error {
-	r, err := ids.GetFelt("signature_r", vm)
-	s, err := ids.GetFelt("signature_s", vm)
-	ecdsa_ptr, err := ids.GetRelocatable("ecdsa_ptr", vm)
+func verify_ecdsa_signature(ids IdsManager, vm *VirtualMachine) error {
+	r, err_get_r := ids.GetFelt("signature_r", vm)
+	if err_get_r != nil {
+		return err_get_r
+	}
+
+	s, err_get_s := ids.GetFelt("signature_s", vm)
+	if err_get_s != nil {
+		return err_get_s
+	}
+
+	ecdsa_ptr, err_get_ecdsa := ids.GetRelocatable("ecdsa_ptr", vm)
+	if err_get_ecdsa != nil {
+		return err_get_ecdsa
+	}
+
+	signature_builtin_interface, err_get_builtin := vm.GetBuiltinRunner("signature")
+	if err_get_builtin != nil {
+		return err_get_builtin
+	}
+
+	signature_builtin := (*signature_builtin_interface).(*builtins.SignatureBuiltinRunner)
+
+	signature := builtins.Signature{
+		R: r,
+		S: s,
+	}
+	signature_builtin.AddSignature(ecdsa_ptr, signature)
 	return nil
-	// vm.get_signature_builtin?
 }
