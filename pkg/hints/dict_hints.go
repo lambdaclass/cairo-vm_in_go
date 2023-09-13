@@ -60,8 +60,7 @@ func dictRead(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error
 	if err != nil {
 		return err
 	}
-	ids.Insert("value", val, vm)
-	return nil
+	return ids.Insert("value", val, vm)
 }
 
 func dictWrite(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error {
@@ -92,7 +91,6 @@ func dictWrite(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) erro
 	if err != nil {
 		return err
 	}
-	ids.Insert("prev_value", prev_val, vm)
 	tracker.InsertValue(key, new_value)
-	return nil
+	return ids.Insert("prev_value", prev_val, vm)
 }
