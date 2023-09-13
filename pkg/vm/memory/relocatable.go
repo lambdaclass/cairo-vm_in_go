@@ -61,15 +61,12 @@ func (r *Relocatable) AddMaybeRelocatable(other MaybeRelocatable) (Relocatable, 
 }
 
 // Returns the distance between two relocatable values (aka the difference between their offsets)
-// Fails if they have different segment indexes or if the difference is negative
-func (r *Relocatable) Sub(other Relocatable) (uint, error) {
+// Fails if they have different segment indexes
+func (r *Relocatable) Sub(other Relocatable) (lambdaworks.Felt, error) {
 	if r.SegmentIndex != other.SegmentIndex {
-		return 0, errors.New("Cant subtract two relocatables with different segment indexes")
+		return lambdaworks.Felt{}, errors.New("Cant subtract two relocatables with different segment indexes")
 	}
-	if r.Offset < other.Offset {
-		return 0, errors.New("Relocatable subtraction yields relocatable with negative offset")
-	}
-	return r.Offset - other.Offset, nil
+	return lambdaworks.FeltFromUint64(uint64(r.Offset)).Sub(lambdaworks.FeltFromUint64(uint64(other.Offset))), nil
 }
 
 func (r *Relocatable) IsEqual(r1 *Relocatable) bool {
@@ -229,8 +226,9 @@ func (m MaybeRelocatable) Sub(other MaybeRelocatable) (MaybeRelocatable, error) 
 		return *NewMaybeRelocatableRelocatable(relocatable), nil
 
 	} else if is_rel_m && is_rel_other {
-		offset_diff := lambdaworks.FeltFromUint64(uint64(m_rel.Offset)).Sub(lambdaworks.FeltFromUint64(uint64(other_rel.Offset)))
-		return *NewMaybeRelocatableFelt(offset_diff), nil
+		res, err := m_rel.Sub(other_rel)
+		return *NewMaybeRelocatableFelt(res), err
+
 	} else {
 		return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), errors.New("Cant sub Relocatable from Felt")
 	}
