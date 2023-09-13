@@ -148,6 +148,10 @@ func (f Felt) IsZero() bool {
 	return f == FeltZero()
 }
 
+func (f Felt) IsOne() bool {
+	return f == FeltOne()
+}
+
 // Writes the result variable with the sum of a and b felts.
 func (a Felt) Add(b Felt) Felt {
 	var result C.felt_t
