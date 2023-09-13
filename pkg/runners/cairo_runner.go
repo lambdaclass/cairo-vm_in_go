@@ -186,7 +186,7 @@ func (r *CairoRunner) RunUntilPC(end memory.Relocatable, hintProcessor vm.HintPr
 	}
 	constants := r.Program.ExtractConstants()
 	for r.Vm.RunContext.Pc != end {
-		err := r.Vm.Step(hintProcessor, &hintDataMap, &constants)
+		err := r.Vm.Step(hintProcessor, &hintDataMap, &constants, &r.execScopes)
 		if err != nil {
 			return err
 		}
