@@ -1,7 +1,6 @@
 package hints
 
 import (
-	"errors"
 	"strings"
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
@@ -9,6 +8,7 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
 	"github.com/lambdaclass/cairo-vm.go/pkg/types"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
+	"github.com/pkg/errors"
 )
 
 type HintData struct {
@@ -56,6 +56,6 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 	case DICT_WRITE:
 		return dictWrite(data.Ids, execScopes, vm)
 	default:
-		return errors.New("Unknown Hint")
+		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
 }
