@@ -63,29 +63,3 @@ func assert_not_zero(ids IdsManager, vm *VirtualMachine) error {
 	}
 	return nil
 }
-
-func assert_not_equal(ids IdsManager, vm *VirtualMachine) error {
-	// Extract Ids Variables
-	a, err := ids.Get("a", vm)
-	if err != nil {
-		return err
-	}
-	b, err := ids.Get("b", vm)
-	if err != nil {
-		return err
-	}
-	// Hint Logic
-	a_rel, a_is_rel := a.GetRelocatable()
-	b_rel, b_is_rel := b.GetRelocatable()
-	if !((a_is_rel && b_is_rel && a_rel.SegmentIndex == b_rel.SegmentIndex) || (!a_is_rel && !b_is_rel)) {
-		return errors.Errorf("assert_not_equal failed: non-comparable values: %v, %v.", a, b)
-	}
-	diff, err := a.Sub(*b)
-	if err != nil {
-		return err
-	}
-	if diff.IsZero() {
-		return errors.Errorf("assert_not_equal failed: %v = %v.", a, b)
-	}
-	return nil
-}
