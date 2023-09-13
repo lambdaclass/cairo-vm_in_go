@@ -144,6 +144,13 @@ func FeltOne() Felt {
 	return fromC(result)
 }
 
+// Gets a Felt representing 1.
+func FeltMaxValue() Felt {
+	var result C.felt_t
+	C.max_value(&result[0])
+	return fromC(result)
+}
+
 func (f Felt) IsZero() bool {
 	return f == FeltZero()
 }
@@ -243,6 +250,23 @@ func (a Felt) PowUint(p uint32) Felt {
 	var a_c C.felt_t = a.toC()
 
 	C.felt_pow_uint(&a_c[0], C.uint(p), &result[0])
+	return fromC(result)
+}
+
+func (a Felt) Pow(p Felt) Felt {
+	var result C.felt_t
+	var a_c C.felt_t = a.toC()
+	var p_c C.felt_t = p.toC()
+
+	C.felt_pow(&a_c[0], &p_c[0], &result[0])
+	return fromC(result)
+}
+
+func (a Felt) Sqrt() Felt {
+	var result C.felt_t
+	var a_c C.felt_t = a.toC()
+
+	C.felt_sqrt(&a_c[0], &result[0])
 	return fromC(result)
 }
 

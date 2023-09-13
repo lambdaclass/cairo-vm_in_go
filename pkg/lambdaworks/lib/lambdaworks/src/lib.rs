@@ -132,6 +132,12 @@ pub extern "C" fn one(result: Limbs) {
     felt_to_limbs(Felt::one(), result)
 }
 
+
+#[no_mangle]
+pub extern "C" fn max_value(result: Limbs) {
+    felt_to_limbs(Felt::from_bytes_be(&*SIGNED_FELT_MAX.to_bytes_be()).unwrap(), result)
+}
+
 #[no_mangle]
 pub extern "C" fn add(a: Limbs, b: Limbs, result: Limbs) {
     felt_to_limbs(limbs_to_felt(a) + limbs_to_felt(b), result);
@@ -202,6 +208,23 @@ pub extern "C" fn felt_pow_uint(a: Limbs, num: u32, result: Limbs) {
     
     let res = felt_a.pow(num); 
     felt_to_limbs(res, result)
+}
+
+#[no_mangle]
+pub extern "C" fn felt_pow(a: Limbs, exponent: Limbs, result: Limbs) {
+    let felt_a = limbs_to_felt(a);
+    let felt_exponent = limbs_to_felt(exponent).representative();
+    let res = felt_a.pow(felt_exponent); 
+    felt_to_limbs(res, result)
+}
+
+#[no_mangle]
+pub extern "C" fn felt_sqrt(a: Limbs,result: Limbs) {
+    let felt_a = limbs_to_felt(a);
+    
+    let (root_1, root_2) = felt_a.sqrt().unwrap();
+    let res = root_1.representative().min(root_2.representative());
+    felt_to_limbs(Felt::from(&res), result)
 }
 
 #[no_mangle]

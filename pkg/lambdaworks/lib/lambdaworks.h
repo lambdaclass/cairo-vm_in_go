@@ -40,6 +40,8 @@ void zero(felt_t result);
 /* Gets a felt_t representing 1 */
 void one(felt_t result);
 
+void max_value(felt_t result);
+
 /* Writes the result variable with the sum of a and b felts. */
 void add(felt_t a, felt_t b, felt_t result);
 
@@ -69,6 +71,11 @@ void felt_shl(felt_t a, uint64_t num, felt_t result);
 
 /* writes the result variable with a.pow(num) */
 void felt_pow_uint(felt_t a, uint32_t num, felt_t result);
+
+/* writes the result variable with a.pow(exponent) */
+void felt_pow(felt_t a, felt_t p, felt_t result);
+
+void felt_sqrt(felt_t a, felt_t result);
 
 /* returns the representation of a felt to string */
 char* to_signed_felt(felt_t value);
