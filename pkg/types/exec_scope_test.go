@@ -321,7 +321,7 @@ func TestErrGetList(t *testing.T) {
 		t.Errorf("TestErrGetList should fail with error: %s\n, got: %s\n", expected, err)
 	}
 
-	// Extra code - can be deleated in production
+	// Extra code - can be removed in prod
 	// If uncommented, comment 'correct code' here and in method GetList
 	// _, err := scopes.GetList(reflect.TypeOf([]int{}), "u64_list")
 	// expected := types.ErrListTypeNotEqual("u64_list", reflect.TypeOf([]int{}).String(), reflect.TypeOf(u64_list).String())

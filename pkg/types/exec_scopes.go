@@ -97,8 +97,8 @@ func (es *ExecutionScopes) GetRef(varName string) (*interface{}, error) {
 }
 
 // This error has been used for testing purposes
-// We should not give information about exists a list with different types on the scope
-// On production should be removed
+// We should not give information about an existing list with different types on the scope
+// On production can be removed
 func ErrListTypeNotEqual(varName string, expectedType string, resultType string) error {
 	return ExecutionScopesError(errors.Errorf("List %s types does not match, expected type: %s, result type: %s", varName, expectedType, resultType))
 }
