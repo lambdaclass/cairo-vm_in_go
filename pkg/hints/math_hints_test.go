@@ -24,7 +24,7 @@ func TestIsNNHintOk(t *testing.T) {
 		Ids:  idsManager,
 		Code: ASSERT_NN,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err != nil {
 		t.Errorf("ASSERT_NN hint test failed with error %s", err)
 	}
@@ -44,7 +44,7 @@ func TestIsNNHintFail(t *testing.T) {
 		Ids:  idsManager,
 		Code: ASSERT_NN,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err == nil {
 		t.Errorf("ASSERT_NN hint should have failed")
 	}
@@ -65,7 +65,7 @@ func TestIsPositiveOkPositive(t *testing.T) {
 		Ids:  idsManager,
 		Code: IS_POSITIVE,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err != nil {
 		t.Errorf("IS_POSITIVE hint test failed with error %s", err)
 	}
@@ -91,7 +91,7 @@ func TestIsPositiveOkNegative(t *testing.T) {
 		Ids:  idsManager,
 		Code: IS_POSITIVE,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err != nil {
 		t.Errorf("IS_POSITIVE hint test failed with error %s", err)
 	}
@@ -117,7 +117,7 @@ func TestIsPositiveOutOfRange(t *testing.T) {
 		Ids:  idsManager,
 		Code: IS_POSITIVE,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err == nil {
 		t.Errorf("IS_POSITIVE hint test should have failed")
 	}
@@ -136,7 +136,7 @@ func TestAssertNotZeroHintOk(t *testing.T) {
 		Ids:  idsManager,
 		Code: ASSERT_NOT_ZERO,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err != nil {
 		t.Errorf("ASSERT_NOT_ZERO hint test failed with error %s", err)
 	}
@@ -156,7 +156,7 @@ func TestAssertNotZeroHintFail(t *testing.T) {
 		Ids:  idsManager,
 		Code: ASSERT_NOT_ZERO,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err == nil {
 		t.Errorf("ASSERT_NOT_ZERO hint should have failed")
 	}
@@ -177,7 +177,7 @@ func TestAssertNotEqualHintNonComparableDiffType(t *testing.T) {
 		Ids:  idsManager,
 		Code: ASSERT_NOT_EQUAL,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err == nil {
 		t.Errorf("ASSERT_NOT_EQUAL hint should have failed")
 	}
@@ -198,7 +198,7 @@ func TestAssertNotEqualHintNonComparableDiffIndex(t *testing.T) {
 		Ids:  idsManager,
 		Code: ASSERT_NOT_EQUAL,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err == nil {
 		t.Errorf("ASSERT_NOT_EQUAL hint should have failed")
 	}
@@ -219,7 +219,7 @@ func TestAssertNotEqualHintEqualRelocatables(t *testing.T) {
 		Ids:  idsManager,
 		Code: ASSERT_NOT_EQUAL,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err == nil {
 		t.Errorf("ASSERT_NOT_EQUAL hint should have failed")
 	}
@@ -240,7 +240,7 @@ func TestAssertNotEqualHintEqualFelts(t *testing.T) {
 		Ids:  idsManager,
 		Code: ASSERT_NOT_EQUAL,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err == nil {
 		t.Errorf("ASSERT_NOT_EQUAL hint should have failed")
 	}
@@ -261,7 +261,7 @@ func TestAssertNotEqualHintOkFelts(t *testing.T) {
 		Ids:  idsManager,
 		Code: ASSERT_NOT_EQUAL,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err != nil {
 		t.Errorf("ASSERT_NOT_EQUAL hint failed with error: %s", err)
 	}
@@ -282,7 +282,7 @@ func TestAssertNotEqualHintOkRelocatables(t *testing.T) {
 		Ids:  idsManager,
 		Code: ASSERT_NOT_EQUAL,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err != nil {
 		t.Errorf("ASSERT_NOT_EQUAL hint failed with error: %s", err)
 	}
