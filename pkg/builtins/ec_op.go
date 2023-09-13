@@ -98,12 +98,12 @@ func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem *m
 	input_cells_per_ec_op := lambdaworks.FeltFromUint64(INPUT_CELLS_PER_EC_OP)
 	x_addr, err := instance.AddFelt(input_cells_per_ec_op)
 	if err != nil {
-		return nil, errors.New("Runner error, Expected Integer")
+		return nil, err
 	}
 
-	number := ec.cache[address]
+	number, is_cached := ec.cache[address]
 
-	if !reflect.DeepEqual(number, lambdaworks.Felt{}) {
+	if is_cached {
 		return memory.NewMaybeRelocatableFelt(number), nil
 	}
 
