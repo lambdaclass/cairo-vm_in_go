@@ -1,12 +1,37 @@
 package lambdaworks_test
 
 import (
+	"math/big"
 	"reflect"
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
+
+func TestToBigInt(t *testing.T) {
+	felt := lambdaworks.FeltFromUint64(26)
+	bigInt := felt.ToBigInt()
+	if !reflect.DeepEqual(bigInt, new(big.Int).SetUint64(26)) {
+		t.Errorf("TestToBigInt failed. Expected: %v, Got: %v", 26, bigInt)
+	}
+}
+
+func TestToSignedNegative(t *testing.T) {
+	felt := lambdaworks.FeltFromDecString("-1")
+	bigInt := felt.ToSigned()
+	if !reflect.DeepEqual(bigInt, new(big.Int).SetInt64(-1)) {
+		t.Errorf("TestToBigInt failed. Expected: %v, Got: %v", -1, bigInt)
+	}
+}
+
+func TestToSignedPositive(t *testing.T) {
+	felt := lambdaworks.FeltFromUint64(5)
+	bigInt := felt.ToSigned()
+	if !reflect.DeepEqual(bigInt, new(big.Int).SetInt64(5)) {
+		t.Errorf("TestToBigInt failed. Expected: %v, Got: %v", -1, bigInt)
+	}
+}
 
 func TestFromHex(t *testing.T) {
 	var h_one = "1a"
@@ -26,7 +51,16 @@ func TestToHex(t *testing.T) {
 	if result != expected {
 		t.Errorf("TestFromHex failed. Expected: %v, Got: %v", expected, result)
 	}
+}
 
+func TestToHexPrimeMinusOne(t *testing.T) {
+	var expected = "0x800000000000011000000000000000000000000000000000000000000000000"
+	felt := lambdaworks.FeltFromDecString("-1")
+
+	result := felt.ToHexString()
+	if result != expected {
+		t.Errorf("TestFromHex failed. Expected: %v, Got: %v", expected, result)
+	}
 }
 
 func TestFromDecString(t *testing.T) {
