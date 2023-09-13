@@ -10,12 +10,10 @@ import (
 )
 
 type EcOpBuiltinRunner struct {
-	included           bool
-	base               memory.Relocatable
-	cells_per_instance uint32
-	cache              map[memory.Relocatable]lambdaworks.Felt
-	n_input_cells      uint32
-	scalar_height      uint32
+	included      bool
+	base          memory.Relocatable
+	cache         map[memory.Relocatable]lambdaworks.Felt
+	scalar_height uint32
 }
 
 type EcPoint struct {
@@ -45,15 +43,14 @@ type DoublePointB struct {
 
 const INPUT_CELLS_PER_EC_OP = 5
 const CELLS_PER_EC_OP = 7
+const EC_OP_BUILTIN_NAME = "ec_op"
 
 const PRIME = "0x800000000000011000000000000000000000000000000000000000000000001"
 
 func NewEcOpBuiltinRunner() *EcOpBuiltinRunner {
 	return &EcOpBuiltinRunner{
-		cells_per_instance: CELLS_PER_EC_OP,
-		n_input_cells:      INPUT_CELLS_PER_EC_OP,
-		cache:              make(map[memory.Relocatable]lambdaworks.Felt),
-		scalar_height:      256,
+		cache:         make(map[memory.Relocatable]lambdaworks.Felt),
+		scalar_height: 256,
 	}
 }
 
@@ -64,7 +61,7 @@ func (ec *EcOpBuiltinRunner) Base() memory.Relocatable {
 }
 
 func (ec *EcOpBuiltinRunner) Name() string {
-	return "ec_op"
+	return EC_OP_BUILTIN_NAME
 }
 
 func (ec *EcOpBuiltinRunner) InitializeSegments(segments *memory.MemorySegmentManager) {
@@ -91,7 +88,7 @@ func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segmen
 	beta_high := lambdaworks.FeltFromHex("0x6f21413efbe40de150e596d72f7a8c5")
 	beta := (beta_high.Shl(128)).Add(beta_low)
 
-	index := address.Offset % uint(ec.cells_per_instance)
+	index := address.Offset % uint(CELLS_PER_EC_OP)
 
 	if index != OUTPUT_INDICES.x && index != OUTPUT_INDICES.y {
 		return nil, nil
@@ -114,7 +111,7 @@ func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segmen
 	//If an input cell is not filled, return None
 
 	input_cells := make([]lambdaworks.Felt, 0)
-	for i := 0; i < int(ec.n_input_cells); i++ {
+	for i := 0; i < int(INPUT_CELLS_PER_EC_OP); i++ {
 		addr, err := segments.Get(instance.AddUint(uint(i)))
 		if err == nil {
 			felt, is_felt := addr.GetFelt()
@@ -154,7 +151,7 @@ func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segmen
 	ec.cache[x_addr] = felt_result_x
 	ec.cache[x_addr.AddUint(1)] = felt_result_y
 
-	if index-uint(ec.n_input_cells) == 0 {
+	if index-uint(INPUT_CELLS_PER_EC_OP) == 0 {
 		return memory.NewMaybeRelocatableFelt(felt_result_x), nil
 	} else {
 		return memory.NewMaybeRelocatableFelt(felt_result_y), nil
