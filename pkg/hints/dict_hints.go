@@ -63,3 +63,36 @@ func dictRead(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error
 	ids.Insert("value", val, vm)
 	return nil
 }
+
+func dictWrite(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error {
+	// Extract Variables
+	dictManager, ok := FetchDictManager(scopes)
+	if !ok {
+		return errors.New("Variable __dict_manager not present in current execution scope")
+	}
+	dict_ptr, err := ids.GetRelocatable("dict_ptr", vm)
+	if err != nil {
+		return err
+	}
+	key, err := ids.Get("key", vm)
+	if err != nil {
+		return err
+	}
+	new_value, err := ids.Get("new_value", vm)
+	if err != nil {
+		return err
+	}
+	// Hint Logic
+	tracker, err := dictManager.GetTracker(dict_ptr)
+	if err != nil {
+		return err
+	}
+	tracker.CurrentPtr.Offset += DICT_ACCESS_SIZE
+	prev_val, err := tracker.GetValue(key)
+	if err != nil {
+		return err
+	}
+	ids.Insert("prev_value", prev_val, vm)
+	tracker.InsertValue(key, new_value)
+	return nil
+}

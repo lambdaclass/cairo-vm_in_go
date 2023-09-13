@@ -183,3 +183,108 @@ func TestDictReadNoVal(t *testing.T) {
 		t.Errorf("DICT_READ hint test should have failed")
 	}
 }
+
+func TestDictWriteOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+
+	// Create dictManager with a default dictionary & add it to scope
+	dictManager := dict_manager.NewDictManager()
+	initialDict := map[MaybeRelocatable]MaybeRelocatable{
+		*NewMaybeRelocatableFelt(FeltOne()): *NewMaybeRelocatableFelt(FeltFromUint64(7)),
+	}
+	dict_ptr := dictManager.NewDictionary(&initialDict, vm)
+	scopes.AssignOrUpdateVariable("__dict_manager", &dictManager)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"key":        {NewMaybeRelocatableFelt(FeltOne())},
+			"dict_ptr":   {NewMaybeRelocatableRelocatable(dict_ptr)},
+			"prev_value": {nil},
+			"new_value":  {NewMaybeRelocatableFelt(FeltFromUint64(17))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: DICT_WRITE,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("DICT_WRITE hint test failed with error %s", err)
+	}
+	// Check ids.prev_value
+	val, err := idsManager.GetFelt("prev_value", vm)
+	if err != nil || val != FeltFromUint64(7) {
+		t.Error("DICT_WRITE Wrong/No ids.value")
+	}
+}
+
+func TestDictWriteNoPrevValue(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+
+	// Create dictManager with a default dictionary & add it to scope
+	dictManager := dict_manager.NewDictManager()
+	initialDict := map[MaybeRelocatable]MaybeRelocatable{}
+	dict_ptr := dictManager.NewDictionary(&initialDict, vm)
+	scopes.AssignOrUpdateVariable("__dict_manager", &dictManager)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"key":        {NewMaybeRelocatableFelt(FeltOne())},
+			"dict_ptr":   {NewMaybeRelocatableRelocatable(dict_ptr)},
+			"prev_value": {nil},
+			"new_value":  {NewMaybeRelocatableFelt(FeltFromUint64(17))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: DICT_WRITE,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err == nil {
+		t.Error("DICT_WRITE hint test should have failed")
+	}
+}
+
+func TestDictWriteNewWriteDefault(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+
+	// Create dictManager with a default dictionary & add it to scope
+	dictManager := dict_manager.NewDictManager()
+	defaultValue := FeltFromUint64(17)
+	dict_ptr := dictManager.NewDefaultDictionary(NewMaybeRelocatableFelt(defaultValue), vm)
+	scopes.AssignOrUpdateVariable("__dict_manager", &dictManager)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"key":        {NewMaybeRelocatableFelt(FeltOne())},
+			"dict_ptr":   {NewMaybeRelocatableRelocatable(dict_ptr)},
+			"prev_value": {nil},
+			"new_value":  {NewMaybeRelocatableFelt(FeltFromUint64(17))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: DICT_WRITE,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("DICT_WRITE hint test failed with error %s", err)
+	}
+	// Check ids.prev_value
+	val, err := idsManager.GetFelt("prev_value", vm)
+	if err != nil || val != defaultValue {
+		t.Error("DICT_WRITE Wrong/No ids.value")
+	}
+}

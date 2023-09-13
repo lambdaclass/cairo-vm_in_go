@@ -53,6 +53,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return defaultDictNew(data.Ids, execScopes, vm)
 	case DICT_READ:
 		return dictRead(data.Ids, execScopes, vm)
+	case DICT_WRITE:
+		return dictWrite(data.Ids, execScopes, vm)
 	default:
 		return errors.New("Unknown Hint")
 	}
