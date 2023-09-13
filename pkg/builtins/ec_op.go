@@ -2,11 +2,12 @@ package builtins
 
 import (
 	"errors"
+	"fmt"
+	"math/big"
+
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/math_utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
-	"math/big"
-	"reflect"
 )
 
 type EcOpBuiltinRunner struct {
@@ -44,8 +45,12 @@ type DoublePointB struct {
 const INPUT_CELLS_PER_EC_OP = 5
 const CELLS_PER_EC_OP = 7
 const EC_OP_BUILTIN_NAME = "ec_op"
-
 const PRIME = "0x800000000000011000000000000000000000000000000000000000000000001"
+
+func PrimeError(value big.Int) error {
+	err := fmt.Sprintf("%s is multiple of cairo Prime", value.Text(10))
+	return errors.New(err)
+}
 
 func NewEcOpBuiltinRunner() *EcOpBuiltinRunner {
 	return &EcOpBuiltinRunner{
@@ -163,7 +168,7 @@ func LineSlope(point_a PartialSumB, point_b DoublePointB, prime big.Int) (big.In
 	mod_value.Mod(mod_value, &prime)
 
 	if mod_value.Cmp(big.NewInt(0)) == 0 {
-		return big.Int{}, errors.New("is multiple of prime")
+		return big.Int{}, PrimeError(*mod_value)
 	}
 
 	n := new(big.Int).Sub(&point_a.Y, &point_b.Y)
@@ -198,7 +203,7 @@ func EcAdd(point_a PartialSumB, point_b DoublePointB, prime big.Int) (PartialSum
 func EcDoubleSlope(point DoublePointB, alpha big.Int, prime big.Int) (big.Int, error) {
 	q := new(big.Int).Mod(&point.Y, &prime)
 	if q == big.NewInt(0) {
-		return big.Int{}, errors.New("is multiple of prime")
+		return big.Int{}, PrimeError(*q)
 	}
 	n := new(big.Int).Mul(&point.X, &point.X)
 	n.Mul(n, big.NewInt(3))
