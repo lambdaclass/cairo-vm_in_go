@@ -145,26 +145,6 @@ func TestAssertNotZeroHintOk(t *testing.T) {
 	}
 }
 
-/*
- vm.segments = segments![
-            ((1, 0), (0, 0)),
-            (
-                (1, 1),
-                (
-                    "3086480810278599376317923499561306189851900463386393948998357832163236918254",
-                    10
-                )
-            ),
-            (
-                (1, 2),
-                (
-                    "598673427589502599949712887611119751108407514580626464031881322743364689811",
-                    10
-                )
-            )
-        ];
-*/
-
 func TestAssertNotZeroHintFail(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()
