@@ -1,19 +1,11 @@
 package types_test
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/types"
 )
-
-func TestInitializeExecutionScopes(t *testing.T) {
-	scopes := types.NewExecutionScopes()
-	if len(scopes.Data()) != 1 {
-		t.Errorf("TestInitializeExecutionScopes failed, expected length: %d, got: %d", 1, len((scopes.Data())))
-	}
-}
 
 func TestGetLocalVariables(t *testing.T) {
 	scope := make(map[string]interface{})
@@ -285,47 +277,4 @@ func TestErrExitMainScope(t *testing.T) {
 	if err != types.ErrCannotExitMainScop {
 		t.Errorf("TestErrExitMainScope should fail with error: %s and fails with: %s", types.ErrCannotExitMainScop, err)
 	}
-}
-
-func TestGetListU64(t *testing.T) {
-	u64_list := []uint64{1, 2, 3, 4, 5}
-	scopes := types.NewExecutionScopes()
-	scopes.AssignOrUpdateVariable("u64_list", u64_list)
-
-	result, err := scopes.GetList(reflect.TypeOf([]uint64{}), "u64_list")
-	if err != nil {
-		t.Errorf("TestGetListU64 failed with error: %s", err)
-	}
-
-	if reflect.TypeOf(result) != reflect.TypeOf(u64_list) {
-		t.Errorf("TestGetListU64 failed with error: Expected list has type %s, got: %s", reflect.TypeOf(u64_list).String(), reflect.TypeOf(result).String())
-
-	}
-
-	if !reflect.DeepEqual(u64_list, result) {
-		t.Errorf("TestGetListU64 failed with error: Expected list %v, got: %v", u64_list, result)
-
-	}
-
-}
-
-func TestErrGetList(t *testing.T) {
-	u64_list := []uint64{1, 2, 3, 4, 5}
-	scopes := types.NewExecutionScopes()
-	scopes.AssignOrUpdateVariable("u64_list", u64_list)
-
-	// Correct code
-	_, err := scopes.GetList(reflect.TypeOf([]int{}), "u64_list")
-	expected := types.ErrVariableNotInScope("u64_list")
-	if err.Error() != expected.Error() {
-		t.Errorf("TestErrGetList should fail with error: %s\n, got: %s\n", expected, err)
-	}
-
-	// Extra code - can be removed in prod
-	// If uncommented, comment 'correct code' here and in method GetList
-	// _, err := scopes.GetList(reflect.TypeOf([]int{}), "u64_list")
-	// expected := types.ErrListTypeNotEqual("u64_list", reflect.TypeOf([]int{}).String(), reflect.TypeOf(u64_list).String())
-	// if err.Error() != expected.Error() {
-	// 	t.Errorf("TestErrGetList should fail with error: %s\n, got: %s\n", expected, err)
-	// }
 }
