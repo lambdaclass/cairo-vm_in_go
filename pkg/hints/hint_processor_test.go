@@ -91,7 +91,7 @@ func TestExecuteHintWrongHintData(t *testing.T) {
 	hintProcessor := &CairoVmHintProcessor{}
 	hintData := any("Mistake")
 	vm := vm.NewVirtualMachine()
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err == nil {
 		t.Errorf("Should have failed")
 	}
@@ -101,7 +101,7 @@ func TestExecuteHintUnknownHint(t *testing.T) {
 	hintProcessor := &CairoVmHintProcessor{}
 	hintData := any(HintData{Code: "print(Hello World)"})
 	vm := vm.NewVirtualMachine()
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err == nil {
 		t.Errorf("Should have failed")
 	}

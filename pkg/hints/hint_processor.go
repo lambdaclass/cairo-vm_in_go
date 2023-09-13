@@ -1,13 +1,14 @@
 package hints
 
 import (
-	"errors"
 	"strings"
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
+	"github.com/lambdaclass/cairo-vm.go/pkg/types"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
+	"github.com/pkg/errors"
 )
 
 type HintData struct {
@@ -32,7 +33,7 @@ func (p *CairoVmHintProcessor) CompileHint(hintParams *parser.HintParams, refere
 	return HintData{Ids: ids, Code: hintParams.Code}, nil
 }
 
-func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any, constants *map[string]Felt) error {
+func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any, constants *map[string]Felt, execScopes *types.ExecutionScopes) error {
 	data, ok := (*hintData).(HintData)
 	if !ok {
 		return errors.New("Wrong Hint Data")
@@ -42,9 +43,11 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return add_segment(vm)
 	case ASSERT_NN:
 		return assert_nn(data.Ids, vm)
+	case IS_POSITIVE:
+		return is_positive(data.Ids, vm)
 	case ASSERT_NOT_ZERO:
 		return assert_not_zero(data.Ids, vm)
 	default:
-		return errors.New("Unknown Hint")
+		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
 }
