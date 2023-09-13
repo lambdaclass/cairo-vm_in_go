@@ -50,7 +50,7 @@ type DictTracker struct {
 
 func NewDictTrackerForDictionary(base Relocatable, dict *map[MaybeRelocatable]MaybeRelocatable) DictTracker {
 	return DictTracker{
-		data:       NewDictionay(dict),
+		data:       NewDictionary(dict),
 		currentPtr: base,
 	}
 }
@@ -86,7 +86,7 @@ func NewDefaultDictionary(defaultValue *MaybeRelocatable, dict *map[MaybeRelocat
 	}
 }
 
-func NewDictionay(dict *map[MaybeRelocatable]MaybeRelocatable) Dictionary {
+func NewDictionary(dict *map[MaybeRelocatable]MaybeRelocatable) Dictionary {
 	return Dictionary{
 		dict:         *dict,
 		defaultValue: nil,

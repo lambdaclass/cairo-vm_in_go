@@ -172,7 +172,7 @@ func TestDictionary(t *testing.T) {
 	initialDict := &map[MaybeRelocatable]MaybeRelocatable{
 		*NewMaybeRelocatableFelt(FeltFromUint64(1)): *NewMaybeRelocatableFelt(FeltFromUint64(2)),
 	}
-	dict := NewDictionay(*&initialDict)
+	dict := NewDictionary(*&initialDict)
 	// Check Get
 	if *dict.Get(NewMaybeRelocatableFelt(FeltFromUint64(1))) != *NewMaybeRelocatableFelt(FeltFromUint64(2)) {
 		t.Error("Wrong value returned by Get")
