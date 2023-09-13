@@ -122,3 +122,42 @@ func TestIsPositiveOutOfRange(t *testing.T) {
 		t.Errorf("IS_POSITIVE hint test should have failed")
 	}
 }
+func TestAssertNotZeroHintOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(FeltFromUint64(17))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: ASSERT_NOT_ZERO,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	if err != nil {
+		t.Errorf("ASSERT_NOT_ZERO hint test failed with error %s", err)
+	}
+}
+
+func TestAssertNotZeroHintFail(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(FeltFromUint64(0))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: ASSERT_NOT_ZERO,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	if err == nil {
+		t.Errorf("ASSERT_NOT_ZERO hint should have failed")
+	}
+}

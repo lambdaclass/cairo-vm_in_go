@@ -44,3 +44,22 @@ func is_positive(ids IdsManager, vm *VirtualMachine) error {
 	ids.Insert("is_positive", NewMaybeRelocatableFelt(FeltFromUint64(is_positive)), vm)
 	return nil
 }
+
+// Implements hint:from starkware.cairo.common.math.cairo
+//
+//	%{
+//	    from starkware.cairo.common.math_utils import assert_integer
+//	    assert_integer(ids.value)
+//	    assert ids.value % PRIME != 0, f'assert_not_zero failed: {ids.value} = 0.'
+//
+// %}
+func assert_not_zero(ids IdsManager, vm *VirtualMachine) error {
+	value, err := ids.GetFelt("value", vm)
+	if err != nil {
+		return err
+	}
+	if value.IsZero() {
+		return errors.Errorf("Assertion failed, %s %% PRIME is equal to 0", value.ToHexString())
+	}
+	return nil
+}
