@@ -4,7 +4,6 @@ import (
 	"errors"
 	"math/big"
 	"reflect"
-
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/math_utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
@@ -45,11 +44,18 @@ type DoublePointB struct {
 }
 
 const INPUT_CELLS_PER_EC_OP = 5
+const CELLS_PER_EC_OP = 7
+
 const PRIME = "0x800000000000011000000000000000000000000000000000000000000000001"
+
 
 func NewEcOpBuiltinRunner(included bool) *EcOpBuiltinRunner {
 	return &EcOpBuiltinRunner{
 		included: included,
+		cells_per_instance: CELLS_PER_EC_OP,
+		n_input_cells: INPUT_CELLS_PER_EC_OP,
+		cache: make(map[memory.Relocatable]lambdaworks.Felt),
+		scalar_height: 256,
 	}
 }
 
@@ -103,10 +109,10 @@ func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segmen
 	//All input cells should be filled, and be integer values
 	//If an input cell is not filled, return None
 
-	input_cells := make([]lambdaworks.Felt, ec.n_input_cells)
+	input_cells := make([]lambdaworks.Felt, 0)
 	for i := 0; i < int(ec.n_input_cells); i++ {
 		addr, err := segments.Get(instance.AddUint(uint(i)))
-		if err != nil {
+		if err == nil {
 			felt, is_felt := addr.GetFelt()
 			if is_felt {
 				input_cells = append(input_cells, felt)
@@ -118,7 +124,7 @@ func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segmen
 		}
 	}
 
-	for j := 0; j < len(EC_POINT_INDICES); j++ {
+	for j := 0; j < 2; j++ {
 		x := input_cells[EC_POINT_INDICES[j].x]
 		y := input_cells[EC_POINT_INDICES[j].y]
 		if !PointOnCurve(x, y, alpha, beta) {
@@ -126,7 +132,7 @@ func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segmen
 		}
 	}
 
-	prime, ok := new(big.Int).SetString(PRIME, 16)
+	prime, ok := new(big.Int).SetString(PRIME[2:], 16)
 	if !ok {
 		return nil, errors.New("Could not parse prime")
 	}

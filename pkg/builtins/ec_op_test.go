@@ -6,6 +6,7 @@ import (
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
 func TestPointIsOnCurveB(t *testing.T) {
@@ -109,21 +110,77 @@ func TestComputeEcOpInvalidSameXCoordinate(t *testing.T) {
 	partial_sum_y := lambdaworks.FeltFromUint64(9)
 	partial_sum := builtins.PartialSum{X: partial_sum_x, Y: partial_sum_y}
 
-
 	double_point_x := lambdaworks.FeltOne()
 	double_point_y := lambdaworks.FeltFromUint64(12)
 	double_point := builtins.DoublePoint{X: double_point_x, Y: double_point_y}
 
-	m:= lambdaworks.FeltFromUint64(34)
+	m := lambdaworks.FeltFromUint64(34)
 	alpha := big.NewInt(1)
 	heigth := 256
 	const PRIME = "800000000000011000000000000000000000000000000000000000000000001"
 	prime, _ := new(big.Int).SetString(PRIME, 16)
-	
+
 	_, err := builtins.EcOnImpl(partial_sum, double_point, m, alpha, prime, uint32(heigth))
 
 	if err == nil {
 		t.Errorf("Expected error but got None")
 	}
 
+}
+
+func TestDeduceMemoryCellEcOpForPresetMemoryValid(t *testing.T) {
+	mem := memory.NewMemorySegmentManager()
+	mem.AddSegment()
+	mem.AddSegment()
+	mem.AddSegment()
+	mem.AddSegment()
+	mem.Memory.Insert(memory.NewRelocatable(3, 0), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("2962412995502985605007699495352191122971573493113767820301112397466445942584")))
+	mem.Memory.Insert(memory.NewRelocatable(3, 1), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("214950771763870898744428659242275426967582168179217139798831865603966154129")))
+	mem.Memory.Insert(memory.NewRelocatable(3, 2), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("874739451078007766457464989774322083649278607533249481151382481072868806602")))
+	mem.Memory.Insert(memory.NewRelocatable(3, 3), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("152666792071518830868575557812948353041420400780739481342941381225525861407")))
+	mem.Memory.Insert(memory.NewRelocatable(3, 4), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(34)))
+	mem.Memory.Insert(memory.NewRelocatable(3, 5), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("2778063437308421278851140253538604815869848682781135193774472480292420096757")))
+
+	builtin := builtins.NewEcOpBuiltinRunner(true)
+
+	// expected value
+	felt := lambdaworks.FeltFromDecString("3598390311618116577316045819420613574162151407434885460365915347732568210029")
+	expected := memory.NewMaybeRelocatableFelt(felt)
+
+	result, err := builtin.DeduceMemoryCell(memory.NewRelocatable(3, 6), &mem.Memory)
+
+	if err != nil {
+		t.Errorf("Error calculating deduced memory cell")
+	}
+
+	if *result != *expected {
+		t.Errorf("Error: Results differ from expected")
+	}
+}
+
+func TestDeduceMemoryCellEcOpForPresetMemoryUnfilledInputCells(t *testing.T) {
+	mem := memory.NewMemorySegmentManager()
+	mem.AddSegment()
+	mem.AddSegment()
+	mem.AddSegment()
+	mem.AddSegment()
+	mem.Memory.Insert(memory.NewRelocatable(3, 1), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("214950771763870898744428659242275426967582168179217139798831865603966154129")))
+	mem.Memory.Insert(memory.NewRelocatable(3, 2), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("874739451078007766457464989774322083649278607533249481151382481072868806602")))
+	mem.Memory.Insert(memory.NewRelocatable(3, 3), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("152666792071518830868575557812948353041420400780739481342941381225525861407")))
+	mem.Memory.Insert(memory.NewRelocatable(3, 4), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(34)))
+	mem.Memory.Insert(memory.NewRelocatable(3, 5), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("2778063437308421278851140253538604815869848682781135193774472480292420096757")))
+
+	builtin := builtins.NewEcOpBuiltinRunner(true)
+
+	// expected value
+
+	result, err := builtin.DeduceMemoryCell(memory.NewRelocatable(3, 6), &mem.Memory)
+
+	if err != nil {
+		t.Errorf("Error calculating deduced memory cell")
+	}
+
+	if result != nil {
+		t.Errorf("Error: Results differ from nil")
+	}
 }
