@@ -8,6 +8,8 @@ package lambdaworks
 import "C"
 
 import (
+	"math/big"
+	"strings"
 	"unsafe"
 
 	"github.com/pkg/errors"
@@ -104,12 +106,14 @@ func (felt Felt) ToBeBytes() *[32]byte {
 }
 
 func (felt Felt) ToHexString() string {
-	var result_c = C.CString("")
+	// We need to make sure enough space is allocated to fit the longest possible string
+	var result_c = C.CString(strings.Repeat(" ", 65))
 	defer C.free(unsafe.Pointer(result_c))
 
 	var value C.felt_t = felt.toC()
 	C.to_hex_string(result_c, &value[0])
-	return C.GoString(result_c)
+	res := C.GoString(result_c)
+	return strings.TrimSpace(res)
 }
 
 func FeltFromLeBytes(bytes *[32]byte) Felt {
@@ -229,4 +233,22 @@ func (a Felt) Shr(b uint) Felt {
 	C.felt_shr(&a_c[0], C.size_t(b), &result[0])
 	//C.felt_shr(&a_c[0], &b_c[0], &result[0])
 	return fromC(result)
+}
+
+func (f Felt) ToBigInt() *big.Int {
+	return new(big.Int).SetBytes(f.ToBeBytes()[:32])
+}
+
+const CAIRO_PRIME_HEX = "0x800000000000011000000000000000000000000000000000000000000000001"
+const SIGNED_FELT_MAX_HEX = "0x400000000000008800000000000000000000000000000000000000000000000"
+
+// Implements `as_int` behaviour
+func (f Felt) ToSigned() *big.Int {
+	n := f.ToBigInt()
+	signedFeltMax, _ := new(big.Int).SetString(SIGNED_FELT_MAX_HEX, 0)
+	if n.Cmp(signedFeltMax) == 1 {
+		cairoPrime, _ := new(big.Int).SetString(CAIRO_PRIME_HEX, 0)
+		return new(big.Int).Neg(new(big.Int).Sub(cairoPrime, n))
+	}
+	return n
 }
