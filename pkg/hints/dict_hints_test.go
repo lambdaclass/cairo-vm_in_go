@@ -81,3 +81,105 @@ func TestDefaultDictNewHasManager(t *testing.T) {
 		t.Error("DEFAULT_DICT_NEW Wrong/No base inserted into ap")
 	}
 }
+
+func TestDictReadDefaultValue(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+
+	// Create dictManager with a default dictionary & add it to scope
+	dictManager := dict_manager.NewDictManager()
+	defaultValue := NewMaybeRelocatableFelt(FeltFromUint64(17))
+	dict_ptr := dictManager.NewDefaultDictionary(defaultValue, vm)
+	scopes.AssignOrUpdateVariable("__dict_manager", &dictManager)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"key":      {NewMaybeRelocatableFelt(FeltOne())},
+			"dict_ptr": {NewMaybeRelocatableRelocatable(dict_ptr)},
+			"value":    {nil},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: DICT_READ,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("DICT_READ hint test failed with error %s", err)
+	}
+	// Check ids.value
+	val, err := idsManager.GetFelt("value", vm)
+	if err != nil || val != FeltFromUint64(17) {
+		t.Error("DEFAULT_DICT_NEW Wrong/No ids.value")
+	}
+}
+
+func TestDictReadOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+
+	// Create dictManager with a default dictionary & add it to scope
+	dictManager := dict_manager.NewDictManager()
+	initialDict := map[MaybeRelocatable]MaybeRelocatable{
+		*NewMaybeRelocatableFelt(FeltOne()): *NewMaybeRelocatableFelt(FeltFromUint64(7)),
+	}
+	dict_ptr := dictManager.NewDictionary(&initialDict, vm)
+	scopes.AssignOrUpdateVariable("__dict_manager", &dictManager)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"key":      {NewMaybeRelocatableFelt(FeltOne())},
+			"dict_ptr": {NewMaybeRelocatableRelocatable(dict_ptr)},
+			"value":    {nil},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: DICT_READ,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("DICT_READ hint test failed with error %s", err)
+	}
+	// Check ids.value
+	val, err := idsManager.GetFelt("value", vm)
+	if err != nil || val != FeltFromUint64(7) {
+		t.Error("DEFAULT_DICT_NEW Wrong/No ids.value")
+	}
+}
+
+func TestDictReadNoVal(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+
+	// Create dictManager with a default dictionary & add it to scope
+	dictManager := dict_manager.NewDictManager()
+	initialDict := map[MaybeRelocatable]MaybeRelocatable{}
+	dict_ptr := dictManager.NewDictionary(&initialDict, vm)
+	scopes.AssignOrUpdateVariable("__dict_manager", &dictManager)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"key":      {NewMaybeRelocatableFelt(FeltOne())},
+			"dict_ptr": {NewMaybeRelocatableRelocatable(dict_ptr)},
+			"value":    {nil},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: DICT_READ,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err == nil {
+		t.Errorf("DICT_READ hint test should have failed")
+	}
+}
