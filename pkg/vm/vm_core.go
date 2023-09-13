@@ -43,7 +43,7 @@ func (v *VirtualMachine) Step(hintProcessor HintProcessor, hintDataMap *map[uint
 	hintDatas, ok := (*hintDataMap)[v.RunContext.Pc.Offset]
 	if ok {
 		for i := 0; i < len(hintDatas); i++ {
-			err := hintProcessor.ExecuteHint(v, &hintDatas[i], constants)
+			err := hintProcessor.ExecuteHint(v, &hintDatas[i], constants, nil)
 			if err != nil {
 				return err
 			}

@@ -24,7 +24,7 @@ func TestIsNNHintOk(t *testing.T) {
 		Ids:  idsManager,
 		Code: ASSERT_NN,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err != nil {
 		t.Errorf("ASSERT_NN hint test failed with error %s", err)
 	}
@@ -44,7 +44,7 @@ func TestIsNNHintFail(t *testing.T) {
 		Ids:  idsManager,
 		Code: ASSERT_NN,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err == nil {
 		t.Errorf("ASSERT_NN hint should have failed")
 	}
@@ -64,7 +64,7 @@ func TestAssertNotZeroHintOk(t *testing.T) {
 		Ids:  idsManager,
 		Code: ASSERT_NOT_ZERO,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err != nil {
 		t.Errorf("ASSERT_NOT_ZERO hint test failed with error %s", err)
 	}
@@ -84,7 +84,7 @@ func TestAssertNotZeroHintFail(t *testing.T) {
 		Ids:  idsManager,
 		Code: ASSERT_NOT_ZERO,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err == nil {
 		t.Errorf("ASSERT_NOT_ZERO hint should have failed")
 	}

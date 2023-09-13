@@ -7,6 +7,7 @@ import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
+	"github.com/lambdaclass/cairo-vm.go/pkg/types"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 )
 
@@ -32,7 +33,7 @@ func (p *CairoVmHintProcessor) CompileHint(hintParams *parser.HintParams, refere
 	return HintData{Ids: ids, Code: hintParams.Code}, nil
 }
 
-func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any, constants *map[string]Felt) error {
+func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any, constants *map[string]Felt, executionScopes *types.ExecutionScopes) error {
 	data, ok := (*hintData).(HintData)
 	if !ok {
 		return errors.New("Wrong Hint Data")
@@ -42,6 +43,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return assert_nn(data.Ids, vm)
 	case ASSERT_NOT_ZERO:
 		return assert_not_zero(data.Ids, vm)
+	case VM_EXIT_SCOPE:
+		return vm_exit_scope(executionScopes)
 	default:
 		return errors.New("Unknown Hint")
 	}
