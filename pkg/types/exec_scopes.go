@@ -1,8 +1,6 @@
 package types
 
 import (
-	"reflect"
-
 	"github.com/pkg/errors"
 )
 
@@ -26,21 +24,17 @@ func NewExecutionScopes() *ExecutionScopes {
 	return &ExecutionScopes{data}
 }
 
-func (es *ExecutionScopes) Data() []map[string]interface{} {
-	return es.data
-}
-
 func (es *ExecutionScopes) EnterScope(newScopeLocals map[string]interface{}) {
 	es.data = append(es.data, newScopeLocals)
 
 }
 
 func (es *ExecutionScopes) ExitScope() error {
-	if len(es.Data()) < 2 {
+	if len(es.data) < 2 {
 		return ErrCannotExitMainScop
 	}
-	i := len(es.Data()) - 1
-	es.data = append(es.Data()[:i], es.Data()[i+1:]...)
+	i := len(es.data) - 1
+	es.data = es.data[:i]
 
 	return nil
 }
@@ -94,32 +88,4 @@ func (es *ExecutionScopes) GetRef(varName string) (*interface{}, error) {
 		return nil, err
 	}
 	return &val, nil
-}
-
-// This error has been used for testing purposes
-// We should not give information about an existing list with different types on the scope
-// On production can be removed
-func ErrListTypeNotEqual(varName string, expectedType string, resultType string) error {
-	return ExecutionScopesError(errors.Errorf("List %s types does not match, expected type: %s, result type: %s", varName, expectedType, resultType))
-}
-
-func (es *ExecutionScopes) GetList(T reflect.Type, varName string) (interface{}, error) {
-	maybeList, err := es.Get(varName)
-	if err != nil {
-		return nil, ErrVariableNotInScope(varName)
-	}
-
-	// Correct code
-	if reflect.TypeOf(maybeList) != T {
-		return nil, ErrVariableNotInScope(varName)
-	}
-
-	// If uncommented, should comment correct code
-	// Extra code
-	// if reflect.TypeOf(maybeList) != T {
-	// 	return nil, ErrListTypeNotEqual(varName, T.String(), reflect.TypeOf(maybeList).String())
-	// }
-
-	return maybeList, nil
-
 }
