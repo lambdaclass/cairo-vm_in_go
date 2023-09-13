@@ -61,15 +61,12 @@ func (r *Relocatable) AddMaybeRelocatable(other MaybeRelocatable) (Relocatable, 
 }
 
 // Returns the distance between two relocatable values (aka the difference between their offsets)
-// Fails if they have different segment indexes or if the difference is negative
-func (r *Relocatable) Sub(other Relocatable) (uint, error) {
+// Fails if they have different segment indexes
+func (r *Relocatable) Sub(other Relocatable) (lambdaworks.Felt, error) {
 	if r.SegmentIndex != other.SegmentIndex {
-		return 0, errors.New("Cant subtract two relocatables with different segment indexes")
+		return lambdaworks.Felt{}, errors.New("Cant subtract two relocatables with different segment indexes")
 	}
-	if r.Offset < other.Offset {
-		return 0, errors.New("Relocatable subtraction yields relocatable with negative offset")
-	}
-	return r.Offset - other.Offset, nil
+	return lambdaworks.FeltFromUint64(uint64(r.Offset)).Sub(lambdaworks.FeltFromUint64(uint64(other.Offset))), nil
 }
 
 func (r *Relocatable) IsEqual(r1 *Relocatable) bool {
@@ -88,6 +85,13 @@ func (relocatable *Relocatable) SubUint(other uint) (Relocatable, error) {
 func (relocatable *Relocatable) AddUint(other uint) Relocatable {
 	new_offset := relocatable.Offset + other
 	return NewRelocatable(relocatable.SegmentIndex, new_offset)
+}
+
+func (relocatable *Relocatable) AddInt(other int) (Relocatable, error) {
+	if other > 0 {
+		return relocatable.AddUint(uint(other)), nil
+	}
+	return relocatable.SubUint(uint(-other))
 }
 
 // MaybeRelocatable is the type of the memory cells in the Cairo
@@ -222,11 +226,9 @@ func (m MaybeRelocatable) Sub(other MaybeRelocatable) (MaybeRelocatable, error) 
 		return *NewMaybeRelocatableRelocatable(relocatable), nil
 
 	} else if is_rel_m && is_rel_other {
-		offset_diff, err := m_rel.Sub(other_rel)
-		if err != nil {
-			return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
-		}
-		return *NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(uint64(offset_diff))), nil
+		res, err := m_rel.Sub(other_rel)
+		return *NewMaybeRelocatableFelt(res), err
+
 	} else {
 		return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), errors.New("Cant sub Relocatable from Felt")
 	}

@@ -304,6 +304,24 @@ func TestIncludedBuiltinsSmallLayoutNoProofMode(t *testing.T) {
 	if bitwiseRunner.Vm.BuiltinRunners[0].Name() != "bitwise" {
 		t.Errorf("Expected poseidon buitlin, found %s", bitwiseRunner.Vm.BuiltinRunners[0].Name())
 	}
+
+	// Testing with a program with output, pedersen and range_check builtins
+	pedersenRunner, err := cairo_run.CairoRun("../../cairo_programs/pedersen_test.json", cairoRunConfig)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+	if len(pedersenRunner.Vm.BuiltinRunners) != 3 {
+		t.Errorf("Expected only one builtin found: %d", len(pedersenRunner.Vm.BuiltinRunners))
+	}
+	if pedersenRunner.Vm.BuiltinRunners[0].Name() != "output" {
+		t.Errorf("Expected output buitlin, found %s", pedersenRunner.Vm.BuiltinRunners[0].Name())
+	}
+	if pedersenRunner.Vm.BuiltinRunners[1].Name() != "pedersen" {
+		t.Errorf("Expected pedersen buitlin, found %s", pedersenRunner.Vm.BuiltinRunners[1].Name())
+	}
+	if pedersenRunner.Vm.BuiltinRunners[2].Name() != "range_check" {
+		t.Errorf("Expected range_check buitlin, found %s", pedersenRunner.Vm.BuiltinRunners[2].Name())
+	}
 }
 
 func TestBuildHintDataMapEmpty(t *testing.T) {
@@ -327,9 +345,9 @@ func TestBuildHintDataMapOneHint(t *testing.T) {
 				{
 					Code: "ids.a = ids.b",
 					FlowTrackingData: parser.FlowTrackingData{
-						APTracking: parser.ApTrackingData{Group: 1, Offset: 2},
+						APTracking:   parser.ApTrackingData{Group: 1, Offset: 2},
+						ReferenceIds: map[string]uint{"a": 0, "b": 1},
 					},
-					ReferenceIds: map[string]uint{"a": 0, "b": 1},
 				},
 			},
 		},
@@ -349,24 +367,26 @@ func TestBuildHintDataMapOneHint(t *testing.T) {
 	expectedHintDataMap := map[uint][]any{
 		0: {
 			hints.HintData{
-				Ids: map[string]hint_utils.HintReference{
-					"a": {
-						Offset1: hint_utils.OffsetValue{
-							ValueType: hint_utils.Reference,
-							Value:     -2,
+				Ids: hint_utils.IdsManager{
+					References: map[string]hint_utils.HintReference{
+						"a": {
+							Offset1: hint_utils.OffsetValue{
+								ValueType: hint_utils.Reference,
+								Value:     -2,
+							},
+							ValueType: "felt",
 						},
-						ValueType: "felt",
-					},
-					"b": {
-						Offset1: hint_utils.OffsetValue{
-							ValueType: hint_utils.Reference,
-							Value:     -1,
+						"b": {
+							Offset1: hint_utils.OffsetValue{
+								ValueType: hint_utils.Reference,
+								Value:     -1,
+							},
+							ValueType: "felt",
 						},
-						ValueType: "felt",
 					},
+					HintApTracking: parser.ApTrackingData{Group: 1, Offset: 2},
 				},
-				Code:       "ids.a = ids.b",
-				ApTracking: parser.ApTrackingData{Group: 1, Offset: 2},
+				Code: "ids.a = ids.b",
 			},
 		},
 	}

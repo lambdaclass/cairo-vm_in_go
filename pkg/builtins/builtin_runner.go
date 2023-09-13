@@ -25,7 +25,7 @@ type BuiltinRunner interface {
 	// // Most of them depend on Layouts being implemented
 	// // Use cases:
 	// // I. PROOF_MODE
-	// Returns the builtin's ratio, can be nil if the layout is dynamic
+	// Returns the builtin's ratio, is zero if the layout is dynamic
 	Ratio() uint
 	// Returns the builtin's allocated memory units
 	GetAllocatedMemoryUnits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error)

@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stddef.h> 
+#include <stdlib.h>
 
 typedef uint64_t limb_t;
 

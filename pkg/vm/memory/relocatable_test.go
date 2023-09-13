@@ -121,7 +121,7 @@ func TestRelocatableSubOk(t *testing.T) {
 	if err != nil {
 		t.Errorf("Relocatable.Sub failed with error: %s", err)
 	}
-	if res != 2 {
+	if res != lambdaworks.FeltFromUint64(2) {
 		t.Errorf("Got wrong value from Relocatable.Sub")
 	}
 }
@@ -138,9 +138,12 @@ func TestRelocatableSubDiffIndex(t *testing.T) {
 func TestRelocatableSubNegativeDifference(t *testing.T) {
 	a := memory.Relocatable{1, 7}
 	b := memory.Relocatable{1, 9}
-	_, err := a.Sub(b)
-	if err == nil {
-		t.Errorf("Relocatable.Sub should have failed")
+	res, err := a.Sub(b)
+	if err != nil {
+		t.Errorf("Relocatable.Sub failed with error: %s", err)
+	}
+	if res != lambdaworks.FeltFromDecString("-2") {
+		t.Errorf("Got wrong value from Relocatable.Sub")
 	}
 }
 
@@ -228,5 +231,29 @@ func TestMaybeRelocatableSubRelFromFelt(t *testing.T) {
 	_, err := a.Sub(*b)
 	if err == nil {
 		t.Errorf("Subtraction of relocatable from felt should fail")
+	}
+}
+
+func TestRelocatableAddIntPositive(t *testing.T) {
+	rel := memory.Relocatable{2, 4}
+	res, err := rel.AddInt(24)
+	expected := memory.Relocatable{2, 28}
+	if err != nil {
+		t.Errorf("Relocatable.AddInt failed with error: %s", err)
+	}
+	if res != expected {
+		t.Errorf("got wrong value from Relocatable.AddInt, expected: %v, got: %v", expected, res)
+	}
+}
+
+func TestRelocatableAddIntNegative(t *testing.T) {
+	rel := memory.Relocatable{2, 24}
+	res, err := rel.AddInt(-4)
+	expected := memory.Relocatable{2, 20}
+	if err != nil {
+		t.Errorf("Relocatable.AddInt failed with error: %s", err)
+	}
+	if res != expected {
+		t.Errorf("got wrong value from Relocatable.AddInt, expected: %v, got: %v", expected, res)
 	}
 }

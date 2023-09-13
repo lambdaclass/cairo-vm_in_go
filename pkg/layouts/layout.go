@@ -33,6 +33,7 @@ func GetLayoutBuiltinRunners(layout string) ([]builtins.BuiltinRunner, error) {
 	case "small":
 		return []builtins.BuiltinRunner{
 			builtins.NewOutputBuiltinRunner(),
+			builtins.NewPedersenBuiltinRunner(),
 			builtins.DefaultRangeCheckBuiltinRunner(),
 			builtins.DefaultBitwiseBuiltinRunner(),
 			builtins.DefaultKeccakBuiltinRunner(),
