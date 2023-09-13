@@ -78,7 +78,7 @@ func (v *VirtualMachine) Step(hintProcessor HintProcessor, hintDataMap *map[uint
 }
 
 func (v *VirtualMachine) RunInstruction(instruction *Instruction) error {
-	operands, err := v.ComputeOperands(*instruction)
+	operands, operandsAddresses, err := v.ComputeOperands(*instruction)
 	if err != nil {
 		return err
 	}
@@ -89,6 +89,10 @@ func (v *VirtualMachine) RunInstruction(instruction *Instruction) error {
 	}
 
 	v.Trace = append(v.Trace, TraceEntry{Pc: v.RunContext.Pc, Ap: v.RunContext.Ap, Fp: v.RunContext.Fp})
+
+	v.Segments.Memory.MarkAsAccessed(operandsAddresses.DstAddr)
+	v.Segments.Memory.MarkAsAccessed(operandsAddresses.Op0Addr)
+	v.Segments.Memory.MarkAsAccessed(operandsAddresses.Op1Addr)
 
 	err = v.UpdateRegisters(instruction, &operands)
 	if err != nil {
@@ -114,15 +118,6 @@ func (v *VirtualMachine) RelocateTrace(relocationTable *[]uint) error {
 	}
 
 	return nil
-}
-
-// Go through each segment, calculate its size (counting holes), then count memory accesses. Substract the two and you
-// get the holes for that segment. Sum each value and that's it.
-func (virtualMachine *VirtualMachine) GetMemoryHoles(builtinCount uint) (uint, error) {
-	// accessedCells := make(map[uint]uint)
-
-	// TODO
-	return 0, nil
 }
 
 // pub fn get_memory_holes(&self, builtin_count: usize) -> Result<usize, MemoryError> {
@@ -237,6 +232,12 @@ type Operands struct {
 	Res *memory.MaybeRelocatable
 	Op0 memory.MaybeRelocatable
 	Op1 memory.MaybeRelocatable
+}
+
+type OperandsAddresses struct {
+	DstAddr memory.Relocatable
+	Op0Addr memory.Relocatable
+	Op1Addr memory.Relocatable
 }
 
 func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Operands) error {
@@ -362,44 +363,44 @@ func (vm *VirtualMachine) ComputeRes(instruction Instruction, op0 memory.MaybeRe
 	return nil, nil
 }
 
-func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, error) {
+func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, OperandsAddresses, error) {
 	var res *memory.MaybeRelocatable
 
-	dst_addr, err := vm.RunContext.ComputeDstAddr(instruction)
+	dstAddr, err := vm.RunContext.ComputeDstAddr(instruction)
 	if err != nil {
-		return Operands{}, errors.New("FailedToComputeDstAddr")
+		return Operands{}, OperandsAddresses{}, errors.New("FailedToComputeDstAddr")
 	}
-	dst, _ := vm.Segments.Memory.Get(dst_addr)
+	dst, _ := vm.Segments.Memory.Get(dstAddr)
 
-	op0_addr, err := vm.RunContext.ComputeOp0Addr(instruction)
+	op0Addr, err := vm.RunContext.ComputeOp0Addr(instruction)
 	if err != nil {
-		return Operands{}, fmt.Errorf("FailedToComputeOp0Addr: %s", err)
+		return Operands{}, OperandsAddresses{}, fmt.Errorf("FailedToComputeOp0Addr: %s", err)
 	}
-	op0_op, _ := vm.Segments.Memory.Get(op0_addr)
+	op0Op, _ := vm.Segments.Memory.Get(op0Addr)
 
-	op1_addr, err := vm.RunContext.ComputeOp1Addr(instruction, op0_op)
+	op1Addr, err := vm.RunContext.ComputeOp1Addr(instruction, op0Op)
 	if err != nil {
-		return Operands{}, fmt.Errorf("FailedToComputeOp1Addr: %s", err)
+		return Operands{}, OperandsAddresses{}, fmt.Errorf("FailedToComputeOp1Addr: %s", err)
 	}
-	op1_op, _ := vm.Segments.Memory.Get(op1_addr)
+	op1Op, _ := vm.Segments.Memory.Get(op1Addr)
 
 	var op0 memory.MaybeRelocatable
-	if op0_op != nil {
-		op0 = *op0_op
+	if op0Op != nil {
+		op0 = *op0Op
 	} else {
-		op0, res, err = vm.ComputeOp0Deductions(op0_addr, &instruction, dst, op1_op)
+		op0, res, err = vm.ComputeOp0Deductions(op0Addr, &instruction, dst, op1Op)
 		if err != nil {
-			return Operands{}, err
+			return Operands{}, OperandsAddresses{}, err
 		}
 	}
 
 	var op1 memory.MaybeRelocatable
-	if op1_op != nil {
-		op1 = *op1_op
+	if op1Op != nil {
+		op1 = *op1Op
 	} else {
-		op1, err = vm.ComputeOp1Deductions(op1_addr, &instruction, dst, op0_op, res)
+		op1, err = vm.ComputeOp1Deductions(op1Addr, &instruction, dst, op0Op, res)
 		if err != nil {
-			return Operands{}, err
+			return Operands{}, OperandsAddresses{}, err
 		}
 	}
 
@@ -407,7 +408,7 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 		res, err = vm.ComputeRes(instruction, op0, op1)
 
 		if err != nil {
-			return Operands{}, err
+			return Operands{}, OperandsAddresses{}, err
 		}
 	}
 
@@ -415,7 +416,7 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 		deducedDst := vm.DeduceDst(instruction, res)
 		dst = deducedDst
 		if dst != nil {
-			vm.Segments.Memory.Insert(dst_addr, dst)
+			vm.Segments.Memory.Insert(dstAddr, dst)
 		}
 	}
 
@@ -425,7 +426,13 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 		Op1: op1,
 		Res: res,
 	}
-	return operands, nil
+
+	operandsAddresses := OperandsAddresses{
+		DstAddr: dstAddr,
+		Op0Addr: op0Addr,
+		Op1Addr: op1Addr,
+	}
+	return operands, operandsAddresses, nil
 }
 
 // Runs deductions for Op0, first runs builtin deductions, if this fails, attempts to deduce it based on dst and op1

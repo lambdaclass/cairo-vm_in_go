@@ -1,6 +1,8 @@
 package memory
 
 import (
+	"fmt"
+
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/pkg/errors"
 )
@@ -28,7 +30,6 @@ func (m *MemorySegmentManager) AddSegment() Relocatable {
 // Calculates the size of each memory segment.
 func (m *MemorySegmentManager) ComputeEffectiveSizes() map[uint]uint {
 	if len(m.SegmentSizes) == 0 {
-
 		for ptr := range m.Memory.Data {
 			segmentIndex := uint(ptr.SegmentIndex)
 			segmentMaxSize := m.SegmentSizes[segmentIndex]
@@ -103,4 +104,36 @@ func (m *MemorySegmentManager) GetSegmentUsedSize(segmentIdx uint) (uint, error)
 		return 0, errors.Errorf("segment %d used size not found", segmentIdx)
 	}
 	return size, nil
+}
+
+// Go through each segment, calculate its size (counting holes), then count memory accesses. Substract the two and you
+// get the holes for that segment. Sum each value and that's it.
+// IMPORTANT: Builtin Segments DO NOT HAVE HOLES, so we don't need to count them.
+// This function assumes you have already called `ComputeEffectiveSizes`, if you haven't, you'll get the wrong
+// result
+func (m *MemorySegmentManager) GetMemoryHoles(builtinCount uint) (uint, error) {
+	var memoryHoles uint
+	accessedCellsBySegment := make(map[uint]uint)
+
+	var builtinSegmentsStart uint = 1
+	var builtinSegmentsEnd uint = builtinSegmentsStart + builtinCount
+
+	for address := range m.Memory.AccessedAddresses {
+		if uint(address.SegmentIndex) > builtinSegmentsStart && uint(address.SegmentIndex) <= builtinSegmentsEnd {
+			continue
+		}
+
+		accessedCellsBySegment[uint(address.SegmentIndex)]++
+	}
+
+	fmt.Println(m.SegmentSizes)
+	for segmentIndex, size := range m.SegmentSizes {
+		if segmentIndex > builtinSegmentsStart && segmentIndex <= builtinSegmentsEnd {
+			continue
+		}
+
+		memoryHoles += size - accessedCellsBySegment[segmentIndex]
+	}
+
+	return memoryHoles, nil
 }

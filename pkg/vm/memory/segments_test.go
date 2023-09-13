@@ -222,3 +222,31 @@ func TestRelocateMemory(t *testing.T) {
 		}
 	}
 }
+
+func TestGetMemoryHoles(t *testing.T) {
+	manager := memory.NewMemorySegmentManager()
+	manager.AddSegment()
+
+	var i uint
+	for i = 0; i < 10; i++ {
+		address := memory.NewRelocatable(0, i)
+		manager.Memory.Insert(address, memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0)))
+
+		// Skip marking addresses 4 and 5 as accessed
+		if i == 4 || i == 5 {
+			continue
+		}
+
+		manager.Memory.MarkAsAccessed(address)
+	}
+	manager.ComputeEffectiveSizes()
+	result, err := manager.GetMemoryHoles(0)
+
+	if err != nil {
+		t.Errorf("Get Memory Holes returned error %s", err)
+	}
+
+	if result != 2 {
+		t.Errorf("Get Memory Holes Returned the wrong value. Expected: 2, got %d", result)
+	}
+}

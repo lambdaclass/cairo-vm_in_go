@@ -44,7 +44,7 @@ func NewCairoRunner(program vm.Program, layoutName string, proofMode bool) (*Cai
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}
-	layout := layouts.CairoLayout{Name: layoutName, Builtins: layoutBuiltinRunners, DilutedPoolInstance: layouts.DefaultDilutedPoolInstance()}
+	layout := layouts.CairoLayout{Name: layoutName, Builtins: layoutBuiltinRunners, DilutedPoolInstance: layouts.DefaultDilutedPoolInstance(), PublicMemoryFraction: 4}
 	runner := CairoRunner{
 		Program:    program,
 		Vm:         *vm.NewVirtualMachine(),
@@ -121,6 +121,11 @@ func (r *CairoRunner) initializeState(entrypoint uint, stack *[]memory.MaybeRelo
 		_, err = r.Vm.Segments.LoadData(r.executionBase, stack)
 	}
 	// Mark data segment as accessed
+	base := r.ProgramBase
+	var i uint
+	for i = 0; i < uint(len(r.Program.Data)); i++ {
+		r.Vm.Segments.Memory.MarkAsAccessed(memory.NewRelocatable(base.SegmentIndex, base.Offset+i))
+	}
 	return err
 }
 
@@ -196,7 +201,6 @@ func (r *CairoRunner) RunUntilPC(end memory.Relocatable, hintProcessor vm.HintPr
 	return nil
 }
 
-// TODO: Add HintProcessor as parameter once we have that
 func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll bool, vm *vm.VirtualMachine, hintProcessor vm.HintProcessor) error {
 	if runner.RunEnded {
 		return ErrRunnerCalledTwice
@@ -261,10 +265,10 @@ func (runner *CairoRunner) CheckUsedCells(virtualMachine *vm.VirtualMachine) err
 		return err
 	}
 
-	// err = runner.CheckMemoryUsage(virtualMachine)
-	// if err != nil {
-	// 	return err
-	// }
+	err = runner.CheckMemoryUsage(virtualMachine)
+	if err != nil {
+		return err
+	}
 
 	err = runner.CheckDilutedCheckUsage(virtualMachine)
 	if err != nil {
@@ -298,25 +302,22 @@ func (runner *CairoRunner) CheckMemoryUsage(virtualMachine *vm.VirtualMachine) e
 
 	instructionMemoryUnits := 4 * virtualMachine.CurrentStep
 	unusedMemoryUnits := totalMemoryUnits - (publicMemoryUnits + instructionMemoryUnits + builtinsMemoryUnits)
-	fmt.Println(unusedMemoryUnits)
-	// memoryAddressHoles, err := runner.GetMemoryHoles(virtualMachine)
 
-	// 	let memory_address_holes = self.get_memory_holes(vm)?;
-	// 	if unused_memory_units < memory_address_holes as u32 {
-	// 		Err(MemoryError::InsufficientAllocatedCells(
-	// 			InsufficientAllocatedCellsError::MemoryAddresses(Box::new((
-	// 				unused_memory_units,
-	// 				memory_address_holes,
-	// 			))),
-	// 		))?
-	// 	}
-	// 	Ok(())
+	memoryAddressHoles, err := runner.GetMemoryHoles(virtualMachine)
+	if err != nil {
+		return err
+	}
+
+	if unusedMemoryUnits < memoryAddressHoles {
+		// TODO: Insufficient allocated etc error
+		return errors.New("Error TODO")
+	}
 
 	return nil
 }
 
 func (runner *CairoRunner) GetMemoryHoles(virtualMachine *vm.VirtualMachine) (uint, error) {
-	return virtualMachine.GetMemoryHoles(uint(len(virtualMachine.BuiltinRunners)))
+	return virtualMachine.Segments.GetMemoryHoles(uint(len(virtualMachine.BuiltinRunners)))
 }
 
 func (runner *CairoRunner) CheckDilutedCheckUsage(virtualMachine *vm.VirtualMachine) error {

@@ -495,7 +495,7 @@ func TestComputeOperandsAddAp(t *testing.T) {
 		Op1: *op1_addr_value,
 	}
 
-	operands, _ := vmachine.ComputeOperands(instruction)
+	operands, _, _ := vmachine.ComputeOperands(instruction)
 
 	if operands.Dst != expected_operands.Dst {
 		t.Errorf("Different Dst register")

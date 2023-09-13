@@ -30,6 +30,10 @@ type Memory struct {
 	numSegments       uint
 	validationRules   map[uint]ValidationRule
 	validatedAdresses AddressSet
+	// This is a map of addresses that were accessed during execution
+	// The map is of the form `segmentIndex` -> `offset`. This is to
+	// make the counting of memory holes easier
+	AccessedAddresses map[Relocatable]bool
 }
 
 var ErrMissingSegmentUsize = errors.New("Segment effective sizes haven't been calculated")
@@ -39,6 +43,7 @@ func NewMemory() *Memory {
 		Data:              make(map[Relocatable]MaybeRelocatable),
 		validatedAdresses: NewAddressSet(),
 		validationRules:   make(map[uint]ValidationRule),
+		AccessedAddresses: make(map[Relocatable]bool),
 	}
 }
 
@@ -142,6 +147,10 @@ func (m *Memory) validateAddress(addr Relocatable) error {
 		m.validatedAdresses.Add(validated_address)
 	}
 	return nil
+}
+
+func (m *Memory) MarkAsAccessed(address Relocatable) {
+	m.AccessedAddresses[address] = true
 }
 
 // Applies validation_rules to every memory address, if applicatble
