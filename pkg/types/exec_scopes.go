@@ -89,13 +89,9 @@ func (es *ExecutionScopes) Get(varName string) (interface{}, error) {
 }
 
 func (es *ExecutionScopes) GetRef(varName string) (*interface{}, error) {
-	locals, err := es.GetLocalVariables()
+	val, err := es.Get(varName)
 	if err != nil {
 		return nil, err
-	}
-	val, prs := locals[varName]
-	if !prs {
-		return nil, ErrVariableNotInScope(varName)
 	}
 	return &val, nil
 }
