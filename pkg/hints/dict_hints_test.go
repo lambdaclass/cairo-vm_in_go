@@ -199,10 +199,9 @@ func TestDictWriteOk(t *testing.T) {
 
 	idsManager := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
-			"key":        {NewMaybeRelocatableFelt(FeltOne())},
-			"dict_ptr":   {NewMaybeRelocatableRelocatable(dict_ptr)},
-			"prev_value": {nil},
-			"new_value":  {NewMaybeRelocatableFelt(FeltFromUint64(17))},
+			"key":       {NewMaybeRelocatableFelt(FeltOne())},
+			"dict_ptr":  {NewMaybeRelocatableRelocatable(dict_ptr)},
+			"new_value": {NewMaybeRelocatableFelt(FeltFromUint64(17))},
 		},
 		vm,
 	)
@@ -216,7 +215,7 @@ func TestDictWriteOk(t *testing.T) {
 		t.Errorf("DICT_WRITE hint test failed with error %s", err)
 	}
 	// Check ids.prev_value
-	val, err := idsManager.GetFelt("prev_value", vm)
+	val, err := vm.Segments.Memory.GetFelt(dict_ptr.AddUint(1))
 	if err != nil || val != FeltFromUint64(7) {
 		t.Error("DICT_WRITE Wrong/No ids.value")
 	}
@@ -235,10 +234,9 @@ func TestDictWriteNoPrevValue(t *testing.T) {
 
 	idsManager := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
-			"key":        {NewMaybeRelocatableFelt(FeltOne())},
-			"dict_ptr":   {NewMaybeRelocatableRelocatable(dict_ptr)},
-			"prev_value": {nil},
-			"new_value":  {NewMaybeRelocatableFelt(FeltFromUint64(17))},
+			"key":       {NewMaybeRelocatableFelt(FeltOne())},
+			"dict_ptr":  {NewMaybeRelocatableRelocatable(dict_ptr)},
+			"new_value": {NewMaybeRelocatableFelt(FeltFromUint64(17))},
 		},
 		vm,
 	)
@@ -266,10 +264,9 @@ func TestDictWriteNewWriteDefault(t *testing.T) {
 
 	idsManager := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
-			"key":        {NewMaybeRelocatableFelt(FeltOne())},
-			"dict_ptr":   {NewMaybeRelocatableRelocatable(dict_ptr)},
-			"prev_value": {nil},
-			"new_value":  {NewMaybeRelocatableFelt(FeltFromUint64(17))},
+			"key":       {NewMaybeRelocatableFelt(FeltOne())},
+			"dict_ptr":  {NewMaybeRelocatableRelocatable(dict_ptr)},
+			"new_value": {NewMaybeRelocatableFelt(FeltFromUint64(17))},
 		},
 		vm,
 	)
@@ -283,7 +280,7 @@ func TestDictWriteNewWriteDefault(t *testing.T) {
 		t.Errorf("DICT_WRITE hint test failed with error %s", err)
 	}
 	// Check ids.prev_value
-	val, err := idsManager.GetFelt("prev_value", vm)
+	val, err := vm.Segments.Memory.GetFelt(dict_ptr.AddUint(1))
 	if err != nil || val != defaultValue {
 		t.Error("DICT_WRITE Wrong/No ids.value")
 	}
