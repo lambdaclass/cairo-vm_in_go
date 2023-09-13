@@ -161,6 +161,7 @@ func TestAssertNotZeroHintFail(t *testing.T) {
 		t.Errorf("ASSERT_NOT_ZERO hint should have failed")
 	}
 }
+<<<<<<< HEAD
 
 func TestAssertNotEqualHintNonComparableDiffType(t *testing.T) {
 	vm := NewVirtualMachine()
@@ -287,3 +288,5 @@ func TestAssertNotEqualHintOkRelocatables(t *testing.T) {
 		t.Errorf("ASSERT_NOT_EQUAL hint failed with error: %s", err)
 	}
 }
+=======
+>>>>>>> parent of 8a25e3d (Add unit tests)
