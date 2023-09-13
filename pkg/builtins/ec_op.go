@@ -48,15 +48,16 @@ const CELLS_PER_EC_OP = 7
 
 const PRIME = "0x800000000000011000000000000000000000000000000000000000000000001"
 
-func NewEcOpBuiltinRunner(included bool) *EcOpBuiltinRunner {
+func NewEcOpBuiltinRunner() *EcOpBuiltinRunner {
 	return &EcOpBuiltinRunner{
-		included:           included,
 		cells_per_instance: CELLS_PER_EC_OP,
 		n_input_cells:      INPUT_CELLS_PER_EC_OP,
 		cache:              make(map[memory.Relocatable]lambdaworks.Felt),
 		scalar_height:      256,
 	}
 }
+
+func (ec *EcOpBuiltinRunner) AddValidationRule(*memory.Memory) {}
 
 func (ec *EcOpBuiltinRunner) Base() memory.Relocatable {
 	return ec.base
@@ -76,6 +77,10 @@ func (ec *EcOpBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
 	} else {
 		return []memory.MaybeRelocatable{}
 	}
+}
+
+func (ec *EcOpBuiltinRunner) Include(include bool) {
+	ec.included = include
 }
 
 func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segments *memory.Memory) (*memory.MaybeRelocatable, error) {

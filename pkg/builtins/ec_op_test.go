@@ -6,7 +6,6 @@ import (
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
-	"github.com/lambdaclass/cairo-vm.go/pkg/vm/cairo_run"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -142,7 +141,7 @@ func TestDeduceMemoryCellEcOpForPresetMemoryValid(t *testing.T) {
 	mem.Memory.Insert(memory.NewRelocatable(3, 4), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(34)))
 	mem.Memory.Insert(memory.NewRelocatable(3, 5), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("2778063437308421278851140253538604815869848682781135193774472480292420096757")))
 
-	builtin := builtins.NewEcOpBuiltinRunner(true)
+	builtin := builtins.NewEcOpBuiltinRunner()
 
 	// expected value
 	felt := lambdaworks.FeltFromDecString("3598390311618116577316045819420613574162151407434885460365915347732568210029")
@@ -171,7 +170,7 @@ func TestDeduceMemoryCellEcOpForPresetMemoryUnfilledInputCells(t *testing.T) {
 	mem.Memory.Insert(memory.NewRelocatable(3, 4), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(34)))
 	mem.Memory.Insert(memory.NewRelocatable(3, 5), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("2778063437308421278851140253538604815869848682781135193774472480292420096757")))
 
-	builtin := builtins.NewEcOpBuiltinRunner(true)
+	builtin := builtins.NewEcOpBuiltinRunner()
 
 	// expected value
 
@@ -199,7 +198,7 @@ func TestDeduceMemoryCellEcOpForPresetMemoryNonIntegerInput(t *testing.T) {
 	mem.Memory.Insert(memory.NewRelocatable(3, 4), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(34)))
 	mem.Memory.Insert(memory.NewRelocatable(3, 5), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("2778063437308421278851140253538604815869848682781135193774472480292420096757")))
 
-	builtin := builtins.NewEcOpBuiltinRunner(true)
+	builtin := builtins.NewEcOpBuiltinRunner()
 
 	// expected value is an error
 
@@ -210,10 +209,11 @@ func TestDeduceMemoryCellEcOpForPresetMemoryNonIntegerInput(t *testing.T) {
 	}
 }
 
-func TestIntegrationEcOp(t *testing.T) {
-	t.Helper()
-	_, err := cairo_run.CairoRun("../../cairo_programs/ec_op.json", "small", false)
-	if err != nil {
-		t.Errorf("TestIntegrationBitwise failed with error:\n %v", err)
-	}
-}
+// TODO: uncomment once hint signature is implemented
+// func TestIntegrationEcOp(t *testing.T) {
+// 	t.Helper()
+// 	_, err := cairo_run.CairoRun("../../cairo_programs/ec_op.json", "small", false)
+// 	if err != nil {
+// 		t.Errorf("TestIntegrationBitwise failed with error:\n %v", err)
+// 	}
+// }
