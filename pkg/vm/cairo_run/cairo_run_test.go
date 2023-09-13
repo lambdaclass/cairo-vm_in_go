@@ -113,3 +113,10 @@ func TestAssertNotEqualHint(t *testing.T) {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
 }
+
+func TestDict(t *testing.T) {
+	_, err := cairo_run.CairoRun("../../../cairo_programs/dict.json", "small", false)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}

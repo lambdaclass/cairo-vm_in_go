@@ -9,24 +9,26 @@ import (
 // Manages dictionaries in a Cairo program.
 // Uses the segment index to associate the corresponding go dict with the Cairo dict.
 type DictManager struct {
-	trackers map[int]DictTracker
+	trackers map[int]*DictTracker
 }
 
 func NewDictManager() DictManager {
 	return DictManager{
-		trackers: make(map[int]DictTracker),
+		trackers: make(map[int]*DictTracker),
 	}
 }
 
 func (d *DictManager) NewDictionary(dict *map[MaybeRelocatable]MaybeRelocatable, vm *VirtualMachine) Relocatable {
 	base := vm.Segments.AddSegment()
-	d.trackers[base.SegmentIndex] = NewDictTrackerForDictionary(base, dict)
+	newTracker := NewDictTrackerForDictionary(base, dict)
+	d.trackers[base.SegmentIndex] = &newTracker
 	return base
 }
 
 func (d *DictManager) NewDefaultDictionary(defaultValue *MaybeRelocatable, vm *VirtualMachine) Relocatable {
 	base := vm.Segments.AddSegment()
-	d.trackers[base.SegmentIndex] = NewDictTrackerForDefaultDictionary(base, defaultValue)
+	newTracker := NewDictTrackerForDefaultDictionary(base, defaultValue)
+	d.trackers[base.SegmentIndex] = &newTracker
 	return base
 }
 
@@ -38,7 +40,7 @@ func (d *DictManager) GetTracker(dict_ptr Relocatable) (*DictTracker, error) {
 	if tracker.CurrentPtr != dict_ptr {
 		return nil, errors.Errorf("Dict Error: Wrong dict pointer supplied. Got %v, expected %v", dict_ptr, tracker.CurrentPtr)
 	}
-	return &tracker, nil
+	return tracker, nil
 }
 
 // Tracks the go dict associated with a Cairo dict.
