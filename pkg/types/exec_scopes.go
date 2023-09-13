@@ -1,6 +1,8 @@
 package types
 
 import (
+	"reflect"
+
 	"github.com/pkg/errors"
 )
 
@@ -19,9 +21,9 @@ func ErrVariableNotInScope(varName string) error {
 }
 
 func NewExecutionScopes() *ExecutionScopes {
-	return &ExecutionScopes{
-		data: make([]map[string]interface{}, 1),
-	}
+	data := make([]map[string]interface{}, 1)
+	data[0] = make(map[string]interface{})
+	return &ExecutionScopes{data}
 }
 
 func (es *ExecutionScopes) Data() []map[string]interface{} {
@@ -93,7 +95,35 @@ func (es *ExecutionScopes) GetRef(varName string) (*interface{}, error) {
 	}
 	val, prs := locals[varName]
 	if !prs {
-		return nil, ExecutionScopesError(errors.Errorf("Variable %s not in scope", varName))
+		return nil, ErrVariableNotInScope(varName)
 	}
 	return &val, nil
+}
+
+// This error has been used for testing purposes
+// We should not give information about exists a list with different types on the scope
+// On production should be removed
+func ErrListTypeNotEqual(varName string, expectedType string, resultType string) error {
+	return ExecutionScopesError(errors.Errorf("List %s types does not match, expected type: %s, result type: %s", varName, expectedType, resultType))
+}
+
+func (es *ExecutionScopes) GetList(T reflect.Type, varName string) (interface{}, error) {
+	maybeList, err := es.Get(varName)
+	if err != nil {
+		return nil, ErrVariableNotInScope(varName)
+	}
+
+	// Correct code
+	if reflect.TypeOf(maybeList) != T {
+		return nil, ErrVariableNotInScope(varName)
+	}
+
+	// If uncommented, should comment correct code
+	// Extra code
+	// if reflect.TypeOf(maybeList) != T {
+	// 	return nil, ErrListTypeNotEqual(varName, T.String(), reflect.TypeOf(maybeList).String())
+	// }
+
+	return maybeList, nil
+
 }
