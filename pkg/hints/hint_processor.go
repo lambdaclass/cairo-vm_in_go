@@ -49,6 +49,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return assert_not_zero(data.Ids, vm)
 	case ASSERT_NOT_EQUAL:
 		return assert_not_equal(data.Ids, vm)
+	case DEFAULT_DICT_NEW:
+		return defaultDictNew(data.Ids, execScopes, vm)
 	default:
 		return errors.New("Unknown Hint")
 	}

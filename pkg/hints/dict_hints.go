@@ -16,7 +16,7 @@ import (
 // 	initial_dict, ok := initial_dict_any.(map[MaybeRelocatable]MaybeRelocatable)
 // }
 
-func fetchDictManager(scopes *ExecutionScopes) (*DictManager, bool) {
+func FetchDictManager(scopes *ExecutionScopes) (*DictManager, bool) {
 	dictManager, err := scopes.Get("__dict_manager")
 	if err != nil {
 		return nil, false
@@ -30,7 +30,7 @@ func defaultDictNew(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine)
 	if err != nil {
 		return err
 	}
-	dictManager, ok := fetchDictManager(scopes)
+	dictManager, ok := FetchDictManager(scopes)
 	if !ok {
 		newDictManager := NewDictManager()
 		dictManager = &newDictManager
