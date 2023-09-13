@@ -59,8 +59,7 @@ func dictRead(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error
 	if err != nil {
 		return err
 	}
-	ids.Insert("value", val, vm)
-	return nil
+	return ids.Insert("value", val, vm)
 }
 
 func dictWrite(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error {
@@ -81,6 +80,15 @@ func dictWrite(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) erro
 	if err != nil {
 		return err
 	}
+	/* dict_ptr has type *DictAccess
+	struct DictAccess {
+		key: felt,
+		prev_value: felt,
+		new_value: felt,
+	}
+	so ids.dict_ptr.prev_value = [dict_ptr + 1]
+	*/
+	prev_val_addr := dict_ptr.AddUint(1)
 	// Hint Logic
 	tracker, err := dictManager.GetTracker(dict_ptr)
 	if err != nil {
@@ -91,9 +99,8 @@ func dictWrite(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) erro
 	if err != nil {
 		return err
 	}
-	ids.Insert("prev_value", prev_val, vm)
 	tracker.InsertValue(key, new_value)
-	return nil
+	return vm.Segments.Memory.Insert(prev_val_addr, prev_val)
 }
 
 func dictUpdate(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error {
