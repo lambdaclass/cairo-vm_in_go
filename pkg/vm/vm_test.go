@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/cairo_run"
@@ -1048,5 +1049,34 @@ func TestDeduceDstOpcodeRet(t *testing.T) {
 
 	if result_dst != nil {
 		t.Error("Different Dst value than nil")
+	}
+}
+
+func TestGetPedersenAndBitwiseBuiltins(t *testing.T) {
+	vm := vm.NewVirtualMachine()
+	pedersen_builtin := builtins.NewPedersenBuiltinRunner()
+	bitwise_builtin := builtins.NewBitwiseBuiltinRunner()
+
+	vm.BuiltinRunners = append(vm.BuiltinRunners, pedersen_builtin)
+	vm.BuiltinRunners = append(vm.BuiltinRunners, bitwise_builtin)
+	obtained_bitwise, _ := vm.GetBuiltinRunner("bitwise")
+	obtained_pedersen, _ := vm.GetBuiltinRunner("pedersen")
+
+	if obtained_bitwise == nil || obtained_pedersen == nil {
+		t.Error("Couldn't obtain all the builtins")
+	}
+}
+
+func TestGetFooBuiltinReturnsNilAndError(t *testing.T) {
+	vm := vm.NewVirtualMachine()
+	pedersen_builtin := builtins.NewPedersenBuiltinRunner()
+	bitwise_builtin := builtins.NewBitwiseBuiltinRunner()
+
+	vm.BuiltinRunners = append(vm.BuiltinRunners, pedersen_builtin)
+	vm.BuiltinRunners = append(vm.BuiltinRunners, bitwise_builtin)
+	obtained_builtin, obtained_error := vm.GetBuiltinRunner("foo")
+
+	if obtained_builtin != nil && obtained_error != nil {
+		t.Error("Obtained a non existant builtin, or didn't raise an error")
 	}
 }
