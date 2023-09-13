@@ -49,7 +49,33 @@ func TestExitScopeValid(t *testing.T) {
 
 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, executionScopes)
 	if err != nil {
-		t.Errorf("VM_EXIT_SCOPE hint test failed with error %s", err)
+		t.Errorf("TestExitScopeValid failed with error %s", err)
+	}
+
+}
+
+func TestExitScopeInvalid(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"a": {NewMaybeRelocatableFelt(FeltFromUint64(17))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: VM_EXIT_SCOPE,
+	})
+
+	executionScopes := NewExecutionScopes()
+	scope := make(map[string]interface{})
+	scope["a"] = FeltOne()
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, executionScopes)
+	if err.Error() != ErrCannotExitMainScop.Error() {
+		t.Errorf("TestExitScopeInvalid should fail with error %s", ErrCannotExitMainScop)
 	}
 
 }
