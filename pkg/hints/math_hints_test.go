@@ -195,7 +195,7 @@ func TestVerifyValidSignature(t *testing.T) {
 		Code: VERIFY_ECDSA_SIGNATURE,
 	})
 
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 
 	if err != nil {
 		t.Errorf("Verify signature hint for correct signature failed")
@@ -232,7 +232,7 @@ func VerifySignatureInvalidEcdsaPointer(t *testing.T) {
 		Code: VERIFY_ECDSA_SIGNATURE,
 	})
 
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 
 	if err == nil {
 		t.Errorf("Verified a signature with an invalid pointer")

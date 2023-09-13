@@ -35,7 +35,6 @@ func (p *CairoVmHintProcessor) CompileHint(hintParams *parser.HintParams, refere
 
 func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any, constants *map[string]Felt, execScopes *types.ExecutionScopes) error {
 	data, ok := (*hintData).(HintData)
-	println(data.Code)
 	if !ok {
 		return errors.New("Wrong Hint Data")
 	}

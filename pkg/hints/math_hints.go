@@ -76,7 +76,7 @@ func verify_ecdsa_signature(ids IdsManager, vm *VirtualMachine) error {
 		return err_get_s
 	}
 
-	ecdsa_ptr, err_get_ecdsa := ids.GetRelocatable("ecdsa_ptr", vm)
+	ecdsa_ptr, err_get_ecdsa := ids.GetAddr("ecdsa_ptr", vm)
 	if err_get_ecdsa != nil {
 		return err_get_ecdsa
 	}
