@@ -14,7 +14,7 @@ func AddSegmentHintOk(t *testing.T) {
 	hintData := any(HintData{
 		Code: ADD_SEGMENT,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err != nil {
 		t.Errorf("ADD_SEGMENT hint test failed with error %s", err)
 	}

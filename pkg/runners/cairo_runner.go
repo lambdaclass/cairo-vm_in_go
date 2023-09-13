@@ -3,6 +3,7 @@ package runners
 import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/layouts"
+	"github.com/lambdaclass/cairo-vm.go/pkg/types"
 	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
@@ -21,6 +22,7 @@ type CairoRunner struct {
 	mainOffset    uint
 	layout        layouts.CairoLayout
 	proofMode     bool
+	execScopes    types.ExecutionScopes
 }
 
 func NewCairoRunner(program vm.Program, layoutName string, proofMode bool) (*CairoRunner, error) {
@@ -46,6 +48,7 @@ func NewCairoRunner(program vm.Program, layoutName string, proofMode bool) (*Cai
 		mainOffset: main_offset,
 		proofMode:  proofMode,
 		layout:     layout,
+		execScopes: *types.NewExecutionScopes(),
 	}
 	return &runner, nil
 }
@@ -183,7 +186,7 @@ func (r *CairoRunner) RunUntilPC(end memory.Relocatable, hintProcessor vm.HintPr
 	}
 	constants := r.Program.ExtractConstants()
 	for r.Vm.RunContext.Pc != end {
-		err := r.Vm.Step(hintProcessor, &hintDataMap, &constants)
+		err := r.Vm.Step(hintProcessor, &hintDataMap, &constants, &r.execScopes)
 		if err != nil {
 			return err
 		}
