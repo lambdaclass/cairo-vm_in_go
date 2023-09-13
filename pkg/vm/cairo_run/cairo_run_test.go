@@ -106,3 +106,10 @@ func TestAssertNotZeroHint(t *testing.T) {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
 }
+
+func TestIsQuadResidueoHint(t *testing.T) {
+	_, err := cairo_run.CairoRun("../../../cairo_programs/is_quad_residue.json", "small", false)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
