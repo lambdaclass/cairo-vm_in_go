@@ -73,7 +73,7 @@ type HintParams struct {
 }
 
 type CompiledJson struct {
-	Attributes       []string              `json:"attributes"`
+	Attributes       interface{}           `json:"attributes"`
 	Builtins         []string              `json:"builtins"`
 	CompilerVersion  string                `json:"compiler_version"`
 	Data             []string              `json:"data"`
