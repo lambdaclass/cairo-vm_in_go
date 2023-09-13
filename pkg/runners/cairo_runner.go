@@ -223,12 +223,12 @@ func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll b
 		}
 
 		for true {
-			// err := runner.CheckUsedCells(vm)
-			// if err != nil {
-			// 	return err
-			// }
+			err := runner.CheckUsedCells(vm)
+			if err != nil {
+				return err
+			}
 
-			err := runner.RunForSteps(1, vm, hintProcessor)
+			err = runner.RunForSteps(1, vm, hintProcessor)
 			if err != nil {
 				return err
 			}
@@ -243,6 +243,46 @@ func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll b
 	runner.RunEnded = true
 	return nil
 }
+
+func (runner *CairoRunner) CheckUsedCells(virtualMachine *vm.VirtualMachine) error {
+	for _, builtin := range virtualMachine.BuiltinRunners {
+		// I guess we call this just in case it errors out, even though later on we also call it? Not bad
+		_, _, err := builtin.GetUsedCellsAndAllocatedSizes(&virtualMachine.Segments, virtualMachine.CurrentStep)
+		if err != nil {
+			return err
+		}
+	}
+
+	err := runner.CheckRangeCheckUsage(virtualMachine)
+	if err != nil {
+		return err
+	}
+
+	// err = runner.CheckMemoryUsage(virtualMachine)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// err = runner.CheckDilutecHeckUsage(virtualMachine)
+	// if err != nil {
+	// 	return err
+	// }
+
+	return nil
+}
+
+// // Returns Ok(()) if there are enough allocated cells for the builtins.
+//     // If not, the number of steps should be increased or a different layout should be used.
+//     pub fn check_used_cells(&self, vm: &VirtualMachine) -> Result<(), VirtualMachineError> {
+//         vm.builtin_runners
+//             .iter()
+//             .map(|builtin_runner| builtin_runner.get_used_cells_and_allocated_size(vm))
+//             .collect::<Result<Vec<(usize, usize)>, MemoryError>>()?;
+//         self.check_range_check_usage(vm)?;
+//         self.check_memory_usage(vm)?;
+//         self.check_diluted_check_usage(vm)?;
+//         Ok(())
+//     }
 
 func (runner *CairoRunner) CheckRangeCheckUsage(virtualMachine *vm.VirtualMachine) error {
 	var rcMin, rcMax *uint
