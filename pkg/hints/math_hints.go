@@ -50,6 +50,6 @@ func verify_edsa_signature(ids IdsManager, vm *VirtualMachine) error {
 	r, err := ids.GetFelt("signature_r", vm)
 	s, err := ids.GetFelt("signature_s", vm)
 	ecdsa_ptr, err := ids.GetRelocatable("ecdsa_ptr", vm)
-
+	return nil
 	// vm.get_signature_builtin?
 }
