@@ -227,7 +227,7 @@ func EcOnImpl(partial_sum PartialSum, double_point DoublePoint, m lambdaworks.Fe
 
 	for i := 0; i < int(height); i++ {
 		var err error
-		if (new(big.Int).Sub(&double_point_b.X, &partial_sum_b.X)) == big.NewInt(0) {
+		if (new(big.Int).Sub(&double_point_b.X, &partial_sum_b.X)).Cmp(big.NewInt(0)) == 0 {
 			return PartialSumB{}, errors.New("Runner error EcOpSameXCoordinate")
 		}
 
