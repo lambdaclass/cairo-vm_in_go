@@ -288,3 +288,131 @@ func TestDictWriteNewWriteDefault(t *testing.T) {
 		t.Error("DICT_WRITE Wrong/No ids.value")
 	}
 }
+
+func TestDictUpdateDefaultValueOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+
+	// Create dictManager with a default dictionary & add it to scope
+	dictManager := dict_manager.NewDictManager()
+	defaultValue := FeltFromUint64(17)
+	dict_ptr := dictManager.NewDefaultDictionary(NewMaybeRelocatableFelt(defaultValue), vm)
+	scopes.AssignOrUpdateVariable("__dict_manager", &dictManager)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"key":        {NewMaybeRelocatableFelt(FeltOne())},
+			"dict_ptr":   {NewMaybeRelocatableRelocatable(dict_ptr)},
+			"prev_value": {NewMaybeRelocatableFelt(defaultValue)},
+			"new_value":  {NewMaybeRelocatableFelt(FeltFromUint64(17))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: DICT_UPDATE,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("DICT_UPDATE hint test failed with error %s", err)
+	}
+}
+
+func TestDictUpdateDefaultValueErr(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+
+	// Create dictManager with a default dictionary & add it to scope
+	dictManager := dict_manager.NewDictManager()
+	defaultValue := FeltFromUint64(17)
+	dict_ptr := dictManager.NewDefaultDictionary(NewMaybeRelocatableFelt(defaultValue), vm)
+	scopes.AssignOrUpdateVariable("__dict_manager", &dictManager)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"key":        {NewMaybeRelocatableFelt(FeltOne())},
+			"dict_ptr":   {NewMaybeRelocatableRelocatable(dict_ptr)},
+			"prev_value": {NewMaybeRelocatableFelt(defaultValue.Add(FeltOne()))},
+			"new_value":  {NewMaybeRelocatableFelt(FeltFromUint64(17))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: DICT_UPDATE,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err == nil {
+		t.Error("DICT_UPDATE hint test should have failed")
+	}
+}
+
+func TestDictUpdateOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+
+	// Create dictManager & add it to scope
+	dictManager := dict_manager.NewDictManager()
+	initialDict := map[MaybeRelocatable]MaybeRelocatable{
+		*NewMaybeRelocatableFelt(FeltZero()): *NewMaybeRelocatableFelt(FeltOne()),
+	}
+	dict_ptr := dictManager.NewDictionary(&initialDict, vm)
+	scopes.AssignOrUpdateVariable("__dict_manager", &dictManager)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"key":        {NewMaybeRelocatableFelt(FeltZero())},
+			"dict_ptr":   {NewMaybeRelocatableRelocatable(dict_ptr)},
+			"prev_value": {NewMaybeRelocatableFelt(FeltOne())},
+			"new_value":  {NewMaybeRelocatableFelt(FeltFromUint64(17))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: DICT_UPDATE,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("DICT_UPDATE hint test failed with error %s", err)
+	}
+}
+
+func TestDictUpdateErr(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+
+	// Create dictManager & add it to scope
+	dictManager := dict_manager.NewDictManager()
+	initialDict := map[MaybeRelocatable]MaybeRelocatable{
+		*NewMaybeRelocatableFelt(FeltZero()): *NewMaybeRelocatableFelt(FeltOne()),
+	}
+	dict_ptr := dictManager.NewDictionary(&initialDict, vm)
+	scopes.AssignOrUpdateVariable("__dict_manager", &dictManager)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"key":        {NewMaybeRelocatableFelt(FeltZero())},
+			"dict_ptr":   {NewMaybeRelocatableRelocatable(dict_ptr)},
+			"prev_value": {NewMaybeRelocatableFelt(FeltZero())},
+			"new_value":  {NewMaybeRelocatableFelt(FeltFromUint64(17))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: DICT_UPDATE,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err == nil {
+		t.Error("DICT_UPDATE hint test should have failed")
+	}
+}
