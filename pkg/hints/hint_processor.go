@@ -38,10 +38,14 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return errors.New("Wrong Hint Data")
 	}
 	switch data.Code {
+	case ADD_SEGMENT:
+		return add_segment(vm)
 	case ASSERT_NN:
 		return assert_nn(data.Ids, vm)
 	case VERIFY_ECDSA_SIGNATURE:
 		return verify_edsa_signature(data.Ids, vm)
+	case IS_POSITIVE:
+		return is_positive(data.Ids, vm)
 	case ASSERT_NOT_ZERO:
 		return assert_not_zero(data.Ids, vm)
 	default:
