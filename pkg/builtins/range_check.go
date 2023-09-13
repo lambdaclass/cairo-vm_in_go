@@ -203,3 +203,16 @@ func (runner *RangeCheckBuiltinRunner) GetUsedPermRangeCheckLimits(segments *mem
 func (runner *RangeCheckBuiltinRunner) GetUsedDilutedCheckUnits(dilutedSpacing uint, dilutedNBits uint) uint {
 	return 0
 }
+
+func (runner *RangeCheckBuiltinRunner) GetMemoryAccesses(manager *memory.MemorySegmentManager) ([]memory.Relocatable, error) {
+	segmentSize := manager.SegmentSizes[uint(runner.Base().SegmentIndex)]
+
+	var ret []memory.Relocatable
+
+	var i uint
+	for i = 0; i < segmentSize; i++ {
+		ret = append(ret, memory.NewRelocatable(runner.Base().SegmentIndex, i))
+	}
+
+	return ret, nil
+}

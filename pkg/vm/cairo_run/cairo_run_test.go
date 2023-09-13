@@ -117,7 +117,8 @@ func TestAssertNNHint(t *testing.T) {
 }
 
 func TestAbsValue(t *testing.T) {
-	_, err := cairo_run.CairoRun("../../../cairo_programs/abs_value.json", "small", false)
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, ProofMode: false, Layout: "small"}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/abs_value.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}

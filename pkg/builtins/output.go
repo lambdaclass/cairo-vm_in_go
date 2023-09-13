@@ -48,14 +48,6 @@ func (o *OutputBuiltinRunner) Ratio() uint {
 	return 0
 }
 
-// func (r *OutputBuiltinRunner) GetUsedCells(segments *memory.MemorySegmentManager) (uint, error) {
-// 	used, err := segments.GetSegmentUsedSize(uint(r.base.SegmentIndex))
-// 	if err != nil {
-// 		return 0, err
-// 	}
-// 	return used, nil
-// }
-
 func (o *OutputBuiltinRunner) GetAllocatedMemoryUnits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
 	return 0, nil
 }
@@ -78,4 +70,17 @@ func (runner *OutputBuiltinRunner) GetUsedPermRangeCheckLimits(segments *memory.
 
 func (runner *OutputBuiltinRunner) GetUsedDilutedCheckUnits(dilutedSpacing uint, dilutedNBits uint) uint {
 	return 0
+}
+
+func (runner *OutputBuiltinRunner) GetMemoryAccesses(manager *memory.MemorySegmentManager) ([]memory.Relocatable, error) {
+	segmentSize := manager.SegmentSizes[uint(runner.Base().SegmentIndex)]
+
+	var ret []memory.Relocatable
+
+	var i uint
+	for i = 0; i < segmentSize; i++ {
+		ret = append(ret, memory.NewRelocatable(runner.Base().SegmentIndex, i))
+	}
+
+	return ret, nil
 }

@@ -30,11 +30,11 @@ type BuiltinRunner interface {
 	// Returns the builtin's allocated memory units
 	GetAllocatedMemoryUnits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error)
 	// // Returns the list of memory addresses used by the builtin
-	// GetMemoryAccesses(*memory.MemorySegmentManager) ([]memory.Relocatable, error) // proof-mode end_run logic
+	GetMemoryAccesses(*memory.MemorySegmentManager) ([]memory.Relocatable, error)
 	GetRangeCheckUsage(*memory.Memory) (*uint, *uint)
 	GetUsedPermRangeCheckLimits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error)
 	GetUsedDilutedCheckUnits(dilutedSpacing uint, dilutedNBits uint) uint
-	GetUsedCellsAndAllocatedSizes(segments *memory.MemorySegmentManager, currentStep uint) (uint, uint, error) // proof-mode end_run logic + finalize_segments
+	GetUsedCellsAndAllocatedSizes(segments *memory.MemorySegmentManager, currentStep uint) (uint, uint, error)
 	// // II. SECURITY (secure-run flag cairo-run || verify-secure flag run_from_entrypoint)
 	// RunSecurityChecks(*vm.VirtualMachine) error // verify_secure_runner logic
 	// // Returns the base & stop_ptr, stop_ptr can be nil

@@ -116,6 +116,45 @@ func (v *VirtualMachine) RelocateTrace(relocationTable *[]uint) error {
 	return nil
 }
 
+// Go through each segment, calculate its size (counting holes), then count memory accesses. Substract the two and you
+// get the holes for that segment. Sum each value and that's it.
+func (virtualMachine *VirtualMachine) GetMemoryHoles(builtinCount uint) (uint, error) {
+	// accessedCells := make(map[uint]uint)
+
+	// TODO
+	return 0, nil
+}
+
+// pub fn get_memory_holes(&self, builtin_count: usize) -> Result<usize, MemoryError> {
+// 	let data = &self.memory.data;
+// 	let mut memory_holes = 0;
+// 	let builtin_segments_start = 1; // program segment + execution segment
+// 	let builtin_segments_end = builtin_segments_start + builtin_count;
+// 	// Count the memory holes for each segment by substracting the amount of accessed_addresses from the segment's size
+// 	// Segments without accesses addresses are not accounted for when counting memory holes
+// 	for i in 0..data.len() {
+// 		// Instead of marking all of the builtin segment's address as accessed, we just skip them when counting memory holes
+// 		if i > builtin_segments_start && i <= builtin_segments_end {
+// 			continue;
+// 		}
+// 		let accessed_amount = match self.memory.get_amount_of_accessed_addresses_for_segment(i)
+// 		{
+// 			Some(accessed_amount) if accessed_amount > 0 => accessed_amount,
+// 			_ => continue,
+// 		};
+// 		let segment_size = self
+// 			.get_segment_size(i)
+// 			.ok_or(MemoryError::MissingSegmentUsedSizes)?;
+// 		if accessed_amount > segment_size {
+// 			return Err(MemoryError::SegmentHasMoreAccessedAddressesThanSize(
+// 				Box::new((i, accessed_amount, segment_size)),
+// 			));
+// 		}
+// 		memory_holes += segment_size - accessed_amount;
+// 	}
+// 	Ok(memory_holes)
+// }
+
 func (v *VirtualMachine) GetRelocatedTrace() ([]RelocatedTraceEntry, error) {
 	if len(v.RelocatedTrace) > 0 {
 		return v.RelocatedTrace, nil

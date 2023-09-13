@@ -102,3 +102,16 @@ func AddSignature(
 ) {
 	signatureBuiltin.signatures[address] = signature
 }
+
+func (runner *SignatureBuiltinRunner) GetMemoryAccesses(manager *memory.MemorySegmentManager) ([]memory.Relocatable, error) {
+	segmentSize := manager.SegmentSizes[uint(runner.Base().SegmentIndex)]
+
+	var ret []memory.Relocatable
+
+	var i uint
+	for i = 0; i < segmentSize; i++ {
+		ret = append(ret, memory.NewRelocatable(runner.Base().SegmentIndex, i))
+	}
+
+	return ret, nil
+}

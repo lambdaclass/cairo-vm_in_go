@@ -225,7 +225,10 @@ func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll b
 		for true {
 			err := runner.CheckUsedCells(vm)
 			if err != nil {
+				// Check the error, if it's insufficient allocated cells keep going, otherwise return err
 				return err
+			} else {
+				break
 			}
 
 			err = runner.RunForSteps(1, vm, hintProcessor)
@@ -269,6 +272,51 @@ func (runner *CairoRunner) CheckUsedCells(virtualMachine *vm.VirtualMachine) err
 	}
 
 	return nil
+}
+
+func (runner *CairoRunner) CheckMemoryUsage(virtualMachine *vm.VirtualMachine) error {
+	instance := runner.Layout
+
+	var builtinsMemoryUnits uint = 0
+
+	for _, builtin := range virtualMachine.BuiltinRunners {
+		result, err := builtin.GetAllocatedMemoryUnits(&virtualMachine.Segments, virtualMachine.CurrentStep)
+		if err != nil {
+			return err
+		}
+
+		builtinsMemoryUnits += result
+	}
+
+	totalMemoryUnits := instance.MemoryUnitsPerStep * virtualMachine.CurrentStep
+	publicMemoryUnits := totalMemoryUnits / instance.PublicMemoryFraction
+	remainder := totalMemoryUnits % instance.PublicMemoryFraction
+
+	if remainder != 0 {
+		return errors.Errorf("Total Memory units was not divisible by the Public Memory Fraction. TotalMemoryUnits: %d PublicMemoryFraction: %d", totalMemoryUnits, instance.PublicMemoryFraction)
+	}
+
+	instructionMemoryUnits := 4 * virtualMachine.CurrentStep
+	unusedMemoryUnits := totalMemoryUnits - (publicMemoryUnits + instructionMemoryUnits + builtinsMemoryUnits)
+	fmt.Println(unusedMemoryUnits)
+	// memoryAddressHoles, err := runner.GetMemoryHoles(virtualMachine)
+
+	// 	let memory_address_holes = self.get_memory_holes(vm)?;
+	// 	if unused_memory_units < memory_address_holes as u32 {
+	// 		Err(MemoryError::InsufficientAllocatedCells(
+	// 			InsufficientAllocatedCellsError::MemoryAddresses(Box::new((
+	// 				unused_memory_units,
+	// 				memory_address_holes,
+	// 			))),
+	// 		))?
+	// 	}
+	// 	Ok(())
+
+	return nil
+}
+
+func (runner *CairoRunner) GetMemoryHoles(virtualMachine *vm.VirtualMachine) (uint, error) {
+	return virtualMachine.GetMemoryHoles(uint(len(virtualMachine.BuiltinRunners)))
 }
 
 func (runner *CairoRunner) CheckDilutedCheckUsage(virtualMachine *vm.VirtualMachine) error {
