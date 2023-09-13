@@ -6,6 +6,7 @@ import (
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/cairo_run"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -206,5 +207,13 @@ func TestDeduceMemoryCellEcOpForPresetMemoryNonIntegerInput(t *testing.T) {
 
 	if err == nil {
 		t.Errorf("Expected Error but got result")
+	}
+}
+
+func TestIntegrationEcOp(t *testing.T) {
+	t.Helper()
+	_, err := cairo_run.CairoRun("../../cairo_programs/ec_op.json", "small", false)
+	if err != nil {
+		t.Errorf("TestIntegrationBitwise failed with error:\n %v", err)
 	}
 }
