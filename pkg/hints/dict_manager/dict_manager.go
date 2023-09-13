@@ -24,9 +24,9 @@ func (d *DictManager) NewDictionary(dict *map[MaybeRelocatable]MaybeRelocatable,
 	return base
 }
 
-func (d *DictManager) NewDefaultDictionary(defaultValue *MaybeRelocatable, dict *map[MaybeRelocatable]MaybeRelocatable, vm *VirtualMachine) Relocatable {
+func (d *DictManager) NewDefaultDictionary(defaultValue *MaybeRelocatable, vm *VirtualMachine) Relocatable {
 	base := vm.Segments.AddSegment()
-	d.trackers[base.SegmentIndex] = NewDictTrackerForDefaultDictionary(base, defaultValue, dict)
+	d.trackers[base.SegmentIndex] = NewDictTrackerForDefaultDictionary(base, defaultValue)
 	return base
 }
 
@@ -55,9 +55,9 @@ func NewDictTrackerForDictionary(base Relocatable, dict *map[MaybeRelocatable]Ma
 	}
 }
 
-func NewDictTrackerForDefaultDictionary(base Relocatable, defaultValue *MaybeRelocatable, dict *map[MaybeRelocatable]MaybeRelocatable) DictTracker {
+func NewDictTrackerForDefaultDictionary(base Relocatable, defaultValue *MaybeRelocatable) DictTracker {
 	return DictTracker{
-		data:       NewDefaultDictionary(defaultValue, dict),
+		data:       NewDefaultDictionary(defaultValue),
 		currentPtr: base,
 	}
 }
@@ -83,9 +83,9 @@ type Dictionary struct {
 	defaultValue *MaybeRelocatable
 }
 
-func NewDefaultDictionary(defaultValue *MaybeRelocatable, dict *map[MaybeRelocatable]MaybeRelocatable) Dictionary {
+func NewDefaultDictionary(defaultValue *MaybeRelocatable) Dictionary {
 	return Dictionary{
-		dict:         *dict,
+		dict:         make(map[MaybeRelocatable]MaybeRelocatable),
 		defaultValue: defaultValue,
 	}
 }
