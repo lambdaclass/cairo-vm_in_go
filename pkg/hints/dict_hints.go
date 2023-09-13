@@ -8,14 +8,6 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
-// func copyInitialDict(scopes ExecutionScopes) (*map[MaybeRelocatable]MaybeRelocatable, error) {
-// 	initial_dict_any, err := scopes.Get("initial_dict")
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	initial_dict, ok := initial_dict_any.(map[MaybeRelocatable]MaybeRelocatable)
-// }
-
 func FetchDictManager(scopes *ExecutionScopes) (*DictManager, bool) {
 	dictManager, err := scopes.Get("__dict_manager")
 	if err != nil {
