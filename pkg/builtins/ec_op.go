@@ -169,7 +169,11 @@ func LineSlope(point_a PartialSumB, point_b DoublePointB, prime big.Int) (big.In
 	n := new(big.Int).Sub(&point_a.Y, &point_b.Y)
 	m := new(big.Int).Sub(&point_a.X, &point_b.X)
 
-	z, _ := math_utils.DivMod(n, m, &prime)
+	z, err := math_utils.DivMod(n, m, &prime)
+	if err != nil {
+		return big.Int{}, err
+	}
+
 	return *z, nil
 }
 
@@ -201,7 +205,11 @@ func EcDoubleSlope(point DoublePointB, alpha big.Int, prime big.Int) (big.Int, e
 	n.Add(n, &alpha)
 
 	m := new(big.Int).Mul(&point.Y, big.NewInt(2))
-	z, _ := math_utils.DivMod(n, m, &prime)
+	z, err := math_utils.DivMod(n, m, &prime)
+
+	if err != nil {
+		return big.Int{}, err
+	}
 
 	return *z, nil
 }
