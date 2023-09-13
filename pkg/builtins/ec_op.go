@@ -80,7 +80,7 @@ func (ec *EcOpBuiltinRunner) Include(include bool) {
 	ec.included = include
 }
 
-func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segments *memory.Memory) (*memory.MaybeRelocatable, error) {
+func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem *memory.Memory) (*memory.MaybeRelocatable, error) {
 	EC_POINT_INDICES := [3]EcPoint{{x: 0, y: 1}, {x: 2, y: 3}, {x: 5, y: 6}}
 	OUTPUT_INDICES := EC_POINT_INDICES[2]
 	alpha := lambdaworks.FeltOne()
@@ -112,9 +112,9 @@ func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segmen
 
 	input_cells := make([]lambdaworks.Felt, 0)
 	for i := 0; i < int(INPUT_CELLS_PER_EC_OP); i++ {
-		addr, err := segments.Get(instance.AddUint(uint(i)))
+		maybe_rel, err := mem.Get(instance.AddUint(uint(i)))
 		if err == nil {
-			felt, is_felt := addr.GetFelt()
+			felt, is_felt := maybe_rel.GetFelt()
 			if is_felt {
 				input_cells = append(input_cells, felt)
 			} else {
@@ -145,8 +145,8 @@ func (ec *EcOpBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, segmen
 
 	result, err := EcOnImpl(partial_sum, double_point, input_cells[4], alpha_big_int, prime, ec.scalar_height)
 
-	felt_result_x := lambdaworks.FeltFromHex(result.X.Text(16))
-	felt_result_y := lambdaworks.FeltFromHex(result.Y.Text(16))
+	felt_result_x := lambdaworks.FeltFromBeBytes((*[32]byte)(result.X.Bytes()))
+	felt_result_y := lambdaworks.FeltFromBeBytes((*[32]byte)(result.Y.Bytes()))
 
 	ec.cache[x_addr] = felt_result_x
 	ec.cache[x_addr.AddUint(1)] = felt_result_y
