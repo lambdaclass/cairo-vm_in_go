@@ -197,3 +197,11 @@ func squashDictInnerCheckAccessIndex(ids IdsManager, scopes *ExecutionScopes, vm
 	// Update ids variables
 	return ids.Insert("loop_temps", NewMaybeRelocatableFelt(FeltFromDecString(fmt.Sprint(deltaMinusOne))), vm)
 }
+
+func squashDictInnerContinueLoop(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error {
+	_, err := scopes.Get("current_access_indices")
+	if err != nil {
+		return ids.InsertStructField("loop_temps", 3, NewMaybeRelocatableFelt(FeltZero()), vm)
+	}
+	return ids.InsertStructField("loop_temps", 3, NewMaybeRelocatableFelt(FeltOne()), vm)
+}

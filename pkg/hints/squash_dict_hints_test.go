@@ -506,3 +506,60 @@ func TestSquashDictInnerCheckAccessIndexEmpty(t *testing.T) {
 		t.Errorf("SQUASH_DICT_INNER_CHECK_ACCESS_INDEX hint should have failed")
 	}
 }
+
+func TestSquashDictContinuepLoopTrue(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("current_access_indices", []MaybeRelocatable{})
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"loop_temps": {nil},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SQUASH_DICT_INNER_CONTINUE_LOOP,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("SQUASH_DICT_INNER_CONTINUE_LOOP hint failed with error: %s", err)
+	}
+	// Check ids.loop_temps.should_continue
+	skipLoop, err := idsManager.GetStructFieldFelt("loop_temps", 3, vm)
+	if err != nil || skipLoop != FeltOne() {
+		t.Errorf("SQUASH_DICT_INNER_CONTINUE_LOOP hint failed. Wrong/No ids.loop_temps.should_continue")
+	}
+}
+
+func TestSquashDictContinueLoopFalse(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"loop_temps": {nil},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SQUASH_DICT_INNER_CONTINUE_LOOP,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("SQUASH_DICT_INNER_CONTINUE_LOOP hint failed with error: %s", err)
+	}
+	// Check ids.loop_temps.should_continue
+	continueLoop, err := idsManager.GetStructFieldFelt("loop_temps", 3, vm)
+	if err != nil || continueLoop != FeltZero() {
+		t.Errorf("SQUASH_DICT_INNER_CONTINUE_LOOP hint failed. Wrong/No ids.loop_temps.should_continue")
+	}
+}
