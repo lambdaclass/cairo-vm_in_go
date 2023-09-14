@@ -38,6 +38,7 @@ func GetLayoutBuiltinRunners(layout string) ([]builtins.BuiltinRunner, error) {
 			builtins.NewBitwiseBuiltinRunner(),
 			builtins.NewKeccakBuiltinRunner(),
 			builtins.NewPoseidonBuiltinRunner(),
+			builtins.NewEcOpBuiltinRunner(),
 		}, nil
 	default:
 		return nil, errors.Errorf("layout not supported: %s", layout)
