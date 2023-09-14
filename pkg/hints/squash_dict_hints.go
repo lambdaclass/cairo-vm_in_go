@@ -14,7 +14,7 @@ import (
 )
 
 // SortMaybeRelocatables implements sort.Interface for []*MaybeRelocatables
-type SortMaybeRelocatables []*MaybeRelocatable
+type SortMaybeRelocatables []MaybeRelocatable
 
 func (s SortMaybeRelocatables) Len() int      { return len(s) }
 func (s SortMaybeRelocatables) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
@@ -51,7 +51,7 @@ func (s SortMaybeRelocatables) Less(i, j int) bool {
 }
 
 func squashDict(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error {
-	address, err := ids.GetAddr("dict_accesses", vm)
+	address, err := ids.GetRelocatable("dict_accesses", vm)
 	if err != nil {
 		return err
 	}
@@ -80,17 +80,17 @@ func squashDict(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) err
 		}
 	}
 	// A map from key to the list of indices accessing it.
-	accessIndices := make(map[*MaybeRelocatable][]int)
+	accessIndices := make(map[MaybeRelocatable][]int)
 	for i := 0; i < int(nAccesses); i++ {
 		key, err := vm.Segments.Memory.Get(address.AddUint(uint(i) * DICT_ACCESS_SIZE))
 		if err != nil {
 			return err
 		}
-		_, hasKey := accessIndices[key]
+		_, hasKey := accessIndices[*key]
 		if !hasKey {
-			accessIndices[key] = make([]int, 0)
+			accessIndices[*key] = make([]int, 0)
 		}
-		accessIndices[key] = append(accessIndices[key], i)
+		accessIndices[*key] = append(accessIndices[*key], i)
 	}
 	//Descending list of keys.
 	keys := maps.Keys(accessIndices)
@@ -111,5 +111,5 @@ func squashDict(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) err
 	if err != nil {
 		return err
 	}
-	return ids.Insert("first_key", lowKey, vm)
+	return ids.Insert("first_key", &lowKey, vm)
 }
