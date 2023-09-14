@@ -413,6 +413,48 @@ func TestPow3(t *testing.T) {
 	}
 }
 
+func TestPowFelt(t *testing.T) {
+	felt_base := lambdaworks.FeltFromUint64(1233)
+	felt_exp := lambdaworks.FeltFromUint64(1233)
+
+	expected := lambdaworks.FeltFromDecString("3418065535446855313238995939000463244303872344528900201124636596003468607918")
+	result := felt_base.Pow(felt_exp)
+
+	if expected != result {
+		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
+	}
+
+	felt_base = lambdaworks.FeltFromDecString("12383109480418712378780123")
+	felt_exp = lambdaworks.FeltFromDecString("91872587643897123781098123")
+
+	expected = lambdaworks.FeltFromDecString("2088955439096022421017346644949649198425019274657075865926754962561596407882")
+	result = felt_base.Pow(felt_exp)
+
+	if expected != result {
+		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
+	}
+
+	felt_base = lambdaworks.FeltFromDecString("1480418712378780123123543345665445665445")
+	felt_exp = lambdaworks.FeltFromDecString("91872587643897345876123781098124353")
+
+	expected = lambdaworks.FeltFromDecString("3250055959035395902088721634924698439245455440785258481507488871970708539723")
+	result = felt_base.Pow(felt_exp)
+
+	if expected != result {
+		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
+	}
+
+	felt_base = lambdaworks.FeltFromDecString("3250055959035395902088721634924698439245455440785258481507488871970708539723")
+	felt_exp = lambdaworks.FeltFromDecString("2088955439096022421017346644949649198425019274657075865926754962561596407882")
+
+	expected = lambdaworks.FeltFromDecString("2222900320242877003674481253396117682567674359625426155657415083745164507492")
+	result = felt_base.Pow(felt_exp)
+
+	if expected != result {
+		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
+	}
+}
+
 func TestFeltNeg1ToString(t *testing.T) {
 	f_neg_1 := lambdaworks.FeltFromDecString("-1")
 	expected := "-1"
