@@ -64,12 +64,19 @@ void felt_or(felt_t a, felt_t b, felt_t result);
 /* writes the result variable with a ^ b */
 void felt_xor(felt_t a, felt_t b, felt_t result);
 
+/* writes the result variable with a << num */
+void felt_shl(felt_t a, uint64_t num, felt_t result);
+
+/* writes the result variable with a.pow(num) */
+void felt_pow_uint(felt_t a, uint32_t num, felt_t result);
+
 /* returns the representation of a felt to string */
 char* to_signed_felt(felt_t value);
 
 /* frees a pointer to a string */
 void free_string(char* ptr);
 
+/* writes the result variable with a >> num */
 void felt_shr(felt_t a, size_t b, felt_t result);
 
 /* Writes the div & rem variables with a.div_rem(b). */
