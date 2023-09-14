@@ -483,3 +483,26 @@ func TestSquashDictInnerCheckAccessIndexOk(t *testing.T) {
 		t.Errorf("Wrong/No value inserted into memory[ids.range_check_ptr]")
 	}
 }
+
+func TestSquashDictInnerCheckAccessIndexEmpty(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("current_access_indices", []int{})
+	scopes.AssignOrUpdateVariable("current_access_index", int(1))
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"loop_temps": {nil},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SQUASH_DICT_INNER_CHECK_ACCESS_INDEX,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err == nil {
+		t.Errorf("SQUASH_DICT_INNER_CHECK_ACCESS_INDEX hint should have failed")
+	}
+}
