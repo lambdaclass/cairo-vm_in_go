@@ -41,7 +41,10 @@ func (es *ExecutionScopes) ExitScope() error {
 
 func (es *ExecutionScopes) getLocalVariablesMut() (*map[string]interface{}, error) {
 	locals, err := es.GetLocalVariables()
-	return &locals, err
+	if err != nil {
+		return nil, err
+	}
+	return &locals, nil
 }
 
 func (es *ExecutionScopes) GetLocalVariables() (map[string]interface{}, error) {
@@ -82,5 +85,8 @@ func (es *ExecutionScopes) Get(varName string) (interface{}, error) {
 
 func (es *ExecutionScopes) GetRef(varName string) (*interface{}, error) {
 	val, err := es.Get(varName)
+	if err != nil {
+		return nil, err
+	}
 	return &val, err
 }
