@@ -101,6 +101,7 @@ pub extern "C" fn to_hex_string(result: *mut libc::c_char, value: Limbs) {
     for i in 0..felt_str.len() {
         unsafe { *result.offset(i as isize) = *ptr.offset(i as isize) }
     }
+    unsafe { *result.offset((felt_str.len()+ (1_usize)) as isize) = 0}
 }
 
 #[no_mangle]
@@ -188,6 +189,22 @@ pub extern "C" fn felt_xor(a: Limbs, b: Limbs, result: Limbs) {
 }
 
 #[no_mangle]
+pub extern "C" fn felt_shl(a: Limbs, num: u64, result: Limbs) {
+    let felt_a = limbs_to_felt(a).representative();
+    
+    let res = felt_a << num as usize; 
+    felt_to_limbs(Felt::from(&res), result)
+}
+
+#[no_mangle]
+pub extern "C" fn felt_pow_uint(a: Limbs, num: u32, result: Limbs) {
+    let felt_a = limbs_to_felt(a);
+    
+    let res = felt_a.pow(num); 
+    felt_to_limbs(res, result)
+}
+
+#[no_mangle]
 pub extern "C" fn to_signed_felt(value: Limbs) -> *mut c_char {
     let felt = limbs_to_felt(value).representative().to_bytes_le();
     let biguint = BigUint::from_bytes_le(&felt);
@@ -234,3 +251,4 @@ pub extern "C" fn cmp(a: Limbs, b: Limbs) -> i32 {
         _ => -1,
     }
 }
+
