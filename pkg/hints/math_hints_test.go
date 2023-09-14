@@ -177,7 +177,7 @@ func TestAssertNotEqualHintNonComparableDiffType(t *testing.T) {
 		Ids:  idsManager,
 		Code: ASSERT_NOT_EQUAL,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err == nil {
 		t.Errorf("ASSERT_NOT_EQUAL hint should have failed")
 	}
@@ -198,7 +198,7 @@ func TestAssertNotEqualHintNonComparableDiffIndex(t *testing.T) {
 		Ids:  idsManager,
 		Code: ASSERT_NOT_EQUAL,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err == nil {
 		t.Errorf("ASSERT_NOT_EQUAL hint should have failed")
 	}
@@ -219,7 +219,7 @@ func TestAssertNotEqualHintEqualRelocatables(t *testing.T) {
 		Ids:  idsManager,
 		Code: ASSERT_NOT_EQUAL,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err == nil {
 		t.Errorf("ASSERT_NOT_EQUAL hint should have failed")
 	}
@@ -240,7 +240,7 @@ func TestAssertNotEqualHintEqualFelts(t *testing.T) {
 		Ids:  idsManager,
 		Code: ASSERT_NOT_EQUAL,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err == nil {
 		t.Errorf("ASSERT_NOT_EQUAL hint should have failed")
 	}
@@ -261,7 +261,7 @@ func TestAssertNotEqualHintOkFelts(t *testing.T) {
 		Ids:  idsManager,
 		Code: ASSERT_NOT_EQUAL,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err != nil {
 		t.Errorf("ASSERT_NOT_EQUAL hint failed with error: %s", err)
 	}
@@ -282,7 +282,7 @@ func TestAssertNotEqualHintOkRelocatables(t *testing.T) {
 		Ids:  idsManager,
 		Code: ASSERT_NOT_EQUAL,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err != nil {
 		t.Errorf("ASSERT_NOT_EQUAL hint failed with error: %s", err)
 	}
