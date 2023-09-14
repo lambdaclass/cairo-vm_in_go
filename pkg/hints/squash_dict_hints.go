@@ -101,6 +101,9 @@ func squashDict(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) err
 	if isFelt && highKeyFelt.Bits() >= builtins.RANGE_CHECK_N_PARTS*builtins.INNER_RC_BOUND_SHIFT {
 		bigKeys = FeltOne()
 	}
+	if len(keys) == 0 {
+		return errors.New("keys is empty")
+	}
 	lowKey := keys[len(keys)-1]
 	// Insert new scope variables
 	scopes.AssignOrUpdateVariable("access_indices", accessIndices)
@@ -120,4 +123,43 @@ func squashDictInnerSkipLoop(ids IdsManager, scopes *ExecutionScopes, vm *Virtua
 		return ids.Insert("should_skip_loop", NewMaybeRelocatableFelt(FeltZero()), vm)
 	}
 	return ids.Insert("should_skip_loop", NewMaybeRelocatableFelt(FeltOne()), vm)
+}
+
+func squashDictInnerFirstIteration(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error {
+	// Fetch scope variables
+	accessIndicesAny, err := scopes.Get("access_indices")
+	if err != nil {
+		return err
+	}
+	accessIndices, ok := accessIndicesAny.(map[MaybeRelocatable][]int)
+	if !ok {
+		return errors.New("access_indices not in scope")
+	}
+
+	keyAny, err := scopes.Get("key")
+	if err != nil {
+		return err
+	}
+	key, ok := keyAny.(MaybeRelocatable)
+	if !ok {
+		return errors.New("key not in scope")
+	}
+	// Fetch ids variables
+	rangeCheckPtr, err := ids.GetRelocatable("range_check_ptr", vm)
+	if err != nil {
+		return err
+	}
+	// Hint Logic
+	currentAccessIndices := accessIndices[key]
+	sort.Sort(sort.Reverse(sort.IntSlice(currentAccessIndices)))
+	if len(currentAccessIndices) == 0 {
+		return errors.New("access_indices is empty")
+	}
+	currentAccessIndex := currentAccessIndices[len(currentAccessIndices)-1]
+	currentAccessIndices = currentAccessIndices[:len(currentAccessIndices)-1]
+	// Add variables to scope
+	scopes.AssignOrUpdateVariable("current_access_indices", currentAccessIndices)
+	scopes.AssignOrUpdateVariable("current_access_index", currentAccessIndex)
+	//Insert current_accesss_index into range_check_ptr
+	return vm.Segments.Memory.Insert(rangeCheckPtr, NewMaybeRelocatableFelt(FeltFromUint64(uint64(currentAccessIndex))))
 }
