@@ -79,3 +79,39 @@ func TestExitScopeInvalid(t *testing.T) {
 	}
 
 }
+
+func TestEnterScope(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"a": {NewMaybeRelocatableFelt(FeltFromUint64(17))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: VM_ENTER_SCOPE,
+	})
+
+	executionScopes := NewExecutionScopes()
+	scope := make(map[string]interface{})
+	scope["a"] = FeltOne()
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, executionScopes)
+	if err != nil {
+		t.Errorf("TestEnterScope failed with error %s", err)
+	}
+
+	if len(executionScopes.Data()) != 2 {
+		t.Errorf("EnterScopeHint failed, expected data length: %d, got: %d", 2, len(executionScopes.Data()))
+	}
+	if len(executionScopes.Data()[0]) != 0 {
+		t.Errorf("EnterScopeHint failed, expected: 0, got: %v", len(executionScopes.Data()[0]))
+	}
+	if len(executionScopes.Data()[1]) != 0 {
+		t.Errorf("EnterScopeHint failed, expected: 0, got: %v", len(executionScopes.Data()[0]))
+	}
+
+}
