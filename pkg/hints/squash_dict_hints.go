@@ -222,3 +222,20 @@ func squashDictInnerAssertLenKeys(scopes *ExecutionScopes) error {
 	}
 	return nil
 }
+
+func squashDictInnerLenAssert(scopes *ExecutionScopes) error {
+	// Fetch scope variables
+	currentAccessIndicesAny, err := scopes.Get("current_access_indices")
+	if err != nil {
+		return err
+	}
+	currentAccessIndices, ok := currentAccessIndicesAny.([]int)
+	if !ok {
+		return errors.New("current_access_indices not in scope")
+	}
+	// Hint logic
+	if len(currentAccessIndices) != 0 {
+		return errors.New("Assertion failed: len(current_access_indices) == 0")
+	}
+	return nil
+}

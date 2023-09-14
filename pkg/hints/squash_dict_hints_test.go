@@ -579,7 +579,7 @@ func TestSquashDictInnerAssertLenKeysNotEmpty(t *testing.T) {
 	})
 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
 	if err == nil {
-		t.Errorf("SQUASH_DICT_INNER_ASSERT_LEN_KEYS hint should have")
+		t.Errorf("SQUASH_DICT_INNER_ASSERT_LEN_KEYS hint should have failed")
 	}
 }
 
@@ -599,5 +599,43 @@ func TestSquashDictInnerAssertLenKeysEmpty(t *testing.T) {
 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
 	if err != nil {
 		t.Errorf("SQUASH_DICT_INNER_ASSERT_LEN_KEYS hint failed with error: %s", err)
+	}
+}
+
+func TestSquashDictInnerLenAssertKeysNotEmpty(t *testing.T) {
+	vm := NewVirtualMachine()
+	scopes := types.NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("current_access_indices", []int{2, 3})
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SQUASH_DICT_INNER_LEN_ASSERT,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err == nil {
+		t.Errorf("SQUASH_DICT_INNER_LEN_ASSERT hint should have failed")
+	}
+}
+
+func TestSquashDictInnerLenAssertEmpty(t *testing.T) {
+	vm := NewVirtualMachine()
+	scopes := types.NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("current_access_indices", []int{})
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SQUASH_DICT_INNER_LEN_ASSERT,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("SQUASH_DICT_INNER_LEN_ASSERT hint failed with error: %s", err)
 	}
 }
