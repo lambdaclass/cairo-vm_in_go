@@ -358,3 +358,51 @@ func TestSquashDictSkipLoopFalse(t *testing.T) {
 		t.Errorf("SQUASH_DICT_INNER_SKIP_LOOP hint failed. Wrong/No ids.skip_loop")
 	}
 }
+
+func TestSquashDictInnerFirstIterationOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	range_check_ptr := vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("access_indices", map[MaybeRelocatable][]int{
+		*NewMaybeRelocatableFelt(FeltFromUint64(5)): {
+			9, 3, 10, 7,
+		},
+	})
+	scopes.AssignOrUpdateVariable("key", *NewMaybeRelocatableFelt(FeltFromUint64(5)))
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"range_check_ptr": {NewMaybeRelocatableRelocatable(range_check_ptr)},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SQUASH_DICT_INNER_FIRST_ITERATION,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("SQUASH_DICT_INNER_FIRST_ITERATION hint failed with error: %s", err)
+	}
+	// Check scope values
+	currentAccessIndicesAny, err := scopes.Get("current_access_indices")
+	currentAccessIndices := currentAccessIndicesAny.([]int)
+	expectedCurrentAccessIndices := []int{10, 9, 7}
+	if !reflect.DeepEqual(currentAccessIndices, expectedCurrentAccessIndices) {
+		t.Errorf("Wrong current_access_indices.\n Expected %v, got: %v", expectedCurrentAccessIndices, currentAccessIndices)
+	}
+
+	currentAccessIndexAny, err := scopes.Get("current_access_index")
+	currentAccessIndex := currentAccessIndexAny.(int)
+	expectedCurrentAccessIndex := int(3)
+	if !reflect.DeepEqual(currentAccessIndex, expectedCurrentAccessIndex) {
+		t.Errorf("Wrong current_access_index.\n Expected %v, got: %v", expectedCurrentAccessIndex, currentAccessIndex)
+	}
+
+	// Check memory[ids.range_check_ptr]
+	val, err := vm.Segments.Memory.Get(range_check_ptr)
+	if err != nil || *val != *NewMaybeRelocatableFelt(FeltFromUint64(3)) {
+		t.Errorf("Wrong/No value inserted into memory[ids.range_check_ptr]")
+	}
+}
