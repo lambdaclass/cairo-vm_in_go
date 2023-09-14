@@ -60,7 +60,7 @@ func squashDict(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) err
 		return err
 	}
 	if !ptrDiff.ModFloor(lambdaworks.FeltFromUint64(DICT_ACCESS_SIZE)).IsZero() {
-		errors.New("Accesses array size must be divisible by DictAccess.SIZE")
+		return errors.New("Accesses array size must be divisible by DictAccess.SIZE")
 	}
 	nAccessesFelt, err := ids.GetFelt("n_accesses", vm)
 	if err != nil {

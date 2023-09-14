@@ -75,7 +75,7 @@ func TestSquashDictValidOneKeyDictWithMaxSize(t *testing.T) {
 	vm.Segments.AddSegment()
 	vm.Segments.AddSegment()
 	scopes := types.NewExecutionScopes()
-	scopes.AssignOrUpdateVariable("__squash_dict_max_size", 12)
+	scopes.AssignOrUpdateVariable("__squash_dict_max_size", uint64(12))
 	idsManager := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
 			"dict_accesses": {NewMaybeRelocatableRelocatable(NewRelocatable(2, 0))},
@@ -193,5 +193,111 @@ func TestSquashDictValidTwoKeyDictNoMaxSizeBigKeys(t *testing.T) {
 	expectedKey := *NewMaybeRelocatableFelt(FeltOne())
 	if !reflect.DeepEqual(key, expectedKey) {
 		t.Errorf("SQUASH_DICT wrong key.\n Expected %v, got: %v", expectedKey, keys)
+	}
+}
+
+func TestSquashDictInvalidOneKeyDictWithMaxSizeExceeded(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("__squash_dict_max_size", uint64(1))
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"dict_accesses": {NewMaybeRelocatableRelocatable(NewRelocatable(2, 0))},
+			"big_keys":      {nil},
+			"first_key":     {nil},
+			"ptr_diff":      {NewMaybeRelocatableFelt(FeltFromUint64(6))},
+			"n_accesses":    {NewMaybeRelocatableFelt(FeltFromUint64(2))},
+		},
+		vm,
+	)
+	// Insert dict into memory
+	// Dict = {(prime - 1): (1,1), (prime - 1): (1,2)}
+	vm.Segments.Memory.Insert(NewRelocatable(2, 0), NewMaybeRelocatableFelt(FeltOne()))
+	vm.Segments.Memory.Insert(NewRelocatable(2, 1), NewMaybeRelocatableFelt(FeltOne()))
+	vm.Segments.Memory.Insert(NewRelocatable(2, 2), NewMaybeRelocatableFelt(FeltOne()))
+	vm.Segments.Memory.Insert(NewRelocatable(2, 3), NewMaybeRelocatableFelt(FeltOne()))
+	vm.Segments.Memory.Insert(NewRelocatable(2, 4), NewMaybeRelocatableFelt(FeltOne()))
+	vm.Segments.Memory.Insert(NewRelocatable(2, 5), NewMaybeRelocatableFelt(FeltFromUint64(2)))
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SQUASH_DICT,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err == nil {
+		t.Errorf("SQUASH_DICT hint should have failed")
+	}
+}
+
+func TestSquashDictInvalidOneKeyDictBadPtrDiff(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"dict_accesses": {NewMaybeRelocatableRelocatable(NewRelocatable(2, 0))},
+			"big_keys":      {nil},
+			"first_key":     {nil},
+			"ptr_diff":      {NewMaybeRelocatableFelt(FeltFromUint64(7))},
+			"n_accesses":    {NewMaybeRelocatableFelt(FeltFromUint64(2))},
+		},
+		vm,
+	)
+	// Insert dict into memory
+	// Dict = {(prime - 1): (1,1), (prime - 1): (1,2)}
+	vm.Segments.Memory.Insert(NewRelocatable(2, 0), NewMaybeRelocatableFelt(FeltOne()))
+	vm.Segments.Memory.Insert(NewRelocatable(2, 1), NewMaybeRelocatableFelt(FeltOne()))
+	vm.Segments.Memory.Insert(NewRelocatable(2, 2), NewMaybeRelocatableFelt(FeltOne()))
+	vm.Segments.Memory.Insert(NewRelocatable(2, 3), NewMaybeRelocatableFelt(FeltOne()))
+	vm.Segments.Memory.Insert(NewRelocatable(2, 4), NewMaybeRelocatableFelt(FeltOne()))
+	vm.Segments.Memory.Insert(NewRelocatable(2, 5), NewMaybeRelocatableFelt(FeltFromUint64(2)))
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SQUASH_DICT,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err == nil {
+		t.Errorf("SQUASH_DICT hint should have failed")
+	}
+}
+
+func TestSquashDictInvalidOneKeyDictNAccessesTooBig(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"dict_accesses": {NewMaybeRelocatableRelocatable(NewRelocatable(2, 0))},
+			"big_keys":      {nil},
+			"first_key":     {nil},
+			"ptr_diff":      {NewMaybeRelocatableFelt(FeltFromUint64(6))},
+			"n_accesses":    {NewMaybeRelocatableFelt(FeltFromDecString("-1"))},
+		},
+		vm,
+	)
+	// Insert dict into memory
+	// Dict = {(prime - 1): (1,1), (prime - 1): (1,2)}
+	vm.Segments.Memory.Insert(NewRelocatable(2, 0), NewMaybeRelocatableFelt(FeltOne()))
+	vm.Segments.Memory.Insert(NewRelocatable(2, 1), NewMaybeRelocatableFelt(FeltOne()))
+	vm.Segments.Memory.Insert(NewRelocatable(2, 2), NewMaybeRelocatableFelt(FeltOne()))
+	vm.Segments.Memory.Insert(NewRelocatable(2, 3), NewMaybeRelocatableFelt(FeltOne()))
+	vm.Segments.Memory.Insert(NewRelocatable(2, 4), NewMaybeRelocatableFelt(FeltOne()))
+	vm.Segments.Memory.Insert(NewRelocatable(2, 5), NewMaybeRelocatableFelt(FeltFromUint64(2)))
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SQUASH_DICT,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err == nil {
+		t.Errorf("SQUASH_DICT hint should have failed")
 	}
 }
