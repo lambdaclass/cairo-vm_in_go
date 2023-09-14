@@ -28,7 +28,7 @@ $(TEST_PROOF_DIR)/%.rs.trace $(TEST_PROOF_DIR)/%.rs.memory: $(TEST_PROOF_DIR)/%.
 	$(CAIRO_VM_CLI) --layout all_cairo $< --trace_file $(@D)/$(*F).rs.trace --memory_file $(@D)/$(*F).rs.memory --proof_mode
 
 $(TEST_PROOF_DIR)/%.go.trace $(TEST_PROOF_DIR)/%.go.memory: $(TEST_PROOF_DIR)/%.json
-	go run cmd/cli/main.go $(@D)/$(*F).json --trace_file $(@D)/$(*F).go.trace --memory_file $(@D)/$($*F).go.memory --proof_mode
+	go run cmd/cli/main.go --trace_file $(@D)/$(*F).go.trace --memory_file $(@D)/$($*F).go.memory --layout all_cairo --proof_mode $(@D)/$(*F).json
 
 # Non Proof mode programs
 

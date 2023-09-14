@@ -1,36 +1,40 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"strings"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/cairo_run"
+	"github.com/urfave/cli/v2"
 )
 
-func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("Wrong argument count: Use go run cmd/cli/main.go COMPILED_JSON")
-		return
+func handleCommands(ctx *cli.Context) error {
+	programPath := ctx.Args().First()
+	
+	layout := ctx.String("layout")
+	if layout == "" {
+		layout = "plain"
 	}
 
-	cliArgs := os.Args[1:]
-	programPath := cliArgs[0]
-
-	// TODO: These values are hardcoded for the moment, we should get them through the CLI
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, ProofMode: true, Layout: "small"}
+ 	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, ProofMode: ctx.Bool("proof_mode"), Layout: layout}
 
 	cairoRunner, err := cairo_run.CairoRun(programPath, cairoRunConfig)
-
 	if err != nil {
-		fmt.Printf("Failed with error: %s", err)
-		return
+		return err
 	}
-	traceFilePath := strings.Replace(programPath, ".json", ".go.trace", 1)
+
+	traceFilePath := ctx.String("trace_file")
+	if traceFilePath == "" {
+		traceFilePath = strings.Replace(programPath, ".json", ".go.trace", 1)
+	}
 	traceFile, err := os.OpenFile(traceFilePath, os.O_RDWR|os.O_CREATE, 0644)
 	defer traceFile.Close()
 
-	memoryFilePath := strings.Replace(programPath, ".json", ".go.memory", 1)
+	memoryFilePath := ctx.String("memory_file")
+	if memoryFilePath == "" {
+		memoryFilePath = strings.Replace(programPath, ".json", ".go.memory", 1)
+	}
 	memoryFile, err := os.OpenFile(memoryFilePath, os.O_RDWR|os.O_CREATE, 0644)
 	defer memoryFile.Close()
 
@@ -38,4 +42,37 @@ func main() {
 	cairo_run.WriteEncodedMemory(cairoRunner.Vm.RelocatedMemory, memoryFile)
 
 	println("Done!")
+	return nil
+}
+
+func main() {
+	app := &cli.App{
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:    "proof_mode",
+				Aliases: []string{"p"},
+				Usage:   "Run in proof mode",
+			},
+			&cli.StringFlag{
+				Name:    "layout",
+				Aliases: []string{"l"},
+				Usage:   "Default: plain",
+			},
+			&cli.StringFlag{
+				Name:    "trace_file",
+				Aliases: []string{"t"},
+				Usage:   "--trace_file <TRACE_FILE>",
+			},
+			&cli.StringFlag{
+				Name:    "memory_file",
+				Aliases: []string{"m"},
+				Usage:   "--memory_file <MEMORY_FILE>",
+			},
+		},
+		Action: handleCommands,
+	}
+
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
+	}
 }
