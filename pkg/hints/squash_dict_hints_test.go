@@ -55,5 +55,18 @@ func TestSquashDictValidOneKeyDictNoMaxSizeBigKeys(t *testing.T) {
 	if !reflect.DeepEqual(accessIndices, expectedAccessIndices) {
 		t.Errorf("SQUASH_DICT wrong access_indices.\n Expected %v, got: %v", expectedAccessIndices, accessIndices)
 	}
-
+	keysAny, err := scopes.Get("keys")
+	keys := keysAny.([]MaybeRelocatable)
+	expectedKeys := []MaybeRelocatable{
+		*NewMaybeRelocatableFelt(FeltFromDecString("-1")),
+	}
+	if !reflect.DeepEqual(keys, expectedKeys) {
+		t.Errorf("SQUASH_DICT wrong keys.\n Expected %v, got: %v", expectedKeys, keys)
+	}
+	keyAny, err := scopes.Get("key")
+	key := keyAny.(MaybeRelocatable)
+	expectedKey := *NewMaybeRelocatableFelt(FeltFromDecString("-1"))
+	if !reflect.DeepEqual(key, expectedKey) {
+		t.Errorf("SQUASH_DICT wrong key.\n Expected %v, got: %v", expectedKey, keys)
+	}
 }
