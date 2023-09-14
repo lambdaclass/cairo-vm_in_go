@@ -51,8 +51,6 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return vm_exit_scope(execScopes)
 	case ASSERT_NOT_EQUAL:
 		return assert_not_equal(data.Ids, vm)
-	case POW:
-		return pow(data.Ids, vm)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
