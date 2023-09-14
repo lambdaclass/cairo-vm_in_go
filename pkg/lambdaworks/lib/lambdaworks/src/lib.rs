@@ -223,3 +223,14 @@ pub extern "C" fn felt_shr(a: Limbs, b: usize, result: Limbs) {
     felt_to_limbs(Felt::from(&res), result)
 }
 
+#[no_mangle]
+pub extern "C" fn cmp(a: Limbs, b: Limbs) -> i32 {
+    let felt_a = limbs_to_felt(a);
+    let felt_b = limbs_to_felt(b);
+    match (felt_a, felt_b) {
+        (a, b) if a == b => 0,
+        (a, b) if a > b => 1,
+        // (a < b)
+        _ => -1,
+    }
+}

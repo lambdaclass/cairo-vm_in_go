@@ -69,4 +69,14 @@ char* to_signed_felt(felt_t value);
 
 /* frees a pointer to a string */
 void free_string(char* ptr);
+
 void felt_shr(felt_t a, size_t b, felt_t result);
+
+/*
+Compares x and y and returns:
+
+	-1 if a <  b
+	 0 if a == b
+	+1 if a >  b
+*/
+int cmp(felt_t a, felt_t b);
