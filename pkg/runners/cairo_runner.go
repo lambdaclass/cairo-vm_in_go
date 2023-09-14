@@ -287,6 +287,7 @@ func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll b
 
 func (runner *CairoRunner) CheckUsedCells(virtualMachine *vm.VirtualMachine) error {
 	for _, builtin := range virtualMachine.BuiltinRunners {
+		fmt.Println(builtin.Name())
 		// I guess we call this just in case it errors out, even though later on we also call it?
 		_, _, err := builtin.GetUsedCellsAndAllocatedSizes(&virtualMachine.Segments, virtualMachine.CurrentStep)
 		if err != nil {

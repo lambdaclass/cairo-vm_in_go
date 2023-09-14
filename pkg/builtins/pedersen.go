@@ -146,6 +146,9 @@ func (p *PedersenBuiltinRunner) GetUsedCellsAndAllocatedSizes(segments *memory.M
 	}
 
 	size, err := p.GetAllocatedMemoryUnits(segments, currentStep)
+	if err != nil {
+		return 0, 0, err
+	}
 
 	if used > size {
 		return 0, 0, errors.Errorf("The builtin %s used %d cells but the capacity is %d", p.Name(), used, size)

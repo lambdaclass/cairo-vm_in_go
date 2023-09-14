@@ -34,7 +34,7 @@ func NewBitwiseBuiltinRunner(ratio uint) *BitwiseBuiltinRunner {
 }
 
 func DefaultBitwiseBuiltinRunner() *BitwiseBuiltinRunner {
-	return NewBitwiseBuiltinRunner(16)
+	return NewBitwiseBuiltinRunner(256)
 }
 
 func (b *BitwiseBuiltinRunner) Base() memory.Relocatable {

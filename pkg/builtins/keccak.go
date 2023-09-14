@@ -574,6 +574,9 @@ func (k *KeccakBuiltinRunner) GetUsedCellsAndAllocatedSizes(segments *memory.Mem
 	}
 
 	size, err := k.GetAllocatedMemoryUnits(segments, currentStep)
+	if err != nil {
+		return 0, 0, err
+	}
 
 	if used > size {
 		return 0, 0, errors.Errorf("The builtin %s used %d cells but the capacity is %d", k.Name(), used, size)

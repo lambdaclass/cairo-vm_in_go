@@ -139,6 +139,9 @@ func (r *RangeCheckBuiltinRunner) GetUsedCellsAndAllocatedSizes(segments *memory
 	}
 
 	size, err := r.GetAllocatedMemoryUnits(segments, currentStep)
+	if err != nil {
+		return 0, 0, err
+	}
 
 	if err != nil {
 		return 0, 0, err

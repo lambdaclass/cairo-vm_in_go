@@ -146,7 +146,7 @@ func TestGetAllocatedMemoryUnitsBitwise(t *testing.T) {
 
 func TestIntegrationBitwise(t *testing.T) {
 	t.Helper()
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "small", ProofMode: false}
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
 	_, err := cairo_run.CairoRun("../../cairo_programs/bitwise_builtin_test.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("TestIntegrationBitwise failed with error:\n %v", err)
