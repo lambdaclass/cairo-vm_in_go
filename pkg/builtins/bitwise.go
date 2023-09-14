@@ -128,7 +128,7 @@ func (b *BitwiseBuiltinRunner) GetAllocatedMemoryUnits(segments *memory.MemorySe
 
 	minStep := b.ratio * b.instancesPerComponent
 	if currentStep < minStep {
-		return 0, errors.Errorf("number of steps must be at least %d for the %s builtin", minStep, b.Name())
+		return 0, memory.InsufficientAllocatedCellsErrorMinStepNotReached(minStep, b.Name())
 	}
 	value, err := utils.SafeDiv(currentStep, b.ratio)
 
@@ -151,7 +151,7 @@ func (b *BitwiseBuiltinRunner) GetUsedCellsAndAllocatedSizes(segments *memory.Me
 	}
 
 	if used > size {
-		return 0, 0, errors.Errorf("The builtin %s used %d cells but the capacity is %d", b.Name(), used, size)
+		return 0, 0, memory.InsufficientAllocatedCellsErrorWithBuiltinName(b.Name(), used, size)
 	}
 
 	return used, size, nil

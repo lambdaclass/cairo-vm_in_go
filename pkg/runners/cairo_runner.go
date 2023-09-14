@@ -262,7 +262,9 @@ func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll b
 
 		for true {
 			err := runner.CheckUsedCells(vm)
-			if err != nil {
+			if errors.Unwrap(err) == memory.ErrInsufficientAllocatedCells {
+			} else if err != nil {
+				return err
 			} else {
 				break
 			}
@@ -341,8 +343,7 @@ func (runner *CairoRunner) CheckMemoryUsage(virtualMachine *vm.VirtualMachine) e
 	}
 
 	if unusedMemoryUnits < memoryAddressHoles {
-		// TODO: Insufficient allocated etc error
-		return errors.New("Error TODO")
+		return memory.InsufficientAllocatedCellsError(unusedMemoryUnits, memoryAddressHoles)
 	}
 
 	return nil
@@ -382,24 +383,11 @@ func (runner *CairoRunner) CheckDilutedCheckUsage(virtualMachine *vm.VirtualMach
 	var dilutedUsageUpperBound uint = 1 << dilutedPoolInstance.NBits
 
 	if unusedDilutedUnits < dilutedUsageUpperBound {
-		return errors.New("Insufficient Allocated Cells")
+		return memory.InsufficientAllocatedCellsError(unusedDilutedUnits, dilutedUsageUpperBound)
 	}
 
 	return nil
 }
-
-// // Returns Ok(()) if there are enough allocated cells for the builtins.
-//     // If not, the number of steps should be increased or a different layout should be used.
-//     pub fn check_used_cells(&self, vm: &VirtualMachine) -> Result<(), VirtualMachineError> {
-//         vm.builtin_runners
-//             .iter()
-//             .map(|builtin_runner| builtin_runner.get_used_cells_and_allocated_size(vm))
-//             .collect::<Result<Vec<(usize, usize)>, MemoryError>>()?;
-//         self.check_range_check_usage(vm)?;
-//         self.check_memory_usage(vm)?;
-//         self.check_diluted_check_usage(vm)?;
-//         Ok(())
-//     }
 
 func (runner *CairoRunner) CheckRangeCheckUsage(virtualMachine *vm.VirtualMachine) error {
 	var rcMin, rcMax *uint
@@ -442,7 +430,7 @@ func (runner *CairoRunner) CheckRangeCheckUsage(virtualMachine *vm.VirtualMachin
 	unusedRcUnits := (runner.Layout.RcUnits-3)*virtualMachine.CurrentStep - uint(rcUnitsUsedByBuiltins)
 
 	if unusedRcUnits < (*rcMax - *rcMin) {
-		return errors.Errorf("Insufficient Allocated Cells: Unused RC Units: %d, Size: %d", unusedRcUnits, (*rcMax - *rcMin))
+		return memory.InsufficientAllocatedCellsError(unusedRcUnits, *rcMax-*rcMin)
 	}
 
 	return nil

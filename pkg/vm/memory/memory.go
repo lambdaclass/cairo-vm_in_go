@@ -2,6 +2,7 @@ package memory
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 )
@@ -37,6 +38,19 @@ type Memory struct {
 }
 
 var ErrMissingSegmentUsize = errors.New("Segment effective sizes haven't been calculated")
+var ErrInsufficientAllocatedCells = errors.New("Insufficient Allocated Memory Cells")
+
+func InsufficientAllocatedCellsErrorWithBuiltinName(name string, used uint, size uint) error {
+	return fmt.Errorf("%w, builtin: %s, used: %d, size: %d", ErrInsufficientAllocatedCells, name, used, size)
+}
+
+func InsufficientAllocatedCellsError(used uint, size uint) error {
+	return fmt.Errorf("%w, used: %d, size: %d", ErrInsufficientAllocatedCells, used, size)
+}
+
+func InsufficientAllocatedCellsErrorMinStepNotReached(minStep uint, builtinName string) error {
+	return fmt.Errorf("%w, Min Step not reached. minStep: %d, builtin: %s", ErrInsufficientAllocatedCells, minStep, builtinName)
+}
 
 func NewMemory() *Memory {
 	return &Memory{

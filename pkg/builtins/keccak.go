@@ -556,7 +556,7 @@ func (k *KeccakBuiltinRunner) GetAllocatedMemoryUnits(segments *memory.MemorySeg
 
 	minStep := k.ratio * k.instancesPerComponent
 	if currentStep < minStep {
-		return 0, errors.Errorf("number of steps must be at least %d for the %s builtin", minStep, k.Name())
+		return 0, memory.InsufficientAllocatedCellsErrorMinStepNotReached(minStep, k.Name())
 	}
 	value, err := utils.SafeDiv(currentStep, k.ratio)
 
@@ -579,7 +579,7 @@ func (k *KeccakBuiltinRunner) GetUsedCellsAndAllocatedSizes(segments *memory.Mem
 	}
 
 	if used > size {
-		return 0, 0, errors.Errorf("The builtin %s used %d cells but the capacity is %d", k.Name(), used, size)
+		return 0, 0, memory.InsufficientAllocatedCellsErrorWithBuiltinName(k.Name(), used, size)
 	}
 
 	return used, size, nil

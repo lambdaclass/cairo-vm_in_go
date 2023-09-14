@@ -115,7 +115,7 @@ func (r *SignatureBuiltinRunner) GetAllocatedMemoryUnits(segments *memory.Memory
 
 	minStep := r.ratio * r.instancesPerComponent
 	if currentStep < minStep {
-		return 0, errors.Errorf("number of steps must be at least %d for the %s builtin", minStep, r.Name())
+		return 0, memory.InsufficientAllocatedCellsErrorMinStepNotReached(minStep, r.Name())
 	}
 	value, err := utils.SafeDiv(currentStep, r.ratio)
 
@@ -146,7 +146,7 @@ func (r *SignatureBuiltinRunner) GetUsedCellsAndAllocatedSizes(segments *memory.
 	}
 
 	if used > size {
-		return 0, 0, errors.Errorf("The builtin %s used %d cells but the capacity is %d", r.Name(), used, size)
+		return 0, 0, memory.InsufficientAllocatedCellsErrorWithBuiltinName(r.Name(), used, size)
 	}
 
 	return used, size, nil
