@@ -7,9 +7,6 @@ import (
 
 // Finds a nonnegative integer x < p such that (m * x) % p == n.
 func DivMod(n *big.Int, m *big.Int, p *big.Int) (*big.Int, error) {
-	//if m.BitLen() == 0 {
-	//	return nil, errors.Errorf("m in div_mod(n, m, p) can't be zero")
-	//}
 	a := new(big.Int)
 	gcd := new(big.Int)
 	gcd.GCD(a, nil, m, p)
