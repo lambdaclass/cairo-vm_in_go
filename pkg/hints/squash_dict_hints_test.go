@@ -406,3 +406,27 @@ func TestSquashDictInnerFirstIterationOk(t *testing.T) {
 		t.Errorf("Wrong/No value inserted into memory[ids.range_check_ptr]")
 	}
 }
+
+func TestSquashDictInnerFirstIterationEmpty(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	range_check_ptr := vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("access_indices", map[MaybeRelocatable][]int{})
+	scopes.AssignOrUpdateVariable("key", *NewMaybeRelocatableFelt(FeltFromUint64(5)))
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"range_check_ptr": {NewMaybeRelocatableRelocatable(range_check_ptr)},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SQUASH_DICT_INNER_FIRST_ITERATION,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err == nil {
+		t.Error("SQUASH_DICT_INNER_FIRST_ITERATION hint should have failed")
+	}
+}
