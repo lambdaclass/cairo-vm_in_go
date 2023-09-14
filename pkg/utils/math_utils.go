@@ -26,3 +26,19 @@ func SafeDiv(x uint, y uint) (uint, error) {
 
 	return x / y, nil
 }
+
+func MinInt(x int, y int) int {
+	if x < y {
+		return x
+	} else {
+		return y
+	}
+}
+
+func MaxInt(x int, y int) int {
+	if x > y {
+		return x
+	} else {
+		return y
+	}
+}

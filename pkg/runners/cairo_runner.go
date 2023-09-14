@@ -408,12 +408,12 @@ func (runner *CairoRunner) CheckRangeCheckUsage(virtualMachine *vm.VirtualMachin
 		return nil
 	}
 
-	if runner.Vm.RcLimitsMax != nil && (*runner.Vm.RcLimitsMax > *rcMax) {
-		rcMax = runner.Vm.RcLimitsMax
+	if runner.Vm.RcLimitsMax != nil && (uint(*runner.Vm.RcLimitsMax) > *rcMax) {
+		*rcMax = uint(*runner.Vm.RcLimitsMax)
 	}
 
-	if runner.Vm.RcLimitsMin != nil && (*runner.Vm.RcLimitsMin > *rcMin) {
-		rcMin = runner.Vm.RcLimitsMin
+	if runner.Vm.RcLimitsMin != nil && (uint(*runner.Vm.RcLimitsMin) > *rcMin) {
+		*rcMin = uint(*runner.Vm.RcLimitsMin)
 	}
 
 	var rcUnitsUsedByBuiltins uint = 0

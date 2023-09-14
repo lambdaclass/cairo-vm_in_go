@@ -7,9 +7,12 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/types"
+	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	"github.com/pkg/errors"
 )
+
+const RC_OFFSET_BITS = 16
 
 type VirtualMachineError struct {
 	Msg string
@@ -30,8 +33,8 @@ type VirtualMachine struct {
 	RelocatedTrace  []RelocatedTraceEntry
 	RelocatedMemory map[uint]lambdaworks.Felt
 	RunFinished     bool
-	RcLimitsMin     *uint
-	RcLimitsMax     *uint
+	RcLimitsMin     *int
+	RcLimitsMax     *int
 }
 
 func NewVirtualMachine() *VirtualMachine {
@@ -95,12 +98,31 @@ func (v *VirtualMachine) RunInstruction(instruction *Instruction) error {
 	v.Segments.Memory.MarkAsAccessed(operandsAddresses.Op0Addr)
 	v.Segments.Memory.MarkAsAccessed(operandsAddresses.Op1Addr)
 
-	// TODO: Add this logic
-	// let (min, max) = self.rc_limits.unwrap_or((off0, off0));
-	//     self.rc_limits = Some((
-	//         min.min(off0).min(off1).min(off2),
-	//         max.max(off0).max(off1).max(off2),
-	//     ));
+	var off0 int = instruction.Off0 + (1 << (RC_OFFSET_BITS - 1))
+	var off1 int = instruction.Off1 + (1 << (RC_OFFSET_BITS - 1))
+	var off2 int = instruction.Off2 + (1 << (RC_OFFSET_BITS - 1))
+
+	if v.RcLimitsMax == nil {
+		v.RcLimitsMax = new(int)
+		*v.RcLimitsMax = off0
+	} else {
+		var value int
+		value = utils.MaxInt(*v.RcLimitsMax, off0)
+		value = utils.MaxInt(value, off1)
+		value = utils.MaxInt(value, off2)
+		*v.RcLimitsMax = value
+	}
+
+	if v.RcLimitsMin == nil {
+		v.RcLimitsMin = new(int)
+		*v.RcLimitsMin = off0
+	} else {
+		var value int
+		value = utils.MinInt(*v.RcLimitsMin, off0)
+		value = utils.MinInt(value, off1)
+		value = utils.MinInt(value, off2)
+		*v.RcLimitsMin = value
+	}
 
 	err = v.UpdateRegisters(instruction, &operands)
 	if err != nil {
