@@ -15,9 +15,5 @@ func add_segment(vm *VirtualMachine) error {
 // Implements hint:
 // %{ vm_exit_scope() %}
 func vm_exit_scope(executionScopes *types.ExecutionScopes) error {
-	err := executionScopes.ExitScope()
-	if err != nil {
-		return err
-	}
-	return nil
+	return executionScopes.ExitScope()
 }
