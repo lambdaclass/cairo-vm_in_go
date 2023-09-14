@@ -104,7 +104,7 @@ func squashDict(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) err
 	lowKey := keys[len(keys)-1]
 	// Insert new scope variables
 	scopes.AssignOrUpdateVariable("access_indices", accessIndices)
-	scopes.AssignOrUpdateVariable("keys", keys)
+	scopes.AssignOrUpdateVariable("keys", keys[:len(keys)-1])
 	scopes.AssignOrUpdateVariable("key", lowKey)
 	// Insert ids variables
 	err = ids.Insert("big_keys", NewMaybeRelocatableFelt(bigKeys), vm)
