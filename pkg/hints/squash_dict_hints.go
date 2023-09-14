@@ -1,6 +1,7 @@
 package hints
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
@@ -153,7 +154,7 @@ func squashDictInnerFirstIteration(ids IdsManager, scopes *ExecutionScopes, vm *
 	currentAccessIndices := accessIndices[key]
 	sort.Sort(sort.Reverse(sort.IntSlice(currentAccessIndices)))
 	if len(currentAccessIndices) == 0 {
-		return errors.New("access_indices is empty")
+		return errors.New("current_access_indices is empty")
 	}
 	currentAccessIndex := currentAccessIndices[len(currentAccessIndices)-1]
 	currentAccessIndices = currentAccessIndices[:len(currentAccessIndices)-1]
@@ -162,4 +163,37 @@ func squashDictInnerFirstIteration(ids IdsManager, scopes *ExecutionScopes, vm *
 	scopes.AssignOrUpdateVariable("current_access_index", currentAccessIndex)
 	//Insert current_accesss_index into range_check_ptr
 	return vm.Segments.Memory.Insert(rangeCheckPtr, NewMaybeRelocatableFelt(FeltFromUint64(uint64(currentAccessIndex))))
+}
+
+func squashDictInnerCheckAccessIndex(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error {
+	// Fetch scope variables
+	currentAccessIndicesAny, err := scopes.Get("current_access_indices")
+	if err != nil {
+		return err
+	}
+	currentAccessIndices, ok := currentAccessIndicesAny.([]int)
+	if !ok {
+		return errors.New("current_access_indices not in scope")
+	}
+	currentAccessIndexAny, err := scopes.Get("current_access_index")
+	if err != nil {
+		return err
+	}
+	currentAccessIndex, ok := currentAccessIndexAny.(int)
+	if !ok {
+		return errors.New("current_access_index not in scope")
+	}
+	// Hint Logic
+	if len(currentAccessIndices) == 0 {
+		return errors.New("current_access_indices is empty")
+	}
+	newAccessIndex := currentAccessIndices[len(currentAccessIndices)-1]
+	currentAccessIndices = currentAccessIndices[:len(currentAccessIndices)-1]
+	deltaMinusOne := newAccessIndex - currentAccessIndex - 1
+	// Update scope variables
+	scopes.AssignOrUpdateVariable("current_access_indices", currentAccessIndices)
+	scopes.AssignOrUpdateVariable("current_access_index", newAccessIndex)
+	scopes.AssignOrUpdateVariable("new_access_index", newAccessIndex)
+	// Update ids variables
+	return ids.Insert("loop_temps", NewMaybeRelocatableFelt(FeltFromDecString(fmt.Sprint(deltaMinusOne))), vm)
 }
