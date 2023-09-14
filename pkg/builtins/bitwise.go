@@ -34,7 +34,7 @@ func NewBitwiseBuiltinRunner(ratio uint) *BitwiseBuiltinRunner {
 }
 
 func DefaultBitwiseBuiltinRunner() *BitwiseBuiltinRunner {
-	return NewBitwiseBuiltinRunner(256)
+	return NewBitwiseBuiltinRunner(16)
 }
 
 func (b *BitwiseBuiltinRunner) Base() memory.Relocatable {
@@ -146,6 +146,9 @@ func (b *BitwiseBuiltinRunner) GetUsedCellsAndAllocatedSizes(segments *memory.Me
 	}
 
 	size, err := b.GetAllocatedMemoryUnits(segments, currentStep)
+	if err != nil {
+		return 0, 0, err
+	}
 
 	if used > size {
 		return 0, 0, errors.Errorf("The builtin %s used %d cells but the capacity is %d", b.Name(), used, size)

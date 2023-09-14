@@ -21,7 +21,7 @@ type PoseidonBuiltinRunner struct {
 }
 
 func NewPoseidonBuiltinRunner() *PoseidonBuiltinRunner {
-	return &PoseidonBuiltinRunner{cache: make(map[memory.Relocatable]lambdaworks.Felt)}
+	return &PoseidonBuiltinRunner{cache: make(map[memory.Relocatable]lambdaworks.Felt), instancesPerComponent: 1}
 }
 
 func (p *PoseidonBuiltinRunner) Base() memory.Relocatable {

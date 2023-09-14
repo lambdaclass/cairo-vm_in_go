@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/layouts"
 	"github.com/lambdaclass/cairo-vm.go/pkg/types"
 	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
@@ -15,19 +16,20 @@ import (
 var ErrRunnerCalledTwice = errors.New("Cairo Runner was called twice")
 
 type CairoRunner struct {
-	Program       vm.Program
-	Vm            vm.VirtualMachine
-	ProgramBase   memory.Relocatable
-	executionBase memory.Relocatable
-	initialPc     memory.Relocatable
-	initialAp     memory.Relocatable
-	initialFp     memory.Relocatable
-	finalPc       memory.Relocatable
-	mainOffset    uint
-	ProofMode     bool
-	RunEnded      bool
-	Layout        layouts.CairoLayout
-	execScopes    types.ExecutionScopes
+	Program               vm.Program
+	Vm                    vm.VirtualMachine
+	ProgramBase           memory.Relocatable
+	executionBase         memory.Relocatable
+	initialPc             memory.Relocatable
+	initialAp             memory.Relocatable
+	initialFp             memory.Relocatable
+	finalPc               *memory.Relocatable
+	mainOffset            uint
+	ProofMode             bool
+	RunEnded              bool
+	Layout                layouts.CairoLayout
+	execScopes            types.ExecutionScopes
+	ExecutionPublicMemory *[]uint
 }
 
 func NewCairoRunner(program vm.Program, layoutName string, proofMode bool) (*CairoRunner, error) {
@@ -42,11 +44,18 @@ func NewCairoRunner(program vm.Program, layoutName string, proofMode bool) (*Cai
 		return nil, errors.New(err.Error())
 	}
 
-	layoutBuiltinRunners, err := layouts.GetLayoutBuiltinRunners(layoutName)
-	if err != nil {
-		return nil, errors.New(err.Error())
+	var layout layouts.CairoLayout
+	switch layoutName {
+	case "plain":
+		layout = layouts.NewPlainLayout()
+	case "small":
+		layout = layouts.NewSmallLayout()
+	case "all_cairo":
+		layout = layouts.NewAllCairoLayout()
+	default:
+		panic("Layout not implemented")
 	}
-	layout := layouts.CairoLayout{Name: layoutName, Builtins: layoutBuiltinRunners, DilutedPoolInstance: layouts.DefaultDilutedPoolInstance(), PublicMemoryFraction: 4}
+
 	runner := CairoRunner{
 		Program:    program,
 		Vm:         *vm.NewVirtualMachine(),
@@ -140,7 +149,7 @@ func (r *CairoRunner) initializeFunctionEntrypoint(entrypoint uint, stack *[]mem
 	r.initialFp = r.executionBase
 	r.initialFp.Offset += uint(len(*stack))
 	r.initialAp = r.initialFp
-	r.finalPc = end
+	r.finalPc = &end
 	return end, r.initializeState(entrypoint, stack)
 }
 
@@ -154,7 +163,30 @@ func (r *CairoRunner) initializeMainEntrypoint() (memory.Relocatable, error) {
 			stack = append(stack, val)
 		}
 	}
-	// Handle proof-mode specific behaviour
+
+	if r.ProofMode {
+		basePlusTwo := memory.NewRelocatable(r.executionBase.SegmentIndex, r.executionBase.Offset+2)
+		stackPrefix := []memory.MaybeRelocatable{*memory.NewMaybeRelocatableRelocatable(basePlusTwo), *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0))}
+
+		stackPrefix = append(stackPrefix, stack...)
+
+		var publicMemory []uint
+		var i uint
+		for i = 0; i < uint(len(stackPrefix)); i++ {
+			publicMemory = append(publicMemory, i)
+		}
+
+		r.ExecutionPublicMemory = &publicMemory
+
+		r.initializeState(r.Program.Start, &stackPrefix)
+
+		initialFp := memory.NewRelocatable(r.executionBase.SegmentIndex, r.executionBase.Offset+2)
+		r.initialFp = initialFp
+		r.initialAp = r.initialFp
+
+		return memory.NewRelocatable(r.ProgramBase.SegmentIndex, r.ProgramBase.Offset+r.Program.End), nil
+	}
+
 	return_fp := r.Vm.Segments.AddSegment()
 	return r.initializeFunctionEntrypoint(r.mainOffset, &stack, return_fp)
 }
@@ -223,7 +255,6 @@ func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll b
 
 	vm.Segments.ComputeEffectiveSizes()
 	if runner.ProofMode && !disableTracePadding {
-
 		err := runner.RunUntilNextPowerOfTwo(vm, hintProcessor)
 		if err != nil {
 			return err
@@ -334,7 +365,11 @@ func (runner *CairoRunner) CheckDilutedCheckUsage(virtualMachine *vm.VirtualMach
 	for _, builtin := range virtualMachine.BuiltinRunners {
 		usedUnits := builtin.GetUsedDilutedCheckUnits(dilutedPoolInstance.Spacing, dilutedPoolInstance.NBits)
 
-		multiplier, err := utils.SafeDiv(virtualMachine.CurrentStep, builtin.Ratio())
+		ratio := builtin.Ratio()
+		if ratio == 0 {
+			ratio = 1
+		}
+		multiplier, err := utils.SafeDiv(virtualMachine.CurrentStep, ratio)
 
 		if err != nil {
 			return err
@@ -422,9 +457,10 @@ func (runner *CairoRunner) RunForSteps(steps uint, virtualMachine *vm.VirtualMac
 		return err
 	}
 	constants := runner.Program.ExtractConstants()
-	for remaining_steps := steps; remaining_steps == 0; remaining_steps-- {
-		if runner.finalPc == virtualMachine.RunContext.Pc {
-			return &vm.VirtualMachineError{Msg: fmt.Sprintf("EndOfProgram: %d", remaining_steps)}
+	var remainingSteps int
+	for remainingSteps = int(steps); remainingSteps > 0; remainingSteps-- {
+		if runner.finalPc != nil && *runner.finalPc == virtualMachine.RunContext.Pc {
+			return &vm.VirtualMachineError{Msg: fmt.Sprintf("EndOfProgram: %d", remainingSteps)}
 		}
 
 		err := virtualMachine.Step(hintProcessor, &hintDataMap, &constants, &runner.execScopes)

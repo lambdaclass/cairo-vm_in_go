@@ -140,6 +140,10 @@ func (r *RangeCheckBuiltinRunner) GetUsedCellsAndAllocatedSizes(segments *memory
 
 	size, err := r.GetAllocatedMemoryUnits(segments, currentStep)
 
+	if err != nil {
+		return 0, 0, err
+	}
+
 	if used > size {
 		return 0, 0, errors.Errorf("The builtin %s used %d cells but the capacity is %d", r.Name(), used, size)
 	}

@@ -664,7 +664,7 @@ func TestCheckDilutedCheckUsageWithoutBuiltinRunners(t *testing.T) {
 func TestCheckDilutedCheckUsageInsufficientAllocatedCells(t *testing.T) {
 	program := vm.Program{Data: nil, Builtins: nil, Identifiers: nil, Hints: nil, ReferenceManager: parser.ReferenceManager{}}
 
-	runner, err := runners.NewCairoRunner(program, "plain", false)
+	runner, err := runners.NewCairoRunner(program, "all_cairo", false)
 	if err != nil {
 		t.Error("Could not initialize Cairo Runner")
 	}

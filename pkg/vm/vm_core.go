@@ -95,6 +95,13 @@ func (v *VirtualMachine) RunInstruction(instruction *Instruction) error {
 	v.Segments.Memory.MarkAsAccessed(operandsAddresses.Op0Addr)
 	v.Segments.Memory.MarkAsAccessed(operandsAddresses.Op1Addr)
 
+	// TODO: Add this logic
+	// let (min, max) = self.rc_limits.unwrap_or((off0, off0));
+	//     self.rc_limits = Some((
+	//         min.min(off0).min(off1).min(off2),
+	//         max.max(off0).max(off1).max(off2),
+	//     ));
+
 	err = v.UpdateRegisters(instruction, &operands)
 	if err != nil {
 		return err

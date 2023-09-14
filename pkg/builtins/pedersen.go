@@ -20,7 +20,14 @@ type PedersenBuiltinRunner struct {
 }
 
 func NewPedersenBuiltinRunner() *PedersenBuiltinRunner {
-	return &PedersenBuiltinRunner{}
+	return &PedersenBuiltinRunner{instancesPerComponent: 1}
+}
+
+func DefaultPedersenBuiltinRunner() *PedersenBuiltinRunner {
+	return &PedersenBuiltinRunner{
+		ratio:                 8,
+		instancesPerComponent: 1,
+	}
 }
 
 func (r *PedersenBuiltinRunner) Include(include bool) {

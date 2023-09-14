@@ -2,7 +2,6 @@ package memory
 
 import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
-	"github.com/pkg/errors"
 )
 
 // MemorySegmentManager manages the list of memory segments.
@@ -99,7 +98,8 @@ func (m *MemorySegmentManager) LoadData(ptr Relocatable, data *[]MaybeRelocatabl
 func (m *MemorySegmentManager) GetSegmentUsedSize(segmentIdx uint) (uint, error) {
 	size, ok := m.SegmentSizes[segmentIdx]
 	if !ok {
-		return 0, errors.Errorf("segment %d used size not found", segmentIdx)
+		// return 0, errors.Errorf("segment %d used size not found", segmentIdx)
+		return 0, nil
 	}
 	return size, nil
 }
