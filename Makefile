@@ -46,7 +46,7 @@ $(TEST_DIR)/%.rs.trace $(TEST_DIR)/%.rs.memory: $(TEST_DIR)/%.json $(CAIRO_VM_CL
 	$(CAIRO_VM_CLI) --layout all_cairo $< --trace_file $(@D)/$(*F).rs.trace --memory_file $(@D)/$(*F).rs.memory
 
 $(TEST_DIR)/%.go.trace $(TEST_DIR)/%.go.memory: $(TEST_DIR)/%.json
-	go run cmd/cli/main.go $(@D)/$(*F).json
+	go run cmd/cli/main.go --trace_file $(@D)/$(*F).go.trace --memory_file $(@D)/$(*F).go.memory --layout all_cairo $(@D)/$(*F).json
 
 $(TEST_DIR)/%.json: $(TEST_DIR)/%.cairo
 	cairo-compile --cairo_path="$(TEST_DIR)" $< --output $@

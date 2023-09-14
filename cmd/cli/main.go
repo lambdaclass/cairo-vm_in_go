@@ -40,8 +40,6 @@ func handleCommands(ctx *cli.Context) error {
 
 	cairo_run.WriteEncodedTrace(cairoRunner.Vm.RelocatedTrace, traceFile)
 	cairo_run.WriteEncodedMemory(cairoRunner.Vm.RelocatedMemory, memoryFile)
-
-	println("Done!")
 	return nil
 }
 
