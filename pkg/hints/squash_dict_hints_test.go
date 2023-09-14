@@ -563,3 +563,41 @@ func TestSquashDictContinueLoopFalse(t *testing.T) {
 		t.Errorf("SQUASH_DICT_INNER_CONTINUE_LOOP hint failed. Wrong/No ids.loop_temps.should_continue")
 	}
 }
+
+func TestSquashDictInnerAssertLenKeysNotEmpty(t *testing.T) {
+	vm := NewVirtualMachine()
+	scopes := types.NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("keys", []MaybeRelocatable{*NewMaybeRelocatableFelt(FeltZero())})
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SQUASH_DICT_INNER_ASSERT_LEN_KEYS,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err == nil {
+		t.Errorf("SQUASH_DICT_INNER_ASSERT_LEN_KEYS hint should have")
+	}
+}
+
+func TestSquashDictInnerAssertLenKeysEmpty(t *testing.T) {
+	vm := NewVirtualMachine()
+	scopes := types.NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("keys", []MaybeRelocatable{})
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SQUASH_DICT_INNER_ASSERT_LEN_KEYS,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("SQUASH_DICT_INNER_ASSERT_LEN_KEYS hint failed with error: %s", err)
+	}
+}

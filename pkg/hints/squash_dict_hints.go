@@ -205,3 +205,20 @@ func squashDictInnerContinueLoop(ids IdsManager, scopes *ExecutionScopes, vm *Vi
 	}
 	return ids.InsertStructField("loop_temps", 3, NewMaybeRelocatableFelt(FeltOne()), vm)
 }
+
+func squashDictInnerAssertLenKeys(scopes *ExecutionScopes) error {
+	// Fetch scope variables
+	keysAny, err := scopes.Get("keys")
+	if err != nil {
+		return err
+	}
+	keys, ok := keysAny.([]MaybeRelocatable)
+	if !ok {
+		return errors.New("keys not in scope")
+	}
+	// Hint logic
+	if len(keys) != 0 {
+		return errors.New("Assertion failed: len(keys) == 0")
+	}
+	return nil
+}

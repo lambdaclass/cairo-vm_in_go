@@ -67,6 +67,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return squashDictInnerCheckAccessIndex(data.Ids, execScopes, vm)
 	case SQUASH_DICT_INNER_CONTINUE_LOOP:
 		return squashDictInnerContinueLoop(data.Ids, execScopes, vm)
+	case SQUASH_DICT_INNER_ASSERT_LEN_KEYS:
+		return squashDictInnerAssertLenKeys(execScopes)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
