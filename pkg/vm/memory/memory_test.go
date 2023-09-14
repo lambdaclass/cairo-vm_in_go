@@ -396,7 +396,7 @@ func TestMemoryValidateExistingMemoryErr(t *testing.T) {
 }
 
 func TestValidateMemoryForInvalidSignature(t *testing.T) {
-	builtin := builtins.NewSignatureBuiltinRunner()
+	builtin := builtins.NewSignatureBuiltinRunner(2048)
 	mem_manager := memory.NewMemorySegmentManager()
 	mem_manager.AddSegment()
 	mem := mem_manager.Memory
@@ -422,7 +422,7 @@ func TestValidateMemoryForInvalidSignature(t *testing.T) {
 	}
 }
 func TestValidateMemoryForValidSignature(t *testing.T) {
-	signature_builtin := builtins.NewSignatureBuiltinRunner()
+	signature_builtin := builtins.NewSignatureBuiltinRunner(2048)
 	mem_manager := memory.NewMemorySegmentManager()
 	mem_manager.AddSegment()
 	mem := mem_manager.Memory

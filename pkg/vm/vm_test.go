@@ -1054,7 +1054,7 @@ func TestDeduceDstOpcodeRet(t *testing.T) {
 
 func TestGetPedersenAndBitwiseBuiltins(t *testing.T) {
 	vm := vm.NewVirtualMachine()
-	pedersen_builtin := builtins.NewPedersenBuiltinRunner()
+	pedersen_builtin := builtins.NewPedersenBuiltinRunner(256)
 	bitwise_builtin := builtins.NewBitwiseBuiltinRunner(256)
 
 	vm.BuiltinRunners = append(vm.BuiltinRunners, pedersen_builtin)
@@ -1069,7 +1069,7 @@ func TestGetPedersenAndBitwiseBuiltins(t *testing.T) {
 
 func TestGetFooBuiltinReturnsNilAndError(t *testing.T) {
 	vm := vm.NewVirtualMachine()
-	pedersen_builtin := builtins.NewPedersenBuiltinRunner()
+	pedersen_builtin := builtins.NewPedersenBuiltinRunner(256)
 	bitwise_builtin := builtins.NewBitwiseBuiltinRunner(256)
 
 	vm.BuiltinRunners = append(vm.BuiltinRunners, pedersen_builtin)

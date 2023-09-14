@@ -19,8 +19,8 @@ type PedersenBuiltinRunner struct {
 	instancesPerComponent uint
 }
 
-func NewPedersenBuiltinRunner() *PedersenBuiltinRunner {
-	return &PedersenBuiltinRunner{instancesPerComponent: 1}
+func NewPedersenBuiltinRunner(ratio uint) *PedersenBuiltinRunner {
+	return &PedersenBuiltinRunner{instancesPerComponent: 1, ratio: ratio}
 }
 
 func DefaultPedersenBuiltinRunner() *PedersenBuiltinRunner {

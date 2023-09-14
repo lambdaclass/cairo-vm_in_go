@@ -280,7 +280,7 @@ func TestIncludedBuiltinsPlainLayoutNoProofMode(t *testing.T) {
 // FIXME: This test should changed once the `small` layout is properly implemented. ATM we don't have all
 // its builtins implemented.
 func TestIncludedBuiltinsSmallLayoutNoProofMode(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "small", ProofMode: false}
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
 	// Testing for a program with Poseidon builtin
 	poseidonRunner, err := cairo_run.CairoRun("../../cairo_programs/poseidon_builtin.json", cairoRunConfig)
 	if err != nil {

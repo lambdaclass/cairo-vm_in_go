@@ -3,6 +3,7 @@ package builtins
 import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/starknet_crypto"
+	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	"github.com/pkg/errors"
 )
@@ -17,9 +18,11 @@ type Signature struct {
 	S lambdaworks.Felt
 }
 type SignatureBuiltinRunner struct {
-	base       memory.Relocatable
-	included   bool
-	signatures map[memory.Relocatable](Signature)
+	base                  memory.Relocatable
+	included              bool
+	signatures            map[memory.Relocatable](Signature)
+	ratio                 uint
+	instancesPerComponent uint
 }
 
 func (signatureRunner *SignatureBuiltinRunner) Base() memory.Relocatable {
@@ -86,8 +89,76 @@ func ValidationRuleSignature(mem *memory.Memory, address memory.Relocatable, sig
 	}
 }
 
-func NewSignatureBuiltinRunner() *SignatureBuiltinRunner {
-	return &SignatureBuiltinRunner{signatures: map[memory.Relocatable]Signature{}}
+func NewSignatureBuiltinRunner(ratio uint) *SignatureBuiltinRunner {
+	return &SignatureBuiltinRunner{signatures: map[memory.Relocatable]Signature{}, ratio: ratio, instancesPerComponent: 1}
+}
+
+func (r *SignatureBuiltinRunner) Ratio() uint {
+	return r.ratio
+}
+
+func (r *SignatureBuiltinRunner) GetAllocatedMemoryUnits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
+	// This condition corresponds to an uninitialized ratio for the builtin, which should only
+	// happen when layout is `dynamic`
+	if r.Ratio() == 0 {
+		// Dynamic layout has the exact number of instances it needs (up to a power of 2).
+		used, err := segments.GetSegmentUsedSize(uint(r.base.SegmentIndex))
+		if err != nil {
+			return 0, err
+		}
+		instances := used / r.CellsPerInstance()
+		components := utils.NextPowOf2(instances / r.instancesPerComponent)
+		size := r.CellsPerInstance() * r.instancesPerComponent * components
+
+		return size, nil
+	}
+
+	minStep := r.ratio * r.instancesPerComponent
+	if currentStep < minStep {
+		return 0, errors.Errorf("number of steps must be at least %d for the %s builtin", minStep, r.Name())
+	}
+	value, err := utils.SafeDiv(currentStep, r.ratio)
+
+	if err != nil {
+		return 0, errors.Errorf("error calculating builtin memory units: %s", err)
+	}
+
+	return r.CellsPerInstance() * value, nil
+}
+
+func (r *SignatureBuiltinRunner) CellsPerInstance() uint {
+	return SIGNATURE_CELLS_PER_INSTANCE
+}
+
+func (r *SignatureBuiltinRunner) GetRangeCheckUsage(memory *memory.Memory) (*uint, *uint) {
+	return nil, nil
+}
+
+func (r *SignatureBuiltinRunner) GetUsedCellsAndAllocatedSizes(segments *memory.MemorySegmentManager, currentStep uint) (uint, uint, error) {
+	used, err := segments.GetSegmentUsedSize(uint(r.base.SegmentIndex))
+	if err != nil {
+		return 0, 0, err
+	}
+
+	size, err := r.GetAllocatedMemoryUnits(segments, currentStep)
+
+	if err != nil {
+		return 0, 0, err
+	}
+
+	if used > size {
+		return 0, 0, errors.Errorf("The builtin %s used %d cells but the capacity is %d", r.Name(), used, size)
+	}
+
+	return used, size, nil
+}
+
+func (r *SignatureBuiltinRunner) GetUsedDilutedCheckUnits(dilutedSpacing uint, dilutedNBits uint) uint {
+	return 0
+}
+
+func (r *SignatureBuiltinRunner) GetUsedPermRangeCheckLimits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
+	return 0, nil
 }
 
 func (r *SignatureBuiltinRunner) AddValidationRule(mem *memory.Memory) {

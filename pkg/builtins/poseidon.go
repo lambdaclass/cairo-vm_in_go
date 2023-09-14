@@ -20,8 +20,8 @@ type PoseidonBuiltinRunner struct {
 	instancesPerComponent uint
 }
 
-func NewPoseidonBuiltinRunner() *PoseidonBuiltinRunner {
-	return &PoseidonBuiltinRunner{cache: make(map[memory.Relocatable]lambdaworks.Felt), instancesPerComponent: 1}
+func NewPoseidonBuiltinRunner(ratio uint) *PoseidonBuiltinRunner {
+	return &PoseidonBuiltinRunner{cache: make(map[memory.Relocatable]lambdaworks.Felt), instancesPerComponent: 1, ratio: ratio}
 }
 
 func (p *PoseidonBuiltinRunner) Base() memory.Relocatable {

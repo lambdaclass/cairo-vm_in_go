@@ -36,8 +36,10 @@ func NewSmallLayout() CairoLayout {
 		Name: "small",
 		Builtins: []builtins.BuiltinRunner{
 			builtins.NewOutputBuiltinRunner(),
-			builtins.NewPedersenBuiltinRunner(),
-			builtins.DefaultRangeCheckBuiltinRunner()},
+			builtins.NewPedersenBuiltinRunner(256),
+			builtins.DefaultRangeCheckBuiltinRunner(),
+			builtins.NewSignatureBuiltinRunner(2048),
+		},
 		RcUnits:              16,
 		PublicMemoryFraction: 4,
 		MemoryUnitsPerStep:   8,
@@ -50,14 +52,26 @@ func NewAllCairoLayout() CairoLayout {
 		Name: "all_cairo",
 		Builtins: []builtins.BuiltinRunner{
 			builtins.NewOutputBuiltinRunner(),
-			builtins.DefaultPedersenBuiltinRunner(),
+			builtins.NewPedersenBuiltinRunner(256),
 			builtins.DefaultRangeCheckBuiltinRunner(),
-			builtins.DefaultBitwiseBuiltinRunner(),
-			builtins.DefaultKeccakBuiltinRunner(),
-			builtins.NewPoseidonBuiltinRunner()},
+			builtins.NewSignatureBuiltinRunner(2048),
+			builtins.NewBitwiseBuiltinRunner(16),
+			builtins.NewKeccakBuiltinRunner(2048),
+			builtins.NewPoseidonBuiltinRunner(256)},
 		RcUnits:              4,
 		PublicMemoryFraction: 8,
 		MemoryUnitsPerStep:   8,
 		DilutedPoolInstance:  DefaultDilutedPoolInstance(),
 	}
 }
+
+// BuiltinsInstanceDef {
+// 	output: true,
+// 	pedersen: Some(PedersenInstanceDef::new(Some(256), 1)),
+// 	range_check: Some(RangeCheckInstanceDef::default()),
+// 	ecdsa: Some(EcdsaInstanceDef::new(Some(2048))),
+// 	bitwise: Some(BitwiseInstanceDef::new(Some(16))),
+// 	ec_op: Some(EcOpInstanceDef::new(Some(1024))),
+// 	keccak: Some(KeccakInstanceDef::new(Some(2048), vec![200; 8])),
+// 	poseidon: Some(PoseidonInstanceDef::new(Some(256))),
+// }

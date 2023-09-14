@@ -11,7 +11,7 @@ import (
 )
 
 func TestPoseidonDeduceMemoryCellValid(t *testing.T) {
-	poseidon := builtins.NewPoseidonBuiltinRunner()
+	poseidon := builtins.NewPoseidonBuiltinRunner(256)
 	vmachine := vm.NewVirtualMachine()
 	vmachine.BuiltinRunners = append(vmachine.BuiltinRunners, poseidon)
 
@@ -40,7 +40,7 @@ func TestPoseidonDeduceMemoryCellValid(t *testing.T) {
 }
 
 func TestPoseidonDeduceMemoryCellNoInputCells(t *testing.T) {
-	poseidon := builtins.NewPoseidonBuiltinRunner()
+	poseidon := builtins.NewPoseidonBuiltinRunner(256)
 	vmachine := vm.NewVirtualMachine()
 	vmachine.BuiltinRunners = append(vmachine.BuiltinRunners, poseidon)
 	addr := memory.NewRelocatable(0, 5)
@@ -50,7 +50,7 @@ func TestPoseidonDeduceMemoryCellNoInputCells(t *testing.T) {
 	}
 }
 func TestPoseidonDeduceMemoryCellInputCell(t *testing.T) {
-	poseidon := builtins.NewPoseidonBuiltinRunner()
+	poseidon := builtins.NewPoseidonBuiltinRunner(256)
 	vmachine := vm.NewVirtualMachine()
 	vmachine.BuiltinRunners = append(vmachine.BuiltinRunners, poseidon)
 	addr := memory.NewRelocatable(0, 1)
@@ -62,7 +62,7 @@ func TestPoseidonDeduceMemoryCellInputCell(t *testing.T) {
 
 func TestPoseidonInitializeSegments(t *testing.T) {
 	mem_manager := memory.NewMemorySegmentManager()
-	poseidon := builtins.NewPoseidonBuiltinRunner()
+	poseidon := builtins.NewPoseidonBuiltinRunner(256)
 	poseidon.InitializeSegments(&mem_manager)
 
 	if mem_manager.Memory.NumSegments() != 1 {
@@ -75,7 +75,7 @@ func TestPoseidonInitializeSegments(t *testing.T) {
 }
 
 func TestPoseidonInitialStackIncluded(t *testing.T) {
-	poseidon := builtins.NewPoseidonBuiltinRunner()
+	poseidon := builtins.NewPoseidonBuiltinRunner(256)
 	poseidon.Include(true)
 	initial_stack := poseidon.InitialStack()
 	expected_stack := []memory.MaybeRelocatable{*memory.NewMaybeRelocatableRelocatable(poseidon.Base())}
@@ -85,7 +85,7 @@ func TestPoseidonInitialStackIncluded(t *testing.T) {
 }
 
 func TestPoseidonInitialStackNotIncluded(t *testing.T) {
-	poseidon := builtins.NewPoseidonBuiltinRunner()
+	poseidon := builtins.NewPoseidonBuiltinRunner(256)
 	if len(poseidon.InitialStack()) != 0 {
 		t.Errorf("Initial stack should be empty if not included")
 	}
@@ -94,7 +94,7 @@ func TestPoseidonInitialStackNotIncluded(t *testing.T) {
 func TestPoseidonAddValidationRule(t *testing.T) {
 	empty_mem := memory.NewMemory()
 	mem := memory.NewMemory()
-	poseidon := builtins.NewPoseidonBuiltinRunner()
+	poseidon := builtins.NewPoseidonBuiltinRunner(256)
 	poseidon.AddValidationRule(mem)
 	// Check that the memory is equal to a newly created one to check that
 	// no validation rules were added
