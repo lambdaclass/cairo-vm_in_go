@@ -68,7 +68,7 @@ func (ids *IdsManager) Get(name string, vm *VirtualMachine) (*MaybeRelocatable, 
 			return val, nil
 		}
 	}
-	return nil, errors.Errorf("Unknow identifier %s", name)
+	return nil, errors.Errorf("Unknown identifier %s", name)
 }
 
 // Returns the address of an identifier given its name
@@ -80,7 +80,7 @@ func (ids *IdsManager) GetAddr(name string, vm *VirtualMachine) (Relocatable, er
 			return addr, nil
 		}
 	}
-	return Relocatable{}, errors.Errorf("Unknow identifier %s", name)
+	return Relocatable{}, errors.Errorf("Unknown identifier %s", name)
 }
 
 /*
@@ -104,7 +104,7 @@ func (ids *IdsManager) GetStructField(name string, field_off uint, vm *VirtualMa
 			return val, nil
 		}
 	}
-	return nil, errors.Errorf("Unknow identifier %s", name)
+	return nil, errors.Errorf("Unknown  identifier %s", name)
 }
 
 /*
@@ -133,7 +133,7 @@ func (ids *IdsManager) GetStructFieldFelt(name string, field_off uint, vm *Virtu
 		}
 	}
 
-	return lambdaworks.Felt{}, errors.Errorf("Unknow identifier %s", name)
+	return lambdaworks.Felt{}, errors.Errorf("Unknown identifier %s", name)
 }
 
 /*
