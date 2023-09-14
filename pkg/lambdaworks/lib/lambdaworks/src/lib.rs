@@ -223,3 +223,13 @@ pub extern "C" fn felt_shr(a: Limbs, b: usize, result: Limbs) {
     felt_to_limbs(Felt::from(&res), result)
 }
 
+#[no_mangle]
+pub extern "C" fn div_rem(a: Limbs, b: Limbs, div: Limbs, rem: Limbs) {
+    let felt_a = limbs_to_felt(a).representative();
+    let felt_b = limbs_to_felt(b).representative();
+
+    let (felt_div, felt_rem) = felt_a.div_rem(&felt_b);
+
+    felt_to_limbs(Felt::from(&felt_div), div);
+    felt_to_limbs(Felt::from(&felt_rem), rem)
+}
