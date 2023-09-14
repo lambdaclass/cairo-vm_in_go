@@ -56,6 +56,7 @@ func NewAllCairoLayout() CairoLayout {
 			builtins.DefaultRangeCheckBuiltinRunner(),
 			builtins.NewSignatureBuiltinRunner(2048),
 			builtins.NewBitwiseBuiltinRunner(16),
+			builtins.NewEcOpBuiltinRunner(1024),
 			builtins.NewKeccakBuiltinRunner(2048),
 			builtins.NewPoseidonBuiltinRunner(256)},
 		RcUnits:              4,
@@ -64,14 +65,3 @@ func NewAllCairoLayout() CairoLayout {
 		DilutedPoolInstance:  DefaultDilutedPoolInstance(),
 	}
 }
-
-// BuiltinsInstanceDef {
-// 	output: true,
-// 	pedersen: Some(PedersenInstanceDef::new(Some(256), 1)),
-// 	range_check: Some(RangeCheckInstanceDef::default()),
-// 	ecdsa: Some(EcdsaInstanceDef::new(Some(2048))),
-// 	bitwise: Some(BitwiseInstanceDef::new(Some(16))),
-// 	ec_op: Some(EcOpInstanceDef::new(Some(1024))),
-// 	keccak: Some(KeccakInstanceDef::new(Some(2048), vec![200; 8])),
-// 	poseidon: Some(PoseidonInstanceDef::new(Some(256))),
-// }
