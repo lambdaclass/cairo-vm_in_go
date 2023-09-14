@@ -301,3 +301,60 @@ func TestSquashDictInvalidOneKeyDictNAccessesTooBig(t *testing.T) {
 		t.Errorf("SQUASH_DICT hint should have failed")
 	}
 }
+
+func TestSquashDictSkipLoopTrue(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"should_skip_loop": {nil},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SQUASH_DICT_INNER_SKIP_LOOP,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("SQUASH_DICT_INNER_SKIP_LOOP hint failed with error: %s", err)
+	}
+	// Check ids.skip_loop
+	skipLoop, err := idsManager.GetFelt("should_skip_loop", vm)
+	if err != nil || skipLoop != FeltOne() {
+		t.Errorf("SQUASH_DICT_INNER_SKIP_LOOP hint failed. Wrong/No ids.skip_loop")
+	}
+}
+
+func TestSquashDictSkipLoopFalse(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("current_access_indices", []MaybeRelocatable{})
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"should_skip_loop": {nil},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SQUASH_DICT_INNER_SKIP_LOOP,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("SQUASH_DICT_INNER_SKIP_LOOP hint failed with error: %s", err)
+	}
+	// Check ids.skip_loop
+	skipLoop, err := idsManager.GetFelt("should_skip_loop", vm)
+	if err != nil || skipLoop != FeltZero() {
+		t.Errorf("SQUASH_DICT_INNER_SKIP_LOOP hint failed. Wrong/No ids.skip_loop")
+	}
+}

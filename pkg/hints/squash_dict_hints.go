@@ -5,7 +5,7 @@ import (
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
-	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
@@ -59,7 +59,7 @@ func squashDict(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) err
 	if err != nil {
 		return err
 	}
-	if !ptrDiff.ModFloor(lambdaworks.FeltFromUint64(DICT_ACCESS_SIZE)).IsZero() {
+	if !ptrDiff.ModFloor(FeltFromUint64(DICT_ACCESS_SIZE)).IsZero() {
 		return errors.New("Accesses array size must be divisible by DictAccess.SIZE")
 	}
 	nAccessesFelt, err := ids.GetFelt("n_accesses", vm)
@@ -96,10 +96,10 @@ func squashDict(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) err
 	keys := maps.Keys(accessIndices)
 	sort.Sort(sort.Reverse(SortMaybeRelocatables(keys)))
 	//Are the keys used bigger than the range_check bound.
-	bigKeys := lambdaworks.FeltZero()
+	bigKeys := FeltZero()
 	highKeyFelt, isFelt := keys[0].GetFelt()
 	if isFelt && highKeyFelt.Bits() >= builtins.RANGE_CHECK_N_PARTS*builtins.INNER_RC_BOUND_SHIFT {
-		bigKeys = lambdaworks.FeltOne()
+		bigKeys = FeltOne()
 	}
 	lowKey := keys[len(keys)-1]
 	// Insert new scope variables
@@ -112,4 +112,12 @@ func squashDict(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) err
 		return err
 	}
 	return ids.Insert("first_key", &lowKey, vm)
+}
+
+func squashDictInnerSkipLoop(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error {
+	_, err := scopes.Get("current_access_indices")
+	if err == nil {
+		return ids.Insert("should_skip_loop", NewMaybeRelocatableFelt(FeltZero()), vm)
+	}
+	return ids.Insert("should_skip_loop", NewMaybeRelocatableFelt(FeltOne()), vm)
 }
