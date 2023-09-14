@@ -74,3 +74,12 @@ void felt_shr(felt_t a, size_t b, felt_t result);
 
 /* Writes the div & rem variables with a.div_rem(b). */
 void div_rem(felt_t a, felt_t b, felt_t div, felt_t rem);
+
+/*
+Compares x and y and returns:
+
+	-1 if a <  b
+	 0 if a == b
+	+1 if a >  b
+*/
+int cmp(felt_t a, felt_t b);

@@ -233,3 +233,15 @@ pub extern "C" fn div_rem(a: Limbs, b: Limbs, div: Limbs, rem: Limbs) {
     felt_to_limbs(Felt::from(&felt_div), div);
     felt_to_limbs(Felt::from(&felt_rem), rem)
 }
+
+#[no_mangle]
+pub extern "C" fn cmp(a: Limbs, b: Limbs) -> i32 {
+    let felt_a = limbs_to_felt(a);
+    let felt_b = limbs_to_felt(b);
+    match (felt_a, felt_b) {
+        (a, b) if a == b => 0,
+        (a, b) if a > b => 1,
+        // (a < b)
+        _ => -1,
+    }
+}
