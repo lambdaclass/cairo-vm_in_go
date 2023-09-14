@@ -430,3 +430,56 @@ func TestSquashDictInnerFirstIterationEmpty(t *testing.T) {
 		t.Error("SQUASH_DICT_INNER_FIRST_ITERATION hint should have failed")
 	}
 }
+
+func TestSquashDictInnerCheckAccessIndexOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("current_access_indices", []int{
+		10, 9, 7, 5,
+	},
+	)
+	scopes.AssignOrUpdateVariable("current_access_index", int(1))
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"loop_temps": {nil},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SQUASH_DICT_INNER_CHECK_ACCESS_INDEX,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("SQUASH_DICT_INNER_CHECK_ACCESS_INDEX hint failed with error: %s", err)
+	}
+	// Check scope values
+	currentAccessIndicesAny, err := scopes.Get("current_access_indices")
+	currentAccessIndices := currentAccessIndicesAny.([]int)
+	expectedCurrentAccessIndices := []int{10, 9, 7}
+	if !reflect.DeepEqual(currentAccessIndices, expectedCurrentAccessIndices) {
+		t.Errorf("Wrong current_access_indices.\n Expected %v, got: %v", expectedCurrentAccessIndices, currentAccessIndices)
+	}
+
+	currentAccessIndexAny, err := scopes.Get("current_access_index")
+	currentAccessIndex := currentAccessIndexAny.(int)
+	expectedCurrentAccessIndex := int(5)
+	if !reflect.DeepEqual(currentAccessIndex, expectedCurrentAccessIndex) {
+		t.Errorf("Wrong current_access_index.\n Expected %v, got: %v", expectedCurrentAccessIndex, currentAccessIndex)
+	}
+
+	newAccessIndexAny, err := scopes.Get("new_access_index")
+	newAccessIndex := newAccessIndexAny.(int)
+	expectedNewAccessIndex := int(5)
+	if !reflect.DeepEqual(newAccessIndex, expectedNewAccessIndex) {
+		t.Errorf("Wrong new_access_index.\n Expected %v, got: %v", expectedNewAccessIndex, newAccessIndex)
+	}
+
+	//Check loop_temps.index_delta_minus_1
+	val, err := idsManager.GetFelt("loop_temps", vm)
+	if err != nil || val != FeltFromUint64(3) {
+		t.Errorf("Wrong/No value inserted into memory[ids.range_check_ptr]")
+	}
+}
