@@ -252,3 +252,22 @@ func (f Felt) ToSigned() *big.Int {
 	}
 	return n
 }
+
+func (a Felt) DivRem(b Felt) (Felt, Felt) {
+	var div C.felt_t
+	var rem C.felt_t
+	var a_c C.felt_t = a.toC()
+	var b_c C.felt_t = b.toC()
+	C.div_rem(&a_c[0], &b_c[0], &div[0], &rem[0])
+	return fromC(div), fromC(rem)
+}
+
+func (a Felt) ModFloor(b Felt) Felt {
+	_, rem := a.DivRem(b)
+	return rem
+}
+
+func (a Felt) DivFloor(b Felt) Felt {
+	div, _ := a.DivRem(b)
+	return div
+}
