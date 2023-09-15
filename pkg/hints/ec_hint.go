@@ -12,7 +12,7 @@ import (
 )
 
 type BigInt3 struct {
-	limbs []lambdaworks.Felt
+	Limbs []lambdaworks.Felt
 }
 
 type EcPoint struct {
@@ -23,7 +23,7 @@ type EcPoint struct {
 func (val *BigInt3) Pack86() big.Int {
 	sum := big.NewInt(0)
 	for i := 0; i < 3; i++ {
-		felt := val.limbs[i]
+		felt := val.Limbs[i]
 		signed := felt.ToSigned()
 		shifed := new(big.Int).Lsh(signed, uint(i*86))
 		sum.Add(sum, shifed)
@@ -41,7 +41,7 @@ func FromBaseAddr(addr memory.Relocatable, virtual_machine vm.VirtualMachine) (B
 			return BigInt3{}, errors.New("Identifier has no member")
 		}
 	}
-	return BigInt3{limbs: limbs}, nil
+	return BigInt3{Limbs: limbs}, nil
 }
 
 func FromVarName(name string, virtual_machine vm.VirtualMachine, ids_data hint_utils.IdsManager) (EcPoint, error) {
