@@ -9,6 +9,29 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
+func TestCmpHigher(t *testing.T) {
+	a := lambdaworks.FeltFromUint64(13)
+	b := lambdaworks.FeltFromUint64(3)
+	if a.Cmp(b) != 1 {
+		t.Errorf("TestCmpEq failed")
+	}
+}
+
+func TestCmpLower(t *testing.T) {
+	a := lambdaworks.FeltFromUint64(3)
+	b := lambdaworks.FeltFromUint64(13)
+	if a.Cmp(b) != -1 {
+		t.Errorf("TestCmpEq failed")
+	}
+}
+
+func TestCmpEq(t *testing.T) {
+	a := lambdaworks.FeltFromUint64(13)
+	b := lambdaworks.FeltFromUint64(13)
+	if a.Cmp(b) != 0 {
+		t.Errorf("TestCmpEq failed")
+	}
+}
 func TestToBigInt(t *testing.T) {
 	felt := lambdaworks.FeltFromUint64(26)
 	bigInt := felt.ToBigInt()
