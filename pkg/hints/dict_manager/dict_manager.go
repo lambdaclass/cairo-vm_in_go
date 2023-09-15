@@ -9,24 +9,26 @@ import (
 // Manages dictionaries in a Cairo program.
 // Uses the segment index to associate the corresponding go dict with the Cairo dict.
 type DictManager struct {
-	trackers map[int]DictTracker
+	trackers map[int]*DictTracker
 }
 
 func NewDictManager() DictManager {
 	return DictManager{
-		trackers: make(map[int]DictTracker),
+		trackers: make(map[int]*DictTracker),
 	}
 }
 
 func (d *DictManager) NewDictionary(dict *map[MaybeRelocatable]MaybeRelocatable, vm *VirtualMachine) Relocatable {
 	base := vm.Segments.AddSegment()
-	d.trackers[base.SegmentIndex] = NewDictTrackerForDictionary(base, dict)
+	newTracker := NewDictTrackerForDictionary(base, dict)
+	d.trackers[base.SegmentIndex] = &newTracker
 	return base
 }
 
-func (d *DictManager) NewDefaultDictionary(defaultValue *MaybeRelocatable, dict *map[MaybeRelocatable]MaybeRelocatable, vm *VirtualMachine) Relocatable {
+func (d *DictManager) NewDefaultDictionary(defaultValue *MaybeRelocatable, vm *VirtualMachine) Relocatable {
 	base := vm.Segments.AddSegment()
-	d.trackers[base.SegmentIndex] = NewDictTrackerForDefaultDictionary(base, defaultValue, dict)
+	newTracker := NewDictTrackerForDefaultDictionary(base, defaultValue)
+	d.trackers[base.SegmentIndex] = &newTracker
 	return base
 }
 
@@ -35,30 +37,30 @@ func (d *DictManager) GetTracker(dict_ptr Relocatable) (*DictTracker, error) {
 	if !ok {
 		return nil, errors.Errorf("Dict Error: No dict tracker found for segment %d", dict_ptr.SegmentIndex)
 	}
-	if tracker.currentPtr != dict_ptr {
-		return nil, errors.Errorf("Dict Error: Wrong dict pointer supplied. Got %v, expected %v", dict_ptr, tracker.currentPtr)
+	if tracker.CurrentPtr != dict_ptr {
+		return nil, errors.Errorf("Dict Error: Wrong dict pointer supplied. Got %v, expected %v", dict_ptr, tracker.CurrentPtr)
 	}
-	return &tracker, nil
+	return tracker, nil
 }
 
 // Tracks the go dict associated with a Cairo dict.
 type DictTracker struct {
 	data Dictionary
 	// Pointer to the first unused position in the dict segment.
-	currentPtr Relocatable
+	CurrentPtr Relocatable
 }
 
 func NewDictTrackerForDictionary(base Relocatable, dict *map[MaybeRelocatable]MaybeRelocatable) DictTracker {
 	return DictTracker{
 		data:       NewDictionary(dict),
-		currentPtr: base,
+		CurrentPtr: base,
 	}
 }
 
-func NewDictTrackerForDefaultDictionary(base Relocatable, defaultValue *MaybeRelocatable, dict *map[MaybeRelocatable]MaybeRelocatable) DictTracker {
+func NewDictTrackerForDefaultDictionary(base Relocatable, defaultValue *MaybeRelocatable) DictTracker {
 	return DictTracker{
-		data:       NewDefaultDictionary(defaultValue, dict),
-		currentPtr: base,
+		data:       NewDefaultDictionary(defaultValue),
+		CurrentPtr: base,
 	}
 }
 
@@ -83,9 +85,9 @@ type Dictionary struct {
 	defaultValue *MaybeRelocatable
 }
 
-func NewDefaultDictionary(defaultValue *MaybeRelocatable, dict *map[MaybeRelocatable]MaybeRelocatable) Dictionary {
+func NewDefaultDictionary(defaultValue *MaybeRelocatable) Dictionary {
 	return Dictionary{
-		dict:         *dict,
+		dict:         make(map[MaybeRelocatable]MaybeRelocatable),
 		defaultValue: defaultValue,
 	}
 }
