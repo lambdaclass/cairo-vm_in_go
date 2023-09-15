@@ -73,6 +73,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return squashDictInnerLenAssert(execScopes)
 	case SQUASH_DICT_INNER_USED_ACCESSES_ASSERT:
 		return squashDictInnerUsedAccessesAssert(data.Ids, execScopes, vm)
+	case VM_EXIT_SCOPE:
+		return vm_exit_scope(execScopes)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
