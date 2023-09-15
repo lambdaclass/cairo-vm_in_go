@@ -72,7 +72,7 @@ run:
 test: build $(COMPILED_TESTS) $(COMPILED_PROOF_TESTS)
 	@go test -v ./...
 
-coverage: $(COMPILED_TESTS)
+coverage: $(COMPILED_TESTS) $(COMPILED_PROOF_TESTS)
 	@go test -race -coverprofile=coverage.out -covermode=atomic ./...
 
 coverage_html: coverage
