@@ -779,7 +779,7 @@ func TestSquashDictInnerNextKeyErr(t *testing.T) {
 		Code: SQUASH_DICT_INNER_NEXT_KEY,
 	})
 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
-	if err != nil {
+	if err == nil {
 		t.Errorf("SQUASH_DICT_INNER_NEXT_KEY hint should have failed")
 	}
 }
