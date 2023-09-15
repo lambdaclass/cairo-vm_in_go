@@ -19,20 +19,26 @@ type RunResources struct {
 }
 
 type CairoRunConfig struct {
-	TraceFile  *string
-	MemoryFile *string
+	// TraceFile           *string
+	// MemoryFile          *string
+	DisableTracePadding bool
+	ProofMode           bool
+	Layout              string
 }
 
 func CairoRunError(err error) error {
 	return errors.Wrapf(err, "Cairo Run Error\n")
 }
 
-func CairoRun(programPath string, layout string, proofMode bool) (*runners.CairoRunner, error) {
+func CairoRun(programPath string, cairoRunConfig CairoRunConfig) (*runners.CairoRunner, error) {
 	compiledProgram, err := parser.Parse(programPath)
 	if err != nil {
 		return nil, CairoRunError(err)
 	}
 	programJson := vm.DeserializeProgramJson(compiledProgram)
+
+	layout := cairoRunConfig.Layout
+	proofMode := cairoRunConfig.ProofMode
 
 	cairoRunner, err := runners.NewCairoRunner(programJson, layout, proofMode)
 	if err != nil {
@@ -47,6 +53,20 @@ func CairoRun(programPath string, layout string, proofMode bool) (*runners.Cairo
 	if err != nil {
 		return nil, err
 	}
+	err = cairoRunner.EndRun(cairoRunConfig.DisableTracePadding, false, &cairoRunner.Vm, &hintProcessor)
+	if err != nil {
+		return nil, err
+	}
+
+	err = cairoRunner.ReadReturnValues(&cairoRunner.Vm)
+	if err != nil {
+		return nil, err
+	}
+
+	if cairoRunConfig.ProofMode {
+		cairoRunner.FinalizeSegments(cairoRunner.Vm)
+	}
+
 	err = cairoRunner.Vm.Relocate()
 	return cairoRunner, err
 }

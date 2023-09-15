@@ -8,14 +8,14 @@ import (
 )
 
 func TestBaseSignature(t *testing.T) {
-	check_range := builtins.NewSignatureBuiltinRunner()
+	check_range := builtins.NewSignatureBuiltinRunner(2048)
 	if check_range.Base() != memory.NewRelocatable(0, 0) {
 		t.Errorf("Wrong base value in %s builtin", check_range.Name())
 	}
 }
 
 func TestInitializeSegmentsForSignatureBuiltin(t *testing.T) {
-	range_check_builtin := builtins.NewSignatureBuiltinRunner()
+	range_check_builtin := builtins.NewSignatureBuiltinRunner(2048)
 	segment_manager := memory.NewMemorySegmentManager()
 	range_check_builtin.InitializeSegments(&segment_manager)
 	if range_check_builtin.Base() != memory.NewRelocatable(0, 0) {
