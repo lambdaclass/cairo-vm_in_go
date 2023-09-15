@@ -17,7 +17,6 @@ pub const FIELD_LOW: u128 = 1;
 lazy_static! {
     static ref CAIRO_PRIME_BIGUINT: BigUint =
         (Into::<BigUint>::into(FIELD_HIGH) << 128) + Into::<BigUint>::into(FIELD_LOW);
-    pub static ref FELT_MAX: BigUint = &*CAIRO_PRIME_BIGUINT - 1_u32;
     pub static ref SIGNED_FELT_MAX: BigUint = &*CAIRO_PRIME_BIGUINT >> 1_u32;
     pub static ref CAIRO_SIGNED_PRIME: BigInt = CAIRO_PRIME_BIGUINT
         .to_bigint()
