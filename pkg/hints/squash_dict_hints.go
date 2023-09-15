@@ -239,3 +239,33 @@ func squashDictInnerLenAssert(scopes *ExecutionScopes) error {
 	}
 	return nil
 }
+
+func squashDictInnerUsedAccessesAssert(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error {
+	// Fetch scope variables
+	accessIndicesAny, err := scopes.Get("access_indices")
+	if err != nil {
+		return err
+	}
+	accessIndices, ok := accessIndicesAny.(map[MaybeRelocatable][]int)
+	if !ok {
+		return errors.New("access_indices not in scope")
+	}
+	keyAny, err := scopes.Get("key")
+	if err != nil {
+		return err
+	}
+	key, ok := keyAny.(MaybeRelocatable)
+	if !ok {
+		return errors.New("key not in scope")
+	}
+	// Fetch ids variable
+	nUsedAccesses, err := ids.GetFelt("n_used_accesses", vm)
+	if err != nil {
+		return err
+	}
+	// Hint logic
+	if FeltFromUint64(uint64(len(accessIndices[key]))) != nUsedAccesses {
+		return errors.New("Assertion failed: ids.n_used_accesses == len(access_indices[key])")
+	}
+	return nil
+}
