@@ -42,3 +42,7 @@ func MaxInt(x int, y int) int {
 		return y
 	}
 }
+
+func DivCeil(x uint, y uint) uint {
+	return 1 + (x-1)/y
+}

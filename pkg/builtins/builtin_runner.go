@@ -1,8 +1,27 @@
 package builtins
 
 import (
+	"fmt"
+
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+	"github.com/pkg/errors"
 )
+
+var ErrNoStopPointer = errors.New("No Stop Pointer")
+var ErrInvalidStopPointerIndex = errors.New("Invalid Stop Pointer Index")
+var ErrInvalidStopPointer = errors.New("Invalid Stop Pointer")
+
+func NewErrNoStopPointer(builtinName string) error {
+	return fmt.Errorf("%w builtin: %s", ErrNoStopPointer, builtinName)
+}
+
+func NewErrInvalidStopPointerIndex(builtinName string, stopPtr memory.Relocatable, base memory.Relocatable) error {
+	return fmt.Errorf("%w builtin: %s stopPtr: (%d, %d) base: (%d, %d)", ErrInvalidStopPointerIndex, builtinName, stopPtr.SegmentIndex, stopPtr.Offset, base.SegmentIndex, base.Offset)
+}
+
+func NewErrInvalidStopPointer(builtinName string, used uint, stopPtr memory.Relocatable) error {
+	return fmt.Errorf("%w builtin: %s used: (%d, %d) stopPtr: (%d, %d)", ErrInvalidStopPointer, builtinName, stopPtr.SegmentIndex, used, stopPtr.SegmentIndex, stopPtr.Offset)
+}
 
 type BuiltinRunner interface {
 	// Returns the first address of the builtin's memory segment
@@ -35,12 +54,13 @@ type BuiltinRunner interface {
 	GetUsedPermRangeCheckLimits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error)
 	GetUsedDilutedCheckUnits(dilutedSpacing uint, dilutedNBits uint) uint
 	GetUsedCellsAndAllocatedSizes(segments *memory.MemorySegmentManager, currentStep uint) (uint, uint, error)
+	FinalStack(segments *memory.MemorySegmentManager, pointer memory.Relocatable) (memory.Relocatable, error)
 	// // II. SECURITY (secure-run flag cairo-run || verify-secure flag run_from_entrypoint)
 	// RunSecurityChecks(*vm.VirtualMachine) error // verify_secure_runner logic
 	// // Returns the base & stop_ptr, stop_ptr can be nil
 	// GetMemorySegmentAddresses() (memory.Relocatable, *memory.Relocatable) //verify_secure_runner logic
 	// // III. STARKNET-SPECIFIC
-	// GetUsedInstances(*memory.MemorySegmentManager) (uint, error) // get_execution_resources (starknet use case)
+	GetUsedInstances(*memory.MemorySegmentManager) (uint, error)
 	// // IV. GENERAL CASE (but not critical)
 	// FinalStack(*memory.MemorySegmentManager, memory.Relocatable) (memory.Relocatable, error) // read_return_values
 }

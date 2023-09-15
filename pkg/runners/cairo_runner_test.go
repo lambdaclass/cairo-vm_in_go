@@ -708,8 +708,8 @@ func TestCheckUsedCellsDilutedCheckUsageError(t *testing.T) {
 	}
 	virtualMachine := vm.NewVirtualMachine()
 
-	virtualMachine.Segments.SegmentSizes = make(map[uint]uint)
-	virtualMachine.Segments.SegmentSizes[0] = 4
+	virtualMachine.Segments.SegmentUsedSizes = make(map[uint]uint)
+	virtualMachine.Segments.SegmentUsedSizes[0] = 4
 	virtualMachine.Trace = []vm.TraceEntry{}
 
 	err = runner.CheckUsedCells(virtualMachine)

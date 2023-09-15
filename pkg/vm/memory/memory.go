@@ -1,10 +1,10 @@
 package memory
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/pkg/errors"
 )
 
 // A Set to store Relocatable values
@@ -177,4 +177,18 @@ func (m *Memory) ValidateExistingMemory() error {
 		}
 	}
 	return nil
+}
+
+func (m *Memory) GetRelocatable(key Relocatable) (Relocatable, error) {
+	memoryValue, err := m.Get(key)
+	if err != nil {
+		return Relocatable{}, err
+	}
+
+	ret, isRelocatable := memoryValue.GetRelocatable()
+	if !isRelocatable {
+		return Relocatable{}, errors.Errorf("Expected Relocatable value in memory at address (%d, %d)", key.SegmentIndex, key.Offset)
+	}
+
+	return ret, nil
 }

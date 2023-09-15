@@ -19,7 +19,7 @@ func TestComputeEffectiveSizeOneSegment(t *testing.T) {
 	segments.ComputeEffectiveSizes()
 
 	expectedSizes := map[uint]uint{0: 3}
-	if !reflect.DeepEqual(expectedSizes, segments.SegmentSizes) {
+	if !reflect.DeepEqual(expectedSizes, segments.SegmentUsedSizes) {
 		t.Errorf("Segment sizes are not the same")
 	}
 }
@@ -32,7 +32,7 @@ func TestComputeEffectiveSizeOneSegmentWithOneGap(t *testing.T) {
 	segments.ComputeEffectiveSizes()
 
 	expectedSizes := map[uint]uint{0: 7}
-	if !reflect.DeepEqual(expectedSizes, segments.SegmentSizes) {
+	if !reflect.DeepEqual(expectedSizes, segments.SegmentUsedSizes) {
 		t.Errorf("Segment sizes are not the same")
 	}
 }
@@ -48,7 +48,7 @@ func TestComputeEffectiveSizeOneSegmentWithMultipleGaps(t *testing.T) {
 	segments.ComputeEffectiveSizes()
 
 	expectedSizes := map[uint]uint{0: 10}
-	if !reflect.DeepEqual(expectedSizes, segments.SegmentSizes) {
+	if !reflect.DeepEqual(expectedSizes, segments.SegmentUsedSizes) {
 		t.Errorf("Segment sizes are not the same")
 	}
 }
@@ -71,7 +71,7 @@ func TestComputeEffectiveSizeThreeSegments(t *testing.T) {
 	segments.ComputeEffectiveSizes()
 
 	expectedSizes := map[uint]uint{0: 3, 1: 3, 2: 3}
-	if !reflect.DeepEqual(expectedSizes, segments.SegmentSizes) {
+	if !reflect.DeepEqual(expectedSizes, segments.SegmentUsedSizes) {
 		t.Errorf("Segment sizes are not the same")
 	}
 }
@@ -92,7 +92,7 @@ func TestComputeEffectiveSizeThreeSegmentsWithGaps(t *testing.T) {
 	segments.ComputeEffectiveSizes()
 
 	expectedSizes := map[uint]uint{0: 8, 1: 2, 2: 8}
-	if !reflect.DeepEqual(expectedSizes, segments.SegmentSizes) {
+	if !reflect.DeepEqual(expectedSizes, segments.SegmentUsedSizes) {
 		t.Errorf("Segment sizes are not the same")
 	}
 }
@@ -112,7 +112,7 @@ func TestGetSegmentUsedSizeAfterComputingUsed(t *testing.T) {
 
 	segments.ComputeEffectiveSizes()
 
-	segmentSize, ok := segments.SegmentSizes[2]
+	segmentSize, ok := segments.SegmentUsedSizes[2]
 	expectedSize := 8
 	if !ok || segmentSize != uint(expectedSize) {
 		t.Errorf("Segment size should be %d but it's %d", expectedSize, segmentSize)
@@ -122,7 +122,7 @@ func TestGetSegmentUsedSizeAfterComputingUsed(t *testing.T) {
 func TestGetSegmentUsedSizeBeforeComputingUsed(t *testing.T) {
 	segments := memory.NewMemorySegmentManager()
 
-	_, ok := segments.SegmentSizes[2]
+	_, ok := segments.SegmentUsedSizes[2]
 	if ok {
 		t.Errorf("Expected no segment sizes loaded")
 	}
@@ -131,10 +131,10 @@ func TestGetSegmentUsedSizeBeforeComputingUsed(t *testing.T) {
 func TestRelocateOneSegment(t *testing.T) {
 	segments := memory.NewMemorySegmentManager()
 	segments.AddSegment()
-	segments.SegmentSizes = map[uint]uint{0: 3}
-	relocationTable, ok := segments.RelocateSegments()
+	segments.SegmentUsedSizes = map[uint]uint{0: 3}
+	relocationTable, err := segments.RelocateSegments()
 
-	if !ok {
+	if err != nil {
 		t.Errorf("Memory segment manager doesn't have segment sizes initialized")
 	}
 
@@ -151,10 +151,10 @@ func TestRelocateFiveSegments(t *testing.T) {
 	segments.AddSegment()
 	segments.AddSegment()
 	segments.AddSegment()
-	segments.SegmentSizes = map[uint]uint{0: 3, 1: 3, 2: 56, 3: 78, 4: 8}
-	relocationTable, ok := segments.RelocateSegments()
+	segments.SegmentUsedSizes = map[uint]uint{0: 3, 1: 3, 2: 56, 3: 78, 4: 8}
+	relocationTable, err := segments.RelocateSegments()
 
-	if !ok {
+	if err != nil {
 		t.Errorf("Memory segment manager doesn't have segment sizes initialized")
 	}
 
@@ -169,10 +169,10 @@ func TestRelocateSegmentsWithHoles(t *testing.T) {
 	segments.AddSegment()
 	segments.AddSegment()
 	segments.AddSegment()
-	segments.SegmentSizes = map[uint]uint{0: 3, 2: 3}
-	relocationTable, ok := segments.RelocateSegments()
+	segments.SegmentUsedSizes = map[uint]uint{0: 3, 2: 3}
+	relocationTable, err := segments.RelocateSegments()
 
-	if !ok {
+	if err != nil {
 		t.Errorf("Memory segment manager doesn't have segment sizes initialized")
 	}
 
@@ -197,8 +197,8 @@ func TestRelocateMemory(t *testing.T) {
 
 	segments.ComputeEffectiveSizes()
 
-	relocationTable, ok := segments.RelocateSegments()
-	if !ok {
+	relocationTable, err := segments.RelocateSegments()
+	if err != nil {
 		t.Errorf("Could not create relocation table")
 	}
 

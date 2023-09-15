@@ -8,13 +8,18 @@ import (
 // Also holds metadata useful for the relocation process of
 // the memory at the end of the VM run.
 type MemorySegmentManager struct {
-	SegmentSizes map[uint]uint
-	Memory       Memory
+	SegmentUsedSizes map[uint]uint
+	SegmentSizes     map[uint]uint
+	Memory           Memory
+	// In the original vm implementation, public memory is a list of tuples (uint, uint).
+	// The thing is, that second uint is ALWAYS zero. Every single single time someone instantiates
+	// some public memory, that second value is zero. I just removed it.
+	PublicMemoryOffsets map[uint][]uint
 }
 
 func NewMemorySegmentManager() MemorySegmentManager {
 	memory := NewMemory()
-	return MemorySegmentManager{make(map[uint]uint), *memory}
+	return MemorySegmentManager{make(map[uint]uint), make(map[uint]uint), *memory, make(map[uint][]uint)}
 }
 
 // Adds a memory segment and returns the first address of the new segment
@@ -26,36 +31,37 @@ func (m *MemorySegmentManager) AddSegment() Relocatable {
 
 // Calculates the size of each memory segment.
 func (m *MemorySegmentManager) ComputeEffectiveSizes() map[uint]uint {
-	if len(m.SegmentSizes) == 0 {
+	if len(m.SegmentUsedSizes) == 0 {
 		for ptr := range m.Memory.Data {
 			segmentIndex := uint(ptr.SegmentIndex)
-			segmentMaxSize := m.SegmentSizes[segmentIndex]
+			segmentMaxSize := m.SegmentUsedSizes[segmentIndex]
 			segmentSize := ptr.Offset + 1
 			if segmentSize > segmentMaxSize {
-				m.SegmentSizes[segmentIndex] = segmentSize
+				m.SegmentUsedSizes[segmentIndex] = segmentSize
 			}
 		}
 	}
 
-	return m.SegmentSizes
+	return m.SegmentUsedSizes
 }
 
 // Returns a vector containing the first relocated address of each memory segment
-func (m *MemorySegmentManager) RelocateSegments() ([]uint, bool) {
-	if m.SegmentSizes == nil {
-		return nil, false
-	}
-
+func (m *MemorySegmentManager) RelocateSegments() ([]uint, error) {
 	first_addr := uint(1)
 	relocation_table := []uint{first_addr}
 
 	for i := uint(0); i < m.Memory.numSegments; i++ {
-		new_addr := relocation_table[i] + m.SegmentSizes[i]
+		segmentSize, err := m.GetSegmentSize(i)
+		if err != nil {
+			return nil, err
+		}
+
+		new_addr := relocation_table[i] + segmentSize
 		relocation_table = append(relocation_table, new_addr)
 	}
 	relocation_table = relocation_table[:len(relocation_table)-1]
 
-	return relocation_table, true
+	return relocation_table, nil
 }
 
 // Relocates the VM's memory, turning bidimensional indexes into contiguous numbers, and values
@@ -65,7 +71,12 @@ func (s *MemorySegmentManager) RelocateMemory(relocationTable *[]uint) (map[uint
 	relocatedMemory := make(map[uint]lambdaworks.Felt, 0)
 
 	for i := uint(0); i < s.Memory.numSegments; i++ {
-		for j := uint(0); j < s.SegmentSizes[i]; j++ {
+		segmentSize, err := s.GetSegmentSize(i)
+		if err != nil {
+			return nil, err
+		}
+
+		for j := uint(0); j < segmentSize; j++ {
 			ptr := NewRelocatable(int(i), j)
 			cell, err := s.Memory.Get(ptr)
 			if err == nil {
@@ -96,11 +107,20 @@ func (m *MemorySegmentManager) LoadData(ptr Relocatable, data *[]MaybeRelocatabl
 }
 
 func (m *MemorySegmentManager) GetSegmentUsedSize(segmentIdx uint) (uint, error) {
-	size, ok := m.SegmentSizes[segmentIdx]
+	size, ok := m.SegmentUsedSizes[segmentIdx]
 	if !ok {
 		// return 0, errors.Errorf("segment %d used size not found", segmentIdx)
 		return 0, nil
 	}
+	return size, nil
+}
+
+func (m *MemorySegmentManager) GetSegmentSize(index uint) (uint, error) {
+	size, ok := m.SegmentSizes[index]
+	if !ok {
+		return m.GetSegmentUsedSize(index)
+	}
+
 	return size, nil
 }
 
@@ -124,13 +144,31 @@ func (m *MemorySegmentManager) GetMemoryHoles(builtinCount uint) (uint, error) {
 		accessedCellsBySegment[uint(address.SegmentIndex)]++
 	}
 
-	for segmentIndex, size := range m.SegmentSizes {
+	for segmentIndex := range m.SegmentUsedSizes {
 		if segmentIndex > builtinSegmentsStart && segmentIndex <= builtinSegmentsEnd {
 			continue
+		}
+
+		size, err := m.GetSegmentSize(segmentIndex)
+		if err != nil {
+			return 0, err
 		}
 
 		memoryHoles += size - accessedCellsBySegment[segmentIndex]
 	}
 
 	return memoryHoles, nil
+}
+
+func (m *MemorySegmentManager) Finalize(size *uint, segmentIndex uint, publicMemory *[]uint) {
+	if size != nil {
+		m.SegmentSizes[segmentIndex] = *size
+	}
+
+	if publicMemory != nil {
+		m.PublicMemoryOffsets[segmentIndex] = *publicMemory
+	} else {
+		emptyList := make([]uint, 0)
+		m.PublicMemoryOffsets[segmentIndex] = emptyList
+	}
 }

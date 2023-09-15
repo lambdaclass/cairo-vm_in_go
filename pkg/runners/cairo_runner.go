@@ -30,6 +30,7 @@ type CairoRunner struct {
 	Layout                layouts.CairoLayout
 	execScopes            types.ExecutionScopes
 	ExecutionPublicMemory *[]uint
+	SegmentsFinalized     bool
 }
 
 func NewCairoRunner(program vm.Program, layoutName string, proofMode bool) (*CairoRunner, error) {
@@ -283,6 +284,99 @@ func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll b
 
 	runner.RunEnded = true
 	return nil
+}
+
+func (r *CairoRunner) FinalizeSegments(virtualMachine vm.VirtualMachine) error {
+	if r.SegmentsFinalized {
+		return nil
+	}
+
+	if !r.RunEnded {
+		return errors.New("Called Finalize Segments before run had ended")
+	}
+
+	var size = new(uint)
+	*size = uint(len(r.Program.Data))
+	var publicMemory []uint
+
+	var i uint
+	for i = 0; i < *size; i++ {
+		publicMemory = append(publicMemory, i)
+	}
+
+	virtualMachine.Segments.Finalize(size, uint(r.ProgramBase.SegmentIndex), &publicMemory)
+
+	publicMemory = make([]uint, 0)
+	execBase := r.executionBase
+	if r.ExecutionPublicMemory == nil {
+		return errors.New("Called Finalized Segments without an Execution Public Memory")
+	}
+
+	for _, elem := range *r.ExecutionPublicMemory {
+		publicMemory = append(publicMemory, elem+execBase.Offset)
+	}
+
+	virtualMachine.Segments.Finalize(nil, uint(execBase.SegmentIndex), &publicMemory)
+	for _, builtin := range virtualMachine.BuiltinRunners {
+		_, size, err := builtin.GetUsedCellsAndAllocatedSizes(&virtualMachine.Segments, virtualMachine.CurrentStep)
+		if err != nil {
+			return err
+		}
+
+		if builtin.Name() == builtins.OUTPUT_BUILTIN_NAME {
+			var publicMemory []uint
+			var i uint
+			for i = 0; i < size; i++ {
+				publicMemory = append(publicMemory, i)
+			}
+			virtualMachine.Segments.Finalize(&size, uint(builtin.Base().SegmentIndex), &publicMemory)
+		} else {
+			virtualMachine.Segments.Finalize(&size, uint(builtin.Base().SegmentIndex), nil)
+		}
+	}
+
+	r.SegmentsFinalized = true
+	return nil
+}
+
+func (r *CairoRunner) ReadReturnValues(virtualMachine *vm.VirtualMachine) error {
+	if !r.RunEnded {
+		return errors.New("Tried to read return values before run ended")
+	}
+
+	pointer := virtualMachine.RunContext.Ap
+
+	for i := len(virtualMachine.BuiltinRunners) - 1; i >= 0; i-- {
+		newPointer, err := virtualMachine.BuiltinRunners[i].FinalStack(&virtualMachine.Segments, pointer)
+		if err != nil {
+			return err
+		}
+
+		pointer = newPointer
+	}
+
+	if r.SegmentsFinalized {
+		return errors.New("Failed Adding Return Values")
+	}
+
+	if r.ProofMode {
+		execBase := r.executionBase
+		begin := pointer.Offset - execBase.Offset
+
+		ap := virtualMachine.RunContext.Ap
+		end := ap.Offset - execBase.Offset
+
+		var publicMemoryExtension []uint
+
+		for i := begin; i < end; i++ {
+			publicMemoryExtension = append(publicMemoryExtension, i)
+		}
+
+		*r.ExecutionPublicMemory = append(*r.ExecutionPublicMemory, publicMemoryExtension...)
+	}
+
+	return nil
+
 }
 
 func (runner *CairoRunner) CheckUsedCells(virtualMachine *vm.VirtualMachine) error {

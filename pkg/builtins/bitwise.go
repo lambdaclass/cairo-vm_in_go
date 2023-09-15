@@ -19,6 +19,7 @@ type BitwiseBuiltinRunner struct {
 	instancesPerComponent uint
 	included              bool
 	TotalNBits            uint
+	StopPtr               *uint
 }
 
 func BitwiseError(err error) error {
@@ -191,7 +192,10 @@ func (runner *BitwiseBuiltinRunner) GetUsedDilutedCheckUnits(dilutedSpacing uint
 }
 
 func (runner *BitwiseBuiltinRunner) GetMemoryAccesses(manager *memory.MemorySegmentManager) ([]memory.Relocatable, error) {
-	segmentSize := manager.SegmentSizes[uint(runner.Base().SegmentIndex)]
+	segmentSize, err := manager.GetSegmentSize(uint(runner.Base().SegmentIndex))
+	if err != nil {
+		return []memory.Relocatable{}, err
+	}
 
 	var ret []memory.Relocatable
 
@@ -201,4 +205,51 @@ func (runner *BitwiseBuiltinRunner) GetMemoryAccesses(manager *memory.MemorySegm
 	}
 
 	return ret, nil
+}
+
+func (r *BitwiseBuiltinRunner) FinalStack(segments *memory.MemorySegmentManager, pointer memory.Relocatable) (memory.Relocatable, error) {
+	if r.included {
+		if pointer.Offset == 0 {
+			return memory.Relocatable{}, NewErrNoStopPointer(r.Name())
+		}
+
+		stopPointerAddr := memory.NewRelocatable(pointer.SegmentIndex, pointer.Offset-1)
+
+		stopPointer, err := segments.Memory.GetRelocatable(stopPointerAddr)
+		if err != nil {
+			return memory.Relocatable{}, err
+		}
+
+		if r.Base().SegmentIndex != stopPointer.SegmentIndex {
+			return memory.Relocatable{}, NewErrInvalidStopPointerIndex(r.Name(), stopPointer, r.Base())
+		}
+
+		numInstances, err := r.GetUsedInstances(segments)
+		if err != nil {
+			return memory.Relocatable{}, err
+		}
+
+		used := numInstances * r.CellsPerInstance()
+
+		if stopPointer.Offset != used {
+			return memory.Relocatable{}, NewErrInvalidStopPointer(r.Name(), used, stopPointer)
+		}
+
+		r.StopPtr = &stopPointer.Offset
+
+		return stopPointerAddr, nil
+	} else {
+		r.StopPtr = new(uint)
+		*r.StopPtr = 0
+		return pointer, nil
+	}
+}
+
+func (r *BitwiseBuiltinRunner) GetUsedInstances(segments *memory.MemorySegmentManager) (uint, error) {
+	usedCells, err := segments.GetSegmentUsedSize(uint(r.Base().SegmentIndex))
+	if err != nil {
+		return 0, nil
+	}
+
+	return utils.DivCeil(usedCells, r.CellsPerInstance()), nil
 }

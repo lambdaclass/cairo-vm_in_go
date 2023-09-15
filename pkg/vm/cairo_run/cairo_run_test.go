@@ -2,7 +2,6 @@ package cairo_run_test
 
 import (
 	"bytes"
-	"fmt"
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/cairo_run"
@@ -14,7 +13,6 @@ func TestFibonacci(t *testing.T) {
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
-	fmt.Println(err)
 }
 
 func TestFibonacciProofMode(t *testing.T) {
@@ -23,7 +21,6 @@ func TestFibonacciProofMode(t *testing.T) {
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
-	fmt.Println(err)
 }
 
 func TestFactorial(t *testing.T) {
@@ -32,7 +29,6 @@ func TestFactorial(t *testing.T) {
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
-	fmt.Println(err)
 }
 
 func TestPoseidonBuiltin(t *testing.T) {
@@ -141,7 +137,6 @@ func TestBitwiseRecursion(t *testing.T) {
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
-	fmt.Println(err)
 }
 
 func TestBitwiseRecursionProofMode(t *testing.T) {
@@ -150,7 +145,6 @@ func TestBitwiseRecursionProofMode(t *testing.T) {
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
-	fmt.Println(err)
 }
 
 func TestAssertNotEqualHint(t *testing.T) {
