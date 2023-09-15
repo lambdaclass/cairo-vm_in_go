@@ -421,7 +421,7 @@ func TestPowFelt(t *testing.T) {
 	result := felt_base.Pow(felt_exp)
 
 	if expected != result {
-		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
+		t.Errorf("TestPowFelt Failed, expecte: %v, got %v", expected, result)
 	}
 
 	felt_base = lambdaworks.FeltFromDecString("12383109480418712378780123")
@@ -431,7 +431,7 @@ func TestPowFelt(t *testing.T) {
 	result = felt_base.Pow(felt_exp)
 
 	if expected != result {
-		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
+		t.Errorf("TestPowFelt Failed, expecte: %v, got %v", expected, result)
 	}
 
 	felt_base = lambdaworks.FeltFromDecString("1480418712378780123123543345665445665445")
@@ -441,7 +441,7 @@ func TestPowFelt(t *testing.T) {
 	result = felt_base.Pow(felt_exp)
 
 	if expected != result {
-		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
+		t.Errorf("TestPowFelt Failed, expecte: %v, got %v", expected, result)
 	}
 
 	felt_base = lambdaworks.FeltFromDecString("3250055959035395902088721634924698439245455440785258481507488871970708539723")
@@ -451,7 +451,27 @@ func TestPowFelt(t *testing.T) {
 	result = felt_base.Pow(felt_exp)
 
 	if expected != result {
-		t.Errorf("TestPow2 Failed, expecte: %v, got %v", expected, result)
+		t.Errorf("TestPowFelt Failed, expecte: %v, got %v", expected, result)
+	}
+
+	felt_base = lambdaworks.FeltFromDecString("3")
+	felt_exp = lambdaworks.FeltFromDecString("1809251394333065606848661391547535052811553607665798349986546028067936010240")
+
+	expected = lambdaworks.FeltFromDecString("3618502788666131213697322783095070105623107215331596699973092056135872020480")
+	result = felt_base.Pow(felt_exp)
+
+	if expected != result {
+		t.Errorf("TestPowFelt Failed, expecte: %v, got %v", expected, result)
+	}
+
+	felt_base = lambdaworks.FeltFromDecString("6")
+	felt_exp = lambdaworks.FeltFromDecString("1809251394333065606848661391547535052811553607665798349986546028067936010240")
+
+	expected = lambdaworks.FeltFromDecString("3618502788666131213697322783095070105623107215331596699973092056135872020480")
+	result = felt_base.Pow(felt_exp)
+
+	if expected != result {
+		t.Errorf("TestPowFelt Failed, expecte: %v, got %v", expected, result)
 	}
 }
 
@@ -506,6 +526,18 @@ func TestRelocatableToString(t *testing.T) {
 
 	if expected != result {
 		t.Errorf("TestRelocatableToString failed. Expected %s, Got: %s", expected, result)
+	}
+
+}
+
+func TestSignedMaxValue(t *testing.T) {
+
+	signed_max_value := lambdaworks.SignedMaxValue()
+	str := signed_max_value.ToHexString()
+	expect_str := "0x400000000000008800000000000000000000000000000000000000000000000"
+
+	if signed_max_value.ToHexString() != expect_str {
+		t.Errorf("lambdaworks.FeltMaxValue().ToHexString() Failed, expecte: %s, got %s", expect_str, str)
 	}
 
 }

@@ -86,7 +86,7 @@ func is_quad_residue(ids IdsManager, vm *VirtualMachine) error {
 	if x.IsZero() || x.IsOne() {
 		ids.Insert("y", NewMaybeRelocatableFelt(x), vm)
 
-	} else if x.Pow((FeltMaxValue().Shl(1))) == FeltOne() {
+	} else if x.Pow(SignedFeltMaxValue()) == FeltOne() {
 		num := x.Sqrt()
 		ids.Insert("y", NewMaybeRelocatableFelt(num), vm)
 

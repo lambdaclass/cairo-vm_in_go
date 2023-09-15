@@ -151,6 +151,12 @@ func FeltMaxValue() Felt {
 	return fromC(result)
 }
 
+func SignedFeltMaxValue() Felt {
+	var result C.felt_t
+	C.signed_max_value(&result[0])
+	return fromC(result)
+}
+
 func (f Felt) IsZero() bool {
 	return f == FeltZero()
 }
