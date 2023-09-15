@@ -1,6 +1,7 @@
 package hints
 
 import (
+	"fmt"
 	"strings"
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_codes"
@@ -53,6 +54,9 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 	case ASSERT_NOT_EQUAL:
 		return assert_not_equal(data.Ids, vm)
 	case EC_NEGATE:
+		fmt.Println("match case")
+		fmt.Println("vm: ", vm)
+		fmt.Println("escopes", execScopes)
 		return ec_negate_import_secp_p(*vm, *execScopes, data.Ids)
 	case EC_NEGATE_EMBEDDED_SECP:
 		return ec_negate_embedded_secp_p(*vm, *execScopes, data.Ids)
