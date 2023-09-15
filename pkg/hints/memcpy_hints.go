@@ -30,3 +30,9 @@ func memcpy_enter_scope(ids IdsManager, vm *VirtualMachine, execScopes *types.Ex
 	execScopes.EnterScope(scope)
 	return nil
 }
+
+// Implements hint: vm_enter_scope()
+func vm_enter_scope(executionScopes *types.ExecutionScopes) error {
+	executionScopes.EnterScope(make(map[string]interface{}))
+	return nil
+}
