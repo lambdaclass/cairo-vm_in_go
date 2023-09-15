@@ -1,5 +1,5 @@
+#include <stddef.h>
 #include <stdint.h>
-#include <stddef.h> 
 #include <stdlib.h>
 
 typedef uint64_t limb_t;
@@ -71,19 +71,22 @@ void felt_shl(felt_t a, uint64_t num, felt_t result);
 void felt_pow_uint(felt_t a, uint32_t num, felt_t result);
 
 /* returns the representation of a felt to string */
-char* to_signed_felt(felt_t value);
+char *to_signed_felt(felt_t value);
 
 /* frees a pointer to a string */
-void free_string(char* ptr);
+void free_string(char *ptr);
 
 /* writes the result variable with a >> num */
 void felt_shr(felt_t a, size_t b, felt_t result);
 
+/* Writes the div & rem variables with a.div_rem(b). */
+void div_rem(felt_t a, felt_t b, felt_t div, felt_t rem);
+
 /*
 Compares x and y and returns:
 
-	-1 if a <  b
-	 0 if a == b
-	+1 if a >  b
+        -1 if a <  b
+         0 if a == b
+        +1 if a >  b
 */
 int cmp(felt_t a, felt_t b);
