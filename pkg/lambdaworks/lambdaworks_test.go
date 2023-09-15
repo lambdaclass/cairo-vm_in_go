@@ -537,7 +537,7 @@ func TestSignedMaxValue(t *testing.T) {
 	expect_str := "0x400000000000008800000000000000000000000000000000000000000000000"
 
 	if signed_max_value.ToHexString() != expect_str {
-		t.Errorf("lambdaworks.FeltMaxValue().ToHexString() Failed, expecte: %s, got %s", expect_str, str)
+		t.Errorf("TestSignedMaxValue Failed, expecte: %s, got %s", expect_str, str)
 	}
 
 }
