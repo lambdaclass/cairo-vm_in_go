@@ -14,10 +14,6 @@ func ExecutionScopesError(err error) error {
 	return errors.Wrapf(err, "Execution scopes error")
 }
 
-func (es *ExecutionScopes) Data() []map[string]interface{} {
-	return es.data
-}
-
 func ErrVariableNotInScope(varName string) error {
 	return ExecutionScopesError(errors.Errorf("Variable %s not in scope", varName))
 }

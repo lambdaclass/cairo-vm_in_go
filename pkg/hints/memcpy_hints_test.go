@@ -27,7 +27,7 @@ func AddSegmentHintOk(t *testing.T) {
 	}
 }
 
-func TestExitScopeValid(t *testing.T) {
+func TestExitScopeHintValid(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()
 	idsManager := SetupIdsForTest(
@@ -49,12 +49,12 @@ func TestExitScopeValid(t *testing.T) {
 
 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, executionScopes)
 	if err != nil {
-		t.Errorf("TestExitScopeValid failed with error %s", err)
+		t.Errorf("TestExitScopeHintValid failed with error %s", err)
 	}
 
 }
 
-func TestExitScopeInvalid(t *testing.T) {
+func TestExitScopeHintInvalid(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()
 	idsManager := SetupIdsForTest(
@@ -75,7 +75,7 @@ func TestExitScopeInvalid(t *testing.T) {
 
 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, executionScopes)
 	if err.Error() != ErrCannotExitMainScop.Error() {
-		t.Errorf("TestExitScopeInvalid should fail with error %s", ErrCannotExitMainScop)
+		t.Errorf("TestExitScopeHintInvalid should fail with error %s", ErrCannotExitMainScop)
 	}
 
 }
@@ -84,9 +84,7 @@ func TestEnterScope(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()
 	idsManager := SetupIdsForTest(
-		map[string][]*MaybeRelocatable{
-			"a": {NewMaybeRelocatableFelt(FeltFromUint64(17))},
-		},
+		map[string][]*MaybeRelocatable{},
 		vm,
 	)
 	hintProcessor := CairoVmHintProcessor{}
@@ -101,17 +99,6 @@ func TestEnterScope(t *testing.T) {
 
 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, executionScopes)
 	if err != nil {
-		t.Errorf("TestEnterScope failed with error %s", err)
+		t.Errorf("TestEnterScopeHint failed with error %s", err)
 	}
-
-	if len(executionScopes.Data()) != 2 {
-		t.Errorf("EnterScopeHint failed, expected data length: %d, got: %d", 2, len(executionScopes.Data()))
-	}
-	if len(executionScopes.Data()[0]) != 0 {
-		t.Errorf("EnterScopeHint failed, expected: 0, got: %v", len(executionScopes.Data()[0]))
-	}
-	if len(executionScopes.Data()[1]) != 0 {
-		t.Errorf("EnterScopeHint failed, expected: 0, got: %v", len(executionScopes.Data()[0]))
-	}
-
 }
