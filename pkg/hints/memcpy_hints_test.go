@@ -110,3 +110,24 @@ func TestMemcpyEnterScopeHintValid(t *testing.T) {
 		t.Errorf("TestMemcpyEnterScopeHintValid failed, expected len: %d, got: %d", lambdaworks.FeltFromDecString("45"), res.(lambdaworks.Felt))
 	}
 }
+
+func TestMemcpyEnterScopeHintInvalid(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: MEMCPY_ENTER_SCOPE,
+	})
+
+	executionScopes := NewExecutionScopes()
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, executionScopes)
+	if err.Error() != ErrUnknownIdentifier("len").Error() {
+		t.Errorf("TestMemcpyEnterScopeHintInvalid should fail with error %s", ErrUnknownIdentifier("len"))
+	}
+}
