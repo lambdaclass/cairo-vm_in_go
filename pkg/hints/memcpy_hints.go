@@ -26,8 +26,7 @@ func memcpy_enter_scope(ids IdsManager, vm *VirtualMachine, execScopes *types.Ex
 	if err != nil {
 		return err
 	}
-	scope := make(map[string]interface{})
-	scope["n"] = len
+	scope := map[string]interface{}{"n": len}
 	execScopes.EnterScope(scope)
 	return nil
 }
