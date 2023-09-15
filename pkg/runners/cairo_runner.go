@@ -506,7 +506,7 @@ func (runner *CairoRunner) CheckRangeCheckUsage(virtualMachine *vm.VirtualMachin
 		*rcMax = uint(*runner.Vm.RcLimitsMax)
 	}
 
-	if runner.Vm.RcLimitsMin != nil && (uint(*runner.Vm.RcLimitsMin) > *rcMin) {
+	if runner.Vm.RcLimitsMin != nil && (uint(*runner.Vm.RcLimitsMin) < *rcMin) {
 		*rcMin = uint(*runner.Vm.RcLimitsMin)
 	}
 
