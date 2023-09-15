@@ -664,3 +664,53 @@ func TestSquashDictInnerUsedAccessesAssertOk(t *testing.T) {
 		t.Errorf("SQUASH_DICT_INNER_USED_ACCESSES_ASSERT hint failed with error: %s", err)
 	}
 }
+
+func TestSquashDictInnerUsedAccessesAssertBadLen(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("access_indices", map[MaybeRelocatable][]int{
+		*NewMaybeRelocatableFelt(FeltZero()): {3, 5},
+	})
+	scopes.AssignOrUpdateVariable("key", *NewMaybeRelocatableFelt(FeltZero()))
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"n_used_accesses": {NewMaybeRelocatableFelt(FeltOne())},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SQUASH_DICT_INNER_USED_ACCESSES_ASSERT,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err == nil {
+		t.Errorf("SQUASH_DICT_INNER_USED_ACCESSES_ASSERT hint should have failed")
+	}
+}
+
+func TestSquashDictInnerUsedAccessesAssertBadKey(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("access_indices", map[MaybeRelocatable][]int{
+		*NewMaybeRelocatableFelt(FeltZero()): {3},
+	})
+	scopes.AssignOrUpdateVariable("key", *NewMaybeRelocatableFelt(FeltOne()))
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"n_used_accesses": {NewMaybeRelocatableFelt(FeltOne())},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SQUASH_DICT_INNER_USED_ACCESSES_ASSERT,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err == nil {
+		t.Errorf("SQUASH_DICT_INNER_USED_ACCESSES_ASSERT hint should have failed")
+	}
+}
