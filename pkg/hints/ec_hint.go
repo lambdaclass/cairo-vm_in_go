@@ -91,7 +91,7 @@ func ec_negate(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionSco
 	return nil
 }
 
-func EcNegateImportSecpP(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager) error {
+func ec_negate_import_secp_p(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager) error {
 	secp_p, _ := new(big.Int).SetString("115792089237316195423570985008687907853269984665640564039457584007908834671663", 10)
 	return ec_negate(virtual_machine, exec_scopes, ids_data, *secp_p)
 }
@@ -108,7 +108,7 @@ Implements hint:
 %}
 */
 
-func EcNegateEmbeddedSecpP(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager) error {
+func ec_negate_embedded_secp_p(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager) error {
 	secp_p := big.NewInt(1)
 	secp_p.Lsh(secp_p, 256)
 	secp_p.Sub(secp_p, big.NewInt(19))
