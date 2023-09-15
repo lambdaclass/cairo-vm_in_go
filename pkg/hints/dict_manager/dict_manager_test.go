@@ -28,9 +28,8 @@ func TestDictManagerNewDictionaryGetTracker(t *testing.T) {
 
 func TestDictManagerNewDefaultDictionaryGetTracker(t *testing.T) {
 	dictManager := NewDictManager()
-	initialDict := &map[MaybeRelocatable]MaybeRelocatable{}
 	vm := vm.NewVirtualMachine()
-	base := dictManager.NewDefaultDictionary(nil, initialDict, vm)
+	base := dictManager.NewDefaultDictionary(nil, vm)
 	if base.SegmentIndex != int(vm.Segments.Memory.NumSegments())-1 {
 		t.Errorf("Segment not created for DictTracker")
 	}
@@ -61,29 +60,23 @@ func TestDictManagerNewDictionaryGetTrackerNoTracker(t *testing.T) {
 
 // DictTracker
 func TestDictTrackerDefaultDictCopyDict(t *testing.T) {
-	initialDict := &map[MaybeRelocatable]MaybeRelocatable{
-		*NewMaybeRelocatableFelt(FeltFromUint64(1)): *NewMaybeRelocatableFelt(FeltFromUint64(2)),
-	}
+	initialDict := &map[MaybeRelocatable]MaybeRelocatable{}
 	dictTracker := NewDictTrackerForDefaultDictionary(
 		NewRelocatable(0, 0),
 		NewMaybeRelocatableFelt(FeltFromUint64(17)),
-		&map[MaybeRelocatable]MaybeRelocatable{},
 	)
 	// Check CopyDict
-	if reflect.DeepEqual(dictTracker.CopyDictionary(), *initialDict) {
+	if !reflect.DeepEqual(dictTracker.CopyDictionary(), *initialDict) {
 		t.Error("Wrong dict returned by CopyDictionary")
 	}
 }
 
 func TestDictTrackerDefaultGetValuePresent(t *testing.T) {
-	initialDict := &map[MaybeRelocatable]MaybeRelocatable{
-		*NewMaybeRelocatableFelt(FeltFromUint64(1)): *NewMaybeRelocatableFelt(FeltFromUint64(2)),
-	}
 	dictTracker := NewDictTrackerForDefaultDictionary(
 		NewRelocatable(0, 0),
 		NewMaybeRelocatableFelt(FeltFromUint64(17)),
-		initialDict,
 	)
+	dictTracker.InsertValue(NewMaybeRelocatableFelt(FeltFromUint64(1)), NewMaybeRelocatableFelt(FeltFromUint64(2)))
 	// Check GetValue
 	val, err := dictTracker.GetValue(NewMaybeRelocatableFelt(FeltFromUint64(1)))
 	if err != nil {
@@ -96,14 +89,11 @@ func TestDictTrackerDefaultGetValuePresent(t *testing.T) {
 }
 
 func TestDictTrackerDefaultGetValueNotPresent(t *testing.T) {
-	initialDict := &map[MaybeRelocatable]MaybeRelocatable{
-		*NewMaybeRelocatableFelt(FeltFromUint64(1)): *NewMaybeRelocatableFelt(FeltFromUint64(2)),
-	}
 	dictTracker := NewDictTrackerForDefaultDictionary(
 		NewRelocatable(0, 0),
 		NewMaybeRelocatableFelt(FeltFromUint64(17)),
-		initialDict,
 	)
+	dictTracker.InsertValue(NewMaybeRelocatableFelt(FeltFromUint64(1)), NewMaybeRelocatableFelt(FeltFromUint64(2)))
 	// Check that the default value is returned
 	val, err := dictTracker.GetValue(NewMaybeRelocatableFelt(FeltFromUint64(2)))
 	if err != nil {
@@ -207,14 +197,7 @@ func TestDictionary(t *testing.T) {
 }
 
 func TestDefaultDictionary(t *testing.T) {
-	initialDict := &map[MaybeRelocatable]MaybeRelocatable{
-		*NewMaybeRelocatableFelt(FeltFromUint64(1)): *NewMaybeRelocatableFelt(FeltFromUint64(2)),
-	}
-	dict := NewDefaultDictionary(NewMaybeRelocatableFelt(FeltFromUint64(17)), initialDict)
-	// Check Get
-	if *dict.Get(NewMaybeRelocatableFelt(FeltFromUint64(1))) != *NewMaybeRelocatableFelt(FeltFromUint64(2)) {
-		t.Error("Wrong value returned by Get")
-	}
+	dict := NewDefaultDictionary(NewMaybeRelocatableFelt(FeltFromUint64(17)))
 	// InsertValue
 	dict.Insert(NewMaybeRelocatableFelt(FeltFromUint64(7)), NewMaybeRelocatableFelt(FeltFromUint64(8)))
 	// Check Get

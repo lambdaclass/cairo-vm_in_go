@@ -268,3 +268,16 @@ func (f Felt) ToSigned() *big.Int {
 	}
 	return n
 }
+
+/*
+Compares x and y and returns:
+
+	-1 if a <  b
+	 0 if a == b
+	+1 if a >  b
+*/
+func (a Felt) Cmp(b Felt) int {
+	var a_c C.felt_t = a.toC()
+	var b_c C.felt_t = b.toC()
+	return int(C.cmp(&a_c[0], &b_c[0]))
+}

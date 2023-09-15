@@ -16,6 +16,14 @@ type IdsManager struct {
 	HintApTracking parser.ApTrackingData
 }
 
+func ErrIdsManager(err error) error {
+	return errors.Wrapf(err, "IdsManager error")
+}
+
+func ErrUnknownIdentifier(name string) error {
+	return ErrIdsManager(errors.Errorf("Unknow identifier %s", name))
+}
+
 func NewIdsManager(references map[string]HintReference, hintApTracking parser.ApTrackingData) IdsManager {
 	return IdsManager{
 		References:     references,
@@ -68,7 +76,7 @@ func (ids *IdsManager) Get(name string, vm *VirtualMachine) (*MaybeRelocatable, 
 			return val, nil
 		}
 	}
-	return nil, errors.Errorf("Unknown identifier %s", name)
+	return nil, ErrUnknownIdentifier(name)
 }
 
 // Returns the address of an identifier given its name
@@ -80,7 +88,7 @@ func (ids *IdsManager) GetAddr(name string, vm *VirtualMachine) (Relocatable, er
 			return addr, nil
 		}
 	}
-	return Relocatable{}, errors.Errorf("Unknown identifier %s", name)
+	return Relocatable{}, ErrUnknownIdentifier(name)
 }
 
 /*
@@ -104,7 +112,7 @@ func (ids *IdsManager) GetStructField(name string, field_off uint, vm *VirtualMa
 			return val, nil
 		}
 	}
-	return nil, errors.Errorf("Unknown  identifier %s", name)
+	return nil, ErrUnknownIdentifier(name)
 }
 
 /*
@@ -133,7 +141,7 @@ func (ids *IdsManager) GetStructFieldFelt(name string, field_off uint, vm *Virtu
 		}
 	}
 
-	return lambdaworks.Felt{}, errors.Errorf("Unknown identifier %s", name)
+	return lambdaworks.Felt{}, ErrUnknownIdentifier(name)
 }
 
 /*
