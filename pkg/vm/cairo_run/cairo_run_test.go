@@ -155,6 +155,13 @@ func TestDict(t *testing.T) {
 	}
 }
 
+func TestDictUpdate(t *testing.T) {
+	_, err := cairo_run.CairoRun("../../../cairo_programs/dict_update.json", "small", false)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
+
 func TestAssertNotEqualHint(t *testing.T) {
 	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
 	_, err := cairo_run.CairoRun("../../../cairo_programs/assert_not_equal.json", cairoRunConfig)
