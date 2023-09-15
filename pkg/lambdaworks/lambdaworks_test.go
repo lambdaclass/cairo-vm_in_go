@@ -475,6 +475,24 @@ func TestPowFelt(t *testing.T) {
 	}
 }
 
+func TestSqrt(t *testing.T) {
+
+	sqrt := lambdaworks.FeltFromDecString("1").Sqrt()
+	expect_res := lambdaworks.FeltFromDecString("1")
+
+	if sqrt != expect_res {
+		t.Errorf("TestSqrt Failed, expecte: %v, got %v", expect_res, sqrt)
+	}
+
+	sqrt = lambdaworks.FeltFromDecString("2").Sqrt()
+	expect_res = lambdaworks.FeltFromDecString("1120755473020101814179135767224264702961552391386192943129361948990833801454")
+
+	if sqrt != expect_res {
+		t.Errorf("TestSqrt Failed, expecte: %v, got %v", expect_res, sqrt)
+	}
+
+}
+
 func TestFeltNeg1ToString(t *testing.T) {
 	f_neg_1 := lambdaworks.FeltFromDecString("-1")
 	expected := "-1"
