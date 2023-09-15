@@ -532,7 +532,7 @@ func TestRelocatableToString(t *testing.T) {
 
 func TestSignedMaxValue(t *testing.T) {
 
-	signed_max_value := lambdaworks.SignedMaxValue()
+	signed_max_value := lambdaworks.SignedFeltMaxValue()
 	str := signed_max_value.ToHexString()
 	expect_str := "0x400000000000008800000000000000000000000000000000000000000000000"
 
