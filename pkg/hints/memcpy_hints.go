@@ -17,3 +17,9 @@ func add_segment(vm *VirtualMachine) error {
 func vm_exit_scope(executionScopes *types.ExecutionScopes) error {
 	return executionScopes.ExitScope()
 }
+
+// Implements hint: vm_enter_scope()
+func vm_enter_scope(executionScopes *types.ExecutionScopes) error {
+	executionScopes.EnterScope(make(map[string]interface{}))
+	return nil
+}

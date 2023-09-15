@@ -27,7 +27,7 @@ func AddSegmentHintOk(t *testing.T) {
 	}
 }
 
-func TestExitScopeValid(t *testing.T) {
+func TestExitScopeHintValid(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()
 	idsManager := SetupIdsForTest(
@@ -49,12 +49,12 @@ func TestExitScopeValid(t *testing.T) {
 
 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, executionScopes)
 	if err != nil {
-		t.Errorf("TestExitScopeValid failed with error %s", err)
+		t.Errorf("TestExitScopeHintValid failed with error %s", err)
 	}
 
 }
 
-func TestExitScopeInvalid(t *testing.T) {
+func TestExitScopeHintInvalid(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()
 	idsManager := SetupIdsForTest(
@@ -75,7 +75,30 @@ func TestExitScopeInvalid(t *testing.T) {
 
 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, executionScopes)
 	if err.Error() != ErrCannotExitMainScop.Error() {
-		t.Errorf("TestExitScopeInvalid should fail with error %s", ErrCannotExitMainScop)
+		t.Errorf("TestExitScopeHintInvalid should fail with error %s", ErrCannotExitMainScop)
 	}
 
+}
+
+func TestEnterScope(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: VM_ENTER_SCOPE,
+	})
+
+	executionScopes := NewExecutionScopes()
+	scope := make(map[string]interface{})
+	scope["a"] = FeltOne()
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, executionScopes)
+	if err != nil {
+		t.Errorf("TestEnterScopeHint failed with error %s", err)
+	}
 }
