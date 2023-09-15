@@ -1,9 +1,10 @@
 package memory
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/pkg/errors"
 )
 
 // A Set to store Relocatable values
@@ -26,19 +27,37 @@ type ValidationRule func(*Memory, Relocatable) ([]Relocatable, error)
 
 // Memory represents the Cairo VM's memory.
 type Memory struct {
-	data              map[Relocatable]MaybeRelocatable
+	Data              map[Relocatable]MaybeRelocatable
 	numSegments       uint
 	validationRules   map[uint]ValidationRule
 	validatedAdresses AddressSet
+	// This is a map of addresses that were accessed during execution
+	// The map is of the form `segmentIndex` -> `offset`. This is to
+	// make the counting of memory holes easier
+	AccessedAddresses map[Relocatable]bool
 }
 
 var ErrMissingSegmentUsize = errors.New("Segment effective sizes haven't been calculated")
+var ErrInsufficientAllocatedCells = errors.New("Insufficient Allocated Memory Cells")
+
+func InsufficientAllocatedCellsErrorWithBuiltinName(name string, used uint, size uint) error {
+	return fmt.Errorf("%w, builtin: %s, used: %d, size: %d", ErrInsufficientAllocatedCells, name, used, size)
+}
+
+func InsufficientAllocatedCellsError(used uint, size uint) error {
+	return fmt.Errorf("%w, used: %d, size: %d", ErrInsufficientAllocatedCells, used, size)
+}
+
+func InsufficientAllocatedCellsErrorMinStepNotReached(minStep uint, builtinName string) error {
+	return fmt.Errorf("%w, Min Step not reached. minStep: %d, builtin: %s", ErrInsufficientAllocatedCells, minStep, builtinName)
+}
 
 func NewMemory() *Memory {
 	return &Memory{
-		data:              make(map[Relocatable]MaybeRelocatable),
+		Data:              make(map[Relocatable]MaybeRelocatable),
 		validatedAdresses: NewAddressSet(),
 		validationRules:   make(map[uint]ValidationRule),
+		AccessedAddresses: make(map[Relocatable]bool),
 	}
 }
 
@@ -61,11 +80,11 @@ func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
 	}
 
 	// Check for possible overwrites
-	prev_elem, ok := m.data[addr]
+	prev_elem, ok := m.Data[addr]
 	if ok && prev_elem != *val {
 		return errors.New("Memory is write-once, cannot overwrite memory value")
 	}
-	m.data[addr] = *val
+	m.Data[addr] = *val
 	return m.validateAddress(addr)
 }
 
@@ -83,13 +102,25 @@ func (m *Memory) Get(addr Relocatable) (*MaybeRelocatable, error) {
 	// check if the value is a `Relocatable` with a negative
 	// segment index. Again, these are edge cases so not important
 	// right now. See cairo-vm code for details.
-	value, ok := m.data[addr]
+	value, ok := m.Data[addr]
 
 	if !ok {
 		return nil, errors.New("Memory Get: Value not found")
 	}
 
 	return &value, nil
+}
+
+func (memory *Memory) GetSegment(segmentIndex int) []MaybeRelocatable {
+	var ret []MaybeRelocatable
+
+	for address, value := range memory.Data {
+		if address.SegmentIndex == segmentIndex {
+			ret = append(ret, value)
+		}
+	}
+
+	return ret
 }
 
 // Gets the felt value stored in the memory address `addr`.
@@ -132,14 +163,32 @@ func (m *Memory) validateAddress(addr Relocatable) error {
 	return nil
 }
 
+func (m *Memory) MarkAsAccessed(address Relocatable) {
+	m.AccessedAddresses[address] = true
+}
+
 // Applies validation_rules to every memory address, if applicatble
 // Skips validation if the address is temporary or if it has been previously validated
 func (m *Memory) ValidateExistingMemory() error {
-	for addr := range m.data {
+	for addr := range m.Data {
 		err := m.validateAddress(addr)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (m *Memory) GetRelocatable(key Relocatable) (Relocatable, error) {
+	memoryValue, err := m.Get(key)
+	if err != nil {
+		return Relocatable{}, err
+	}
+
+	ret, isRelocatable := memoryValue.GetRelocatable()
+	if !isRelocatable {
+		return Relocatable{}, errors.Errorf("Expected Relocatable value in memory at address (%d, %d)", key.SegmentIndex, key.Offset)
+	}
+
+	return ret, nil
 }

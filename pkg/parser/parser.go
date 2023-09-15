@@ -2,7 +2,6 @@ package parser
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -93,7 +92,7 @@ func Parse(jsonPath string) (CompiledJson, error) {
 	jsonFile, err := os.Open(jsonPath)
 
 	if err != nil {
-		fmt.Println(err)
+		return CompiledJson{}, nil
 	}
 	defer jsonFile.Close()
 
