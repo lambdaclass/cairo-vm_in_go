@@ -1,24 +1,21 @@
 package hints_test
 
 import (
-	"testing"
-
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+	"testing"
 )
 
 func TestPowHintOk(t *testing.T) {
 	vm := NewVirtualMachine()
-
 	vm.Segments.AddSegment()
-	vm.Segments.AddSegment()
+	vm.Segments.Memory.Insert(NewRelocatable(0, 4), NewMaybeRelocatableFelt(FeltFromUint64(5)))
 	idsManager := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
 			"prev_locs": {NewMaybeRelocatableRelocatable(NewRelocatable(0, 0))},
-			"exp":       {NewMaybeRelocatableFelt(FeltFromUint64(3))},
 			"locs":      {nil},
 		},
 		vm,
@@ -39,12 +36,7 @@ func TestPowHintOk(t *testing.T) {
 		t.Errorf("Failed to get locs.bit with error: %s", err)
 	}
 
-	cast_locs, err := locs.ToU64()
-	if err != nil {
-		t.Errorf("Couldn't cast locs.big to u64: %s", err)
-	}
-
-	if cast_locs != 1 {
-		t.Errorf("locs.bit: %d != 1", cast_locs)
+	if locs != FeltFromUint64(1) {
+		t.Errorf("locs.bit: %d != 1", locs)
 	}
 }
