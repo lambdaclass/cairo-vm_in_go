@@ -90,3 +90,28 @@ func ec_negate(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionSco
 	exec_scopes.AssignOrUpdateVariable("SECP_P", secp_p)
 	return nil
 }
+
+func EcNegateImportSecpP(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager) error {
+	secp_p, _ := new(big.Int).SetString("115792089237316195423570985008687907853269984665640564039457584007908834671663", 10)
+	return ec_negate(virtual_machine, exec_scopes, ids_data, *secp_p)
+}
+
+/*
+Implements hint:
+%{
+    from starkware.cairo.common.cairo_secp.secp_utils import pack
+    SECP_P = 2**255-19
+
+    y = pack(ids.point.y, PRIME) % SECP_P
+    # The modulo operation in python always returns a nonnegative number.
+    value = (-y) % SECP_P
+%}
+*/
+
+func EcNegateEmbeddedSecpP(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager) error {
+	secp_p := big.NewInt(1)
+	secp_p.Lsh(secp_p, 256)
+	secp_p.Sub(secp_p, big.NewInt(19))
+
+	return ec_negate(virtual_machine, exec_scopes, ids_data, *secp_p)
+}
