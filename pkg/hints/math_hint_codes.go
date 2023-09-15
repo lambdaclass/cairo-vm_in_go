@@ -14,3 +14,5 @@ if is_quad_residue(x, FIELD_PRIME):
     ids.y = sqrt(x, FIELD_PRIME)
 else:
     ids.y = sqrt(div_mod(x, 3, FIELD_PRIME), FIELD_PRIME)`
+
+const ASSERT_NOT_EQUAL = "from starkware.cairo.lang.vm.relocatable import RelocatableValue\nboth_ints = isinstance(ids.a, int) and isinstance(ids.b, int)\nboth_relocatable = (\n    isinstance(ids.a, RelocatableValue) and isinstance(ids.b, RelocatableValue) and\n    ids.a.segment_index == ids.b.segment_index)\nassert both_ints or both_relocatable, \\\n    f'assert_not_equal failed: non-comparable values: {ids.a}, {ids.b}.'\nassert (ids.a - ids.b) % PRIME != 0, f'assert_not_equal failed: {ids.a} = {ids.b}.'"

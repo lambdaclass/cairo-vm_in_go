@@ -27,7 +27,7 @@ func TestDivModOk(t *testing.T) {
 	}
 }
 
-func TestDivModFail(t *testing.T) {
+func TestDivModMZeroFail(t *testing.T) {
 	a := new(big.Int)
 	b := new(big.Int)
 	prime := new(big.Int)
@@ -37,7 +37,22 @@ func TestDivModFail(t *testing.T) {
 
 	_, err := DivMod(a, b, prime)
 	if err == nil {
-		t.Errorf("DivMod expected to fail with division by zero")
+		t.Errorf("DivMod expected to failed with gcd != 1")
+	}
+}
+
+func TestDivModMEqPFail(t *testing.T) {
+	a := new(big.Int)
+	b := new(big.Int)
+	prime := new(big.Int)
+
+	a.SetString("11260647941622813594563746375280766662237311019551239924981511729608487775604310196863705127454617186486639011517352066501847110680463498585797912894788", 10)
+	b.SetString("800000000000011000000000000000000000000000000000000000000000001", 16)
+	prime.SetString("800000000000011000000000000000000000000000000000000000000000001", 16)
+
+	_, err := DivMod(a, b, prime)
+	if err == nil {
+		t.Errorf("DivMod expected to failed with gcd != 1")
 	}
 }
 
