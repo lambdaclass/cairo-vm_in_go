@@ -44,15 +44,6 @@ func TestDeduceMemoryCellRangeCheck(t *testing.T) {
 	}
 }
 
-// #[test]
-// #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-// fn get_allocated_memory_units_range_check() {
-// 	let builtin = BuiltinRunner::RangeCheck(RangeCheckBuiltinRunner::new(Some(8), 8, true));
-// 	let mut vm = vm!();
-// 	vm.current_step = 8;
-// 	assert_eq!(builtin.get_allocated_memory_units(&vm), Ok(1));
-// }
-
 func TestGetAllocatedMemoryUnitsRangeCheck(t *testing.T) {
 	range_check := builtins.DefaultRangeCheckBuiltinRunner()
 	vm := vm.NewVirtualMachine()
