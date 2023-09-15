@@ -47,6 +47,12 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return is_positive(data.Ids, vm)
 	case ASSERT_NOT_ZERO:
 		return assert_not_zero(data.Ids, vm)
+	case DEFAULT_DICT_NEW:
+		return defaultDictNew(data.Ids, execScopes, vm)
+	case DICT_READ:
+		return dictRead(data.Ids, execScopes, vm)
+	case DICT_WRITE:
+		return dictWrite(data.Ids, execScopes, vm)
 	case VM_EXIT_SCOPE:
 		return vm_exit_scope(execScopes)
 	case ASSERT_NOT_EQUAL:
