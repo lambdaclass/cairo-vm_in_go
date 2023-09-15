@@ -714,3 +714,72 @@ func TestSquashDictInnerUsedAccessesAssertBadKey(t *testing.T) {
 		t.Errorf("SQUASH_DICT_INNER_USED_ACCESSES_ASSERT hint should have failed")
 	}
 }
+
+func TestSquashDictInnerNextKeyOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("keys", []MaybeRelocatable{
+		*NewMaybeRelocatableFelt(FeltFromUint64(5)),
+		*NewMaybeRelocatableFelt(FeltFromUint64(4)),
+	})
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"next_key": {nil},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SQUASH_DICT_INNER_NEXT_KEY,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("SQUASH_DICT_INNER_NEXT_KEY hint failed with error: %s", err)
+	}
+	// Check scope values
+	keysAny, err := scopes.Get("keys")
+	keys := keysAny.([]MaybeRelocatable)
+	expectedkeys := []MaybeRelocatable{
+		*NewMaybeRelocatableFelt(FeltFromUint64(5)),
+	}
+	if !reflect.DeepEqual(keys, expectedkeys) {
+		t.Errorf("Wrong keys.\n Expected %v, got: %v", expectedkeys, keys)
+	}
+
+	keyAny, err := scopes.Get("key")
+	key := keyAny.(MaybeRelocatable)
+	expectedKey := *NewMaybeRelocatableFelt(FeltFromUint64(4))
+	if !reflect.DeepEqual(key, expectedKey) {
+		t.Errorf("Wrong current_access_index.\n Expected %v, got: %v", expectedKey, key)
+	}
+
+	// Check ids.next_key
+	val, err := idsManager.GetFelt("next_key", vm)
+	if err != nil || val != FeltFromUint64(4) {
+		t.Errorf("Wrong/No value inserted into ids.next_key")
+	}
+}
+
+func TestSquashDictInnerNextKeyErr(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("keys", []MaybeRelocatable{})
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"next_key": {nil},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SQUASH_DICT_INNER_NEXT_KEY,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("SQUASH_DICT_INNER_NEXT_KEY hint should have failed")
+	}
+}

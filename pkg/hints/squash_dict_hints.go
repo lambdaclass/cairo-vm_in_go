@@ -269,3 +269,26 @@ func squashDictInnerUsedAccessesAssert(ids IdsManager, scopes *ExecutionScopes, 
 	}
 	return nil
 }
+
+func squashDictInnerNextKey(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error {
+	// Fetch scope variables
+	keysAny, err := scopes.Get("keys")
+	if err != nil {
+		return err
+	}
+	keys, ok := keysAny.([]MaybeRelocatable)
+	if !ok {
+		return errors.New("keys not in scope")
+	}
+	// Hint logic
+	if len(keys) <= 0 {
+		return errors.New("Assertion failed: len(keys) > 0.\nNo keys left but remaining_accesses > 0.)")
+	}
+	key := keys[len(keys)-1]
+	keys = keys[:len(keys)-1]
+	ids.Insert("next_key", &key, vm)
+	// Update scope variables
+	scopes.AssignOrUpdateVariable("keys", keys)
+	scopes.AssignOrUpdateVariable("key", key)
+	return nil
+}
