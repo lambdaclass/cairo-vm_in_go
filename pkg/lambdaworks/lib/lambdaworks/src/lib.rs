@@ -133,14 +133,8 @@ pub extern "C" fn one(result: Limbs) {
     felt_to_limbs(Felt::one(), result)
 }
 
-
 #[no_mangle]
-pub extern "C" fn max_value(result: Limbs) {
-    felt_to_limbs(Felt::from_bytes_be(&*FELT_MAX.to_bytes_be()).unwrap(), result)
-}
-
-#[no_mangle]
-pub extern "C" fn signed_max_value(result: Limbs) {
+pub extern "C" fn signed_felt_max_value(result: Limbs) {
     felt_to_limbs(Felt::from_bytes_be(&*SIGNED_FELT_MAX.to_bytes_be()).unwrap(), result)
 }
 

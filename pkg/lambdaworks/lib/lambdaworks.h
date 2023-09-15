@@ -40,9 +40,7 @@ void zero(felt_t result);
 /* Gets a felt_t representing 1 */
 void one(felt_t result);
 
-void max_value(felt_t result);
-
-void signed_max_value(felt_t result);
+void signed_felt_max_value(felt_t result);
 
 /* Writes the result variable with the sum of a and b felts. */
 void add(felt_t a, felt_t b, felt_t result);

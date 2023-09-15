@@ -144,16 +144,10 @@ func FeltOne() Felt {
 	return fromC(result)
 }
 
-// Gets a Felt representing 1.
-func FeltMaxValue() Felt {
-	var result C.felt_t
-	C.max_value(&result[0])
-	return fromC(result)
-}
-
+// Gets the Signed Felt max value: 0x400000000000008800000000000000000000000000000000000000000000000
 func SignedFeltMaxValue() Felt {
 	var result C.felt_t
-	C.signed_max_value(&result[0])
+	C.signed_felt_max_value(&result[0])
 	return fromC(result)
 }
 
