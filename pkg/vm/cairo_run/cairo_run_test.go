@@ -156,7 +156,8 @@ func TestDict(t *testing.T) {
 }
 
 func TestDictUpdate(t *testing.T) {
-	_, err := cairo_run.CairoRun("../../../cairo_programs/dict_update.json", "small", false)
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "small", ProofMode: false}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/dict_update.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
