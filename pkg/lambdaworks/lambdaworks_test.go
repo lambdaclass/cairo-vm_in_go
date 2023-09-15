@@ -491,6 +491,48 @@ func TestSqrt(t *testing.T) {
 		t.Errorf("TestSqrt Failed, expecte: %v, got %v", expect_res, sqrt)
 	}
 
+	sqrt = lambdaworks.FeltFromDecString("231354855").Sqrt()
+	expect_res = lambdaworks.FeltFromDecString("1025311277904211196612478135732240927612998008429122495456758581279557012570")
+
+	if sqrt != expect_res {
+		t.Errorf("TestSqrt Failed, expecte: %v, got %v", expect_res, sqrt)
+	}
+
+	sqrt = lambdaworks.FeltFromDecString("2837690996375263304037947136281").Sqrt()
+	expect_res = lambdaworks.FeltFromDecString("1518810120662201067233534392916286105989903317885218522014371199182069054395")
+
+	if sqrt != expect_res {
+		t.Errorf("TestSqrt Failed, expecte: %v, got %v", expect_res, sqrt)
+	}
+
+	sqrt = lambdaworks.FeltFromDecString("2412335192444087475798215188730046737082071476887756022673614366244186268173").Sqrt()
+	expect_res = lambdaworks.FeltFromDecString("1600105265616524426130944162206101590464382512931039575828824593677922684056")
+
+	if sqrt != expect_res {
+		t.Errorf("TestSqrt Failed, expecte: %v, got %v", expect_res, sqrt)
+	}
+
+	sqrt = lambdaworks.FeltFromDecString("836397911567565091").Sqrt()
+	expect_res = lambdaworks.FeltFromDecString("1471326547166706568879530640427725594549306523774764149866072915947254299525")
+
+	if sqrt != expect_res {
+		t.Errorf("TestSqrt Failed, expecte: %v, got %v", expect_res, sqrt)
+	}
+
+	sqrt = lambdaworks.FeltFromDecString("1206167596222043737899107594365023368541035738443865566657697352047277454118").Sqrt()
+	expect_res = lambdaworks.FeltFromDecString("1052329372911162474471895538435386694104976874815914718986386439764768300074")
+
+	if sqrt != expect_res {
+		t.Errorf("TestSqrt Failed, expecte: %v, got %v", expect_res, sqrt)
+	}
+
+	sqrt = lambdaworks.FeltFromDecString("1206167596222043737899107594365023368541035738443865566948239979431619043114").Sqrt()
+	expect_res = lambdaworks.FeltFromDecString("139198744922466627270517589217125805480206233967015957629136270350373167196")
+
+	if sqrt != expect_res {
+		t.Errorf("TestSqrt Failed, expecte: %v, got %v", expect_res, sqrt)
+	}
+
 }
 
 func TestFeltNeg1ToString(t *testing.T) {
