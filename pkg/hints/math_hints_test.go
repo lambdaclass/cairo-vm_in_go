@@ -391,3 +391,139 @@ func TestAssert250BitHintFail(t *testing.T) {
 		t.Errorf("ASSERT_250_BIT hint should have failed with Value outside of 250 bit error")
 	}
 }
+
+func TestSplitFeltAssertPrimeFailure(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(FeltFromUint64(1))},
+			"high":  {nil},
+			"low":   {nil},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SPLIT_FELT,
+	})
+
+	constants := make(map[string]Felt)
+	constants["MAX_HIGH"] = lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffff")
+	constants["MAX_LOW"] = lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffff")
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err == nil {
+		t.Errorf("SPLIT_FELT hint should have failed with assert PRIME - 1 == ids.MAX_HIGH * 2**128 + ids.MAX_LOW error")
+	}
+}
+
+func TestSplitFeltAssertMaxHighFailedAssertion(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(FeltFromUint64(1))},
+			"high":  {nil},
+			"low":   {nil},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SPLIT_FELT,
+	})
+
+	constants := make(map[string]Felt)
+	constants["MAX_HIGH"] = lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffffffff")
+	constants["MAX_LOW"] = lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffff")
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err == nil {
+		t.Errorf("SPLIT_FELT hint should have failed with assert ids.MAX_HIGH < 2**128 and ids.MAX_LOW < 2**128")
+	}
+}
+
+func TestSplitFeltAssertMaxLowFailedAssertion(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(FeltFromUint64(1))},
+			"high":  {nil},
+			"low":   {nil},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SPLIT_FELT,
+	})
+
+	constants := make(map[string]Felt)
+	constants["MAX_HIGH"] = lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffff")
+	constants["MAX_LOW"] = lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffffffff")
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err == nil {
+		t.Errorf("SPLIT_FELT hint should have failed with assert ids.MAX_HIGH < 2**128 and ids.MAX_LOW < 2**128")
+	}
+}
+
+func TestSplitFeltSuccess(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+
+	firstLimb := lambdaworks.FeltFromUint64(1)
+	secondLimb := lambdaworks.FeltFromUint64(2)
+	thirdLimb := lambdaworks.FeltFromUint64(3)
+	fourthLimb := lambdaworks.FeltFromUint64(4)
+	value := fourthLimb.Or(thirdLimb.Shl(64).Or(secondLimb.Shl(128).Or(firstLimb.Shl(192))))
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(value)},
+			"high":  {nil},
+			"low":   {nil},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SPLIT_FELT,
+	})
+
+	constants := make(map[string]Felt)
+	constants["MAX_HIGH"] = lambdaworks.FeltFromDecString("10633823966279327296825105735305134080")
+	constants["MAX_LOW"] = lambdaworks.FeltFromUint64(0)
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err != nil {
+		t.Errorf("SPLIT_FELT hint failed with error %s", err)
+	}
+
+	high, err := idsManager.GetFelt("high", vm)
+	if err != nil {
+		t.Errorf("failed to get high: %s", err)
+	}
+
+	low, err := idsManager.GetFelt("low", vm)
+	if err != nil {
+		t.Errorf("failed to get low: %s", err)
+	}
+
+	if high != firstLimb.Shl(64).Or(secondLimb) {
+		t.Errorf("Expected high == 335438970432432812899076431678123043273. Got: %v", high)
+	}
+
+	if low != thirdLimb.Shl(64).Or(fourthLimb) {
+		t.Errorf("Expected low == 0. Got: %v", low)
+	}
+}

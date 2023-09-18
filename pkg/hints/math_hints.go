@@ -215,15 +215,16 @@ func Assert250Bit(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt
 	return nil
 }
 
-
 // Implements hint:
-// %{
-//     from starkware.cairo.common.math_utils import assert_integer
-//     assert ids.MAX_HIGH < 2**128 and ids.MAX_LOW < 2**128
-//     assert PRIME - 1 == ids.MAX_HIGH * 2**128 + ids.MAX_LOW
-//     assert_integer(ids.value)
-//     ids.low = ids.value & ((1 << 128) - 1)
-//     ids.high = ids.value >> 128
+//
+//	%{
+//	    from starkware.cairo.common.math_utils import assert_integer
+//	    assert ids.MAX_HIGH < 2**128 and ids.MAX_LOW < 2**128
+//	    assert PRIME - 1 == ids.MAX_HIGH * 2**128 + ids.MAX_LOW
+//	    assert_integer(ids.value)
+//	    ids.low = ids.value & ((1 << 128) - 1)
+//	    ids.high = ids.value >> 128
+//
 // %}
 func SplitFelt(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt) error {
 	maxHigh, err := GetConstantFromVarName("MAX_HIGH", constants)
@@ -238,8 +239,7 @@ func SplitFelt(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt) e
 
 	if maxHigh.Bits() > 128 || maxLow.Bits() > 128 {
 		return errors.New("Assertion Failed: assert ids.MAX_HIGH < 2**128 and ids.MAX_LOW < 2**128")
-	}	
-
+	}
 
 	twoToTheOneTwentyEight := lambdaworks.FeltOne().Shl(128)
 	if lambdaworks.FeltFromDecString("-1") != maxHigh.Mul(twoToTheOneTwentyEight).Add(maxLow) {
