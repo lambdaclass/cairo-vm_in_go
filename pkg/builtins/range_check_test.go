@@ -58,7 +58,7 @@ func TestGetAllocatedMemoryUnitsRangeCheck(t *testing.T) {
 }
 
 func TestGetRangeCheckUsageSuccessfulA(t *testing.T) {
-	var builtin = builtins.NewRangeCheckBuiltinRunner(8)
+	var builtin = builtins.DefaultRangeCheckBuiltinRunner()
 	builtin.Include(true)
 	builtin.SetBase(memory.NewRelocatable(0, 0))
 
@@ -82,7 +82,7 @@ func TestGetRangeCheckUsageSuccessfulA(t *testing.T) {
 }
 
 func TestGetRangeCheckUsageSuccessfulB(t *testing.T) {
-	var builtin = builtins.NewRangeCheckBuiltinRunner(8)
+	var builtin = builtins.DefaultRangeCheckBuiltinRunner()
 	builtin.Include(true)
 	builtin.SetBase(memory.NewRelocatable(0, 0))
 
@@ -106,7 +106,7 @@ func TestGetRangeCheckUsageSuccessfulB(t *testing.T) {
 }
 
 func TestGetRangeCheckUsageSuccessfulC(t *testing.T) {
-	var builtin = builtins.NewRangeCheckBuiltinRunner(8)
+	var builtin = builtins.DefaultRangeCheckBuiltinRunner()
 	builtin.Include(true)
 	builtin.SetBase(memory.NewRelocatable(0, 0))
 
@@ -132,7 +132,7 @@ func TestGetRangeCheckUsageSuccessfulC(t *testing.T) {
 }
 
 func TestGetRangeCheckUsageEmptyMemory(t *testing.T) {
-	var builtin = builtins.NewRangeCheckBuiltinRunner(8)
+	var builtin = builtins.DefaultRangeCheckBuiltinRunner()
 	builtin.Include(true)
 	builtin.SetBase(memory.NewRelocatable(0, 0))
 

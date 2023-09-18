@@ -138,7 +138,6 @@ func unsignedDivRem(ids IdsManager, vm *VirtualMachine) error {
 	if err != nil {
 		return err
 	}
-
 	value, err := ids.GetFelt("value", vm)
 	if err != nil {
 		return err
@@ -161,3 +160,113 @@ func unsignedDivRem(ids IdsManager, vm *VirtualMachine) error {
 
 	return nil
 }
+
+/*
+Implements hint:
+
+    %{
+        from starkware.cairo.common.math_utils import as_int, assert_integer
+
+        assert_integer(ids.div)
+        assert 0 < ids.div <= PRIME // range_check_builtin.bound, \
+            f'div={hex(ids.div)} is out of the valid range.'
+
+        assert_integer(ids.bound)
+        assert ids.bound <= range_check_builtin.bound // 2, \
+            f'bound={hex(ids.bound)} is out of the valid range.'
+
+        int_value = as_int(ids.value, PRIME)
+        q, ids.r = divmod(int_value, ids.div)
+
+        assert -ids.bound <= q < ids.bound, \
+            f'{int_value} / {ids.div} = {q} is out of the range [{-ids.bound}, {ids.bound}).'
+
+        ids.biased_q = q + ids.bound
+    %}
+*/
+
+// func signedDivRem(ids IdsManager, vm *VirtualMachine) error {
+// 	div, err := ids.GetFelt("div", vm)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	value, err := ids.GetFelt("value", vm)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	bound, err := ids.GetFelt("bound", vm)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	// It is safe to cast INNER_RC_BOUND into int64 since the constant is set to 65536
+// 	rcBound := big.NewInt(int64(builtins.INNER_RC_BOUND))
+// 	limit := new(big.Int).Div(lambdaworks.Prime(), rcBound)
+
+// 	// Check if `div` is greater than `limit`
+// 	cmp := div.ToBigInt().Cmp(limit) == 1
+
+// 	if div.IsZero() || cmp {
+// 		return errors.Errorf("Div out of range: 0 < %d <= %d", div, rcBound)
+// 	}
+
+// 	return nil
+// }
+
+// pub fn signed_div_rem(
+//     vm: &mut VirtualMachine,
+//     ids_data: &HashMap<String, HintReference>,
+//     ap_tracking: &ApTracking,
+// ) -> Result<(), HintError> {
+//     let div = get_integer_from_var_name("div", vm, ids_data, ap_tracking)?;
+//     let value = get_integer_from_var_name("value", vm, ids_data, ap_tracking)?;
+//     let value = value.as_ref();
+//     let bound = get_integer_from_var_name("bound", vm, ids_data, ap_tracking)?;
+//     let builtin = vm.get_range_check_builtin()?;
+
+//     match &builtin._bound {
+//         Some(builtin_bound)
+//             if div.is_zero() || div.as_ref() > &div_prime_by_bound(builtin_bound.clone())? =>
+//         {
+//             return Err(HintError::OutOfValidRange(Box::new((
+//                 div.into_owned(),
+//                 builtin_bound.clone(),
+//             ))));
+//         }
+//         Some(builtin_bound) if bound.as_ref() > &(builtin_bound >> 1_u32) => {
+//             return Err(HintError::OutOfValidRange(Box::new((
+//                 bound.into_owned(),
+//                 builtin_bound >> 1_u32,
+//             ))));
+//         }
+//         None if div.is_zero() => {
+//             return Err(HintError::OutOfValidRange(Box::new((
+//                 div.into_owned(),
+//                 Felt252::zero() - Felt252::one(),
+//             ))));
+//         }
+//         _ => {}
+//     }
+
+//     let int_value = value.to_signed_felt();
+//     let int_div = div.to_bigint();
+//     let int_bound = bound.to_bigint();
+//     let (q, r) = int_value.div_mod_floor(&int_div);
+
+//     if int_bound.abs() < q.abs() {
+//         return Err(HintError::OutOfValidRange(Box::new((
+//             Felt252::new(q),
+//             bound.into_owned(),
+//         ))));
+//     }
+
+//     let biased_q = q + int_bound;
+//     insert_value_from_var_name("r", Felt252::new(r), vm, ids_data, ap_tracking)?;
+//     insert_value_from_var_name(
+//         "biased_q",
+//         Felt252::new(biased_q),
+//         vm,
+//         ids_data,
+//         ap_tracking,
+//     )
+// }
