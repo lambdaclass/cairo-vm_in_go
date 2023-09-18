@@ -167,6 +167,7 @@ func TestAssertNotZeroHintFail(t *testing.T) {
 
 func TestVerifyValidSignature(t *testing.T) {
 	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
 	signature_builtin := builtins.NewSignatureBuiltinRunner(2048)
 	vm.BuiltinRunners = append(vm.BuiltinRunners, signature_builtin)
 
@@ -197,7 +198,7 @@ func TestVerifyValidSignature(t *testing.T) {
 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 
 	if err != nil {
-		t.Errorf("Verify signature hint for correct signature failed")
+		t.Errorf("Verify signature hint for correct signature failed with error: %s", err)
 	}
 }
 
