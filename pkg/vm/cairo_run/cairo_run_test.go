@@ -155,6 +155,14 @@ func TestIsQuadResidueoHint(t *testing.T) {
 	}
 }
 
+func TestIsQuadResidueoHintProofMode(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "small", ProofMode: true}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/proof_programs/is_quad_residue.json", cairoRunConfig)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
+
 func TestDict(t *testing.T) {
 	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "small", ProofMode: false}
 	_, err := cairo_run.CairoRun("../../../cairo_programs/dict.json", cairoRunConfig)
