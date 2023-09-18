@@ -36,11 +36,14 @@ func NewIdsManager(references map[string]HintReference, hintApTracking parser.Ap
 // Fetches a constant used by the hint
 // Searches inner modules first for name-matching constants
 func (ids *IdsManager) GetConst(name string, constants *map[string]lambdaworks.Felt) (lambdaworks.Felt, error) {
-	// Accessible scopes are listed from outer to inner
-	for i := len(ids.AccessibleScopes) - 1; i >= 0; i-- {
-		constant, ok := (*constants)[ids.AccessibleScopes[i]+"."+name]
-		if ok {
-			return constant, nil
+	// Hints should always have accessible scopes
+	if len(ids.AccessibleScopes) != 0 {
+		// Accessible scopes are listed from outer to inner
+		for i := len(ids.AccessibleScopes) - 1; i >= 0; i-- {
+			constant, ok := (*constants)[ids.AccessibleScopes[i]+"."+name]
+			if ok {
+				return constant, nil
+			}
 		}
 	}
 	return lambdaworks.FeltZero(), errors.Errorf("Missing constant %s", name)
