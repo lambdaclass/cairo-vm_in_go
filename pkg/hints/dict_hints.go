@@ -165,10 +165,6 @@ func dictSquashCopyDict(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMach
 	return nil
 }
 
-// "Update the DictTracker's current_ptr to point to the end of the squashed dict.
-//
-//	__dict_manager.get_tracker(ids.squashed_dict_start).current_ptr = \\
-//	    ids.squashed_dict_end.address_"
 func dictSquashUpdatePtr(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error {
 	// Extract Variables
 	dictManager, ok := FetchDictManager(scopes)
@@ -190,4 +186,25 @@ func dictSquashUpdatePtr(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMac
 	}
 	tracker.CurrentPtr = squashedDictEnd
 	return nil
+}
+
+func dictNew(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error {
+	// Fetch scope variables
+	initialDictAny, err := scopes.Get("initial_dict")
+	if err != nil {
+		return err
+	}
+	initialDict, ok := initialDictAny.(map[memory.MaybeRelocatable]memory.MaybeRelocatable)
+	if !ok {
+		return errors.New("initial_dict not in scope")
+	}
+	// Hint Logic
+	dictManager, ok := FetchDictManager(scopes)
+	if !ok {
+		newDictManager := NewDictManager()
+		dictManager = &newDictManager
+		scopes.AssignOrUpdateVariable("__dict_manager", dictManager)
+	}
+	dict_ptr := dictManager.NewDictionary(&initialDict, vm)
+	return vm.Segments.Memory.Insert(vm.RunContext.Ap, memory.NewMaybeRelocatableRelocatable(dict_ptr))
 }

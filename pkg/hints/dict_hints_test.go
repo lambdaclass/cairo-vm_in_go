@@ -524,5 +524,32 @@ func TestDictSquashUpdatePtrOk(t *testing.T) {
 	if tracker.CurrentPtr != dict_ptr.AddUint(5) {
 		t.Error("DICT_SQUASH_UPDATE_PTR hint test failed: Wrong updated tracker.CurrentPtr")
 	}
+}
 
+func TestDictSquashUpdatePtrMismatchedPtr(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+	initialDict := make(map[MaybeRelocatable]MaybeRelocatable)
+	// Create dictManager & add it to scope
+	dictManager := dict_manager.NewDictManager()
+	dict_ptr := dictManager.NewDictionary(&initialDict, vm)
+	scopes.AssignOrUpdateVariable("__dict_manager", &dictManager)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"squashed_dict_start": {NewMaybeRelocatableRelocatable(dict_ptr.AddUint(3))},
+			"squashed_dict_end":   {NewMaybeRelocatableRelocatable(dict_ptr.AddUint(5))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: DICT_SQUASH_UPDATE_PTR,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err == nil {
+		t.Errorf("DICT_SQUASH_UPDATE_PTR hint test should have failed")
+	}
 }
