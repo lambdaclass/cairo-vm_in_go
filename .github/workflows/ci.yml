@@ -1,6 +1,7 @@
 name: Test/Fmt
 
 on:
+  merge_group:
   push:
     branches: [main]
   pull_request:
@@ -46,6 +47,9 @@ jobs:
 
     - name: Compare trace & memory with cairo-vm
       run: make compare_trace_memory
+
+    - name: Compare trace & memory with cairo-vm in proof mode
+      run: make compare_proof_trace_memory
 
   demos:
     runs-on: ubuntu-latest

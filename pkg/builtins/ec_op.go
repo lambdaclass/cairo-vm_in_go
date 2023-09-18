@@ -1,20 +1,24 @@
 package builtins
 
 import (
-	"errors"
 	"fmt"
 	"math/big"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/math_utils"
+	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+	"github.com/pkg/errors"
 )
 
 type EcOpBuiltinRunner struct {
-	included      bool
-	base          memory.Relocatable
-	cache         map[memory.Relocatable]lambdaworks.Felt
-	scalar_height uint32
+	included              bool
+	base                  memory.Relocatable
+	cache                 map[memory.Relocatable]lambdaworks.Felt
+	scalar_height         uint32
+	instancesPerComponent uint
+	ratio                 uint
+	StopPtr               *uint
 }
 
 type EcPoint struct {
@@ -52,11 +56,96 @@ func PrimeError(value big.Int) error {
 	return errors.New(err)
 }
 
-func NewEcOpBuiltinRunner() *EcOpBuiltinRunner {
+func NewEcOpBuiltinRunner(ratio uint) *EcOpBuiltinRunner {
 	return &EcOpBuiltinRunner{
-		cache:         make(map[memory.Relocatable]lambdaworks.Felt),
-		scalar_height: 256,
+		cache:                 make(map[memory.Relocatable]lambdaworks.Felt),
+		scalar_height:         256,
+		instancesPerComponent: 1,
+		ratio:                 ratio,
 	}
+}
+
+func (r *EcOpBuiltinRunner) Ratio() uint {
+	return r.ratio
+}
+
+func (r *EcOpBuiltinRunner) GetAllocatedMemoryUnits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
+	// This condition corresponds to an uninitialized ratio for the builtin, which should only
+	// happen when layout is `dynamic`
+	if r.Ratio() == 0 {
+		// Dynamic layout has the exact number of instances it needs (up to a power of 2).
+		used, err := segments.GetSegmentUsedSize(uint(r.base.SegmentIndex))
+		if err != nil {
+			return 0, err
+		}
+		instances := used / r.CellsPerInstance()
+		components := utils.NextPowOf2(instances / r.instancesPerComponent)
+		size := r.CellsPerInstance() * r.instancesPerComponent * components
+
+		return size, nil
+	}
+
+	minStep := r.ratio * r.instancesPerComponent
+	if currentStep < minStep {
+		return 0, memory.InsufficientAllocatedCellsErrorMinStepNotReached(minStep, r.Name())
+	}
+	value, err := utils.SafeDiv(currentStep, r.ratio)
+
+	if err != nil {
+		return 0, errors.Errorf("error calculating builtin memory units: %s", err)
+	}
+
+	return r.CellsPerInstance() * value, nil
+}
+
+func (r *EcOpBuiltinRunner) GetUsedCellsAndAllocatedSizes(segments *memory.MemorySegmentManager, currentStep uint) (uint, uint, error) {
+	used, err := segments.GetSegmentUsedSize(uint(r.base.SegmentIndex))
+	if err != nil {
+		return 0, 0, err
+	}
+
+	size, err := r.GetAllocatedMemoryUnits(segments, currentStep)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	if used > size {
+		return 0, 0, memory.InsufficientAllocatedCellsErrorWithBuiltinName(r.Name(), used, size)
+	}
+
+	return used, size, nil
+}
+
+func (runner *EcOpBuiltinRunner) GetUsedDilutedCheckUnits(dilutedSpacing uint, dilutedNBits uint) uint {
+	return 0
+}
+
+func (runner *EcOpBuiltinRunner) GetMemoryAccesses(manager *memory.MemorySegmentManager) ([]memory.Relocatable, error) {
+	segmentSize, err := manager.GetSegmentSize(uint(runner.Base().SegmentIndex))
+	if err != nil {
+		return []memory.Relocatable{}, err
+	}
+
+	var ret []memory.Relocatable
+
+	var i uint
+	for i = 0; i < segmentSize; i++ {
+		ret = append(ret, memory.NewRelocatable(runner.Base().SegmentIndex, i))
+	}
+
+	return ret, nil
+}
+
+func (runner *EcOpBuiltinRunner) GetRangeCheckUsage(memory *memory.Memory) (*uint, *uint) {
+	return nil, nil
+}
+
+func (runner *EcOpBuiltinRunner) GetUsedPermRangeCheckLimits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
+	return 0, nil
+}
+
+func (r *EcOpBuiltinRunner) CellsPerInstance() uint {
+	return CELLS_PER_EC_OP
 }
 
 func (ec *EcOpBuiltinRunner) AddValidationRule(*memory.Memory) {}
@@ -269,4 +358,51 @@ func PointOnCurve(x lambdaworks.Felt, y lambdaworks.Felt, alpha lambdaworks.Felt
 	yp := y.PowUint(2)
 	xp := x.PowUint(3).Add(alpha.Mul(x)).Add(beta)
 	return yp == xp
+}
+
+func (r *EcOpBuiltinRunner) FinalStack(segments *memory.MemorySegmentManager, pointer memory.Relocatable) (memory.Relocatable, error) {
+	if r.included {
+		if pointer.Offset == 0 {
+			return memory.Relocatable{}, NewErrNoStopPointer(r.Name())
+		}
+
+		stopPointerAddr := memory.NewRelocatable(pointer.SegmentIndex, pointer.Offset-1)
+
+		stopPointer, err := segments.Memory.GetRelocatable(stopPointerAddr)
+		if err != nil {
+			return memory.Relocatable{}, err
+		}
+
+		if r.Base().SegmentIndex != stopPointer.SegmentIndex {
+			return memory.Relocatable{}, NewErrInvalidStopPointerIndex(r.Name(), stopPointer, r.Base())
+		}
+
+		numInstances, err := r.GetUsedInstances(segments)
+		if err != nil {
+			return memory.Relocatable{}, err
+		}
+
+		used := numInstances * r.CellsPerInstance()
+
+		if stopPointer.Offset != used {
+			return memory.Relocatable{}, NewErrInvalidStopPointer(r.Name(), used, stopPointer)
+		}
+
+		r.StopPtr = &stopPointer.Offset
+
+		return stopPointerAddr, nil
+	} else {
+		r.StopPtr = new(uint)
+		*r.StopPtr = 0
+		return pointer, nil
+	}
+}
+
+func (r *EcOpBuiltinRunner) GetUsedInstances(segments *memory.MemorySegmentManager) (uint, error) {
+	usedCells, err := segments.GetSegmentUsedSize(uint(r.Base().SegmentIndex))
+	if err != nil {
+		return 0, nil
+	}
+
+	return utils.DivCeil(usedCells, r.CellsPerInstance()), nil
 }
