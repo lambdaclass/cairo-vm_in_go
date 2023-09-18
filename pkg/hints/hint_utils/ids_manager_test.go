@@ -285,3 +285,55 @@ func TestIdsManagerGetStructFieldTest(t *testing.T) {
 		t.Errorf("IdsManager.GetStructFieldFelt returned wrong values")
 	}
 }
+
+func TestIdsManagerGetConst(t *testing.T) {
+	ids := IdsManager{
+		AccessibleScopes: []string{
+			"starkware.cairo.common.math",
+			"starkware.cairo.common.math.assert_250_bit",
+		},
+	}
+	upperBound := lambdaworks.FeltFromUint64(250)
+	constants := map[string]lambdaworks.Felt{
+		"starkware.cairo.common.math.assert_250_bit.UPPER_BOUND": upperBound,
+	}
+	constant, err := ids.GetConst("UPPER_BOUND", &constants)
+	if err != nil || constant != upperBound {
+		t.Errorf("IdsManager.GetConst returned wrong/no constant")
+	}
+}
+
+func TestIdsManagerGetConstPrioritizeInnerModule(t *testing.T) {
+	ids := IdsManager{
+		AccessibleScopes: []string{
+			"starkware.cairo.common.math",
+			"starkware.cairo.common.math.assert_250_bit",
+		},
+	}
+	upperBound := lambdaworks.FeltFromUint64(250)
+	constants := map[string]lambdaworks.Felt{
+		"starkware.cairo.common.math.assert_250_bit.UPPER_BOUND": upperBound,
+		"starkware.cairo.common.math.UPPER_BOUND":                lambdaworks.FeltZero(),
+	}
+	constant, err := ids.GetConst("UPPER_BOUND", &constants)
+	if err != nil || constant != upperBound {
+		t.Errorf("IdsManager.GetConst returned wrong/no constant")
+	}
+}
+
+func TestIdsManagerGetConstNoMConst(t *testing.T) {
+	ids := IdsManager{
+		AccessibleScopes: []string{
+			"starkware.cairo.common.math",
+			"starkware.cairo.common.math.assert_250_bit",
+		},
+	}
+	lowerBound := lambdaworks.FeltFromUint64(250)
+	constants := map[string]lambdaworks.Felt{
+		"starkware.cairo.common.math.assert_250_bit.LOWER_BOUND": lowerBound,
+	}
+	_, err := ids.GetConst("UPPER_BOUND", &constants)
+	if err == nil {
+		t.Errorf("IdsManager.GetConst should have failed")
+	}
+}
