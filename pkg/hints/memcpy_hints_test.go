@@ -217,8 +217,6 @@ func TestMemcpyContinueCopyingInsertError(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()
 	vm.Segments.AddSegment()
-	vm.RunContext.Fp = NewRelocatable(2, 0)
-	vm.Segments.Memory.Insert(NewRelocatable(1, 1), NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5)))
 	executionScopes := NewExecutionScopes()
 
 	scope := make(map[string]interface{})
@@ -227,7 +225,7 @@ func TestMemcpyContinueCopyingInsertError(t *testing.T) {
 
 	idsManager := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
-			"continue_copying": nil,
+			"continue_copying": {NewMaybeRelocatableFelt(FeltFromUint64(5))},
 		},
 		vm,
 	)
@@ -238,8 +236,9 @@ func TestMemcpyContinueCopyingInsertError(t *testing.T) {
 	})
 
 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, executionScopes)
-	if err != nil {
-		t.Errorf("TestMemcpyContinueCopyingInsertError failed with error %s", err)
+	expected := ErrMemoryWriteOnce(NewRelocatable(0, 0), *NewMaybeRelocatableFeltFromUint64(5), *NewMaybeRelocatableFeltFromUint64(0))
+	if err.Error() != expected.Error() {
+		t.Errorf("TestMemcpyContinueCopyingInsertError should fail with error %s", expected)
 	}
 }
 

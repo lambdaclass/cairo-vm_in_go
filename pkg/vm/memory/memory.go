@@ -10,16 +10,17 @@ import (
 // A Set to store Relocatable values
 type AddressSet map[Relocatable]bool
 
-// func MemoryError(err error) error {
-// 	return errors.Wrapf(err, "Memory error")
-// }
+func MemoryError(err error) error {
+	return errors.Wrapf(err, "Memory error")
+}
 
-// func ErrInconsistentMemory(addr Relocatable, val MaybeRelocatable) error {
-// 	valStr := val.ToString()
-// 	addrStr := addr.ToString()
+func ErrMemoryWriteOnce(addr Relocatable, prevVal MaybeRelocatable, newVal MaybeRelocatable) error {
+	addrStr := addr.ToString()
+	prevValStr := prevVal.ToString()
+	newValStr := newVal.ToString()
 
-// 	return MemoryError(errors.Errorf("Inserting %s into a non allocated segment %s.", valStr, addrStr))
-// }
+	return MemoryError(errors.Errorf("Memory is write-once, cannot overwrite memory value in %s. %s != %s", addrStr, prevValStr, newValStr))
+}
 
 func NewAddressSet() AddressSet {
 	return make(map[Relocatable]bool)
@@ -93,7 +94,7 @@ func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
 	// Check for possible overwrites
 	prev_elem, ok := m.Data[addr]
 	if ok && prev_elem != *val {
-		return errors.New("Memory is write-once, cannot overwrite memory value")
+		return ErrMemoryWriteOnce(addr, prev_elem, *val)
 	}
 	m.Data[addr] = *val
 	return m.validateAddress(addr)

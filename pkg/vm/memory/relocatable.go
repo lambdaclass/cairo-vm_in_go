@@ -107,6 +107,11 @@ func NewMaybeRelocatableFelt(felt lambdaworks.Felt) *MaybeRelocatable {
 	return &MaybeRelocatable{inner: felt}
 }
 
+// Creates a new MaybeRelocatable from a uint64 value
+func NewMaybeRelocatableFeltFromUint64(val uint64) *MaybeRelocatable {
+	return NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(val))
+}
+
 // Creates a new MaybeRelocatable with a Relocatable inner value
 func NewMaybeRelocatableRelocatable(relocatable Relocatable) *MaybeRelocatable {
 	return &MaybeRelocatable{inner: relocatable}
