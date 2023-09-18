@@ -222,3 +222,54 @@ func assertLeFelt(ids IdsManager, vm *VirtualMachine, scopes *ExecutionScopes, c
 
 	return err
 }
+
+// "memory[ap] = 1 if excluded != 0 else 0"
+func assertLeFeltExcluded0(vm *VirtualMachine, scopes *ExecutionScopes) error {
+	// Fetch scope var
+	excludedAny, err := scopes.Get("excluded")
+	if err != nil {
+		return err
+	}
+	excluded, ok := excludedAny.(int)
+	if !ok {
+		return errors.New("exluded not in scope")
+	}
+	if excluded == 0 {
+		return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltZero()))
+	}
+	return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltOne()))
+}
+
+// "memory[ap] = 1 if excluded != 1 else 0"
+func assertLeFeltExcluded1(vm *VirtualMachine, scopes *ExecutionScopes) error {
+	// Fetch scope var
+	excludedAny, err := scopes.Get("excluded")
+	if err != nil {
+		return err
+	}
+	excluded, ok := excludedAny.(int)
+	if !ok {
+		return errors.New("exluded not in scope")
+	}
+	if excluded == 1 {
+		return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltZero()))
+	}
+	return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltOne()))
+}
+
+// "assert excluded == 2"
+func assertLeFeltExcluded2(vm *VirtualMachine, scopes *ExecutionScopes) error {
+	// Fetch scope var
+	excludedAny, err := scopes.Get("excluded")
+	if err != nil {
+		return err
+	}
+	excluded, ok := excludedAny.(int)
+	if !ok {
+		return errors.New("exluded not in scope")
+	}
+	if excluded == 2 {
+		return errors.New("Assertion Failed: excluded == 2")
+	}
+	return nil
+}
