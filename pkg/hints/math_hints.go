@@ -232,7 +232,7 @@ func assertLeFeltExcluded0(vm *VirtualMachine, scopes *ExecutionScopes) error {
 	}
 	excluded, ok := excludedAny.(int)
 	if !ok {
-		return errors.New("exluded not in scope")
+		return errors.New("excluded not in scope")
 	}
 	if excluded == 0 {
 		return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltZero()))
@@ -249,7 +249,7 @@ func assertLeFeltExcluded1(vm *VirtualMachine, scopes *ExecutionScopes) error {
 	}
 	excluded, ok := excludedAny.(int)
 	if !ok {
-		return errors.New("exluded not in scope")
+		return errors.New("excluded not in scope")
 	}
 	if excluded == 1 {
 		return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltZero()))
@@ -266,7 +266,7 @@ func assertLeFeltExcluded2(vm *VirtualMachine, scopes *ExecutionScopes) error {
 	}
 	excluded, ok := excludedAny.(int)
 	if !ok {
-		return errors.New("exluded not in scope")
+		return errors.New("excluded not in scope")
 	}
 	if excluded != 2 {
 		return errors.New("Assertion Failed: excluded == 2")
