@@ -279,7 +279,7 @@ func TestMemorySegmentsLoadDataTwoElements(t *testing.T) {
 }
 
 func TestValidateExistingMemoryForRangeCheckWithinBounds(t *testing.T) {
-	check_range := builtins.NewRangeCheckBuiltinRunner()
+	check_range := builtins.DefaultRangeCheckBuiltinRunner()
 	segments := memory.NewMemorySegmentManager()
 	check_range.InitializeSegments(&segments)
 	check_range.AddValidationRule(&segments.Memory)
@@ -298,7 +298,7 @@ func TestValidateExistingMemoryForRangeCheckWithinBounds(t *testing.T) {
 
 func TestValidateExistingMemoryForRangeCheckOutsideBounds(t *testing.T) {
 	t.Helper()
-	check_range := builtins.NewRangeCheckBuiltinRunner()
+	check_range := builtins.DefaultRangeCheckBuiltinRunner()
 	segments := memory.NewMemorySegmentManager()
 	segments.AddSegment()
 	check_range.InitializeSegments(&segments)
@@ -316,7 +316,7 @@ func TestValidateExistingMemoryForRangeCheckOutsideBounds(t *testing.T) {
 }
 
 func TestValidateExistingMemoryForRangeCheckRelocatableValue(t *testing.T) {
-	check_range := builtins.NewRangeCheckBuiltinRunner()
+	check_range := builtins.DefaultRangeCheckBuiltinRunner()
 	segments := memory.NewMemorySegmentManager()
 	check_range.InitializeSegments(&segments)
 	for i := 0; i < 3; i++ {
@@ -336,7 +336,7 @@ func TestValidateExistingMemoryForRangeCheckRelocatableValue(t *testing.T) {
 }
 
 func TestValidateExistingMemoryForRangeCheckOutOfBoundsDiffSegment(t *testing.T) {
-	check_range := builtins.NewRangeCheckBuiltinRunner()
+	check_range := builtins.DefaultRangeCheckBuiltinRunner()
 	segments := memory.NewMemorySegmentManager()
 	segments.AddSegment()
 	check_range.InitializeSegments(&segments)
@@ -396,7 +396,7 @@ func TestMemoryValidateExistingMemoryErr(t *testing.T) {
 }
 
 func TestValidateMemoryForInvalidSignature(t *testing.T) {
-	builtin := builtins.NewSignatureBuiltinRunner()
+	builtin := builtins.NewSignatureBuiltinRunner(2048)
 	mem_manager := memory.NewMemorySegmentManager()
 	mem_manager.AddSegment()
 	mem := mem_manager.Memory
@@ -422,7 +422,7 @@ func TestValidateMemoryForInvalidSignature(t *testing.T) {
 	}
 }
 func TestValidateMemoryForValidSignature(t *testing.T) {
-	signature_builtin := builtins.NewSignatureBuiltinRunner()
+	signature_builtin := builtins.NewSignatureBuiltinRunner(2048)
 	mem_manager := memory.NewMemorySegmentManager()
 	mem_manager.AddSegment()
 	mem := mem_manager.Memory

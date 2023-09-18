@@ -495,7 +495,7 @@ func TestComputeOperandsAddAp(t *testing.T) {
 		Op1: *op1_addr_value,
 	}
 
-	operands, _ := vmachine.ComputeOperands(instruction)
+	operands, _, _ := vmachine.ComputeOperands(instruction)
 
 	if operands.Dst != expected_operands.Dst {
 		t.Errorf("Different Dst register")
@@ -1054,8 +1054,8 @@ func TestDeduceDstOpcodeRet(t *testing.T) {
 
 func TestGetPedersenAndBitwiseBuiltins(t *testing.T) {
 	vm := vm.NewVirtualMachine()
-	pedersen_builtin := builtins.NewPedersenBuiltinRunner()
-	bitwise_builtin := builtins.NewBitwiseBuiltinRunner()
+	pedersen_builtin := builtins.NewPedersenBuiltinRunner(256)
+	bitwise_builtin := builtins.NewBitwiseBuiltinRunner(256)
 
 	vm.BuiltinRunners = append(vm.BuiltinRunners, pedersen_builtin)
 	vm.BuiltinRunners = append(vm.BuiltinRunners, bitwise_builtin)
@@ -1069,8 +1069,8 @@ func TestGetPedersenAndBitwiseBuiltins(t *testing.T) {
 
 func TestGetFooBuiltinReturnsNilAndError(t *testing.T) {
 	vm := vm.NewVirtualMachine()
-	pedersen_builtin := builtins.NewPedersenBuiltinRunner()
-	bitwise_builtin := builtins.NewBitwiseBuiltinRunner()
+	pedersen_builtin := builtins.NewPedersenBuiltinRunner(256)
+	bitwise_builtin := builtins.NewBitwiseBuiltinRunner(256)
 
 	vm.BuiltinRunners = append(vm.BuiltinRunners, pedersen_builtin)
 	vm.BuiltinRunners = append(vm.BuiltinRunners, bitwise_builtin)

@@ -167,7 +167,7 @@ func TestAssertNotZeroHintFail(t *testing.T) {
 
 func TestVerifyValidSignature(t *testing.T) {
 	vm := NewVirtualMachine()
-	signature_builtin := builtins.NewSignatureBuiltinRunner()
+	signature_builtin := builtins.NewSignatureBuiltinRunner(2048)
 	vm.BuiltinRunners = append(vm.BuiltinRunners, signature_builtin)
 
 	hintProcessor := CairoVmHintProcessor{}
@@ -204,7 +204,7 @@ func TestVerifyValidSignature(t *testing.T) {
 
 func VerifySignatureInvalidEcdsaPointer(t *testing.T) {
 	vm := NewVirtualMachine()
-	signature_builtin := builtins.NewSignatureBuiltinRunner()
+	signature_builtin := builtins.NewSignatureBuiltinRunner(2048)
 	vm.BuiltinRunners = append(vm.BuiltinRunners, signature_builtin)
 
 	hintProcessor := CairoVmHintProcessor{}
@@ -236,5 +236,160 @@ func VerifySignatureInvalidEcdsaPointer(t *testing.T) {
 
 	if err == nil {
 		t.Errorf("Verified a signature with an invalid pointer")
+	}
+}
+
+func TestAssertNotEqualHintNonComparableDiffType(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"a": {NewMaybeRelocatableFelt(FeltFromUint64(0))},
+			"b": {NewMaybeRelocatableRelocatable(NewRelocatable(0, 0))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: ASSERT_NOT_EQUAL,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err == nil {
+		t.Errorf("ASSERT_NOT_EQUAL hint should have failed")
+	}
+}
+
+func TestAssertNotEqualHintNonComparableDiffIndex(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"a": {NewMaybeRelocatableRelocatable(NewRelocatable(1, 0))},
+			"b": {NewMaybeRelocatableRelocatable(NewRelocatable(0, 0))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: ASSERT_NOT_EQUAL,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err == nil {
+		t.Errorf("ASSERT_NOT_EQUAL hint should have failed")
+	}
+}
+
+func TestAssertNotEqualHintEqualRelocatables(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"a": {NewMaybeRelocatableRelocatable(NewRelocatable(0, 0))},
+			"b": {NewMaybeRelocatableRelocatable(NewRelocatable(0, 0))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: ASSERT_NOT_EQUAL,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err == nil {
+		t.Errorf("ASSERT_NOT_EQUAL hint should have failed")
+	}
+}
+
+func TestAssertNotEqualHintEqualFelts(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"a": {NewMaybeRelocatableFelt(FeltFromUint64(9))},
+			"b": {NewMaybeRelocatableFelt(FeltFromUint64(9))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: ASSERT_NOT_EQUAL,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err == nil {
+		t.Errorf("ASSERT_NOT_EQUAL hint should have failed")
+	}
+}
+
+func TestAssertNotEqualHintOkFelts(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"a": {NewMaybeRelocatableFelt(FeltFromUint64(9))},
+			"b": {NewMaybeRelocatableFelt(FeltFromUint64(7))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: ASSERT_NOT_EQUAL,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("ASSERT_NOT_EQUAL hint failed with error: %s", err)
+	}
+}
+
+func TestAssertNotEqualHintOkRelocatables(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"a": {NewMaybeRelocatableRelocatable(NewRelocatable(1, 9))},
+			"b": {NewMaybeRelocatableRelocatable(NewRelocatable(1, 7))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: ASSERT_NOT_EQUAL,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("ASSERT_NOT_EQUAL hint failed with error: %s", err)
+	}
+}
+
+func TestSqrtOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(FeltFromDecString("9"))},
+			"root":  {nil},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SQRT,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("SQRT hint failed with error: %s", err)
+	}
+
+	root, err := idsManager.GetFelt("root", vm)
+	if err != nil {
+		t.Errorf("failed to get root: %s", err)
+	}
+	if root != FeltFromUint64(3) {
+		t.Errorf("Expected sqrt(9) == 3. Got: %v", root)
 	}
 }

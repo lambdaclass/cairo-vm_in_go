@@ -226,6 +226,22 @@ func (a Felt) Or(b Felt) Felt {
 	return fromC(result)
 }
 
+func (a Felt) Shl(num uint64) Felt {
+	var result C.felt_t
+	var a_c C.felt_t = a.toC()
+
+	C.felt_shl(&a_c[0], C.uint64_t(num), &result[0])
+	return fromC(result)
+}
+
+func (a Felt) PowUint(p uint32) Felt {
+	var result C.felt_t
+	var a_c C.felt_t = a.toC()
+
+	C.felt_pow_uint(&a_c[0], C.uint(p), &result[0])
+	return fromC(result)
+}
+
 func (a Felt) Shr(b uint) Felt {
 	var result C.felt_t
 	var a_c C.felt_t = a.toC()
@@ -251,4 +267,36 @@ func (f Felt) ToSigned() *big.Int {
 		return new(big.Int).Neg(new(big.Int).Sub(cairoPrime, n))
 	}
 	return n
+}
+
+func (a Felt) DivRem(b Felt) (Felt, Felt) {
+	var div C.felt_t
+	var rem C.felt_t
+	var a_c C.felt_t = a.toC()
+	var b_c C.felt_t = b.toC()
+	C.div_rem(&a_c[0], &b_c[0], &div[0], &rem[0])
+	return fromC(div), fromC(rem)
+}
+
+func (a Felt) ModFloor(b Felt) Felt {
+	_, rem := a.DivRem(b)
+	return rem
+}
+
+func (a Felt) DivFloor(b Felt) Felt {
+	div, _ := a.DivRem(b)
+	return div
+}
+
+/*
+Compares x and y and returns:
+
+	-1 if a <  b
+	 0 if a == b
+	+1 if a >  b
+*/
+func (a Felt) Cmp(b Felt) int {
+	var a_c C.felt_t = a.toC()
+	var b_c C.felt_t = b.toC()
+	return int(C.cmp(&a_c[0], &b_c[0]))
 }

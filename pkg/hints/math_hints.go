@@ -4,6 +4,7 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	. "github.com/lambdaclass/cairo-vm.go/pkg/math_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	"github.com/pkg/errors"
@@ -93,5 +94,59 @@ func verify_ecdsa_signature(ids IdsManager, vm *VirtualMachine) error {
 		S: s,
 	}
 	signature_builtin.AddSignature(ecdsa_ptr, signature)
+	return nil
+}
+
+func assert_not_equal(ids IdsManager, vm *VirtualMachine) error {
+	// Extract Ids Variables
+	a, err := ids.Get("a", vm)
+	if err != nil {
+		return err
+	}
+	b, err := ids.Get("b", vm)
+	if err != nil {
+		return err
+	}
+	// Hint Logic
+	a_rel, a_is_rel := a.GetRelocatable()
+	b_rel, b_is_rel := b.GetRelocatable()
+	if !((a_is_rel && b_is_rel && a_rel.SegmentIndex == b_rel.SegmentIndex) || (!a_is_rel && !b_is_rel)) {
+		return errors.Errorf("assert_not_equal failed: non-comparable values: %v, %v.", a, b)
+	}
+	diff, err := a.Sub(*b)
+	if err != nil {
+		return err
+	}
+	if diff.IsZero() {
+		return errors.Errorf("assert_not_equal failed: %v = %v.", a, b)
+	}
+	return nil
+}
+
+/*
+Implements the hint:
+
+	from starkware.python.math_utils import isqrt
+	value = ids.value % PRIME
+	assert value < 2 ** 250, f"value={value} is outside of the range [0, 2**250)."
+	assert 2 ** 250 < PRIME
+	ids.root = isqrt(value)
+*/
+func sqrt(ids IdsManager, vm *VirtualMachine) error {
+	value, err := ids.GetFelt("value", vm)
+	if err != nil {
+		return err
+	}
+
+	if value.Bits() >= 250 {
+		return errors.Errorf("Value: %v is outside of the range [0, 2**250)", value)
+	}
+
+	root_big, err := ISqrt(value.ToBigInt())
+	if err != nil {
+		return err
+	}
+	root_felt := FeltFromDecString(root_big.String())
+	ids.Insert("root", NewMaybeRelocatableFelt(root_felt), vm)
 	return nil
 }

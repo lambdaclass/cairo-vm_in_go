@@ -23,6 +23,8 @@ type Program struct {
 	Identifiers      map[string]Identifier
 	Hints            map[uint][]parser.HintParams
 	ReferenceManager parser.ReferenceManager
+	Start            uint
+	End              uint
 }
 
 func DeserializeProgramJson(compiledProgram parser.CompiledJson) Program {
@@ -35,6 +37,12 @@ func DeserializeProgramJson(compiledProgram parser.CompiledJson) Program {
 	}
 	program.Builtins = compiledProgram.Builtins
 	program.Identifiers = make(map[string]Identifier)
+
+	start := uint(compiledProgram.Identifiers["__main__.__start__"].PC)
+	end := uint(compiledProgram.Identifiers["__main__.__end__"].PC)
+	program.Start = start
+	program.End = end
+
 	for key, identifier := range compiledProgram.Identifiers {
 		var programIdentifier Identifier
 		programIdentifier.FullName = identifier.FullName

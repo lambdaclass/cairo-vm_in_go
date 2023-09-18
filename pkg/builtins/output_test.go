@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -56,5 +57,18 @@ func TestOutputAddValidationRule(t *testing.T) {
 	// no validation rules were added
 	if !reflect.DeepEqual(mem, empty_mem) {
 		t.Errorf("AddValidationRule should do nothing")
+	}
+}
+
+func TestGetAllocatedMemoryUnitsOutput(t *testing.T) {
+	output := builtins.NewOutputBuiltinRunner()
+	vm := vm.NewVirtualMachine()
+
+	mem_units, err := output.GetAllocatedMemoryUnits(&vm.Segments, vm.CurrentStep)
+	if err != nil {
+		t.Error("test failed with error: ", err)
+	}
+	if mem_units != 0 {
+		t.Errorf("expected memory units to be 5, got: %d", mem_units)
 	}
 }
