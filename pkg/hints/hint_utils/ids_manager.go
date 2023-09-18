@@ -41,7 +41,7 @@ func (ids *IdsManager) GetConst(name string, constants *map[string]lambdaworks.F
 			return constant, nil
 		}
 	}
-	return lambdaworks.FeltZero(), nil
+	return lambdaworks.FeltZero(), errors.Errorf("Missing constant %s", name)
 }
 
 // Inserts value into memory given its identifier name
