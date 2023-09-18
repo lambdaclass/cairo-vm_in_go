@@ -29,7 +29,7 @@ func (p *CairoVmHintProcessor) CompileHint(hintParams *parser.HintParams, refere
 		name = split[len(split)-1]
 		references[name] = ParseHintReference(referenceManager.References[n])
 	}
-	ids := NewIdsManager(references, hintParams.FlowTrackingData.APTracking)
+	ids := NewIdsManager(references, hintParams.FlowTrackingData.APTracking, hintParams.AccessibleScopes)
 	return HintData{Ids: ids, Code: hintParams.Code}, nil
 }
 
