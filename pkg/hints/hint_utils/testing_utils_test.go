@@ -117,7 +117,7 @@ func TestSetupConstantsForTest(t *testing.T) {
 		"A": constA,
 		"B": constB,
 	},
-		IdsManager,
+		&IdsManager,
 	)
 	// Check that we can fetch the constants
 	a, err := IdsManager.GetConst("A", &constants)
