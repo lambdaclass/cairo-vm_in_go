@@ -25,3 +25,9 @@ const SQUASH_DICT_INNER_LEN_ASSERT = "assert len(current_access_indices) == 0"
 const SQUASH_DICT_INNER_USED_ACCESSES_ASSERT = "assert ids.n_used_accesses == len(access_indices[key])"
 
 const SQUASH_DICT_INNER_NEXT_KEY = "assert len(keys) > 0, 'No keys left but remaining_accesses > 0.'\nids.next_key = key = keys.pop()"
+
+const DICT_SQUASH_COPY_DICT = "# Prepare arguments for dict_new. In particular, the same dictionary values should be copied\n# to the new (squashed) dictionary.\nvm_enter_scope({\n    # Make __dict_manager accessible.\n    '__dict_manager': __dict_manager,\n    # Create a copy of the dict, in case it changes in the future.\n    'initial_dict': dict(__dict_manager.get_dict(ids.dict_accesses_end)),\n})"
+
+const DICT_SQUASH_UPDATE_PTR = "# Update the DictTracker's current_ptr to point to the end of the squashed dict.\n__dict_manager.get_tracker(ids.squashed_dict_start).current_ptr = \\\n    ids.squashed_dict_end.address_"
+
+const DICT_NEW = "if '__dict_manager' not in globals():\n    from starkware.cairo.common.dict import DictManager\n    __dict_manager = DictManager()\n\nmemory[ap] = __dict_manager.new_dict(segments, initial_dict)\ndel initial_dict"
