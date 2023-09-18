@@ -1,7 +1,6 @@
 package hints
 
 import (
-	"fmt"
 	"sort"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
@@ -119,8 +118,16 @@ func squashDict(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) err
 }
 
 func squashDictInnerSkipLoop(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error {
-	_, err := scopes.Get("current_access_indices")
-	if err == nil {
+	currentAccessIndicesAny, err := scopes.Get("current_access_indices")
+	if err != nil {
+		return err
+	}
+	currentAccessIndices, ok := currentAccessIndicesAny.([]int)
+	if !ok {
+		return errors.New("current_access_indices not in scope")
+	}
+	// Hint Logic
+	if len(currentAccessIndices) != 0 {
 		return ids.Insert("should_skip_loop", NewMaybeRelocatableFelt(FeltZero()), vm)
 	}
 	return ids.Insert("should_skip_loop", NewMaybeRelocatableFelt(FeltOne()), vm)
@@ -195,12 +202,20 @@ func squashDictInnerCheckAccessIndex(ids IdsManager, scopes *ExecutionScopes, vm
 	scopes.AssignOrUpdateVariable("current_access_index", newAccessIndex)
 	scopes.AssignOrUpdateVariable("new_access_index", newAccessIndex)
 	// Update ids variables
-	return ids.Insert("loop_temps", NewMaybeRelocatableFelt(FeltFromDecString(fmt.Sprint(deltaMinusOne))), vm)
+	return ids.Insert("loop_temps", NewMaybeRelocatableFelt(FeltFromUint64(uint64(deltaMinusOne))), vm)
 }
 
 func squashDictInnerContinueLoop(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error {
-	_, err := scopes.Get("current_access_indices")
+	currentAccessIndicesAny, err := scopes.Get("current_access_indices")
 	if err != nil {
+		return err
+	}
+	currentAccessIndices, ok := currentAccessIndicesAny.([]int)
+	if !ok {
+		return errors.New("current_access_indices not in scope")
+	}
+	// Hint Logic
+	if len(currentAccessIndices) == 0 {
 		return ids.InsertStructField("loop_temps", 3, NewMaybeRelocatableFelt(FeltZero()), vm)
 	}
 	return ids.InsertStructField("loop_temps", 3, NewMaybeRelocatableFelt(FeltOne()), vm)
