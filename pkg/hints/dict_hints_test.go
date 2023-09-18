@@ -71,7 +71,7 @@ func TestDefaultDictNewHasManager(t *testing.T) {
 	if err != nil {
 		t.Errorf("DEFAULT_DICT_NEW hint test failed with error %s", err)
 	}
-	// Check that the manager wan't replaced by a new one
+	// Check that the manager wasn't replaced by a new one
 	dictManagerPtr, ok := FetchDictManager(scopes)
 	if !ok || dictManagerPtr != dictManagerRef {
 		t.Error("DEFAULT_DICT_NEW DictManager replaced")
@@ -551,5 +551,75 @@ func TestDictSquashUpdatePtrMismatchedPtr(t *testing.T) {
 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
 	if err == nil {
 		t.Errorf("DICT_SQUASH_UPDATE_PTR hint test should have failed")
+	}
+}
+
+func TestDictNewCreateManager(t *testing.T) {
+	vm := NewVirtualMachine()
+	scopes := types.NewExecutionScopes()
+	initialDict := make(map[MaybeRelocatable]MaybeRelocatable)
+	scopes.AssignOrUpdateVariable("initial_dict", initialDict)
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: DICT_NEW,
+	})
+	// Advance AP so that values don't clash with FP-based ids
+	vm.RunContext.Ap = NewRelocatable(0, 5)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("DICT_NEW hint test failed with error %s", err)
+	}
+	// Check that a manager was created in the scope
+	_, ok := FetchDictManager(scopes)
+	if !ok {
+		t.Error("DICT_NEW No DictManager created")
+	}
+	// Check that the correct base was inserted into ap
+	val, _ := vm.Segments.Memory.Get(vm.RunContext.Ap)
+	if val == nil || *val != *NewMaybeRelocatableRelocatable(NewRelocatable(1, 0)) {
+		t.Error("DICT_NEW Wrong/No base inserted into ap")
+	}
+}
+
+func TestDictNewHasManager(t *testing.T) {
+	vm := NewVirtualMachine()
+	scopes := types.NewExecutionScopes()
+	// Create initialDict & dictManager & add them to scope
+	initialDict := make(map[MaybeRelocatable]MaybeRelocatable)
+	scopes.AssignOrUpdateVariable("initial_dict", initialDict)
+	dictManager := dict_manager.NewDictManager()
+	dictManagerRef := &dictManager
+	scopes.AssignOrUpdateVariable("__dict_manager", dictManagerRef)
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: DICT_NEW,
+	})
+	// Advance AP so that values don't clash with FP-based ids
+	vm.RunContext.Ap = NewRelocatable(0, 5)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("DICT_NEW hint test failed with error %s", err)
+	}
+	// Check that the manager wasn't replaced by a new one
+	dictManagerPtr, ok := FetchDictManager(scopes)
+	if !ok || dictManagerPtr != dictManagerRef {
+		t.Error("DICT_NEW DictManager replaced")
+	}
+	// Check that the correct base was inserted into ap
+	val, _ := vm.Segments.Memory.Get(vm.RunContext.Ap)
+	if val == nil || *val != *NewMaybeRelocatableRelocatable(NewRelocatable(1, 0)) {
+		t.Error("DICT_NEW Wrong/No base inserted into ap")
 	}
 }
