@@ -331,14 +331,17 @@ func TestAssert250BitHintSuccess(t *testing.T) {
 	)
 
 	hintProcessor := CairoVmHintProcessor{}
+	constants := SetupConstantsForTest(map[string]Felt{
+		"UPPER_BOUND": lambdaworks.FeltFromUint64(10),
+		"SHIFT":       lambdaworks.FeltFromUint64(1),
+	},
+		&idsManager,
+	)
+
 	hintData := any(HintData{
 		Ids:  idsManager,
 		Code: ASSERT_250_BITS,
 	})
-
-	constants := make(map[string]Felt)
-	constants["UPPER_BOUND"] = lambdaworks.FeltFromUint64(10)
-	constants["SHIFT"] = lambdaworks.FeltFromUint64(1)
 
 	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
 	if err != nil {
@@ -377,14 +380,17 @@ func TestAssert250BitHintFail(t *testing.T) {
 	)
 
 	hintProcessor := CairoVmHintProcessor{}
+	constants := SetupConstantsForTest(map[string]Felt{
+		"UPPER_BOUND": lambdaworks.FeltFromUint64(10),
+		"SHIFT":       lambdaworks.FeltFromUint64(1),
+	},
+		&idsManager,
+	)
+
 	hintData := any(HintData{
 		Ids:  idsManager,
 		Code: ASSERT_250_BITS,
 	})
-
-	constants := make(map[string]Felt)
-	constants["UPPER_BOUND"] = lambdaworks.FeltFromUint64(10)
-	constants["SHIFT"] = lambdaworks.FeltFromUint64(1)
 
 	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
 	if err == nil {
@@ -405,14 +411,17 @@ func TestSplitFeltAssertPrimeFailure(t *testing.T) {
 	)
 
 	hintProcessor := CairoVmHintProcessor{}
+	constants := SetupConstantsForTest(map[string]Felt{
+		"MAX_HIGH": lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffff"),
+		"MAX_LOW":  lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffff"),
+	},
+		&idsManager,
+	)
+
 	hintData := any(HintData{
 		Ids:  idsManager,
 		Code: SPLIT_FELT,
 	})
-
-	constants := make(map[string]Felt)
-	constants["MAX_HIGH"] = lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffff")
-	constants["MAX_LOW"] = lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffff")
 
 	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
 	if err == nil {
@@ -433,14 +442,17 @@ func TestSplitFeltAssertMaxHighFailedAssertion(t *testing.T) {
 	)
 
 	hintProcessor := CairoVmHintProcessor{}
+	constants := SetupConstantsForTest(map[string]Felt{
+		"MAX_HIGH": lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffffffff"),
+		"MAX_LOW":  lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffff"),
+	},
+		&idsManager,
+	)
+
 	hintData := any(HintData{
 		Ids:  idsManager,
 		Code: SPLIT_FELT,
 	})
-
-	constants := make(map[string]Felt)
-	constants["MAX_HIGH"] = lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffffffff")
-	constants["MAX_LOW"] = lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffff")
 
 	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
 	if err == nil {
@@ -461,14 +473,17 @@ func TestSplitFeltAssertMaxLowFailedAssertion(t *testing.T) {
 	)
 
 	hintProcessor := CairoVmHintProcessor{}
+	constants := SetupConstantsForTest(map[string]Felt{
+		"MAX_HIGH": lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffff"),
+		"MAX_LOW":  lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffffffff"),
+	},
+		&idsManager,
+	)
+
 	hintData := any(HintData{
 		Ids:  idsManager,
 		Code: SPLIT_FELT,
 	})
-
-	constants := make(map[string]Felt)
-	constants["MAX_HIGH"] = lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffff")
-	constants["MAX_LOW"] = lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffffffff")
 
 	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
 	if err == nil {
@@ -495,14 +510,17 @@ func TestSplitFeltSuccess(t *testing.T) {
 	)
 
 	hintProcessor := CairoVmHintProcessor{}
+	constants := SetupConstantsForTest(map[string]Felt{
+		"MAX_HIGH": lambdaworks.FeltFromDecString("10633823966279327296825105735305134080"),
+		"MAX_LOW":  lambdaworks.FeltFromUint64(0),
+	},
+		&idsManager,
+	)
+
 	hintData := any(HintData{
 		Ids:  idsManager,
 		Code: SPLIT_FELT,
 	})
-
-	constants := make(map[string]Felt)
-	constants["MAX_HIGH"] = lambdaworks.FeltFromDecString("10633823966279327296825105735305134080")
-	constants["MAX_LOW"] = lambdaworks.FeltFromUint64(0)
 
 	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
 	if err != nil {

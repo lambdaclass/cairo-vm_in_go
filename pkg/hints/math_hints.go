@@ -172,7 +172,7 @@ func Assert250Bit(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt
 
 	if !ok {
 		var err error
-		upperBound, err = GetConstantFromVarName("UPPER_BOUND", constants)
+		upperBound, err = ids.GetConst("UPPER_BOUND", constants)
 
 		if err != nil {
 			return err
@@ -183,7 +183,7 @@ func Assert250Bit(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt
 
 	if !ok {
 		var err error
-		shift, err = GetConstantFromVarName("SHIFT", constants)
+		shift, err = ids.GetConst("SHIFT", constants)
 
 		if err != nil {
 			return err
@@ -227,12 +227,12 @@ func Assert250Bit(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt
 //
 // %}
 func SplitFelt(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt) error {
-	maxHigh, err := GetConstantFromVarName("MAX_HIGH", constants)
+	maxHigh, err := ids.GetConst("MAX_HIGH", constants)
 	if err != nil {
 		return err
 	}
 
-	maxLow, err := GetConstantFromVarName("MAX_LOW", constants)
+	maxLow, err := ids.GetConst("MAX_LOW", constants)
 	if err != nil {
 		return err
 	}
