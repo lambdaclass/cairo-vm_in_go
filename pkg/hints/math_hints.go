@@ -172,7 +172,7 @@ func Assert250Bit(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt
 
 	if !ok {
 		var err error
-		upperBound, err = GetConstantFromVarName(UPPER_BOUND, constants)
+		upperBound, err = GetConstantFromVarName("UPPER_BOUND", constants)
 
 		if err != nil {
 			return err
@@ -183,7 +183,7 @@ func Assert250Bit(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt
 
 	if !ok {
 		var err error
-		shift, err = GetConstantFromVarName(SHIFT, constants)
+		shift, err = GetConstantFromVarName("SHIFT", constants)
 
 		if err != nil {
 			return err
