@@ -151,3 +151,59 @@ func sqrt(ids IdsManager, vm *VirtualMachine) error {
 	ids.Insert("root", NewMaybeRelocatableFelt(root_felt), vm)
 	return nil
 }
+
+// Implements hint:
+//
+//	from starkware.cairo.common.math_utils import as_int
+//	# Correctness check.
+//	value = as_int(ids.value, PRIME) % PRIME
+//	assert value < ids.UPPER_BOUND, f'{value} is outside of the range [0, 2**250).'
+//	# Calculation for the assertion.
+//	ids.high, ids.low = divmod(ids.value, ids.SHIFT)
+func Assert250Bit(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt) error {
+	const UPPER_BOUND = "starkware.cairo.common.math.assert_250_bit.UPPER_BOUND"
+	const SHIFT = "starkware.cairo.common.math.assert_250_bit.SHIFT"
+
+	if constants == nil {
+		return errors.New("Called Assert250Bit with a nil constants map")
+	}
+
+	upperBound, ok := (*constants)[UPPER_BOUND]
+
+	if !ok {
+		var err error
+		upperBound, err = GetConstantFromVarName(UPPER_BOUND, constants)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	shift, ok := (*constants)[SHIFT]
+
+	if !ok {
+		var err error
+		shift, err = GetConstantFromVarName(SHIFT, constants)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	value, err := ids.GetFelt("value", vm)
+
+	if err != nil {
+		return err
+	}
+
+	if Felt.Cmp(value, upperBound) == 1 {
+		return errors.New("Value outside of 250 bit Range")
+	}
+
+	high, low := value.DivRem(shift)
+
+	ids.Insert("high", NewMaybeRelocatableFelt(high), vm)
+	ids.Insert("low", NewMaybeRelocatableFelt(low), vm)
+
+	return nil
+}

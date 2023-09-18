@@ -34,11 +34,11 @@ func TestExtractConstants(t *testing.T) {
 			},
 			"A": {
 				Value: lambdaworks.FeltFromUint64(7),
-				Type:  "constant",
+				Type:  "const",
 			},
 			"B": {
 				Value: lambdaworks.FeltFromUint64(17),
-				Type:  "constant",
+				Type:  "const",
 			},
 		},
 	}
