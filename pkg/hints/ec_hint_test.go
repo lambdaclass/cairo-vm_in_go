@@ -1,6 +1,7 @@
 package hints_test
 
 import (
+	"fmt"
 	"math/big"
 	"testing"
 
@@ -35,27 +36,6 @@ func TestBigInt3Pack86(t *testing.T) {
 	}
 }
 
-// fn run_ec_negate_ok() {
-// 	let hint_code = "from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack\n\ny = pack(ids.point.y, PRIME) % SECP_P\n# The modulo operation in python always returns a nonnegative number.\nvalue = (-y) % SECP_P";
-// 	let mut vm = vm_with_range_check!();
-
-// 	vm.segments = segments![((1, 3), 2645i32), ((1, 4), 454i32), ((1, 5), 206i32)];
-// 	//Initialize fp
-// 	vm.run_context.fp = 1;
-// 	//Create hint_data
-// 	let ids_data = ids_data!["point"];
-// 	let mut exec_scopes = ExecutionScopes::new();
-// 	//Execute the hint
-// 	assert_matches!(run_hint!(vm, ids_data, hint_code, &mut exec_scopes), Ok(()));
-// 	//Check 'value' is defined in the vm scope
-// 	assert_matches!(
-// 		exec_scopes.get::<BigInt>("value"),
-// 		Ok(x) if x == bigint_str!(
-// 			"115792089237316195423569751828682367333329274433232027476421668138471189901786"
-// 		)
-// 	);
-// }
-
 func TestRunEcNegateOk(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()
@@ -71,6 +51,9 @@ func TestRunEcNegateOk(t *testing.T) {
 		},
 		vm,
 	)
+
+	point, _ := idsManager.Get("point", vm)
+	fmt.Println("Ids manager: ", point)
 	hintProcessor := CairoVmHintProcessor{}
 	hintData := any(HintData{
 		Ids:  idsManager,
@@ -90,4 +73,64 @@ func TestRunEcNegateOk(t *testing.T) {
 			t.Errorf("Ec Negative hint test incorrect value for exec_scopes.value")
 		}
 	}
+}
+
+func TestRunEcEmbeddedSecpOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	vm.Segments.Memory.Insert(NewRelocatable(1, 3), NewMaybeRelocatableFelt(FeltFromUint64(2645)))
+	vm.Segments.Memory.Insert(NewRelocatable(1, 4), NewMaybeRelocatableFelt(FeltFromUint64(454)))
+	vm.Segments.Memory.Insert(NewRelocatable(1, 5), NewMaybeRelocatableFelt(FeltFromUint64(206)))
+
+	y2 := big.NewInt(206)
+	y2.Lsh(y2, 86*2)
+
+	y1 := big.NewInt(454)
+	y1.Lsh(y1, 86)
+
+	y0 := big.NewInt(2645)
+
+	y := new(big.Int)
+	y.Add(y, y2)
+	y.Add(y, y1)
+	y.Add(y, y0)
+
+	//vm.RunContext.Fp = NewRelocatable(1,0)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"point":       {NewMaybeRelocatableRelocatable(NewRelocatable(1, 0))},
+			"ec_negative": {nil},
+		},
+		vm,
+	)
+
+	point, _ := idsManager.Get("point", vm)
+	fmt.Println("Ids manager: ", point)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: EC_NEGATE_EMBEDDED_SECP,
+	})
+	exec_scopes := types.NewExecutionScopes()
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, exec_scopes)
+	if err != nil {
+		t.Errorf("Ec Negative Embedded Sec hint test failed with error %s", err)
+	} else {
+		// Check ids.is_positive
+		value, err := exec_scopes.Get("value")
+		val := value.(*big.Int)
+
+		// expected value
+		minus_y := big.NewInt(1)
+		minus_y.Lsh(minus_y, 255)
+		minus_y.Sub(minus_y, big.NewInt(19))
+		minus_y.Sub(minus_y, y)
+
+		if err != nil || minus_y.Cmp(val) != 0 {
+			t.Errorf("Ec Negative hint test incorrect value for exec_scopes.value")
+		}
+	}
+
 }

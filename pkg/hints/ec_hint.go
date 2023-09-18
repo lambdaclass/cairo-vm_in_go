@@ -2,6 +2,7 @@ package hints
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
@@ -68,6 +69,7 @@ Implements main logic for `EC_NEGATE` and `EC_NEGATE_EMBEDDED_SECP` hints
 */
 func ec_negate(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager, secp_p big.Int) error {
 	point, err := ids_data.GetRelocatable("point", &virtual_machine)
+	fmt.Println("point ", point)
 	if err != nil {
 		return err
 	}
@@ -109,9 +111,9 @@ Implements hint:
 */
 
 func ec_negate_embedded_secp_p(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager) error {
+	fmt.Println("inside hint")
 	secp_p := big.NewInt(1)
 	secp_p.Lsh(secp_p, 256)
 	secp_p.Sub(secp_p, big.NewInt(19))
-
 	return ec_negate(virtual_machine, exec_scopes, ids_data, *secp_p)
 }
