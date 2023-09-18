@@ -25,10 +25,11 @@ func ErrUnknownIdentifier(name string) error {
 	return ErrIdsManager(errors.Errorf("Unknow identifier %s", name))
 }
 
-func NewIdsManager(references map[string]HintReference, hintApTracking parser.ApTrackingData) IdsManager {
+func NewIdsManager(references map[string]HintReference, hintApTracking parser.ApTrackingData, accessibleScopes []string) IdsManager {
 	return IdsManager{
-		References:     references,
-		HintApTracking: hintApTracking,
+		References:       references,
+		HintApTracking:   hintApTracking,
+		AccessibleScopes: accessibleScopes,
 	}
 }
 
