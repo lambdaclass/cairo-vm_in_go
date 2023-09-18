@@ -138,6 +138,15 @@ func (m *Memory) GetFelt(addr Relocatable) (lambdaworks.Felt, error) {
 	return lambdaworks.FeltZero(), err
 }
 
+// Get a range of memory from the starting relocatable to the starting relocatable + size
+func (m *Memory) GetRange(start Relocatable, size uint) []MaybeRelocatable {
+	var res []MaybeRelocatable
+	for i := uint(0); i <= size; i++ {
+		res = append(res, m.Data[start.AddUint(i)])
+	}
+	return res
+}
+
 // Adds a validation rule for a given segment
 func (m *Memory) AddValidationRule(SegmentIndex uint, rule ValidationRule) {
 	m.validationRules[SegmentIndex] = rule
