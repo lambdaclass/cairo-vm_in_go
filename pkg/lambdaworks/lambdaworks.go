@@ -144,8 +144,19 @@ func FeltOne() Felt {
 	return fromC(result)
 }
 
+// Gets the Signed Felt max value: 0x400000000000008800000000000000000000000000000000000000000000000
+func SignedFeltMaxValue() Felt {
+	var result C.felt_t
+	C.signed_felt_max_value(&result[0])
+	return fromC(result)
+}
+
 func (f Felt) IsZero() bool {
 	return f == FeltZero()
+}
+
+func (f Felt) IsOne() bool {
+	return f == FeltOne()
 }
 
 // Writes the result variable with the sum of a and b felts.
@@ -242,6 +253,23 @@ func (a Felt) PowUint(p uint32) Felt {
 	return fromC(result)
 }
 
+func (a Felt) Pow(p Felt) Felt {
+	var result C.felt_t
+	var a_c C.felt_t = a.toC()
+	var p_c C.felt_t = p.toC()
+
+	C.felt_pow(&a_c[0], &p_c[0], &result[0])
+	return fromC(result)
+}
+
+func (a Felt) Sqrt() Felt {
+	var result C.felt_t
+	var a_c C.felt_t = a.toC()
+
+	C.felt_sqrt(&a_c[0], &result[0])
+	return fromC(result)
+}
+
 func (a Felt) Shr(b uint) Felt {
 	var result C.felt_t
 	var a_c C.felt_t = a.toC()
@@ -267,4 +295,36 @@ func (f Felt) ToSigned() *big.Int {
 		return new(big.Int).Neg(new(big.Int).Sub(cairoPrime, n))
 	}
 	return n
+}
+
+func (a Felt) DivRem(b Felt) (Felt, Felt) {
+	var div C.felt_t
+	var rem C.felt_t
+	var a_c C.felt_t = a.toC()
+	var b_c C.felt_t = b.toC()
+	C.div_rem(&a_c[0], &b_c[0], &div[0], &rem[0])
+	return fromC(div), fromC(rem)
+}
+
+func (a Felt) ModFloor(b Felt) Felt {
+	_, rem := a.DivRem(b)
+	return rem
+}
+
+func (a Felt) DivFloor(b Felt) Felt {
+	div, _ := a.DivRem(b)
+	return div
+}
+
+/*
+Compares x and y and returns:
+
+	-1 if a <  b
+	 0 if a == b
+	+1 if a >  b
+*/
+func (a Felt) Cmp(b Felt) int {
+	var a_c C.felt_t = a.toC()
+	var b_c C.felt_t = b.toC()
+	return int(C.cmp(&a_c[0], &b_c[0]))
 }

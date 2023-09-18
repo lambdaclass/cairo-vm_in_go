@@ -1,11 +1,36 @@
 .PHONY: deps deps-macos run test coverage build fmt check_fmt clean clean_files build_cairo_vm_cli compare_trace_memory compare_trace \
- compare_memory demo_fibonacci demo_factorial $(CAIRO_VM_CLI)
+ compare_memory demo_fibonacci demo_factorial compare_proof_trace_memory compare_proof_trace compare_proof_memory $(CAIRO_VM_CLI) clean_trace_and_memory_files \
 
 CAIRO_VM_CLI:=cairo-vm/target/release/cairo-vm-cli
 
 $(CAIRO_VM_CLI):
 	git clone --depth 1 -b v0.8.5 https://github.com/lambdaclass/cairo-vm
 	cd cairo-vm; cargo b --release --bin cairo-vm-cli
+
+# Create proof mode programs. 
+# NOTE: This is super flaky, DO NOT move this section below the non proof mode one
+# or things will go wrong.
+
+TEST_PROOF_DIR=cairo_programs/proof_programs
+TEST_PROOF_FILES:=$(wildcard $(TEST_PROOF_DIR)/*.cairo)
+COMPILED_PROOF_TESTS:=$(patsubst $(TEST_PROOF_DIR)/%.cairo, $(TEST_PROOF_DIR)/%.json, $(TEST_PROOF_FILES))
+
+CAIRO_RS_PROOF_MEM:=$(patsubst $(TEST_PROOF_DIR)/%.json, $(TEST_PROOF_DIR)/%.rs.memory, $(COMPILED_PROOF_TESTS))
+CAIRO_RS_PROOF_TRACE:=$(patsubst $(TEST_PROOF_DIR)/%.json, $(TEST_PROOF_DIR)/%.rs.trace, $(COMPILED_PROOF_TESTS))
+
+CAIRO_GO_PROOF_MEM:=$(patsubst $(TEST_PROOF_DIR)/%.json, $(TEST_PROOF_DIR)/%.go.memory, $(COMPILED_PROOF_TESTS))
+CAIRO_GO_PROOF_TRACE:=$(patsubst $(TEST_PROOF_DIR)/%.json, $(TEST_PROOF_DIR)/%.go.trace, $(COMPILED_PROOF_TESTS))
+
+$(TEST_PROOF_DIR)/%.json: $(TEST_PROOF_DIR)/%.cairo
+	cairo-compile --cairo_path="$(TEST_PROOF_DIR)" $< --output $@ --proof_mode
+
+$(TEST_PROOF_DIR)/%.rs.trace $(TEST_PROOF_DIR)/%.rs.memory: $(TEST_PROOF_DIR)/%.json $(CAIRO_VM_CLI)
+	$(CAIRO_VM_CLI) --layout all_cairo $< --trace_file $(@D)/$(*F).rs.trace --memory_file $(@D)/$(*F).rs.memory --proof_mode
+
+$(TEST_PROOF_DIR)/%.go.trace $(TEST_PROOF_DIR)/%.go.memory: $(TEST_PROOF_DIR)/%.json
+	go run cmd/cli/main.go --trace_file $(@D)/$(*F).go.trace --memory_file $(@D)/$(*F).go.memory --layout all_cairo --proof_mode $(@D)/$(*F).json
+
+# Non Proof mode programs
 
 TEST_DIR=cairo_programs
 TEST_FILES:=$(wildcard $(TEST_DIR)/*.cairo)
@@ -21,7 +46,7 @@ $(TEST_DIR)/%.rs.trace $(TEST_DIR)/%.rs.memory: $(TEST_DIR)/%.json $(CAIRO_VM_CL
 	$(CAIRO_VM_CLI) --layout all_cairo $< --trace_file $(@D)/$(*F).rs.trace --memory_file $(@D)/$(*F).rs.memory
 
 $(TEST_DIR)/%.go.trace $(TEST_DIR)/%.go.memory: $(TEST_DIR)/%.json
-	go run cmd/cli/main.go $(@D)/$(*F).json
+	go run cmd/cli/main.go --trace_file $(@D)/$(*F).go.trace --memory_file $(@D)/$(*F).go.memory --layout all_cairo $(@D)/$(*F).json
 
 $(TEST_DIR)/%.json: $(TEST_DIR)/%.cairo
 	cairo-compile --cairo_path="$(TEST_DIR)" $< --output $@
@@ -44,10 +69,10 @@ deps-macos:
 run:
 	@go run cmd/cli/main.go
 
-test: build $(COMPILED_TESTS)
+test: build $(COMPILED_TESTS) $(COMPILED_PROOF_TESTS)
 	@go test -v ./...
 
-coverage: $(COMPILED_TESTS)
+coverage: $(COMPILED_TESTS) $(COMPILED_PROOF_TESTS)
 	@go test -race -coverprofile=coverage.out -covermode=atomic ./...
 
 coverage_html: coverage
@@ -135,3 +160,14 @@ compare_trace: build_cairo_vm_cli $(CAIRO_RS_TRACE) $(CAIRO_GO_TRACE)
 compare_memory: build_cairo_vm_cli $(CAIRO_RS_MEM) $(CAIRO_GO_MEM)
 	cd scripts; sh compare_vm_state.sh memory
 
+compare_proof_trace_memory: build_cairo_vm_cli $(CAIRO_RS_PROOF_MEM) $(CAIRO_RS_PROOF_TRACE) $(CAIRO_GO_PROOF_MEM) $(CAIRO_GO_PROOF_TRACE)
+	cd scripts; sh compare_vm_state.sh trace memory proof_mode
+
+compare_proof_trace: build_cairo_vm_cli $(CAIRO_RS_PROOF_TRACE) $(CAIRO_GO_PROOF_TRACE)
+	cd scripts; sh compare_vm_state.sh trace proof_mode
+
+compare_proof_memory: build_cairo_vm_cli $(CAIRO_RS_PROOF_MEM) $(CAIRO_GO_PROOF_MEM)
+	cd scripts; sh compare_vm_state.sh memory proof_mode
+
+clean_trace_and_memory_files:
+	rm -f $(TEST_DIR)/*.rs.* && rm -f $(TEST_DIR)/*.go.* && rm -f $(TEST_PROOF_DIR)/*.rs.* && rm -f $(TEST_PROOF_DIR)/*.go.*

@@ -9,6 +9,59 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
+func TestFeltDivFloor(t *testing.T) {
+	a := lambdaworks.FeltFromUint64(13)
+	b := lambdaworks.FeltFromUint64(3)
+	expected := lambdaworks.FeltFromUint64(4)
+	r := a.DivFloor(b)
+	if r != expected {
+		t.Errorf("TestFeltDivFloor failed. Expected: %v, Got: %v", expected, r)
+	}
+}
+
+func TestFeltModFloor(t *testing.T) {
+	a := lambdaworks.FeltFromUint64(13)
+	b := lambdaworks.FeltFromUint64(3)
+	expected := lambdaworks.FeltFromUint64(1)
+	r := a.ModFloor(b)
+	if r != expected {
+		t.Errorf("TestFeltModFloor failed. Expected: %v, Got: %v", expected, r)
+	}
+}
+func TestFeltDivRem(t *testing.T) {
+	a := lambdaworks.FeltFromUint64(8)
+	b := lambdaworks.FeltFromUint64(3)
+	expected_div := lambdaworks.FeltFromUint64(2)
+	expected_rem := lambdaworks.FeltFromUint64(2)
+	div, rem := a.DivRem(b)
+	if div != expected_div || rem != expected_rem {
+		t.Errorf("TestFeltDivRem failed. Expected: (%v, %v), Got: (%v, %v)", expected_div, expected_rem, div, rem)
+	}
+}
+
+func TestCmpHigher(t *testing.T) {
+	a := lambdaworks.FeltFromUint64(13)
+	b := lambdaworks.FeltFromUint64(3)
+	if a.Cmp(b) != 1 {
+		t.Errorf("TestCmpEq failed")
+	}
+}
+
+func TestCmpLower(t *testing.T) {
+	a := lambdaworks.FeltFromUint64(3)
+	b := lambdaworks.FeltFromUint64(13)
+	if a.Cmp(b) != -1 {
+		t.Errorf("TestCmpEq failed")
+	}
+}
+
+func TestCmpEq(t *testing.T) {
+	a := lambdaworks.FeltFromUint64(13)
+	b := lambdaworks.FeltFromUint64(13)
+	if a.Cmp(b) != 0 {
+		t.Errorf("TestCmpEq failed")
+	}
+}
 func TestToBigInt(t *testing.T) {
 	felt := lambdaworks.FeltFromUint64(26)
 	bigInt := felt.ToBigInt()
@@ -413,6 +466,128 @@ func TestPow3(t *testing.T) {
 	}
 }
 
+func TestPowFelt(t *testing.T) {
+	felt_base := lambdaworks.FeltFromUint64(1233)
+	felt_exp := lambdaworks.FeltFromUint64(1233)
+
+	expected := lambdaworks.FeltFromDecString("3418065535446855313238995939000463244303872344528900201124636596003468607918")
+	result := felt_base.Pow(felt_exp)
+
+	if expected != result {
+		t.Errorf("TestPowFelt Failed, expecte: %v, got %v", expected, result)
+	}
+
+	felt_base = lambdaworks.FeltFromDecString("12383109480418712378780123")
+	felt_exp = lambdaworks.FeltFromDecString("91872587643897123781098123")
+
+	expected = lambdaworks.FeltFromDecString("2088955439096022421017346644949649198425019274657075865926754962561596407882")
+	result = felt_base.Pow(felt_exp)
+
+	if expected != result {
+		t.Errorf("TestPowFelt Failed, expecte: %v, got %v", expected, result)
+	}
+
+	felt_base = lambdaworks.FeltFromDecString("1480418712378780123123543345665445665445")
+	felt_exp = lambdaworks.FeltFromDecString("91872587643897345876123781098124353")
+
+	expected = lambdaworks.FeltFromDecString("3250055959035395902088721634924698439245455440785258481507488871970708539723")
+	result = felt_base.Pow(felt_exp)
+
+	if expected != result {
+		t.Errorf("TestPowFelt Failed, expecte: %v, got %v", expected, result)
+	}
+
+	felt_base = lambdaworks.FeltFromDecString("3250055959035395902088721634924698439245455440785258481507488871970708539723")
+	felt_exp = lambdaworks.FeltFromDecString("2088955439096022421017346644949649198425019274657075865926754962561596407882")
+
+	expected = lambdaworks.FeltFromDecString("2222900320242877003674481253396117682567674359625426155657415083745164507492")
+	result = felt_base.Pow(felt_exp)
+
+	if expected != result {
+		t.Errorf("TestPowFelt Failed, expecte: %v, got %v", expected, result)
+	}
+
+	felt_base = lambdaworks.FeltFromDecString("3")
+	felt_exp = lambdaworks.FeltFromDecString("1809251394333065606848661391547535052811553607665798349986546028067936010240")
+
+	expected = lambdaworks.FeltFromDecString("3618502788666131213697322783095070105623107215331596699973092056135872020480")
+	result = felt_base.Pow(felt_exp)
+
+	if expected != result {
+		t.Errorf("TestPowFelt Failed, expecte: %v, got %v", expected, result)
+	}
+
+	felt_base = lambdaworks.FeltFromDecString("6")
+	felt_exp = lambdaworks.FeltFromDecString("1809251394333065606848661391547535052811553607665798349986546028067936010240")
+
+	expected = lambdaworks.FeltFromDecString("3618502788666131213697322783095070105623107215331596699973092056135872020480")
+	result = felt_base.Pow(felt_exp)
+
+	if expected != result {
+		t.Errorf("TestPowFelt Failed, expecte: %v, got %v", expected, result)
+	}
+}
+
+func TestSqrt(t *testing.T) {
+
+	sqrt := lambdaworks.FeltFromDecString("1").Sqrt()
+	expect_res := lambdaworks.FeltFromDecString("1")
+
+	if sqrt != expect_res {
+		t.Errorf("TestSqrt Failed, expecte: %v, got %v", expect_res, sqrt)
+	}
+
+	sqrt = lambdaworks.FeltFromDecString("2").Sqrt()
+	expect_res = lambdaworks.FeltFromDecString("1120755473020101814179135767224264702961552391386192943129361948990833801454")
+
+	if sqrt != expect_res {
+		t.Errorf("TestSqrt Failed, expecte: %v, got %v", expect_res, sqrt)
+	}
+
+	sqrt = lambdaworks.FeltFromDecString("231354855").Sqrt()
+	expect_res = lambdaworks.FeltFromDecString("1025311277904211196612478135732240927612998008429122495456758581279557012570")
+
+	if sqrt != expect_res {
+		t.Errorf("TestSqrt Failed, expecte: %v, got %v", expect_res, sqrt)
+	}
+
+	sqrt = lambdaworks.FeltFromDecString("2837690996375263304037947136281").Sqrt()
+	expect_res = lambdaworks.FeltFromDecString("1518810120662201067233534392916286105989903317885218522014371199182069054395")
+
+	if sqrt != expect_res {
+		t.Errorf("TestSqrt Failed, expecte: %v, got %v", expect_res, sqrt)
+	}
+
+	sqrt = lambdaworks.FeltFromDecString("2412335192444087475798215188730046737082071476887756022673614366244186268173").Sqrt()
+	expect_res = lambdaworks.FeltFromDecString("1600105265616524426130944162206101590464382512931039575828824593677922684056")
+
+	if sqrt != expect_res {
+		t.Errorf("TestSqrt Failed, expecte: %v, got %v", expect_res, sqrt)
+	}
+
+	sqrt = lambdaworks.FeltFromDecString("836397911567565091").Sqrt()
+	expect_res = lambdaworks.FeltFromDecString("1471326547166706568879530640427725594549306523774764149866072915947254299525")
+
+	if sqrt != expect_res {
+		t.Errorf("TestSqrt Failed, expecte: %v, got %v", expect_res, sqrt)
+	}
+
+	sqrt = lambdaworks.FeltFromDecString("1206167596222043737899107594365023368541035738443865566657697352047277454118").Sqrt()
+	expect_res = lambdaworks.FeltFromDecString("1052329372911162474471895538435386694104976874815914718986386439764768300074")
+
+	if sqrt != expect_res {
+		t.Errorf("TestSqrt Failed, expecte: %v, got %v", expect_res, sqrt)
+	}
+
+	sqrt = lambdaworks.FeltFromDecString("1206167596222043737899107594365023368541035738443865566948239979431619043114").Sqrt()
+	expect_res = lambdaworks.FeltFromDecString("139198744922466627270517589217125805480206233967015957629136270350373167196")
+
+	if sqrt != expect_res {
+		t.Errorf("TestSqrt Failed, expecte: %v, got %v", expect_res, sqrt)
+	}
+
+}
+
 func TestFeltNeg1ToString(t *testing.T) {
 	f_neg_1 := lambdaworks.FeltFromDecString("-1")
 	expected := "-1"
@@ -464,6 +639,18 @@ func TestRelocatableToString(t *testing.T) {
 
 	if expected != result {
 		t.Errorf("TestRelocatableToString failed. Expected %s, Got: %s", expected, result)
+	}
+
+}
+
+func TestSignedMaxValue(t *testing.T) {
+
+	signed_max_value := lambdaworks.SignedFeltMaxValue()
+	str := signed_max_value.ToHexString()
+	expect_str := "0x400000000000008800000000000000000000000000000000000000000000000"
+
+	if signed_max_value.ToHexString() != expect_str {
+		t.Errorf("TestSignedMaxValue Failed, expecte: %s, got %s", expect_str, str)
 	}
 
 }

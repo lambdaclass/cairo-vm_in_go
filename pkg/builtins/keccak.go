@@ -2,10 +2,13 @@ package builtins
 
 import (
 	"encoding/binary"
-	"errors"
 	"math/bits"
 
+	"github.com/pkg/errors"
+
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -15,13 +18,20 @@ const KECCAK_INPUT_BIT_LENTGH = 200
 const KECCAK_INPUT_BYTES_LENTGH = 25
 
 type KeccakBuiltinRunner struct {
-	base     Relocatable
-	included bool
-	cache    map[Relocatable]Felt
+	base                  Relocatable
+	included              bool
+	cache                 map[Relocatable]Felt
+	ratio                 uint
+	instancesPerComponent uint
+	StopPtr               *uint
 }
 
-func NewKeccakBuiltinRunner() *KeccakBuiltinRunner {
-	return &KeccakBuiltinRunner{cache: make(map[Relocatable]Felt)}
+func NewKeccakBuiltinRunner(ratio uint) *KeccakBuiltinRunner {
+	return &KeccakBuiltinRunner{ratio: ratio, cache: make(map[Relocatable]Felt), instancesPerComponent: 16}
+}
+
+func DefaultKeccakBuiltinRunner() *KeccakBuiltinRunner {
+	return NewKeccakBuiltinRunner(2048)
 }
 
 const KECCAK_BUILTIN_NAME = "keccak"
@@ -517,6 +527,152 @@ func keccakF1600(a *[25]uint64) {
 	}
 }
 
-func (r *KeccakBuiltinRunner) Include(include bool) {
-	r.included = include
+func (k *KeccakBuiltinRunner) Include(include bool) {
+	k.included = include
+}
+
+func (k *KeccakBuiltinRunner) Ratio() uint {
+	return k.ratio
+}
+
+func (k *KeccakBuiltinRunner) CellsPerInstance() uint {
+	return KECCAK_CELLS_PER_INSTANCE
+}
+
+func (k *KeccakBuiltinRunner) GetAllocatedMemoryUnits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
+	// This condition corresponds to an uninitialized ratio for the builtin, which should only
+	// happen when layout is `dynamic`
+	if k.Ratio() == 0 {
+		// Dynamic layout has the exact number of instances it needs (up to a power of 2).
+		used, err := segments.GetSegmentUsedSize(uint(k.base.SegmentIndex))
+		if err != nil {
+			return 0, err
+		}
+		instances := used / k.CellsPerInstance()
+		components := utils.NextPowOf2(instances / k.instancesPerComponent)
+		size := k.CellsPerInstance() * k.instancesPerComponent * components
+
+		return size, nil
+	}
+
+	minStep := k.ratio * k.instancesPerComponent
+	if currentStep < minStep {
+		return 0, memory.InsufficientAllocatedCellsErrorMinStepNotReached(minStep, k.Name())
+	}
+	value, err := utils.SafeDiv(currentStep, k.ratio)
+
+	if err != nil {
+		return 0, errors.Errorf("error calculating builtin memory units: %s", err)
+	}
+
+	return k.CellsPerInstance() * value, nil
+}
+
+func (k *KeccakBuiltinRunner) GetUsedCellsAndAllocatedSizes(segments *memory.MemorySegmentManager, currentStep uint) (uint, uint, error) {
+	used, err := segments.GetSegmentUsedSize(uint(k.base.SegmentIndex))
+	if err != nil {
+		return 0, 0, err
+	}
+
+	size, err := k.GetAllocatedMemoryUnits(segments, currentStep)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	if used > size {
+		return 0, 0, memory.InsufficientAllocatedCellsErrorWithBuiltinName(k.Name(), used, size)
+	}
+
+	return used, size, nil
+}
+
+func (runner *KeccakBuiltinRunner) GetRangeCheckUsage(memory *memory.Memory) (*uint, *uint) {
+	return nil, nil
+}
+
+func (runner *KeccakBuiltinRunner) GetUsedPermRangeCheckLimits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
+	return 0, nil
+}
+
+func (runner *KeccakBuiltinRunner) GetUsedDilutedCheckUnits(dilutedSpacing uint, dilutedNBits uint) uint {
+	// The diluted cells are:
+	// state - 25 rounds times 1600 elements.
+	// parity - 24 rounds times 1600/5 elements times 3 auxiliaries.
+	// after_theta_rho_pi - 24 rounds times 1600 elements.
+	// theta_aux - 24 rounds times 1600 elements.
+	// chi_iota_aux - 24 rounds times 1600 elements times 2 auxiliaries.
+	// In total 25 * 1600 + 24 * 320 * 3 + 24 * 1600 + 24 * 1600 + 24 * 1600 * 2 = 216640.
+	// But we actually allocate 4 virtual columns, of dimensions 64 * 1024, in which we embed the
+	// real cells, and we don't free the unused ones.
+	// So the real number is 4 * 64 * 1024 = 262144.
+	result, err := utils.SafeDiv(262144, dilutedNBits)
+
+	if err != nil {
+		return 0
+	}
+
+	return result
+}
+
+func (runner *KeccakBuiltinRunner) GetMemoryAccesses(manager *memory.MemorySegmentManager) ([]memory.Relocatable, error) {
+	segmentSize, err := manager.GetSegmentSize(uint(runner.Base().SegmentIndex))
+	if err != nil {
+		return []memory.Relocatable{}, err
+	}
+
+	var ret []memory.Relocatable
+
+	var i uint
+	for i = 0; i < segmentSize; i++ {
+		ret = append(ret, memory.NewRelocatable(runner.Base().SegmentIndex, i))
+	}
+
+	return ret, nil
+}
+
+func (r *KeccakBuiltinRunner) FinalStack(segments *memory.MemorySegmentManager, pointer memory.Relocatable) (memory.Relocatable, error) {
+	if r.included {
+		if pointer.Offset == 0 {
+			return memory.Relocatable{}, NewErrNoStopPointer(r.Name())
+		}
+
+		stopPointerAddr := memory.NewRelocatable(pointer.SegmentIndex, pointer.Offset-1)
+
+		stopPointer, err := segments.Memory.GetRelocatable(stopPointerAddr)
+		if err != nil {
+			return memory.Relocatable{}, err
+		}
+
+		if r.Base().SegmentIndex != stopPointer.SegmentIndex {
+			return memory.Relocatable{}, NewErrInvalidStopPointerIndex(r.Name(), stopPointer, r.Base())
+		}
+
+		numInstances, err := r.GetUsedInstances(segments)
+		if err != nil {
+			return memory.Relocatable{}, err
+		}
+
+		used := numInstances * r.CellsPerInstance()
+
+		if stopPointer.Offset != used {
+			return memory.Relocatable{}, NewErrInvalidStopPointer(r.Name(), used, stopPointer)
+		}
+
+		r.StopPtr = &stopPointer.Offset
+
+		return stopPointerAddr, nil
+	} else {
+		r.StopPtr = new(uint)
+		*r.StopPtr = 0
+		return pointer, nil
+	}
+}
+
+func (r *KeccakBuiltinRunner) GetUsedInstances(segments *memory.MemorySegmentManager) (uint, error) {
+	usedCells, err := segments.GetSegmentUsedSize(uint(r.Base().SegmentIndex))
+	if err != nil {
+		return 0, nil
+	}
+
+	return utils.DivCeil(usedCells, r.CellsPerInstance()), nil
 }

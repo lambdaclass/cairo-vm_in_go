@@ -288,3 +288,32 @@ func TestAssertNotEqualHintOkRelocatables(t *testing.T) {
 		t.Errorf("ASSERT_NOT_EQUAL hint failed with error: %s", err)
 	}
 }
+
+func TestSqrtOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(FeltFromDecString("9"))},
+			"root":  {nil},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SQRT,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("SQRT hint failed with error: %s", err)
+	}
+
+	root, err := idsManager.GetFelt("root", vm)
+	if err != nil {
+		t.Errorf("failed to get root: %s", err)
+	}
+	if root != FeltFromUint64(3) {
+		t.Errorf("Expected sqrt(9) == 3. Got: %v", root)
+	}
+}

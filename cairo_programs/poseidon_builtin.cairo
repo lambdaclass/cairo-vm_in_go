@@ -14,3 +14,4 @@ func main{poseidon_ptr: PoseidonBuiltin*}() {
     assert result.s2 = 2512222140811166287287541003826449032093371832913959128171347018667852712082;
     return ();
 }
+

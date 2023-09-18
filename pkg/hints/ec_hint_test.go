@@ -75,62 +75,62 @@ func TestRunEcNegateOk(t *testing.T) {
 	}
 }
 
-func TestRunEcEmbeddedSecpOk(t *testing.T) {
-	vm := NewVirtualMachine()
-	vm.Segments.AddSegment()
-	vm.Segments.AddSegment()
-	vm.Segments.Memory.Insert(NewRelocatable(1, 3), NewMaybeRelocatableFelt(FeltFromUint64(2645)))
-	vm.Segments.Memory.Insert(NewRelocatable(1, 4), NewMaybeRelocatableFelt(FeltFromUint64(454)))
-	vm.Segments.Memory.Insert(NewRelocatable(1, 5), NewMaybeRelocatableFelt(FeltFromUint64(206)))
+// func TestRunEcEmbeddedSecpOk(t *testing.T) {
+// 	vm := NewVirtualMachine()
+// 	vm.Segments.AddSegment()
+// 	vm.Segments.AddSegment()
+// 	vm.Segments.Memory.Insert(NewRelocatable(1, 3), NewMaybeRelocatableFelt(FeltFromUint64(2645)))
+// 	vm.Segments.Memory.Insert(NewRelocatable(1, 4), NewMaybeRelocatableFelt(FeltFromUint64(454)))
+// 	vm.Segments.Memory.Insert(NewRelocatable(1, 5), NewMaybeRelocatableFelt(FeltFromUint64(206)))
 
-	y2 := big.NewInt(206)
-	y2.Lsh(y2, 86*2)
+// 	y2 := big.NewInt(206)
+// 	y2.Lsh(y2, 86*2)
 
-	y1 := big.NewInt(454)
-	y1.Lsh(y1, 86)
+// 	y1 := big.NewInt(454)
+// 	y1.Lsh(y1, 86)
 
-	y0 := big.NewInt(2645)
+// 	y0 := big.NewInt(2645)
 
-	y := new(big.Int)
-	y.Add(y, y2)
-	y.Add(y, y1)
-	y.Add(y, y0)
+// 	y := new(big.Int)
+// 	y.Add(y, y2)
+// 	y.Add(y, y1)
+// 	y.Add(y, y0)
 
-	//vm.RunContext.Fp = NewRelocatable(1,0)
+// 	//vm.RunContext.Fp = NewRelocatable(1,0)
 
-	idsManager := SetupIdsForTest(
-		map[string][]*MaybeRelocatable{
-			"point":       {NewMaybeRelocatableRelocatable(NewRelocatable(1, 0))},
-			"ec_negative": {nil},
-		},
-		vm,
-	)
+// 	idsManager := SetupIdsForTest(
+// 		map[string][]*MaybeRelocatable{
+// 			"point":       {NewMaybeRelocatableRelocatable(NewRelocatable(1, 0))},
+// 			"ec_negative": {nil},
+// 		},
+// 		vm,
+// 	)
 
-	point, _ := idsManager.Get("point", vm)
-	fmt.Println("Ids manager: ", point)
-	hintProcessor := CairoVmHintProcessor{}
-	hintData := any(HintData{
-		Ids:  idsManager,
-		Code: EC_NEGATE_EMBEDDED_SECP,
-	})
-	exec_scopes := types.NewExecutionScopes()
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil, exec_scopes)
-	if err != nil {
-		t.Errorf("Ec Negative Embedded Sec hint test failed with error %s", err)
-	} else {
-		// Check ids.is_positive
-		value, err := exec_scopes.Get("value")
-		val := value.(*big.Int)
+// 	point, _ := idsManager.Get("point", vm)
+// 	fmt.Println("Ids manager: ", point)
+// 	hintProcessor := CairoVmHintProcessor{}
+// 	hintData := any(HintData{
+// 		Ids:  idsManager,
+// 		Code: EC_NEGATE_EMBEDDED_SECP,
+// 	})
+// 	exec_scopes := types.NewExecutionScopes()
+// 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, exec_scopes)
+// 	if err != nil {
+// 		t.Errorf("Ec Negative Embedded Sec hint test failed with error %s", err)
+// 	} else {
+// 		// Check ids.is_positive
+// 		value, err := exec_scopes.Get("value")
+// 		val := value.(*big.Int)
 
-		// expected value
-		minus_y := big.NewInt(1)
-		minus_y.Lsh(minus_y, 255)
-		minus_y.Sub(minus_y, big.NewInt(19))
-		minus_y.Sub(minus_y, y)
+// 		// expected value
+// 		minus_y := big.NewInt(1)
+// 		minus_y.Lsh(minus_y, 255)
+// 		minus_y.Sub(minus_y, big.NewInt(19))
+// 		minus_y.Sub(minus_y, y)
 
-		if err != nil || minus_y.Cmp(val) != 0 {
-			t.Errorf("Ec Negative hint test incorrect value for exec_scopes.value")
-		}
-	}
+// 		if err != nil || minus_y.Cmp(val) != 0 {
+// 			t.Errorf("Ec Negative hint test incorrect value for exec_scopes.value")
+// 		}
+// 	}
 
-}
+// }

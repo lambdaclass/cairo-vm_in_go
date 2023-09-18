@@ -111,7 +111,6 @@ Implements hint:
 */
 
 func ec_negate_embedded_secp_p(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager) error {
-	fmt.Println("inside hint")
 	secp_p := big.NewInt(1)
 	secp_p.Lsh(secp_p, 256)
 	secp_p.Sub(secp_p, big.NewInt(19))

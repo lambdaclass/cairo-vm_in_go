@@ -1,5 +1,5 @@
+#include <stddef.h>
 #include <stdint.h>
-#include <stddef.h> 
 #include <stdlib.h>
 
 typedef uint64_t limb_t;
@@ -25,6 +25,9 @@ void to_le_bytes(uint8_t result[32], felt_t value);
 /* Converts a felt_t to bytes in big-endian representation. */
 void to_be_bytes(uint8_t result[32], felt_t value);
 
+/* Converts a felt_t to its digits in little_endian. */
+void to_le_digits(uint8_t result[32], felt_t value);
+
 /* Converts a felt_t to a String representation. */
 void to_hex_string(char *string, felt_t value);
 
@@ -39,6 +42,8 @@ void zero(felt_t result);
 
 /* Gets a felt_t representing 1 */
 void one(felt_t result);
+
+void signed_felt_max_value(felt_t result);
 
 /* Writes the result variable with the sum of a and b felts. */
 void add(felt_t a, felt_t b, felt_t result);
@@ -70,11 +75,28 @@ void felt_shl(felt_t a, uint64_t num, felt_t result);
 /* writes the result variable with a.pow(num) */
 void felt_pow_uint(felt_t a, uint32_t num, felt_t result);
 
+/* writes the result variable with a.pow(exponent) */
+void felt_pow(felt_t a, felt_t p, felt_t result);
+
+void felt_sqrt(felt_t a, felt_t result);
+
 /* returns the representation of a felt to string */
-char* to_signed_felt(felt_t value);
+char *to_signed_felt(felt_t value);
 
 /* frees a pointer to a string */
-void free_string(char* ptr);
+void free_string(char *ptr);
 
 /* writes the result variable with a >> num */
 void felt_shr(felt_t a, size_t b, felt_t result);
+
+/* Writes the div & rem variables with a.div_rem(b). */
+void div_rem(felt_t a, felt_t b, felt_t div, felt_t rem);
+
+/*
+Compares x and y and returns:
+
+        -1 if a <  b
+         0 if a == b
+        +1 if a >  b
+*/
+int cmp(felt_t a, felt_t b);
