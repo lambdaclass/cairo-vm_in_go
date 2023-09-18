@@ -423,8 +423,46 @@ func TestDictSqushCopyDictOkEmptyDict(t *testing.T) {
 	// Create dictManager & add it to scope
 	dictManager := dict_manager.NewDictManager()
 	dictManagerRef := &dictManager
+	initialDict := map[MaybeRelocatable]MaybeRelocatable{}
+	dict_ptr := dictManager.NewDictionary(&initialDict, vm)
+	scopes.AssignOrUpdateVariable("__dict_manager", dictManagerRef)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"dict_accesses_end": {NewMaybeRelocatableRelocatable(dict_ptr)},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: DICT_SQUASH_COPY_DICT,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("DICT_SQUASH_COPY_DICT hint test failed with error %s", err)
+	}
+	// Check new scope
+	new_scope, _ := scopes.GetLocalVariables()
+	if !reflect.DeepEqual(new_scope, map[string]interface{}{
+		"__dict_manager": dictManagerRef,
+		"initial_dict":   initialDict,
+	}) {
+		t.Errorf("DICT_SQUASH_COPY_DICT hint test wrong new sope created")
+	}
+}
+
+func TestDictSqushCopyDictOkNonEmptyDict(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+
+	// Create dictManager & add it to scope
+	dictManager := dict_manager.NewDictManager()
+	dictManagerRef := &dictManager
 	initialDict := map[MaybeRelocatable]MaybeRelocatable{
 		*NewMaybeRelocatableFelt(FeltZero()): *NewMaybeRelocatableFelt(FeltOne()),
+		*NewMaybeRelocatableFelt(FeltOne()):  *NewMaybeRelocatableFelt(FeltOne()),
 	}
 	dict_ptr := dictManager.NewDictionary(&initialDict, vm)
 	scopes.AssignOrUpdateVariable("__dict_manager", dictManagerRef)
