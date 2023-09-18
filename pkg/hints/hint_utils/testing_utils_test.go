@@ -108,3 +108,24 @@ func TestSetupIdsForTestStructWithGap(t *testing.T) {
 		t.Error("Failed to insert ids")
 	}
 }
+
+func TestSetupConstantsForTest(t *testing.T) {
+	constA := FeltOne()
+	constB := FeltZero()
+	IdsManager := IdsManager{}
+	constants := SetupConstantsForTest(map[string]Felt{
+		"A": constA,
+		"B": constB,
+	},
+		IdsManager,
+	)
+	// Check that we can fetch the constants
+	a, err := IdsManager.GetConst("A", &constants)
+	if err != nil || a != constA {
+		t.Error("SetupConstantsForTest wrong/no A")
+	}
+	b, err := IdsManager.GetConst("B", &constants)
+	if err != nil || b != constB {
+		t.Error("SetupConstantsForTest wrong/no B")
+	}
+}

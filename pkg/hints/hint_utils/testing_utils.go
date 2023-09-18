@@ -45,8 +45,11 @@ func SetupIdsForTest(ids map[string][]*memory.MaybeRelocatable, vm *VirtualMachi
 	return manager
 }
 
-func AddConstantForTest(name string, value lambdaworks.Felt, ids IdsManager, constants *map[string]lambdaworks.Felt) {
+func SetupConstantsForTest(new_constants map[string]lambdaworks.Felt, ids IdsManager) map[string]lambdaworks.Felt {
+	constants := make(map[string]lambdaworks.Felt)
 	ids.AccessibleScopes = append(ids.AccessibleScopes, "path")
-	(*constants)["path."+name] = value
-
+	for name, constant := range new_constants {
+		constants["path."+name] = constant
+	}
+	return constants
 }
