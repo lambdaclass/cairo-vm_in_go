@@ -94,15 +94,15 @@ func squashDict(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) err
 	}
 	//Descending list of keys.
 	keys := maps.Keys(accessIndices)
+	if len(keys) == 0 {
+		return errors.New("keys is empty")
+	}
 	sort.Sort(sort.Reverse(SortMaybeRelocatables(keys)))
 	//Are the keys used bigger than the range_check bound.
 	bigKeys := FeltZero()
 	highKeyFelt, isFelt := keys[0].GetFelt()
 	if isFelt && highKeyFelt.Bits() >= builtins.RANGE_CHECK_N_PARTS*builtins.INNER_RC_BOUND_SHIFT {
 		bigKeys = FeltOne()
-	}
-	if len(keys) == 0 {
-		return errors.New("keys is empty")
 	}
 	lowKey := keys[len(keys)-1]
 	// Insert new scope variables
