@@ -12,7 +12,7 @@ import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
-func AddSegmentHintOk(t *testing.T) {
+func TestAddSegmentHintOk(t *testing.T) {
 	vm := NewVirtualMachine()
 	initial_segments := vm.Segments.Memory.NumSegments()
 	hintProcessor := CairoVmHintProcessor{}
