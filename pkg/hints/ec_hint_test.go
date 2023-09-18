@@ -8,9 +8,9 @@ import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_codes"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/types"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
-
 )
 
 func TestBigInt3Pack86(t *testing.T) {
@@ -34,8 +34,6 @@ func TestBigInt3Pack86(t *testing.T) {
 		t.Errorf("Different pack from expected2")
 	}
 }
-
-
 
 // fn run_ec_negate_ok() {
 // 	let hint_code = "from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack\n\ny = pack(ids.point.y, PRIME) % SECP_P\n# The modulo operation in python always returns a nonnegative number.\nvalue = (-y) % SECP_P";
@@ -62,14 +60,13 @@ func TestRunEcNegateOk(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()
 	vm.Segments.AddSegment()
-	vm.Segments.Memory.Insert(NewRelocatable(1,3), NewMaybeRelocatableFelt(FeltFromUint64(2645)))
-	vm.Segments.Memory.Insert(NewRelocatable(1,4), NewMaybeRelocatableFelt(FeltFromUint64(454)))
-	vm.Segments.Memory.Insert(NewRelocatable(1,5), NewMaybeRelocatableFelt(FeltFromUint64(206)))
-
+	vm.Segments.Memory.Insert(NewRelocatable(1, 3), NewMaybeRelocatableFelt(FeltFromUint64(2645)))
+	vm.Segments.Memory.Insert(NewRelocatable(1, 4), NewMaybeRelocatableFelt(FeltFromUint64(454)))
+	vm.Segments.Memory.Insert(NewRelocatable(1, 5), NewMaybeRelocatableFelt(FeltFromUint64(206)))
 
 	idsManager := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
-			"point":       {NewMaybeRelocatableFelt(FeltFromDecString("-1"))},
+			"point":       {NewMaybeRelocatableRelocatable(NewRelocatable(1, 0))},
 			"ec_negative": {nil},
 		},
 		vm,
@@ -79,15 +76,18 @@ func TestRunEcNegateOk(t *testing.T) {
 		Ids:  idsManager,
 		Code: EC_NEGATE,
 	})
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	exec_scopes := types.NewExecutionScopes()
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, exec_scopes)
 	if err != nil {
 		t.Errorf("Ec Negative hint test failed with error %s", err)
-	}
-	// Check ids.is_positive
-	value, err := idsManager.GetFelt("value", vm)
-	expected := FeltFromDecString("115792089237316195423569751828682367333329274433232027476421668138471189901786")
+	} else {
+		// Check ids.is_positive
+		value, err := exec_scopes.Get("value")
+		val := value.(*big.Int)
+		expected, _ := new(big.Int).SetString("115792089237316195423569751828682367333329274433232027476421668138471189901786", 10)
 
-	if err != nil || value != expected {
-		t.Errorf("Ec Negative hint test incorrect value for ids.value")
+		if err != nil || expected.Cmp(val) != 0 {
+			t.Errorf("Ec Negative hint test incorrect value for exec_scopes.value")
+		}
 	}
 }
