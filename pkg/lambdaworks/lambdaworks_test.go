@@ -70,6 +70,14 @@ func TestToBigInt(t *testing.T) {
 	}
 }
 
+func TestFromBigInt(t *testing.T) {
+	expectedFelt := lambdaworks.FeltFromUint64(26)
+	bigInt := new(big.Int).SetUint64(26)
+	if !reflect.DeepEqual(lambdaworks.FeltFromBigInt(bigInt), expectedFelt) {
+		t.Errorf("TestToBigInt failed. Expected: %v, Got: %v", 26, lambdaworks.FeltFromBigInt(bigInt))
+	}
+}
+
 func TestToSignedNegative(t *testing.T) {
 	felt := lambdaworks.FeltFromDecString("-1")
 	bigInt := felt.ToSigned()
