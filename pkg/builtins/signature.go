@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const SIGNATURE_BUILTIN_NAME = "signature"
+const SIGNATURE_BUILTIN_NAME = "ecdsa"
 
 // Notice changing this to any other number breaks the code
 const SIGNATURE_CELLS_PER_INSTANCE = 2

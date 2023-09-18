@@ -82,7 +82,7 @@ func verify_ecdsa_signature(ids IdsManager, vm *VirtualMachine) error {
 		return err_get_ecdsa
 	}
 
-	signature_builtin_interface, err_get_builtin := vm.GetBuiltinRunner("signature")
+	signature_builtin_interface, err_get_builtin := vm.GetBuiltinRunner(builtins.SIGNATURE_BUILTIN_NAME)
 	if err_get_builtin != nil {
 		return err_get_builtin
 	}
