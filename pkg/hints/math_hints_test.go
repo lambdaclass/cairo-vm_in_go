@@ -202,7 +202,7 @@ func TestVerifyValidSignature(t *testing.T) {
 	}
 }
 
-func VerifySignatureInvalidEcdsaPointer(t *testing.T) {
+func TestVerifySignatureInvalidEcdsaPointer(t *testing.T) {
 	vm := NewVirtualMachine()
 	signature_builtin := builtins.NewSignatureBuiltinRunner(2048)
 	vm.BuiltinRunners = append(vm.BuiltinRunners, signature_builtin)
