@@ -182,6 +182,7 @@ func assertLeFelt(ids IdsManager, vm *VirtualMachine, scopes *ExecutionScopes, c
 	if err != nil {
 		return err
 	}
+	// Hint Logic
 	cairoPrime, _ := new(big.Int).SetString(CAIRO_PRIME_HEX, 0)
 	halfPrime := new(big.Int).Div(cairoPrime, new(big.Int).SetUint64(2))
 	thirdOfPrime := new(big.Int).Div(cairoPrime, new(big.Int).SetUint64(2))
