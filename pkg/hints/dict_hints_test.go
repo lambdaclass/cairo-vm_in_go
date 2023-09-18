@@ -623,3 +623,28 @@ func TestDictNewHasManager(t *testing.T) {
 		t.Error("DICT_NEW Wrong/No base inserted into ap")
 	}
 }
+
+func TestDictNewHasManagerNoInitialDict(t *testing.T) {
+	vm := NewVirtualMachine()
+	scopes := types.NewExecutionScopes()
+	// Create dictManager & add it to scope
+	dictManager := dict_manager.NewDictManager()
+	dictManagerRef := &dictManager
+	scopes.AssignOrUpdateVariable("__dict_manager", dictManagerRef)
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: DICT_NEW,
+	})
+	// Advance AP so that values don't clash with FP-based ids
+	vm.RunContext.Ap = NewRelocatable(0, 5)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err == nil {
+		t.Errorf("DICT_NEW hint test should have failed")
+	}
+}
