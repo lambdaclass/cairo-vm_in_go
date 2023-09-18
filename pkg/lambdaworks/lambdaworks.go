@@ -285,7 +285,6 @@ func (f Felt) ToBigInt() *big.Int {
 
 func FeltFromBigInt(n *big.Int) Felt {
 	bytes := n.Bytes()
-	println(bytes)
 	var bytes32 [32]byte
 	copy(bytes32[:], bytes)
 	return FeltFromLeBytes(&bytes32)
