@@ -5,7 +5,6 @@ import (
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
-	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
@@ -106,8 +105,8 @@ func TestMemcpyEnterScopeHintValid(t *testing.T) {
 	if err != nil {
 		t.Errorf("TestMemcpyEnterScopeHintValid failed with error %s", err)
 	}
-	if res.(lambdaworks.Felt) != lambdaworks.FeltFromDecString("45") {
-		t.Errorf("TestMemcpyEnterScopeHintValid failed, expected len: %d, got: %d", lambdaworks.FeltFromDecString("45"), res.(lambdaworks.Felt))
+	if res.(Felt) != FeltFromDecString("45") {
+		t.Errorf("TestMemcpyEnterScopeHintValid failed, expected len: %d, got: %d", FeltFromDecString("45"), res.(Felt))
 	}
 }
 
@@ -162,11 +161,11 @@ func TestMemcpyContinueCopyingValid(t *testing.T) {
 	vm.Segments.AddSegment()
 	vm.Segments.AddSegment()
 	vm.RunContext.Fp = NewRelocatable(2, 0)
-	vm.Segments.Memory.Data[NewRelocatable(1, 2)] = *NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))
+	vm.Segments.Memory.Data[NewRelocatable(1, 2)] = *NewMaybeRelocatableFelt(FeltFromUint64(5))
 
 	executionScopes := NewExecutionScopes()
 	scope := make(map[string]interface{})
-	scope["n"] = lambdaworks.FeltOne()
+	scope["n"] = FeltOne()
 	executionScopes.EnterScope(scope)
 
 	idsManager := SetupIdsForTest(
@@ -191,7 +190,7 @@ func TestMemcpyContinueCopyingVarNotInScope(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()
 	vm.RunContext.Fp = NewRelocatable(3, 0)
-	vm.Segments.Memory.Insert(NewRelocatable(0, 2), NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5)))
+	vm.Segments.Memory.Insert(NewRelocatable(0, 2), NewMaybeRelocatableFelt(FeltFromUint64(5)))
 
 	executionScopes := NewExecutionScopes()
 
@@ -220,7 +219,7 @@ func TestMemcpyContinueCopyingInsertError(t *testing.T) {
 	executionScopes := NewExecutionScopes()
 
 	scope := make(map[string]interface{})
-	scope["n"] = lambdaworks.FeltOne()
+	scope["n"] = FeltOne()
 	executionScopes.EnterScope(scope)
 
 	idsManager := SetupIdsForTest(
@@ -245,7 +244,7 @@ func TestMemcpyContinueCopyingInsertError(t *testing.T) {
 // func TestMemsetContinueCopyingValidEqual5Hint(t *testing.T) {
 // 	vm := NewVirtualMachine()
 // 	vm.RunContext.Fp = NewRelocatable(1, 0)
-// 	vm.Segments.Memory.Data[NewRelocatable(1, 2)] = *NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))
+// 	vm.Segments.Memory.Data[NewRelocatable(1, 2)] = *NewMaybeRelocatableFelt(FeltFromUint64(5))
 // 	idsManager := SetupIdsForTest(
 // 		map[string][]*MaybeRelocatable{
 // 			"continue_copying": nil,
@@ -260,7 +259,7 @@ func TestMemcpyContinueCopyingInsertError(t *testing.T) {
 
 // 	executionScopes := NewExecutionScopes()
 // 	scope := make(map[string]interface{})
-// 	scope["n"] = lambdaworks.FeltFromUint64(5)
+// 	scope["n"] = FeltFromUint64(5)
 // 	executionScopes.EnterScope(scope)
 // 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, executionScopes)
 // 	if err != nil {
@@ -271,6 +270,6 @@ func TestMemcpyContinueCopyingInsertError(t *testing.T) {
 // 		t.Errorf("TestMemsetContinueCopyingValidEqual5Hint failed with error %s", err)
 // 	}
 // 	if val != FeltZero() {
-// 		t.Errorf("TestMemsetContinueCopyingValidEqual5Hint failed, expected %d, got: %d", lambdaworks.FeltZero(), val)
+// 		t.Errorf("TestMemsetContinueCopyingValidEqual5Hint failed, expected %d, got: %d", FeltZero(), val)
 // 	}
 // }
