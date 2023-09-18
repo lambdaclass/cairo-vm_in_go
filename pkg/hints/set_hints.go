@@ -54,10 +54,16 @@ func set_add(ids IdsManager, vm *VirtualMachine) error {
 		return errors.Errorf("expected set_ptr: %v <= set_end_ptr: %v", set_ptr, set_end_ptr)
 	}
 
-	elem := vm.Segments.Memory.GetRange(elm_ptr, uint(elm_size))
+	elem, err := vm.Segments.Memory.GetRange(elm_ptr, uint(elm_size))
+    if err != nil {
+        return err
+    }
 
 	for i := uint(0); i < set_end_ptr.Offset-set_ptr.Offset; i += uint(elm_size) {
-		other_elm := vm.Segments.Memory.GetRange(set_ptr.AddUint(i), uint(elm_size))
+		other_elm, err := vm.Segments.Memory.GetRange(set_ptr.AddUint(i), uint(elm_size))
+        if err != nil {
+            return err
+        }
 		if &elem == &other_elm {
 			return ids.Insert("is_elm_in_set", NewMaybeRelocatableFelt(FeltOne()), vm)
 		}

@@ -139,12 +139,17 @@ func (m *Memory) GetFelt(addr Relocatable) (lambdaworks.Felt, error) {
 }
 
 // Get a range of memory from the starting relocatable to the starting relocatable + size
-func (m *Memory) GetRange(start Relocatable, size uint) []MaybeRelocatable {
+func (m *Memory) GetRange(start Relocatable, size uint) ([]MaybeRelocatable, error) {
+    _, is_in_dict := m.Data[start.AddUint(size - 1)]
+    if !is_in_dict {
+        return nil, errors.Errorf("Memory GetRange: range end (%v) not present in memory", start.AddUint(size - 1))
+    }
+
 	var res []MaybeRelocatable
 	for i := uint(0); i <= size; i++ {
 		res = append(res, m.Data[start.AddUint(i)])
 	}
-	return res
+	return res, nil
 }
 
 // Adds a validation rule for a given segment
