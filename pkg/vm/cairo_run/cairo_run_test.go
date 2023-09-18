@@ -172,14 +172,16 @@ func TestAssertNotEqualHint(t *testing.T) {
 }
 
 func TestPowHint(t *testing.T) {
-	_, err := cairo_run.CairoRun("../../../cairo_programs/pow.json", "small", false)
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/pow.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
 }
 
 func TestSqrtHint(t *testing.T) {
-	_, err := cairo_run.CairoRun("../../../cairo_programs/sqrt.json", "small", false)
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/sqrt.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
