@@ -29,7 +29,7 @@ func (p *CairoVmHintProcessor) CompileHint(hintParams *parser.HintParams, refere
 		name = split[len(split)-1]
 		references[name] = ParseHintReference(referenceManager.References[n])
 	}
-	ids := NewIdsManager(references, hintParams.FlowTrackingData.APTracking)
+	ids := NewIdsManager(references, hintParams.FlowTrackingData.APTracking, hintParams.AccessibleScopes)
 	return HintData{Ids: ids, Code: hintParams.Code}, nil
 }
 
@@ -47,6 +47,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return is_positive(data.Ids, vm)
 	case ASSERT_NOT_ZERO:
 		return assert_not_zero(data.Ids, vm)
+	case IS_QUAD_RESIDUE:
+		return is_quad_residue(data.Ids, vm)
 	case DEFAULT_DICT_NEW:
 		return defaultDictNew(data.Ids, execScopes, vm)
 	case DICT_READ:
