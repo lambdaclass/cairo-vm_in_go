@@ -12,8 +12,9 @@ import (
 // Identifier Manager
 // Provides methods that allow hints to interact with cairo variables given their identifier name
 type IdsManager struct {
-	References     map[string]HintReference
-	HintApTracking parser.ApTrackingData
+	References       map[string]HintReference
+	HintApTracking   parser.ApTrackingData
+	AccessibleScopes []string
 }
 
 func ErrIdsManager(err error) error {
@@ -29,6 +30,17 @@ func NewIdsManager(references map[string]HintReference, hintApTracking parser.Ap
 		References:     references,
 		HintApTracking: hintApTracking,
 	}
+}
+
+func (ids *IdsManager) GetConst(name string, constants *map[string]lambdaworks.Felt) (lambdaworks.Felt, error) {
+	// Accessible scopes are listed from outer to inner
+	for i := len(ids.AccessibleScopes) - 1; i >= 0; i-- {
+		constant, ok := (*constants)[ids.AccessibleScopes[i]+"."+name]
+		if ok {
+			return constant, nil
+		}
+	}
+	return lambdaworks.FeltZero(), nil
 }
 
 // Inserts value into memory given its identifier name
