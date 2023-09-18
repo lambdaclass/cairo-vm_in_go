@@ -268,7 +268,7 @@ func assertLeFeltExcluded2(vm *VirtualMachine, scopes *ExecutionScopes) error {
 	if !ok {
 		return errors.New("exluded not in scope")
 	}
-	if excluded == 2 {
+	if excluded != 2 {
 		return errors.New("Assertion Failed: excluded == 2")
 	}
 	return nil

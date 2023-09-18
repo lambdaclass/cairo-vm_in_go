@@ -347,3 +347,113 @@ func TestAssertLeFeltOk(t *testing.T) {
 		t.Errorf("ASSERT_LE_FELT hint failed with error: %s", err)
 	}
 }
+
+func TestAssertLeFeltExcluded0Zero(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("excluded", int(0))
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Code: ASSERT_LE_FELT_EXCLUDED_0,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("ASSERT_LE_FELT_EXCLUDED_0 hint test failed with error %s", err)
+	}
+	// Check the value of memory[ap]
+	val, err := vm.Segments.Memory.GetFelt(vm.RunContext.Ap)
+	if err != nil || !val.IsZero() {
+		t.Error("Wrong/No value inserted into ap")
+	}
+}
+
+func TestAssertLeFeltExcluded0One(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("excluded", int(1))
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Code: ASSERT_LE_FELT_EXCLUDED_0,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("ASSERT_LE_FELT_EXCLUDED_0 hint test failed with error %s", err)
+	}
+	// Check the value of memory[ap]
+	val, err := vm.Segments.Memory.GetFelt(vm.RunContext.Ap)
+	if err != nil || val != FeltOne() {
+		t.Error("Wrong/No value inserted into ap")
+	}
+}
+
+func TestAssertLeFeltExcluded1Zero(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("excluded", int(1))
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Code: ASSERT_LE_FELT_EXCLUDED_1,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("ASSERT_LE_FELT_EXCLUDED_1 hint test failed with error %s", err)
+	}
+	// Check the value of memory[ap]
+	val, err := vm.Segments.Memory.GetFelt(vm.RunContext.Ap)
+	if err != nil || !val.IsZero() {
+		t.Error("Wrong/No value inserted into ap")
+	}
+}
+
+func TestAssertLeFeltExcluded1One(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("excluded", int(0))
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Code: ASSERT_LE_FELT_EXCLUDED_1,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("ASSERT_LE_FELT_EXCLUDED_1 hint test failed with error %s", err)
+	}
+	// Check the value of memory[ap]
+	val, err := vm.Segments.Memory.GetFelt(vm.RunContext.Ap)
+	if err != nil || val != FeltOne() {
+		t.Error("Wrong/No value inserted into ap")
+	}
+}
+
+func TestAssertLeFeltExcluded2Ok(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("excluded", int(2))
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Code: ASSERT_LE_FELT_EXCLUDED_2,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("ASSERT_LE_FELT_EXCLUDED_2 hint test failed with error %s", err)
+	}
+}
+
+func TestAssertLeFeltExcluded2Err(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("excluded", int(0))
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Code: ASSERT_LE_FELT_EXCLUDED_2,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err == nil {
+		t.Errorf("ASSERT_LE_FELT_EXCLUDED_2 hint test should have failed")
+	}
+}
