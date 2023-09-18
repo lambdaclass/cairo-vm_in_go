@@ -10,6 +10,17 @@ import (
 // A Set to store Relocatable values
 type AddressSet map[Relocatable]bool
 
+// func MemoryError(err error) error {
+// 	return errors.Wrapf(err, "Memory error")
+// }
+
+// func ErrInconsistentMemory(addr Relocatable, val MaybeRelocatable) error {
+// 	valStr := val.ToString()
+// 	addrStr := addr.ToString()
+
+// 	return MemoryError(errors.Errorf("Inserting %s into a non allocated segment %s.", valStr, addrStr))
+// }
+
 func NewAddressSet() AddressSet {
 	return make(map[Relocatable]bool)
 }
@@ -76,7 +87,7 @@ func (m *Memory) Insert(addr Relocatable, val *MaybeRelocatable) error {
 
 	// Check that insertions are preformed within the memory bounds
 	if addr.SegmentIndex >= int(m.numSegments) {
-		return errors.New("Error: Inserting into a non allocated segment")
+		return errors.Errorf("Error: Inserting into a non allocated segment %s", addr.ToString())
 	}
 
 	// Check for possible overwrites
