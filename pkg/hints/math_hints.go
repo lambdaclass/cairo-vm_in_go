@@ -185,7 +185,7 @@ func assertLeFelt(ids IdsManager, vm *VirtualMachine, scopes *ExecutionScopes, c
 	// Hint Logic
 	cairoPrime, _ := new(big.Int).SetString(CAIRO_PRIME_HEX, 0)
 	halfPrime := new(big.Int).Div(cairoPrime, new(big.Int).SetUint64(2))
-	thirdOfPrime := new(big.Int).Div(cairoPrime, new(big.Int).SetUint64(2))
+	thirdOfPrime := new(big.Int).Div(cairoPrime, new(big.Int).SetUint64(3))
 	if a.Cmp(b) == 1 {
 		return errors.Errorf("Assertion failed, %v, is not less or equal to %v", a, b)
 	}
