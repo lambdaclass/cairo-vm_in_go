@@ -175,7 +175,6 @@ func TestVerifyValidSignature(t *testing.T) {
 
 	r_felt := lambdaworks.FeltFromDecString("3086480810278599376317923499561306189851900463386393948998357832163236918254")
 	s_felt := lambdaworks.FeltFromDecString("598673427589502599949712887611119751108407514580626464031881322743364689811")
-	zero := memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero())
 	r := memory.NewMaybeRelocatableFelt(r_felt)
 	s := memory.NewMaybeRelocatableFelt(s_felt)
 
@@ -183,7 +182,7 @@ func TestVerifyValidSignature(t *testing.T) {
 
 	idsManager := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
-			"ecdsa_ptr":   {zero},
+			"ecdsa_ptr":   {nil},
 			"signature_r": {r},
 			"signature_s": {s},
 		},
