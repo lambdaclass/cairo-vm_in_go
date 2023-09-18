@@ -308,6 +308,7 @@ func TestSquashDictSkipLoopTrue(t *testing.T) {
 	vm.Segments.AddSegment()
 	vm.Segments.AddSegment()
 	scopes := types.NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("current_access_indices", []int{})
 	idsManager := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
 			"should_skip_loop": {nil},
@@ -336,7 +337,7 @@ func TestSquashDictSkipLoopFalse(t *testing.T) {
 	vm.Segments.AddSegment()
 	vm.Segments.AddSegment()
 	scopes := types.NewExecutionScopes()
-	scopes.AssignOrUpdateVariable("current_access_indices", []MaybeRelocatable{})
+	scopes.AssignOrUpdateVariable("current_access_indices", []int{1, 2})
 	idsManager := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
 			"should_skip_loop": {nil},
@@ -507,13 +508,13 @@ func TestSquashDictInnerCheckAccessIndexEmpty(t *testing.T) {
 	}
 }
 
-func TestSquashDictContinuepLoopTrue(t *testing.T) {
+func TestSquashDictContinueLoopTrue(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()
 	vm.Segments.AddSegment()
 	vm.Segments.AddSegment()
 	scopes := types.NewExecutionScopes()
-	scopes.AssignOrUpdateVariable("current_access_indices", []MaybeRelocatable{})
+	scopes.AssignOrUpdateVariable("current_access_indices", []int{1, 3})
 	idsManager := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
 			"loop_temps": {nil},
@@ -542,6 +543,7 @@ func TestSquashDictContinueLoopFalse(t *testing.T) {
 	vm.Segments.AddSegment()
 	vm.Segments.AddSegment()
 	scopes := types.NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("current_access_indices", []int{})
 	idsManager := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
 			"loop_temps": {nil},
