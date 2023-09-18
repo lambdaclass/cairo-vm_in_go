@@ -9,6 +9,59 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
+func TestFeltDivFloor(t *testing.T) {
+	a := lambdaworks.FeltFromUint64(13)
+	b := lambdaworks.FeltFromUint64(3)
+	expected := lambdaworks.FeltFromUint64(4)
+	r := a.DivFloor(b)
+	if r != expected {
+		t.Errorf("TestFeltDivFloor failed. Expected: %v, Got: %v", expected, r)
+	}
+}
+
+func TestFeltModFloor(t *testing.T) {
+	a := lambdaworks.FeltFromUint64(13)
+	b := lambdaworks.FeltFromUint64(3)
+	expected := lambdaworks.FeltFromUint64(1)
+	r := a.ModFloor(b)
+	if r != expected {
+		t.Errorf("TestFeltModFloor failed. Expected: %v, Got: %v", expected, r)
+	}
+}
+func TestFeltDivRem(t *testing.T) {
+	a := lambdaworks.FeltFromUint64(8)
+	b := lambdaworks.FeltFromUint64(3)
+	expected_div := lambdaworks.FeltFromUint64(2)
+	expected_rem := lambdaworks.FeltFromUint64(2)
+	div, rem := a.DivRem(b)
+	if div != expected_div || rem != expected_rem {
+		t.Errorf("TestFeltDivRem failed. Expected: (%v, %v), Got: (%v, %v)", expected_div, expected_rem, div, rem)
+	}
+}
+
+func TestCmpHigher(t *testing.T) {
+	a := lambdaworks.FeltFromUint64(13)
+	b := lambdaworks.FeltFromUint64(3)
+	if a.Cmp(b) != 1 {
+		t.Errorf("TestCmpEq failed")
+	}
+}
+
+func TestCmpLower(t *testing.T) {
+	a := lambdaworks.FeltFromUint64(3)
+	b := lambdaworks.FeltFromUint64(13)
+	if a.Cmp(b) != -1 {
+		t.Errorf("TestCmpEq failed")
+	}
+}
+
+func TestCmpEq(t *testing.T) {
+	a := lambdaworks.FeltFromUint64(13)
+	b := lambdaworks.FeltFromUint64(13)
+	if a.Cmp(b) != 0 {
+		t.Errorf("TestCmpEq failed")
+	}
+}
 func TestToBigInt(t *testing.T) {
 	felt := lambdaworks.FeltFromUint64(26)
 	bigInt := felt.ToBigInt()

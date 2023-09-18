@@ -1,8 +1,6 @@
 package layouts
 
 import (
-	"github.com/pkg/errors"
-
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 )
 
@@ -14,33 +12,56 @@ type CairoLayout struct {
 	Builtins []builtins.BuiltinRunner
 	// TODO - Add when necessary:
 	// cpuComponentStep uint,
-	// rcUnits uint,
-	// publicMemoryFraction uint,
-	// memoryUnitsPerStep uint,
-	// dilutedPoolInstanceDef DilutedPoolInstanceDef
+	RcUnits              uint
+	PublicMemoryFraction uint
+	MemoryUnitsPerStep   uint
+	DilutedPoolInstance  *DilutedPoolInstanceDef
 	// nTraceColums uint
 	// cpuInstanceDef CpuInstanceDef
 }
 
-// Given a layout name, return the builtin runners configuration for that layout.
-func GetLayoutBuiltinRunners(layout string) ([]builtins.BuiltinRunner, error) {
-	switch layout {
-	case "plain":
-		return []builtins.BuiltinRunner{builtins.NewOutputBuiltinRunner()}, nil
+func NewPlainLayout() CairoLayout {
+	return CairoLayout{
+		Name:                 "plain",
+		Builtins:             []builtins.BuiltinRunner{builtins.NewOutputBuiltinRunner()},
+		RcUnits:              16,
+		PublicMemoryFraction: 4,
+		MemoryUnitsPerStep:   8,
+		DilutedPoolInstance:  nil,
+	}
+}
 
-	// FIXME: Layout "small" does not really configure all these builtins, just adding them
-	// here until we have all builtins implemented.
-	case "small":
-		return []builtins.BuiltinRunner{
+func NewSmallLayout() CairoLayout {
+	return CairoLayout{
+		Name: "small",
+		Builtins: []builtins.BuiltinRunner{
 			builtins.NewOutputBuiltinRunner(),
-			builtins.NewPedersenBuiltinRunner(),
-			builtins.NewRangeCheckBuiltinRunner(),
-			builtins.NewBitwiseBuiltinRunner(),
-			builtins.NewKeccakBuiltinRunner(),
-			builtins.NewPoseidonBuiltinRunner(),
-			builtins.NewEcOpBuiltinRunner(),
-		}, nil
-	default:
-		return nil, errors.Errorf("layout not supported: %s", layout)
+			builtins.NewPedersenBuiltinRunner(256),
+			builtins.DefaultRangeCheckBuiltinRunner(),
+			builtins.NewSignatureBuiltinRunner(2048),
+		},
+		RcUnits:              16,
+		PublicMemoryFraction: 4,
+		MemoryUnitsPerStep:   8,
+		DilutedPoolInstance:  nil,
+	}
+}
+
+func NewAllCairoLayout() CairoLayout {
+	return CairoLayout{
+		Name: "all_cairo",
+		Builtins: []builtins.BuiltinRunner{
+			builtins.NewOutputBuiltinRunner(),
+			builtins.NewPedersenBuiltinRunner(256),
+			builtins.DefaultRangeCheckBuiltinRunner(),
+			builtins.NewSignatureBuiltinRunner(2048),
+			builtins.NewBitwiseBuiltinRunner(16),
+			builtins.NewEcOpBuiltinRunner(1024),
+			builtins.NewKeccakBuiltinRunner(2048),
+			builtins.NewPoseidonBuiltinRunner(256)},
+		RcUnits:              4,
+		PublicMemoryFraction: 8,
+		MemoryUnitsPerStep:   8,
+		DilutedPoolInstance:  DefaultDilutedPoolInstance(),
 	}
 }

@@ -2,14 +2,17 @@ package vm
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/types"
+	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+	"github.com/pkg/errors"
 )
+
+const RC_OFFSET_BITS = 16
 
 type VirtualMachineError struct {
 	Msg string
@@ -29,6 +32,9 @@ type VirtualMachine struct {
 	Trace           []TraceEntry
 	RelocatedTrace  []RelocatedTraceEntry
 	RelocatedMemory map[uint]lambdaworks.Felt
+	RunFinished     bool
+	RcLimitsMin     *int
+	RcLimitsMax     *int
 }
 
 func NewVirtualMachine() *VirtualMachine {
@@ -76,7 +82,7 @@ func (v *VirtualMachine) Step(hintProcessor HintProcessor, hintDataMap *map[uint
 }
 
 func (v *VirtualMachine) RunInstruction(instruction *Instruction) error {
-	operands, err := v.ComputeOperands(*instruction)
+	operands, operandsAddresses, err := v.ComputeOperands(*instruction)
 	if err != nil {
 		return err
 	}
@@ -87,6 +93,36 @@ func (v *VirtualMachine) RunInstruction(instruction *Instruction) error {
 	}
 
 	v.Trace = append(v.Trace, TraceEntry{Pc: v.RunContext.Pc, Ap: v.RunContext.Ap, Fp: v.RunContext.Fp})
+
+	v.Segments.Memory.MarkAsAccessed(operandsAddresses.DstAddr)
+	v.Segments.Memory.MarkAsAccessed(operandsAddresses.Op0Addr)
+	v.Segments.Memory.MarkAsAccessed(operandsAddresses.Op1Addr)
+
+	var off0 int = instruction.Off0 + (1 << (RC_OFFSET_BITS - 1))
+	var off1 int = instruction.Off1 + (1 << (RC_OFFSET_BITS - 1))
+	var off2 int = instruction.Off2 + (1 << (RC_OFFSET_BITS - 1))
+
+	if v.RcLimitsMax == nil {
+		v.RcLimitsMax = new(int)
+		*v.RcLimitsMax = off0
+	} else {
+		var value int
+		value = utils.MaxInt(*v.RcLimitsMax, off0)
+		value = utils.MaxInt(value, off1)
+		value = utils.MaxInt(value, off2)
+		*v.RcLimitsMax = value
+	}
+
+	if v.RcLimitsMin == nil {
+		v.RcLimitsMin = new(int)
+		*v.RcLimitsMin = off0
+	} else {
+		var value int
+		value = utils.MinInt(*v.RcLimitsMin, off0)
+		value = utils.MinInt(value, off1)
+		value = utils.MinInt(value, off2)
+		*v.RcLimitsMin = value
+	}
 
 	err = v.UpdateRegisters(instruction, &operands)
 	if err != nil {
@@ -128,9 +164,9 @@ func (v *VirtualMachine) Relocate() error {
 		return nil
 	}
 
-	relocationTable, ok := v.Segments.RelocateSegments()
+	relocationTable, err := v.Segments.RelocateSegments()
 	// This should be unreachable
-	if !ok {
+	if err != nil {
 		return errors.New("ComputeEffectiveSizes called but RelocateSegments still returned error")
 	}
 
@@ -144,11 +180,64 @@ func (v *VirtualMachine) Relocate() error {
 	return nil
 }
 
+// TODO: Add ExecScopes to this when it's done
+func (vm *VirtualMachine) EndRun() error {
+	err := vm.VerifyAutoDeductions()
+	if err != nil {
+		return err
+	}
+
+	vm.RunFinished = true
+
+	// TODO
+	// switch execScopes.len() {
+	// case 1:
+	// 	return nil
+	// default:
+	// 	return ErrNoScope
+	// }
+
+	return nil
+}
+
+// Makes sure that all assigned memory cells are consistent with their auto deduction rules.
+func (vm *VirtualMachine) VerifyAutoDeductions() error {
+	for _, builtin := range vm.BuiltinRunners {
+		var index = builtin.Base()
+		for relocatableAddress, value := range vm.Segments.Memory.Data {
+			if relocatableAddress.SegmentIndex != index.SegmentIndex {
+				continue
+			}
+
+			deducedMemoryCell, err := builtin.DeduceMemoryCell(relocatableAddress, &vm.Segments.Memory)
+			if err != nil {
+				return err
+			}
+
+			if deducedMemoryCell == nil {
+				continue
+			}
+
+			if *deducedMemoryCell != value {
+				return &VirtualMachineError{fmt.Sprintf("InconsistentAutoDeduction: %s", builtin.Name())}
+			}
+		}
+	}
+
+	return nil
+}
+
 type Operands struct {
 	Dst memory.MaybeRelocatable
 	Res *memory.MaybeRelocatable
 	Op0 memory.MaybeRelocatable
 	Op1 memory.MaybeRelocatable
+}
+
+type OperandsAddresses struct {
+	DstAddr memory.Relocatable
+	Op0Addr memory.Relocatable
+	Op1Addr memory.Relocatable
 }
 
 func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Operands) error {
@@ -274,44 +363,44 @@ func (vm *VirtualMachine) ComputeRes(instruction Instruction, op0 memory.MaybeRe
 	return nil, nil
 }
 
-func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, error) {
+func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, OperandsAddresses, error) {
 	var res *memory.MaybeRelocatable
 
-	dst_addr, err := vm.RunContext.ComputeDstAddr(instruction)
+	dstAddr, err := vm.RunContext.ComputeDstAddr(instruction)
 	if err != nil {
-		return Operands{}, errors.New("FailedToComputeDstAddr")
+		return Operands{}, OperandsAddresses{}, errors.New("FailedToComputeDstAddr")
 	}
-	dst, _ := vm.Segments.Memory.Get(dst_addr)
+	dst, _ := vm.Segments.Memory.Get(dstAddr)
 
-	op0_addr, err := vm.RunContext.ComputeOp0Addr(instruction)
+	op0Addr, err := vm.RunContext.ComputeOp0Addr(instruction)
 	if err != nil {
-		return Operands{}, fmt.Errorf("FailedToComputeOp0Addr: %s", err)
+		return Operands{}, OperandsAddresses{}, fmt.Errorf("FailedToComputeOp0Addr: %s", err)
 	}
-	op0_op, _ := vm.Segments.Memory.Get(op0_addr)
+	op0Op, _ := vm.Segments.Memory.Get(op0Addr)
 
-	op1_addr, err := vm.RunContext.ComputeOp1Addr(instruction, op0_op)
+	op1Addr, err := vm.RunContext.ComputeOp1Addr(instruction, op0Op)
 	if err != nil {
-		return Operands{}, fmt.Errorf("FailedToComputeOp1Addr: %s", err)
+		return Operands{}, OperandsAddresses{}, fmt.Errorf("FailedToComputeOp1Addr: %s", err)
 	}
-	op1_op, _ := vm.Segments.Memory.Get(op1_addr)
+	op1Op, _ := vm.Segments.Memory.Get(op1Addr)
 
 	var op0 memory.MaybeRelocatable
-	if op0_op != nil {
-		op0 = *op0_op
+	if op0Op != nil {
+		op0 = *op0Op
 	} else {
-		op0, res, err = vm.ComputeOp0Deductions(op0_addr, &instruction, dst, op1_op)
+		op0, res, err = vm.ComputeOp0Deductions(op0Addr, &instruction, dst, op1Op)
 		if err != nil {
-			return Operands{}, err
+			return Operands{}, OperandsAddresses{}, err
 		}
 	}
 
 	var op1 memory.MaybeRelocatable
-	if op1_op != nil {
-		op1 = *op1_op
+	if op1Op != nil {
+		op1 = *op1Op
 	} else {
-		op1, err = vm.ComputeOp1Deductions(op1_addr, &instruction, dst, op0_op, res)
+		op1, err = vm.ComputeOp1Deductions(op1Addr, &instruction, dst, op0Op, res)
 		if err != nil {
-			return Operands{}, err
+			return Operands{}, OperandsAddresses{}, err
 		}
 	}
 
@@ -319,7 +408,7 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 		res, err = vm.ComputeRes(instruction, op0, op1)
 
 		if err != nil {
-			return Operands{}, err
+			return Operands{}, OperandsAddresses{}, err
 		}
 	}
 
@@ -327,7 +416,7 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 		deducedDst := vm.DeduceDst(instruction, res)
 		dst = deducedDst
 		if dst != nil {
-			vm.Segments.Memory.Insert(dst_addr, dst)
+			vm.Segments.Memory.Insert(dstAddr, dst)
 		}
 	}
 
@@ -337,7 +426,13 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 		Op1: op1,
 		Res: res,
 	}
-	return operands, nil
+
+	operandsAddresses := OperandsAddresses{
+		DstAddr: dstAddr,
+		Op0Addr: op0Addr,
+		Op1Addr: op1Addr,
+	}
+	return operands, operandsAddresses, nil
 }
 
 // Runs deductions for Op0, first runs builtin deductions, if this fails, attempts to deduce it based on dst and op1

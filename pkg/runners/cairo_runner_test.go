@@ -253,8 +253,9 @@ func TestInitializeRunnerWithRangeCheckInvalid(t *testing.T) {
 }
 
 func TestIncludedBuiltinsPlainLayoutNoProofMode(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "small", ProofMode: false}
 	// Testing for a program with no builtins
-	factorialRunner, err := cairo_run.CairoRun("../../cairo_programs/factorial.json", "plain", false)
+	factorialRunner, err := cairo_run.CairoRun("../../cairo_programs/factorial.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
@@ -263,7 +264,7 @@ func TestIncludedBuiltinsPlainLayoutNoProofMode(t *testing.T) {
 	}
 
 	// Testing with a program with output builtin
-	printRunner, err := cairo_run.CairoRun("../../cairo_programs/simple_print.json", "plain", false)
+	printRunner, err := cairo_run.CairoRun("../../cairo_programs/simple_print.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
@@ -279,8 +280,9 @@ func TestIncludedBuiltinsPlainLayoutNoProofMode(t *testing.T) {
 // FIXME: This test should changed once the `small` layout is properly implemented. ATM we don't have all
 // its builtins implemented.
 func TestIncludedBuiltinsSmallLayoutNoProofMode(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
 	// Testing for a program with Poseidon builtin
-	poseidonRunner, err := cairo_run.CairoRun("../../cairo_programs/poseidon_builtin.json", "small", false)
+	poseidonRunner, err := cairo_run.CairoRun("../../cairo_programs/poseidon_builtin.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
@@ -292,7 +294,7 @@ func TestIncludedBuiltinsSmallLayoutNoProofMode(t *testing.T) {
 	}
 
 	// Testing with a program with bitwise builtin
-	bitwiseRunner, err := cairo_run.CairoRun("../../cairo_programs/bitwise_builtin_test.json", "small", false)
+	bitwiseRunner, err := cairo_run.CairoRun("../../cairo_programs/bitwise_builtin_test.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
@@ -304,7 +306,7 @@ func TestIncludedBuiltinsSmallLayoutNoProofMode(t *testing.T) {
 	}
 
 	// Testing with a program with output, pedersen and range_check builtins
-	pedersenRunner, err := cairo_run.CairoRun("../../cairo_programs/pedersen_test.json", "small", false)
+	pedersenRunner, err := cairo_run.CairoRun("../../cairo_programs/pedersen_test.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
@@ -557,3 +559,161 @@ func TestWriteOutputFromPresentMemoryNegOutput(t *testing.T) {
 	}
 }
 */
+
+func TestCheckRangeCheckUsagePermRangeLimitsNone(t *testing.T) {
+	program := vm.Program{Data: nil, Builtins: nil, Identifiers: nil, Hints: nil, ReferenceManager: parser.ReferenceManager{}}
+
+	runner, err := runners.NewCairoRunner(program, "plain", false)
+	if err != nil {
+		t.Error("Could not initialize Cairo Runner")
+	}
+	virtualMachine := vm.NewVirtualMachine()
+
+	virtualMachine.Trace = make([]vm.TraceEntry, 0)
+
+	err = runner.CheckRangeCheckUsage(virtualMachine)
+	if err != nil {
+		t.Errorf("Check Range Usage Failed With Error %s", err)
+	}
+}
+
+func TestCheckRangeCheckUsageWithoutBuiltins(t *testing.T) {
+	program := vm.Program{Data: nil, Builtins: nil, Identifiers: nil, Hints: nil, ReferenceManager: parser.ReferenceManager{}}
+
+	runner, err := runners.NewCairoRunner(program, "plain", false)
+	if err != nil {
+		t.Error("Could not initialize Cairo Runner")
+	}
+	virtualMachine := vm.NewVirtualMachine()
+
+	virtualMachine.Trace = make([]vm.TraceEntry, 0)
+	virtualMachine.CurrentStep = 1000
+	virtualMachine.Segments.Memory.Insert(
+		memory.NewRelocatable(0, 0),
+		memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromHex("0x80FF80000530")),
+	)
+
+	virtualMachine.Trace = make([]vm.TraceEntry, 1)
+	virtualMachine.Trace[0] = vm.TraceEntry{Pc: memory.NewRelocatable(0, 0), Ap: memory.NewRelocatable(0, 0), Fp: memory.NewRelocatable(0, 0)}
+	err = runner.CheckRangeCheckUsage(virtualMachine)
+	if err != nil {
+		t.Errorf("Check Range Usage Failed With Error %s", err)
+	}
+}
+
+func TestCheckRangeUsageInsufficientAllocatedCells(t *testing.T) {
+	program := vm.Program{Data: nil, Builtins: nil, Identifiers: nil, Hints: nil, ReferenceManager: parser.ReferenceManager{}}
+
+	runner, err := runners.NewCairoRunner(program, "plain", false)
+	if err != nil {
+		t.Error("Could not initialize Cairo Runner")
+	}
+	runner.Vm.Trace = make([]vm.TraceEntry, 0)
+	builtin := builtins.NewRangeCheckBuiltinRunner(8)
+	runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtin)
+	runner.Vm.Segments.AddSegment()
+	runner.Vm.Segments.Memory.Insert(
+		memory.NewRelocatable(0, 0),
+		memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromHex("0x80FF80000530")),
+	)
+
+	runner.Vm.Trace = make([]vm.TraceEntry, 1)
+	runner.Vm.Trace[0] = vm.TraceEntry{Pc: memory.NewRelocatable(0, 0), Ap: memory.NewRelocatable(0, 0), Fp: memory.NewRelocatable(0, 0)}
+	runner.Vm.Segments.ComputeEffectiveSizes()
+	err = runner.CheckRangeCheckUsage(&runner.Vm)
+	if err == nil {
+		t.Error("Check Range Usage Should Have Failed With Insufficient Allocated Cells Error")
+	}
+}
+
+func TestCheckDilutedCheckUsageWithoutPoolInstance(t *testing.T) {
+	program := vm.Program{Data: nil, Builtins: nil, Identifiers: nil, Hints: nil, ReferenceManager: parser.ReferenceManager{}}
+
+	runner, err := runners.NewCairoRunner(program, "plain", false)
+	if err != nil {
+		t.Error("Could not initialize Cairo Runner")
+	}
+	virtualMachine := vm.NewVirtualMachine()
+
+	runner.Layout.DilutedPoolInstance = nil
+
+	err = runner.CheckDilutedCheckUsage(virtualMachine)
+	if err != nil {
+		t.Errorf("Check Diluted Check Usage Failed With Error %s", err)
+	}
+}
+
+func TestCheckDilutedCheckUsageWithoutBuiltinRunners(t *testing.T) {
+	program := vm.Program{Data: nil, Builtins: nil, Identifiers: nil, Hints: nil, ReferenceManager: parser.ReferenceManager{}}
+
+	runner, err := runners.NewCairoRunner(program, "plain", false)
+	if err != nil {
+		t.Error("Could not initialize Cairo Runner")
+	}
+	virtualMachine := vm.NewVirtualMachine()
+
+	virtualMachine.CurrentStep = 10000
+	virtualMachine.BuiltinRunners = make([]builtins.BuiltinRunner, 0)
+
+	err = runner.CheckDilutedCheckUsage(virtualMachine)
+	if err != nil {
+		t.Errorf("Check Diluted Check Usage Failed With Error %s", err)
+	}
+}
+
+func TestCheckDilutedCheckUsageInsufficientAllocatedCells(t *testing.T) {
+	program := vm.Program{Data: nil, Builtins: nil, Identifiers: nil, Hints: nil, ReferenceManager: parser.ReferenceManager{}}
+
+	runner, err := runners.NewCairoRunner(program, "all_cairo", false)
+	if err != nil {
+		t.Error("Could not initialize Cairo Runner")
+	}
+	virtualMachine := vm.NewVirtualMachine()
+
+	virtualMachine.CurrentStep = 100
+	virtualMachine.BuiltinRunners = make([]builtins.BuiltinRunner, 0)
+
+	err = runner.CheckDilutedCheckUsage(virtualMachine)
+	if err == nil {
+		t.Errorf("Check Diluted Check Usage Should Have failed With Insufficient Allocated Cells Error")
+	}
+}
+
+func TestCheckDilutedCheckUsage(t *testing.T) {
+	program := vm.Program{Data: nil, Builtins: nil, Identifiers: nil, Hints: nil, ReferenceManager: parser.ReferenceManager{}}
+
+	runner, err := runners.NewCairoRunner(program, "plain", false)
+	if err != nil {
+		t.Error("Could not initialize Cairo Runner")
+	}
+	virtualMachine := vm.NewVirtualMachine()
+
+	virtualMachine.CurrentStep = 8192
+	virtualMachine.BuiltinRunners = make([]builtins.BuiltinRunner, 0)
+	virtualMachine.BuiltinRunners = append(virtualMachine.BuiltinRunners, builtins.NewBitwiseBuiltinRunner(256))
+
+	err = runner.CheckDilutedCheckUsage(virtualMachine)
+	if err != nil {
+		t.Errorf("Check Diluted Check Usage Failed With Error %s", err)
+	}
+}
+
+// This test is a huge meme, revisit
+func TestCheckUsedCellsDilutedCheckUsageError(t *testing.T) {
+	program := vm.Program{Data: nil, Builtins: nil, Identifiers: nil, Hints: nil, ReferenceManager: parser.ReferenceManager{}}
+
+	runner, err := runners.NewCairoRunner(program, "plain", false)
+	if err != nil {
+		t.Error("Could not initialize Cairo Runner")
+	}
+	virtualMachine := vm.NewVirtualMachine()
+
+	virtualMachine.Segments.SegmentUsedSizes = make(map[uint]uint)
+	virtualMachine.Segments.SegmentUsedSizes[0] = 4
+	virtualMachine.Trace = []vm.TraceEntry{}
+
+	err = runner.CheckUsedCells(virtualMachine)
+	if err == nil {
+		t.Errorf("Check Used Cells Should Have failed With Insufficient Allocated Cells Error")
+	}
+}

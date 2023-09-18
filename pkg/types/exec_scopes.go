@@ -44,7 +44,7 @@ func (es *ExecutionScopes) getLocalVariablesMut() (*map[string]interface{}, erro
 	if err != nil {
 		return nil, err
 	}
-	return &locals, err
+	return &locals, nil
 }
 
 func (es *ExecutionScopes) GetLocalVariables() (map[string]interface{}, error) {

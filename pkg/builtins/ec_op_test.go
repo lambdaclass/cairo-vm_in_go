@@ -141,7 +141,7 @@ func TestDeduceMemoryCellEcOpForPresetMemoryValid(t *testing.T) {
 	mem.Memory.Insert(memory.NewRelocatable(3, 4), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(34)))
 	mem.Memory.Insert(memory.NewRelocatable(3, 5), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("2778063437308421278851140253538604815869848682781135193774472480292420096757")))
 
-	builtin := builtins.NewEcOpBuiltinRunner()
+	builtin := builtins.NewEcOpBuiltinRunner(1024)
 
 	// expected value
 	felt := lambdaworks.FeltFromDecString("3598390311618116577316045819420613574162151407434885460365915347732568210029")
@@ -170,7 +170,7 @@ func TestDeduceMemoryCellEcOpForPresetMemoryUnfilledInputCells(t *testing.T) {
 	mem.Memory.Insert(memory.NewRelocatable(3, 4), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(34)))
 	mem.Memory.Insert(memory.NewRelocatable(3, 5), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("2778063437308421278851140253538604815869848682781135193774472480292420096757")))
 
-	builtin := builtins.NewEcOpBuiltinRunner()
+	builtin := builtins.NewEcOpBuiltinRunner(1024)
 
 	// expected value
 
@@ -198,7 +198,7 @@ func TestDeduceMemoryCellEcOpForPresetMemoryNonIntegerInput(t *testing.T) {
 	mem.Memory.Insert(memory.NewRelocatable(3, 4), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(34)))
 	mem.Memory.Insert(memory.NewRelocatable(3, 5), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("2778063437308421278851140253538604815869848682781135193774472480292420096757")))
 
-	builtin := builtins.NewEcOpBuiltinRunner()
+	builtin := builtins.NewEcOpBuiltinRunner(1024)
 
 	// expected value is an error
 
