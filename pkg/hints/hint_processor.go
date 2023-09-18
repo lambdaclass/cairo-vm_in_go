@@ -73,6 +73,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return isNN(data.Ids, vm)
 	case IS_NN_OUT_OF_RANGE:
 		return isNNOutOfRange(data.Ids, vm)
+	case IS_LE_FELT:
+		return isLeFelt(data.Ids, vm)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}

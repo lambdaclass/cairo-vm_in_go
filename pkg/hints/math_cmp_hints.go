@@ -31,3 +31,19 @@ func isNNOutOfRange(ids IdsManager, vm *VirtualMachine) error {
 	}
 	return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltOne()))
 }
+
+// memory[ap] = 0 if (ids.a % PRIME) <= (ids.b % PRIME) else 1
+func isLeFelt(ids IdsManager, vm *VirtualMachine) error {
+	a, err := ids.GetFelt("a", vm)
+	if err != nil {
+		return err
+	}
+	b, err := ids.GetFelt("b", vm)
+	if err != nil {
+		return err
+	}
+	if a.Cmp(b) != 1 {
+		return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltZero()))
+	}
+	return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltOne()))
+}
