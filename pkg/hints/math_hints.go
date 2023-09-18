@@ -3,7 +3,9 @@ package hints
 import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	. "github.com/lambdaclass/cairo-vm.go/pkg/math_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	"github.com/pkg/errors"
@@ -64,6 +66,38 @@ func assert_not_zero(ids IdsManager, vm *VirtualMachine) error {
 	return nil
 }
 
+// Implements hint:from starkware.cairo.common.math.cairo
+//
+//	%{
+//		from starkware.crypto.signature.signature import FIELD_PRIME
+//		from starkware.python.math_utils import div_mod, is_quad_residue, sqrt
+//
+//		x = ids.x
+//		if is_quad_residue(x, FIELD_PRIME):
+//		    ids.y = sqrt(x, FIELD_PRIME)
+//		else:
+//		    ids.y = sqrt(div_mod(x, 3, FIELD_PRIME), FIELD_PRIME)
+//
+// %}
+func is_quad_residue(ids IdsManager, vm *VirtualMachine) error {
+	x, err := ids.GetFelt("x", vm)
+	if err != nil {
+		return err
+	}
+	if x.IsZero() || x.IsOne() {
+		ids.Insert("y", NewMaybeRelocatableFelt(x), vm)
+
+	} else if x.Pow(SignedFeltMaxValue()) == FeltOne() {
+		num := x.Sqrt()
+		ids.Insert("y", NewMaybeRelocatableFelt(num), vm)
+
+	} else {
+		num := (x.Div(lambdaworks.FeltFromUint64(3))).Sqrt()
+		ids.Insert("y", NewMaybeRelocatableFelt(num), vm)
+	}
+	return nil
+}
+
 func assert_not_equal(ids IdsManager, vm *VirtualMachine) error {
 	// Extract Ids Variables
 	a, err := ids.Get("a", vm)
@@ -87,5 +121,33 @@ func assert_not_equal(ids IdsManager, vm *VirtualMachine) error {
 	if diff.IsZero() {
 		return errors.Errorf("assert_not_equal failed: %v = %v.", a, b)
 	}
+	return nil
+}
+
+/*
+Implements the hint:
+
+	from starkware.python.math_utils import isqrt
+	value = ids.value % PRIME
+	assert value < 2 ** 250, f"value={value} is outside of the range [0, 2**250)."
+	assert 2 ** 250 < PRIME
+	ids.root = isqrt(value)
+*/
+func sqrt(ids IdsManager, vm *VirtualMachine) error {
+	value, err := ids.GetFelt("value", vm)
+	if err != nil {
+		return err
+	}
+
+	if value.Bits() >= 250 {
+		return errors.Errorf("Value: %v is outside of the range [0, 2**250)", value)
+	}
+
+	root_big, err := ISqrt(value.ToBigInt())
+	if err != nil {
+		return err
+	}
+	root_felt := FeltFromDecString(root_big.String())
+	ids.Insert("root", NewMaybeRelocatableFelt(root_felt), vm)
 	return nil
 }
