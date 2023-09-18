@@ -63,3 +63,57 @@ func TestIsNNHintOne(t *testing.T) {
 		t.Error("Wrong/No value inserted into ap")
 	}
 }
+
+func TestIsNNOutOfRangeHintZero(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	// Advance fp to avoid clashes with values inserted into ap
+	vm.RunContext.Fp.Offset += 1
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"a": {NewMaybeRelocatableFelt(FeltFromDecString("-1"))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: IS_NN_OUT_OF_RANGE,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("IS_NN_OUT_OF_RANGE hint test failed with error %s", err)
+	}
+	// Check the value of memory[ap]
+	val, err := vm.Segments.Memory.GetFelt(vm.RunContext.Ap)
+	if err != nil || !val.IsZero() {
+		t.Error("Wrong/No value inserted into ap")
+	}
+}
+
+func TestIsNNOutOfRangeHintOne(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	// Advance fp to avoid clashes with values inserted into ap
+	vm.RunContext.Fp.Offset += 1
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"a": {NewMaybeRelocatableFelt(FeltFromUint64(17))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: IS_NN_OUT_OF_RANGE,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("IS_NN_OUT_OF_RANGE hint test failed with error %s", err)
+	}
+	// Check the value of memory[ap]
+	val, err := vm.Segments.Memory.GetFelt(vm.RunContext.Ap)
+	if err != nil || val != FeltOne() {
+		t.Error("Wrong/No value inserted into ap")
+	}
+}
