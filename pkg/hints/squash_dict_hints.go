@@ -13,7 +13,7 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-// SortMaybeRelocatables implements sort.Interface for []*MaybeRelocatables
+// SortMaybeRelocatables implements sort.Interface for []MaybeRelocatables
 type SortMaybeRelocatables []MaybeRelocatable
 
 func (s SortMaybeRelocatables) Len() int      { return len(s) }
