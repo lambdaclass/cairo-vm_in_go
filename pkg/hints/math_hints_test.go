@@ -6,6 +6,7 @@ import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
@@ -314,5 +315,35 @@ func TestSqrtOk(t *testing.T) {
 	}
 	if root != FeltFromUint64(3) {
 		t.Errorf("Expected sqrt(9) == 3. Got: %v", root)
+	}
+}
+
+func TestAssertLeFeltOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	scopes := NewExecutionScopes()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"a":               {NewMaybeRelocatableFelt(FeltOne())},
+			"b":               {NewMaybeRelocatableFelt(FeltFromUint64(2))},
+			"range_check_ptr": {NewMaybeRelocatableRelocatable(NewRelocatable(1, 0))},
+		},
+		vm,
+	)
+	constants := SetupConstantsForTest(map[string]Felt{
+		"PRIME_OVER_3_HIGH": FeltFromHex("4000000000000088000000000000001"),
+		"PRIME_OVER_2_HIGH": FeltFromHex("2AAAAAAAAAAAAB05555555555555556"),
+	},
+		&idsManager,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: ASSERT_LE_FELT,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, scopes)
+	if err != nil {
+		t.Errorf("ASSERT_LE_FELT hint failed with error: %s", err)
 	}
 }
