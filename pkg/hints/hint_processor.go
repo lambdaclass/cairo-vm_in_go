@@ -75,6 +75,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return squashDictInnerNextKey(data.Ids, execScopes, vm)
 	case DICT_SQUASH_COPY_DICT:
 		return dictSquashCopyDict(data.Ids, execScopes, vm)
+	case DICT_SQUASH_UPDATE_PTR:
+		return dictSquashUpdatePtr(data.Ids, execScopes, vm)
 	case VM_EXIT_SCOPE:
 		return vm_exit_scope(execScopes)
 	case ASSERT_NOT_EQUAL:

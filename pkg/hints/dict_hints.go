@@ -164,3 +164,30 @@ func dictSquashCopyDict(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMach
 	})
 	return nil
 }
+
+// "Update the DictTracker's current_ptr to point to the end of the squashed dict.
+//
+//	__dict_manager.get_tracker(ids.squashed_dict_start).current_ptr = \\
+//	    ids.squashed_dict_end.address_"
+func dictSquashUpdatePtr(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error {
+	// Extract Variables
+	dictManager, ok := FetchDictManager(scopes)
+	if !ok {
+		return errors.New("Variable __dict_manager not present in current execution scope")
+	}
+	squashedDictStart, err := ids.GetRelocatable("squashed_dict_start", vm)
+	if err != nil {
+		return err
+	}
+	squashedDictEnd, err := ids.GetRelocatable("squashed_dict_end", vm)
+	if err != nil {
+		return err
+	}
+	// Hint logic
+	tracker, err := dictManager.GetTracker(squashedDictStart)
+	if err != nil {
+		return err
+	}
+	tracker.CurrentPtr = squashedDictEnd
+	return nil
+}
