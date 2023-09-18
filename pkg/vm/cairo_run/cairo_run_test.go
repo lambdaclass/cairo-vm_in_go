@@ -148,7 +148,8 @@ func TestBitwiseRecursionProofMode(t *testing.T) {
 }
 
 func TestIsQuadResidueoHint(t *testing.T) {
-	_, err := cairo_run.CairoRun("../../../cairo_programs/is_quad_residue.json", "small", false)
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "small", ProofMode: false}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/is_quad_residue.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
