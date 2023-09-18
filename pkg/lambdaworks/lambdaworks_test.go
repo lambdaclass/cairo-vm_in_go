@@ -78,6 +78,14 @@ func TestFromBigInt(t *testing.T) {
 	}
 }
 
+func TestFromBigIntPrime(t *testing.T) {
+	expectedFelt := lambdaworks.FeltFromDecString("0")
+	bigInt, _ := new(big.Int).SetString(lambdaworks.CAIRO_PRIME_HEX, 0)
+	if !reflect.DeepEqual(lambdaworks.FeltFromBigInt(bigInt), expectedFelt) {
+		t.Errorf("TestToBigInt failed. Expected: PRIME, Got: %v", lambdaworks.FeltFromBigInt(bigInt))
+	}
+}
+
 func TestToSignedNegative(t *testing.T) {
 	felt := lambdaworks.FeltFromDecString("-1")
 	bigInt := felt.ToSigned()

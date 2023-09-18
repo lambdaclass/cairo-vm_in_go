@@ -284,6 +284,11 @@ func (f Felt) ToBigInt() *big.Int {
 }
 
 func FeltFromBigInt(n *big.Int) Felt {
+	// Perform modulo prime
+	prime, _ := new(big.Int).SetString(CAIRO_PRIME_HEX, 0)
+	if n.Cmp(prime) != -1 {
+		n = new(big.Int).Mod(n, prime)
+	}
 	bytes := n.Bytes()
 	var bytes32 [32]byte
 	copy(bytes32[:], bytes)
