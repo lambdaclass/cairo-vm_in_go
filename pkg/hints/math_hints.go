@@ -1,8 +1,11 @@
 package hints
 
 import (
+	"math/big"
+
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/math_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
@@ -116,5 +119,45 @@ func sqrt(ids IdsManager, vm *VirtualMachine) error {
 	}
 	root_felt := FeltFromDecString(root_big.String())
 	ids.Insert("root", NewMaybeRelocatableFelt(root_felt), vm)
+	return nil
+}
+
+/*
+Implements hint:
+
+	%{
+	    from starkware.cairo.common.math_utils import assert_integer
+	    assert_integer(ids.div)
+	    assert 0 < ids.div <= PRIME // range_check_builtin.bound, \
+	        f'div={hex(ids.div)} is out of the valid range.'
+	    ids.q, ids.r = divmod(ids.value, ids.div)
+	%}
+*/
+func unsignedDivRem(ids IdsManager, vm *VirtualMachine) error {
+	div, err := ids.GetFelt("div", vm)
+	if err != nil {
+		return err
+	}
+
+	value, err := ids.GetFelt("value", vm)
+	if err != nil {
+		return err
+	}
+
+	// It is safe to cast INNER_RC_BOUND into int64 since the constant is set to 65536
+	rcBound := big.NewInt(int64(builtins.INNER_RC_BOUND))
+	limit := new(big.Int).Div(lambdaworks.Prime(), rcBound)
+
+	// Check if `div` is greater than `limit`
+	cmp := div.ToBigInt().Cmp(limit) == 1
+
+	if div.IsZero() || cmp {
+		return errors.Errorf("Div out of range: 0 < %d <= %d", div, rcBound)
+	}
+
+	q, r := value.DivRem(div)
+	ids.Insert("q", NewMaybeRelocatableFelt(q), vm)
+	ids.Insert("r", NewMaybeRelocatableFelt(r), vm)
+
 	return nil
 }

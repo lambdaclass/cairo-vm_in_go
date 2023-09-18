@@ -67,6 +67,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return memcpy_enter_scope(data.Ids, vm, execScopes)
 	case VM_ENTER_SCOPE:
 		return vm_enter_scope(execScopes)
+	case UNSIGNED_DIV_REM:
+		return unsignedDivRem(data.Ids, vm)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
