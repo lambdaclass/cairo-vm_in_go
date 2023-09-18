@@ -45,6 +45,8 @@ func SetupIdsForTest(ids map[string][]*memory.MaybeRelocatable, vm *VirtualMachi
 	return manager
 }
 
+// Returns a constants map accoring to the new_constants map receives
+// Adds a path to each constant and a matching path to the hint's accessible scopes
 func SetupConstantsForTest(new_constants map[string]lambdaworks.Felt, ids IdsManager) map[string]lambdaworks.Felt {
 	constants := make(map[string]lambdaworks.Felt)
 	ids.AccessibleScopes = append(ids.AccessibleScopes, "path")
