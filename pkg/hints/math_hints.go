@@ -3,6 +3,7 @@ package hints
 import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/math_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
@@ -94,6 +95,38 @@ func verify_ecdsa_signature(ids IdsManager, vm *VirtualMachine) error {
 		S: s,
 	}
 	signature_builtin.AddSignature(ecdsa_ptr, signature)
+  	return nil
+}
+
+// Implements hint:from starkware.cairo.common.math.cairo
+//
+//	%{
+//		from starkware.crypto.signature.signature import FIELD_PRIME
+//		from starkware.python.math_utils import div_mod, is_quad_residue, sqrt
+//
+//		x = ids.x
+//		if is_quad_residue(x, FIELD_PRIME):
+//		    ids.y = sqrt(x, FIELD_PRIME)
+//		else:
+//		    ids.y = sqrt(div_mod(x, 3, FIELD_PRIME), FIELD_PRIME)
+//
+// %}
+func is_quad_residue(ids IdsManager, vm *VirtualMachine) error {
+	x, err := ids.GetFelt("x", vm)
+	if err != nil {
+		return err
+	}
+	if x.IsZero() || x.IsOne() {
+		ids.Insert("y", NewMaybeRelocatableFelt(x), vm)
+
+	} else if x.Pow(SignedFeltMaxValue()) == FeltOne() {
+		num := x.Sqrt()
+		ids.Insert("y", NewMaybeRelocatableFelt(num), vm)
+
+	} else {
+		num := (x.Div(lambdaworks.FeltFromUint64(3))).Sqrt()
+		ids.Insert("y", NewMaybeRelocatableFelt(num), vm)
+	}
 	return nil
 }
 
