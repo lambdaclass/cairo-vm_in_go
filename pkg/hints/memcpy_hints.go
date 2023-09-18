@@ -57,11 +57,7 @@ func memset_step_loop(ids IdsManager, vm *VirtualMachine, execScoes *types.Execu
 	} else {
 		flag = NewMaybeRelocatableFelt(lambdaworks.FeltZero())
 	}
-	addr, err := ids.GetAddr(i_name, vm)
-	if err != nil {
-		return err
-	}
-	err = vm.Segments.Memory.Insert(addr, flag)
+	err = ids.Insert(i_name, flag, vm)
 	if err != nil {
 		return err
 	}
