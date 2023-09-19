@@ -241,36 +241,3 @@ func TestMemcpyContinueCopyingInsertError(t *testing.T) {
 		t.Errorf("TestMemcpyContinueCopyingInsertError should fail with error %s", expected)
 	}
 }
-
-// func TestMemsetContinueCopyingValidEqual5Hint(t *testing.T) {
-// 	vm := NewVirtualMachine()
-// 	vm.RunContext.Fp = NewRelocatable(1, 0)
-// 	vm.Segments.Memory.Data[NewRelocatable(1, 2)] = *NewMaybeRelocatableFelt(FeltFromUint64(5))
-// 	idsManager := SetupIdsForTest(
-// 		map[string][]*MaybeRelocatable{
-// 			"continue_copying": nil,
-// 		},
-// 		vm,
-// 	)
-// 	hintProcessor := CairoVmHintProcessor{}
-// 	hintData := any(HintData{
-// 		Ids:  idsManager,
-// 		Code: MEMCPY_CONTINUE_COPYING,
-// 	})
-
-// 	executionScopes := NewExecutionScopes()
-// 	scope := make(map[string]interface{})
-// 	scope["n"] = FeltFromUint64(5)
-// 	executionScopes.EnterScope(scope)
-// 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, executionScopes)
-// 	if err != nil {
-// 		t.Errorf("TestMemsetContinueCopyingValidEqual5Hint failed with error %s", err)
-// 	}
-// 	val, err := vm.Segments.Memory.GetFelt(NewRelocatable(1, 0))
-// 	if err != nil {
-// 		t.Errorf("TestMemsetContinueCopyingValidEqual5Hint failed with error %s", err)
-// 	}
-// 	if val != FeltZero() {
-// 		t.Errorf("TestMemsetContinueCopyingValidEqual5Hint failed, expected %d, got: %d", FeltZero(), val)
-// 	}
-// }

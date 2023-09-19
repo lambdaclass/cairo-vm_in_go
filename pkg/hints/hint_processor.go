@@ -73,6 +73,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return memset_enter_scope(data.Ids, vm, execScopes)
 	case MEMCPY_CONTINUE_COPYING:
 		return memset_step_loop(data.Ids, vm, execScopes, "continue_copying")
+	case MEMSET_CONTINUE_LOOP:
+		return memset_step_loop(data.Ids, vm, execScopes, "continue_loop")
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
