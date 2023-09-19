@@ -82,3 +82,11 @@ func (es *ExecutionScopes) Get(varName string) (interface{}, error) {
 	}
 	return val, nil
 }
+
+func (es *ExecutionScopes) GetRef(varName string) (*interface{}, error) {
+	val, err := es.Get(varName)
+	if err != nil {
+		return nil, err
+	}
+	return &val, err
+}

@@ -43,22 +43,16 @@ func memcpy_enter_scope(ids IdsManager, vm *VirtualMachine, execScopes *Executio
 */
 func memset_step_loop(ids IdsManager, vm *VirtualMachine, execScoes *ExecutionScopes, i_name string) error {
 	// get `n` variable from vm scope
-	n, err := execScoes.Get("n")
+	n, err := execScoes.GetRef("n")
 	if err != nil {
 		return err
 	}
 	// this variable will hold the value of `n - 1`
-	newN, ok := n.(Felt)
-	if !ok {
-		return ConversionError(n, "felt")
-	}
-	newN = newN.Sub(FeltOne())
-	execScoes.AssignOrUpdateVariable("n", newN)
-
-	// if `newN` is positive, insert 1 in the address of `continue_loop`
+	*n = (*n).(Felt).Sub(FeltOne())
+	// if `new_n` is positive, insert 1 in the address of `continue_loop`
 	// else, insert 0
 	var flag *MaybeRelocatable
-	if newN.IsPositive() {
+	if (*n).(Felt).IsPositive() {
 		flag = NewMaybeRelocatableFelt(FeltOne())
 	} else {
 		flag = NewMaybeRelocatableFelt(FeltZero())
