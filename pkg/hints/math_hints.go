@@ -161,10 +161,6 @@ func sqrt(ids IdsManager, vm *VirtualMachine) error {
 //	# Calculation for the assertion.
 //	ids.high, ids.low = divmod(ids.value, ids.SHIFT)
 func Assert250Bit(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt) error {
-	if constants == nil {
-		return errors.New("Called Assert250Bit with a nil constants map")
-	}
-
 	upperBound, err := ids.GetConst("UPPER_BOUND", constants)
 	if err != nil {
 		return err
