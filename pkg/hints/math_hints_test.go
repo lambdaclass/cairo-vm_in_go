@@ -457,3 +457,45 @@ func TestAssertLeFeltExcluded2Err(t *testing.T) {
 		t.Errorf("ASSERT_LE_FELT_EXCLUDED_2 hint test should have failed")
 	}
 }
+
+func TestAssertLeFeltHintOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"a": {NewMaybeRelocatableFelt(FeltFromUint64(17))},
+			"b": {NewMaybeRelocatableFelt(FeltFromUint64(18))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: ASSERT_LT_FELT,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("ASSERT_LT_FELT hint test failed with error %s", err)
+	}
+}
+
+func TestAssertLeFeltHintErr(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"a": {NewMaybeRelocatableFelt(FeltFromUint64(17))},
+			"b": {NewMaybeRelocatableFelt(FeltFromUint64(16))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: ASSERT_LT_FELT,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("ASSERT_LT_FELT hint test should have failed")
+	}
+}

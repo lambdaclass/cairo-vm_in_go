@@ -77,6 +77,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return assertLeFeltExcluded1(vm, execScopes)
 	case ASSERT_LE_FELT_EXCLUDED_2:
 		return assertLeFeltExcluded2(vm, execScopes)
+	case ASSERT_LT_FELT:
+		return assertLtFelt(data.Ids, vm)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
