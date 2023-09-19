@@ -9,6 +9,7 @@ import "C"
 
 import (
 	"math/big"
+	"reflect"
 	"strings"
 	"unsafe"
 
@@ -29,8 +30,8 @@ func LambdaworksError(err error) error {
 	return errors.Wrapf(err, "Lambdaworks Error")
 }
 
-func ConversionError(felt Felt, targetType string) error {
-	return LambdaworksError(errors.Errorf("Cannot convert felt: %d to %s", felt, targetType))
+func ConversionError(val interface{}, targetType string) error {
+	return LambdaworksError(errors.Errorf("Cannot convert %s: %d to %s", reflect.TypeOf(val), val, targetType))
 }
 
 // Converts a Go Felt to a C felt_t.
