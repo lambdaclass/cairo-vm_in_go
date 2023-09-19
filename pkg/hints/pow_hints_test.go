@@ -9,10 +9,11 @@ import (
 	"testing"
 )
 
-func TestPowHintOk(t *testing.T) {
+func TestPowHintOddOk(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()
-	vm.Segments.Memory.Insert(NewRelocatable(0, 4), NewMaybeRelocatableFelt(FeltFromUint64(5)))
+	vm.Segments.Memory.Insert(NewRelocatable(0, 4), NewMaybeRelocatableFelt(FeltFromUint64(3)))
+
 	idsManager := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
 			"prev_locs": {NewMaybeRelocatableRelocatable(NewRelocatable(0, 0))},
@@ -36,7 +37,40 @@ func TestPowHintOk(t *testing.T) {
 		t.Errorf("Failed to get locs.bit with error: %s", err)
 	}
 
-	if locs != FeltFromUint64(1) {
+	if locs != FeltOne() {
 		t.Errorf("locs.bit: %d != 1", locs)
+	}
+}
+
+func TestPowHintEvenOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.Memory.Insert(NewRelocatable(0, 4), NewMaybeRelocatableFelt(FeltFromUint64(2)))
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"prev_locs": {NewMaybeRelocatableRelocatable(NewRelocatable(0, 0))},
+			"locs":      {nil},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: POW,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("POW hint test failed with error %s", err)
+	}
+
+	locs, err := idsManager.GetFelt("locs", vm)
+	if err != nil {
+		t.Errorf("Failed to get locs.bit with error: %s", err)
+	}
+
+	if locs != FeltZero() {
+		t.Errorf("locs.bit: %d != 0", locs)
 	}
 }
