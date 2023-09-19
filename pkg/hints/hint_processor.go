@@ -102,6 +102,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return vm_enter_scope(execScopes)
 	case UNSAFE_KECCAK:
 		return unsafeKeccak(data.Ids, vm, *execScopes)
+	case UNSAFE_KECCAK_FINALIZE:
+		return unsafeKeccakFinalize(data.Ids, vm, *execScopes)
 	case IS_NN:
 		return isNN(data.Ids, vm)
 	case IS_NN_OUT_OF_RANGE:
