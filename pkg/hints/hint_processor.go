@@ -104,6 +104,12 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return unsignedDivRem(data.Ids, vm)
 	case SIGNED_DIV_REM:
 		return signedDivRem(data.Ids, vm)
+	case IS_NN:
+		return isNN(data.Ids, vm)
+	case IS_NN_OUT_OF_RANGE:
+		return isNNOutOfRange(data.Ids, vm)
+	case IS_LE_FELT:
+		return isLeFelt(data.Ids, vm)
 	case ASSERT_250_BITS:
 		return Assert250Bit(data.Ids, vm, constants)
 	case SPLIT_FELT:
