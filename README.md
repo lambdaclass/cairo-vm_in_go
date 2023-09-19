@@ -118,7 +118,7 @@ Below is a list of requirements to have a full implementation along with their p
   - ✅ `Poseidon`
   - ✅ `Signature`
   - ✅ `Segment Arena`
-- ✅ Memory layouts. This is related to builtins but we will do it after implementing them.
+- ✅ Memory layouts. (plain, small, all_cairo)
 - Hints. 
     - ✅ Add the `HintProcessor` logic
     - ✅ [Parsing of references](https://github.com/lambdaclass/cairo-vm/tree/main/docs/references_parsing)
