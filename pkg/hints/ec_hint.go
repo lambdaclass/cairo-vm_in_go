@@ -138,7 +138,6 @@ func computeDoublingSlope(virtual_machine vm.VirtualMachine, exec_scopes types.E
 	if err != nil {
 		return err
 	}
-	fmt.Println("after point")
 
 	x := point.X.Pack86()
 	y := point.Y.Pack86()
