@@ -210,9 +210,25 @@ func TestSqrtHint(t *testing.T) {
 	}
 }
 
+func TestSquashDict(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "small", ProofMode: false}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/squash_dict.json", cairoRunConfig)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
+
 func TestAssert250BitHint(t *testing.T) {
 	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
 	_, err := cairo_run.CairoRun("../../../cairo_programs/assert_250_bit_element_array.json", cairoRunConfig)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
+
+func TestDictSquash(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "small", ProofMode: false}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/dict_squash.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
