@@ -57,11 +57,7 @@ func memset_step_loop(ids IdsManager, vm *VirtualMachine, execScoes *ExecutionSc
 	} else {
 		flag = NewMaybeRelocatableFelt(FeltZero())
 	}
-	err = ids.Insert(i_name, flag, vm)
-	if err != nil {
-		return err
-	}
-	return nil
+	return ids.Insert(i_name, flag, vm)
 }
 
 // Implements hint: vm_enter_scope()
