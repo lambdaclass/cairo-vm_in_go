@@ -46,7 +46,7 @@ func BigInt3FromBaseAddr(addr memory.Relocatable, virtual_machine vm.VirtualMach
 	return BigInt3{Limbs: limbs}, nil
 }
 
-func EcFromVarName(name string, virtual_machine vm.VirtualMachine, ids_data hint_utils.IdsManager) (EcPoint, error) {
+func EcPointFromVarName(name string, virtual_machine vm.VirtualMachine, ids_data hint_utils.IdsManager) (EcPoint, error) {
 	point_addr, err := ids_data.GetAddr(name, &virtual_machine)
 	if err != nil {
 		return EcPoint{}, err
