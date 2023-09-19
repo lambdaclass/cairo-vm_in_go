@@ -46,7 +46,7 @@ func BigInt3FromBaseAddr(addr memory.Relocatable, virtual_machine vm.VirtualMach
 	return BigInt3{Limbs: limbs}, nil
 }
 
-func BigInt3FromVarName(name string, virtual_machine vm.VirtualMachine, ids_data hint_utils.IdsManager) (EcPoint, error) {
+func EcFromVarName(name string, virtual_machine vm.VirtualMachine, ids_data hint_utils.IdsManager) (EcPoint, error) {
 	point_addr, err := ids_data.GetAddr(name, &virtual_machine)
 	if err != nil {
 		return EcPoint{}, err
@@ -134,7 +134,7 @@ Implements hint:
 func computeDoublingSlope(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager, point_alias string, secp_p big.Int, alpha big.Int) error {
 	exec_scopes.AssignOrUpdateVariable("SECP_P", secp_p)
 
-	point, err := BigInt3FromVarName(point_alias, virtual_machine, ids_data)
+	point, err := EcFromVarName(point_alias, virtual_machine, ids_data)
 	if err != nil {
 		return err
 	}
@@ -176,11 +176,11 @@ func computeSlopeAndAssingSecpP(virtual_machine vm.VirtualMachine, exec_scopes t
 }
 
 func computeSlope(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager, point0_alias string, point1_alias string) error {
-	point0, err := BigInt3FromVarName(point0_alias, virtual_machine, ids_data)
+	point0, err := EcFromVarName(point0_alias, virtual_machine, ids_data)
 	if err != nil {
 		return err
 	}
-	point1, err := BigInt3FromVarName(point1_alias, virtual_machine, ids_data)
+	point1, err := EcFromVarName(point1_alias, virtual_machine, ids_data)
 	if err != nil {
 		return err
 	}
