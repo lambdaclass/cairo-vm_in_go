@@ -44,6 +44,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return add_segment(vm)
 	case ASSERT_NN:
 		return assert_nn(data.Ids, vm)
+	case VERIFY_ECDSA_SIGNATURE:
+		return verify_ecdsa_signature(data.Ids, vm)
 	case IS_POSITIVE:
 		return is_positive(data.Ids, vm)
 	case ASSERT_NOT_ZERO:
@@ -80,6 +82,10 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return isNNOutOfRange(data.Ids, vm)
 	case IS_LE_FELT:
 		return isLeFelt(data.Ids, vm)
+	case ASSERT_250_BITS:
+		return Assert250Bit(data.Ids, vm, constants)
+	case SPLIT_FELT:
+		return SplitFelt(data.Ids, vm, constants)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
