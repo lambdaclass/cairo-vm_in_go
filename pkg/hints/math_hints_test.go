@@ -6,6 +6,7 @@ import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_codes"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
@@ -315,5 +316,233 @@ func TestSqrtOk(t *testing.T) {
 	}
 	if root != FeltFromUint64(3) {
 		t.Errorf("Expected sqrt(9) == 3. Got: %v", root)
+	}
+}
+
+func TestAssert250BitHintSuccess(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(FeltFromUint64(3))},
+			"high":  {nil},
+			"low":   {nil},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	constants := SetupConstantsForTest(map[string]Felt{
+		"UPPER_BOUND": lambdaworks.FeltFromUint64(10),
+		"SHIFT":       lambdaworks.FeltFromUint64(1),
+	},
+		&idsManager,
+	)
+
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: ASSERT_250_BITS,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err != nil {
+		t.Errorf("ASSERT_250_BIT hint failed with error %s", err)
+	}
+
+	high, err := idsManager.GetFelt("high", vm)
+	if err != nil {
+		t.Errorf("failed to get high: %s", err)
+	}
+
+	low, err := idsManager.GetFelt("low", vm)
+	if err != nil {
+		t.Errorf("failed to get low: %s", err)
+	}
+
+	if high != FeltFromUint64(3) {
+		t.Errorf("Expected high == 3. Got: %v", high)
+	}
+
+	if low != FeltFromUint64(0) {
+		t.Errorf("Expected low == 0. Got: %v", low)
+	}
+}
+
+func TestAssert250BitHintFail(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(FeltFromUint64(20))},
+			"high":  {nil},
+			"low":   {nil},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	constants := SetupConstantsForTest(map[string]Felt{
+		"UPPER_BOUND": lambdaworks.FeltFromUint64(10),
+		"SHIFT":       lambdaworks.FeltFromUint64(1),
+	},
+		&idsManager,
+	)
+
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: ASSERT_250_BITS,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err == nil {
+		t.Errorf("ASSERT_250_BIT hint should have failed with Value outside of 250 bit error")
+	}
+}
+
+func TestSplitFeltAssertPrimeFailure(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(FeltFromUint64(1))},
+			"high":  {nil},
+			"low":   {nil},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	constants := SetupConstantsForTest(map[string]Felt{
+		"MAX_HIGH": lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffff"),
+		"MAX_LOW":  lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffff"),
+	},
+		&idsManager,
+	)
+
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SPLIT_FELT,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err == nil {
+		t.Errorf("SPLIT_FELT hint should have failed with assert PRIME - 1 == ids.MAX_HIGH * 2**128 + ids.MAX_LOW error")
+	}
+}
+
+func TestSplitFeltAssertMaxHighFailedAssertion(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(FeltFromUint64(1))},
+			"high":  {nil},
+			"low":   {nil},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	constants := SetupConstantsForTest(map[string]Felt{
+		"MAX_HIGH": lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffffffff"),
+		"MAX_LOW":  lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffff"),
+	},
+		&idsManager,
+	)
+
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SPLIT_FELT,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err == nil {
+		t.Errorf("SPLIT_FELT hint should have failed with assert ids.MAX_HIGH < 2**128 and ids.MAX_LOW < 2**128")
+	}
+}
+
+func TestSplitFeltAssertMaxLowFailedAssertion(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(FeltFromUint64(1))},
+			"high":  {nil},
+			"low":   {nil},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	constants := SetupConstantsForTest(map[string]Felt{
+		"MAX_HIGH": lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffff"),
+		"MAX_LOW":  lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffffffff"),
+	},
+		&idsManager,
+	)
+
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SPLIT_FELT,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err == nil {
+		t.Errorf("SPLIT_FELT hint should have failed with assert ids.MAX_HIGH < 2**128 and ids.MAX_LOW < 2**128")
+	}
+}
+
+func TestSplitFeltSuccess(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+
+	firstLimb := lambdaworks.FeltFromUint64(1)
+	secondLimb := lambdaworks.FeltFromUint64(2)
+	thirdLimb := lambdaworks.FeltFromUint64(3)
+	fourthLimb := lambdaworks.FeltFromUint64(4)
+	value := fourthLimb.Or(thirdLimb.Shl(64).Or(secondLimb.Shl(128).Or(firstLimb.Shl(192))))
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(value)},
+			"high":  {nil},
+			"low":   {nil},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	constants := SetupConstantsForTest(map[string]Felt{
+		"MAX_HIGH": lambdaworks.FeltFromDecString("10633823966279327296825105735305134080"),
+		"MAX_LOW":  lambdaworks.FeltFromUint64(0),
+	},
+		&idsManager,
+	)
+
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SPLIT_FELT,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err != nil {
+		t.Errorf("SPLIT_FELT hint failed with error %s", err)
+	}
+
+	high, err := idsManager.GetFelt("high", vm)
+	if err != nil {
+		t.Errorf("failed to get high: %s", err)
+	}
+
+	low, err := idsManager.GetFelt("low", vm)
+	if err != nil {
+		t.Errorf("failed to get low: %s", err)
+	}
+
+	if high != firstLimb.Shl(64).Or(secondLimb) {
+		t.Errorf("Expected high == 335438970432432812899076431678123043273. Got: %v", high)
+	}
+
+	if low != thirdLimb.Shl(64).Or(fourthLimb) {
+		t.Errorf("Expected low == 0. Got: %v", low)
 	}
 }
