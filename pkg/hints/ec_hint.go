@@ -2,7 +2,6 @@ package hints
 
 import (
 	"errors"
-	"fmt"
 	"math/big"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
