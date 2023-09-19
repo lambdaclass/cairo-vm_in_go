@@ -58,6 +58,12 @@ func FeltFromUint64(value uint64) Felt {
 	return fromC(result)
 }
 
+func FeltFromBigInt(value big.Int) Felt {
+	buff := make([]byte, 32)
+	bytes := value.FillBytes(buff)
+	return FeltFromBeBytes((*[32]byte)(bytes))
+}
+
 func FeltFromHex(value string) Felt {
 	cs := C.CString(value)
 	defer C.free(unsafe.Pointer(cs))
