@@ -189,7 +189,7 @@ func unsignedDivRem(ids IdsManager, vm *VirtualMachine) error {
 	divGreater := div.ToBigInt().Cmp(primeBoundDivision) == 1
 
 	if div.IsZero() || divGreater {
-		return errors.Errorf("Div out of range: 0 < %d <= %d", div, rcBound)
+		return errors.Errorf("Div out of range: 0 < %d <= %d", div.ToBigInt(), rcBound.ToBigInt())
 	}
 
 	q, r := value.DivRem(div)
