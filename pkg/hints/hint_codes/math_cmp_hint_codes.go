@@ -1,4 +1,4 @@
-package hints
+package hint_codes
 
 const IS_NN = "memory[ap] = 0 if 0 <= (ids.a % PRIME) < range_check_builtin.bound else 1"
 
