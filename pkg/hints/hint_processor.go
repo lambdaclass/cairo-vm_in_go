@@ -104,6 +104,12 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return computeSlopeAndAssingSecpP(*vm, *execScopes, data.Ids, "point0", "point1", SECP_P())
 	case EC_DOUBLE_SLOPE_V1:
 		return computeDoublingSlope(*vm, *execScopes, data.Ids, "point", SECP_P(), ALPHA())
+	case IS_NN:
+		return isNN(data.Ids, vm)
+	case IS_NN_OUT_OF_RANGE:
+		return isNNOutOfRange(data.Ids, vm)
+	case IS_LE_FELT:
+		return isLeFelt(data.Ids, vm)
 	case ASSERT_250_BITS:
 		return Assert250Bit(data.Ids, vm, constants)
 	case SPLIT_FELT:
