@@ -184,7 +184,7 @@ func TestFromBigInt(t *testing.T) {
 	big := big.NewInt(15)
 
 	expectedFelt := lambdaworks.FeltFromDecString("15")
-	resFelt := lambdaworks.FeltFromBigInt(*big)
+	resFelt := lambdaworks.FeltFromBigInt(big)
 
 	if resFelt.Cmp(expectedFelt) != 0 {
 		t.Errorf("TestFromBigInt failed. Expected 15, got: %v", resFelt)

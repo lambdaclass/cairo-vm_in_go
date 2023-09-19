@@ -1,7 +1,6 @@
 package hints
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
@@ -253,77 +252,26 @@ func signedDivRem(ids IdsManager, vm *VirtualMachine) error {
 	if div.IsZero() || divGreater {
 		return errors.Errorf("div=%d is out of the valid range", div)
 	}
-
 	if bound.Cmp(rcBound.Shr(1)) == 1 {
 		return errors.Errorf("bound=%d is out of the valid range", bound)
 	}
 
 	sgnValue := value.ToSigned()
-	sgnBound := bound.ToBigInt()
+	intBound := bound.ToBigInt()
 	intDiv := div.ToBigInt()
 
-	q := new(big.Int).Div(sgnValue, intDiv)
-	r := new(big.Int).Rem(sgnValue, intDiv)
+	q, r := new(big.Int).DivMod(sgnValue, intDiv, new(big.Int))
 
-	fmt.Println(sgnBound, q, r)
+	if new(big.Int).Abs(intBound).Cmp(new(big.Int).Abs(q)) == -1 {
+		return errors.Errorf("%d / %d = %d is out of the range [-%d, %d]", sgnValue, div, q, bound, bound)
+	}
+
+	biasedQ := new(big.Int).Add(q, intBound)
+	biasedQFelt := lambdaworks.FeltFromBigInt(biasedQ)
+	rFelt := lambdaworks.FeltFromBigInt(r)
+
+	ids.Insert("r", NewMaybeRelocatableFelt(rFelt), vm)
+	ids.Insert("biased_q", NewMaybeRelocatableFelt(biasedQFelt), vm)
 
 	return nil
 }
-
-// pub fn signed_div_rem(
-//     vm: &mut VirtualMachine,
-//     ids_data: &HashMap<String, HintReference>,
-//     ap_tracking: &ApTracking,
-// ) -> Result<(), HintError> {
-//     let div = get_integer_from_var_name("div", vm, ids_data, ap_tracking)?;
-//     let value = get_integer_from_var_name("value", vm, ids_data, ap_tracking)?;
-//     let value = value.as_ref();
-//     let bound = get_integer_from_var_name("bound", vm, ids_data, ap_tracking)?;
-//     let builtin = vm.get_range_check_builtin()?;
-
-//     match &builtin._bound {
-//         Some(builtin_bound)
-//             if div.is_zero() || div.as_ref() > &div_prime_by_bound(builtin_bound.clone())? =>
-//         {
-//             return Err(HintError::OutOfValidRange(Box::new((
-//                 div.into_owned(),
-//                 builtin_bound.clone(),
-//             ))));
-//         }
-//         Some(builtin_bound) if bound.as_ref() > &(builtin_bound >> 1_u32) => {
-//             return Err(HintError::OutOfValidRange(Box::new((
-//                 bound.into_owned(),
-//                 builtin_bound >> 1_u32,
-//             ))));
-//         }
-//         None if div.is_zero() => {
-//             return Err(HintError::OutOfValidRange(Box::new((
-//                 div.into_owned(),
-//                 Felt252::zero() - Felt252::one(),
-//             ))));
-//         }
-//         _ => {}
-//     }
-
-//     let int_value = value.to_signed_felt();
-//     let int_div = div.to_bigint();
-//     let int_bound = bound.to_bigint();
-//     let (q, r) = int_value.div_mod_floor(&int_div);
-
-//     if int_bound.abs() < q.abs() {
-//         return Err(HintError::OutOfValidRange(Box::new((
-//             Felt252::new(q),
-//             bound.into_owned(),
-//         ))));
-//     }
-
-//     let biased_q = q + int_bound;
-//     insert_value_from_var_name("r", Felt252::new(r), vm, ids_data, ap_tracking)?;
-//     insert_value_from_var_name(
-//         "biased_q",
-//         Felt252::new(biased_q),
-//         vm,
-//         ids_data,
-//         ap_tracking,
-//     )
-// }

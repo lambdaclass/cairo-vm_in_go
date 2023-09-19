@@ -5,6 +5,7 @@ from starkware.cairo.common.serialize import serialize_word
 func signed_div_rem_man{range_check_ptr}(value, div, bound) -> (q: felt, r: felt) {
     let r = [range_check_ptr];
     let biased_q = [range_check_ptr + 1];  // == q + bound.
+
     let range_check_ptr = range_check_ptr + 2;
     %{
         from starkware.cairo.common.math_utils import as_int, assert_integer

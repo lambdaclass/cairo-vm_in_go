@@ -58,7 +58,7 @@ func FeltFromUint64(value uint64) Felt {
 	return fromC(result)
 }
 
-func FeltFromBigInt(value big.Int) Felt {
+func FeltFromBigInt(value *big.Int) Felt {
 	buff := make([]byte, 32)
 	bytes := value.FillBytes(buff)
 	return FeltFromBeBytes((*[32]byte)(bytes))
