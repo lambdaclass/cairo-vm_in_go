@@ -95,7 +95,7 @@ func verify_ecdsa_signature(ids IdsManager, vm *VirtualMachine) error {
 		S: s,
 	}
 	signature_builtin.AddSignature(ecdsa_ptr, signature)
-  	return nil
+	return nil
 }
 
 // Implements hint:from starkware.cairo.common.math.cairo
