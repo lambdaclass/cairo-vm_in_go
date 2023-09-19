@@ -69,10 +69,6 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return memcpy_enter_scope(data.Ids, vm, execScopes)
 	case VM_ENTER_SCOPE:
 		return vm_enter_scope(execScopes)
-	case MEMCPY_CONTINUE_COPYING:
-		return memcpy_continue_id(data.Ids, vm, execScopes, "continue_copying")
-	case MEMCPY_CONTINUE_LOOP:
-		return memcpy_continue_id(data.Ids, vm, execScopes, "continue_loop")
 	case SET_ADD:
 		return set_add(data.Ids, vm)
 	default:
