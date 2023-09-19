@@ -82,8 +82,15 @@ func unsafeKeccakFinalize(ids IdsManager, vm *VirtualMachine, scopes ExecutionSc
 	if err != nil {
 		return err
 	}
-	n_elems, err := endPtr.Sub(startPtr)
+
+	// Hint Logic
+	nElemsFelt, err := endPtr.Sub(startPtr)
 	if err != nil {
 		return err
 	}
+	nElems, err := nElemsFelt.ToU64()
+	if err != nil {
+		return err
+	}
+
 }
