@@ -58,8 +58,11 @@ func unsafeKeccak(ids IdsManager, vm *VirtualMachine, scopes ExecutionScopes) er
 	hasher := sha3.New256()
 	resBytes := hasher.Sum(keccakInput)
 
-	high := FeltFromBeBytes((*[32]byte)(resBytes[:16]))
-	low := FeltFromBeBytes((*[32]byte)(resBytes[16:32]))
+	highBytes := append([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, resBytes[:16]...)
+	lowBytes := append([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, resBytes[16:32]...)
+
+	high := FeltFromBeBytes((*[32]byte)(highBytes))
+	low := FeltFromBeBytes((*[32]byte)(lowBytes))
 
 	err = ids.Insert("high", NewMaybeRelocatableFelt(high), vm)
 	if err != nil {
