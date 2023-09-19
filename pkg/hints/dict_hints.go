@@ -141,3 +141,70 @@ func dictUpdate(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) err
 	tracker.CurrentPtr.Offset += DICT_ACCESS_SIZE
 	return nil
 }
+
+func dictSquashCopyDict(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error {
+	// Extract Variables
+	dictManager, ok := FetchDictManager(scopes)
+	if !ok {
+		return errors.New("Variable __dict_manager not present in current execution scope")
+	}
+	dictAccessEnd, err := ids.GetRelocatable("dict_accesses_end", vm)
+	if err != nil {
+		return err
+	}
+	// Hint logic
+	tracker, err := dictManager.GetTracker(dictAccessEnd)
+	if err != nil {
+		return err
+	}
+	initialDict := tracker.CopyDictionary()
+	scopes.EnterScope(map[string]interface{}{
+		"__dict_manager": dictManager,
+		"initial_dict":   initialDict,
+	})
+	return nil
+}
+
+func dictSquashUpdatePtr(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error {
+	// Extract Variables
+	dictManager, ok := FetchDictManager(scopes)
+	if !ok {
+		return errors.New("Variable __dict_manager not present in current execution scope")
+	}
+	squashedDictStart, err := ids.GetRelocatable("squashed_dict_start", vm)
+	if err != nil {
+		return err
+	}
+	squashedDictEnd, err := ids.GetRelocatable("squashed_dict_end", vm)
+	if err != nil {
+		return err
+	}
+	// Hint logic
+	tracker, err := dictManager.GetTracker(squashedDictStart)
+	if err != nil {
+		return err
+	}
+	tracker.CurrentPtr = squashedDictEnd
+	return nil
+}
+
+func dictNew(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine) error {
+	// Fetch scope variables
+	initialDictAny, err := scopes.Get("initial_dict")
+	if err != nil {
+		return err
+	}
+	initialDict, ok := initialDictAny.(map[memory.MaybeRelocatable]memory.MaybeRelocatable)
+	if !ok {
+		return errors.New("initial_dict not in scope")
+	}
+	// Hint Logic
+	dictManager, ok := FetchDictManager(scopes)
+	if !ok {
+		newDictManager := NewDictManager()
+		dictManager = &newDictManager
+		scopes.AssignOrUpdateVariable("__dict_manager", dictManager)
+	}
+	dict_ptr := dictManager.NewDictionary(&initialDict, vm)
+	return vm.Segments.Memory.Insert(vm.RunContext.Ap, memory.NewMaybeRelocatableRelocatable(dict_ptr))
+}

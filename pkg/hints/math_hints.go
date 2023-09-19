@@ -57,6 +57,7 @@ func is_positive(ids IdsManager, vm *VirtualMachine) error {
 //	    assert ids.value % PRIME != 0, f'assert_not_zero failed: {ids.value} = 0.'
 //
 // %}
+
 func assert_not_zero(ids IdsManager, vm *VirtualMachine) error {
 	value, err := ids.GetFelt("value", vm)
 	if err != nil {
@@ -65,6 +66,37 @@ func assert_not_zero(ids IdsManager, vm *VirtualMachine) error {
 	if value.IsZero() {
 		return errors.Errorf("Assertion failed, %s %% PRIME is equal to 0", value.ToHexString())
 	}
+	return nil
+}
+
+func verify_ecdsa_signature(ids IdsManager, vm *VirtualMachine) error {
+	r, err_get_r := ids.GetFelt("signature_r", vm)
+	if err_get_r != nil {
+		return err_get_r
+	}
+
+	s, err_get_s := ids.GetFelt("signature_s", vm)
+	if err_get_s != nil {
+		return err_get_s
+	}
+
+	ecdsa_ptr, err_get_ecdsa := ids.GetAddr("ecdsa_ptr", vm)
+	if err_get_ecdsa != nil {
+		return err_get_ecdsa
+	}
+
+	signature_builtin_interface, err_get_builtin := vm.GetBuiltinRunner(builtins.SIGNATURE_BUILTIN_NAME)
+	if err_get_builtin != nil {
+		return err_get_builtin
+	}
+
+	signature_builtin := (*signature_builtin_interface).(*builtins.SignatureBuiltinRunner)
+
+	signature := builtins.Signature{
+		R: r,
+		S: s,
+	}
+	signature_builtin.AddSignature(ecdsa_ptr, signature)
 	return nil
 }
 
@@ -176,10 +208,6 @@ func unsignedDivRem(ids IdsManager, vm *VirtualMachine) error {
 	}
 
 	rcBound, err := vm.GetRangeCheckBound()
-	if err != nil {
-		return err
-	}
-
 	if rcBound.Cmp(lambdaworks.FeltZero()) == 0 {
 		return errors.New("range check bound cannot be zero")
 	}
@@ -199,6 +227,48 @@ func unsignedDivRem(ids IdsManager, vm *VirtualMachine) error {
 		return err
 	}
 	err = ids.Insert("r", NewMaybeRelocatableFelt(r), vm)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Implements hint:
+//
+//	from starkware.cairo.common.math_utils import as_int
+//	# Correctness check.
+//	value = as_int(ids.value, PRIME) % PRIME
+//	assert value < ids.UPPER_BOUND, f'{value} is outside of the range [0, 2**250).'
+//	# Calculation for the assertion.
+//	ids.high, ids.low = divmod(ids.value, ids.SHIFT)
+func Assert250Bit(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt) error {
+	upperBound, err := ids.GetConst("UPPER_BOUND", constants)
+	if err != nil {
+		return err
+	}
+
+	shift, err := ids.GetConst("SHIFT", constants)
+	if err != nil {
+		return err
+	}
+
+	value, err := ids.GetFelt("value", vm)
+	if err != nil {
+		return err
+	}
+
+	if Felt.Cmp(value, upperBound) == 1 {
+		return errors.New("Value outside of 250 bit Range")
+	}
+
+	high, low := value.DivRem(shift)
+
+	err = ids.Insert("high", NewMaybeRelocatableFelt(high), vm)
+	if err != nil {
+		return err
+	}
+
+	err = ids.Insert("low", NewMaybeRelocatableFelt(low), vm)
 	if err != nil {
 		return err
 	}
@@ -235,10 +305,12 @@ func signedDivRem(ids IdsManager, vm *VirtualMachine) error {
 	if err != nil {
 		return err
 	}
+
 	value, err := ids.GetFelt("value", vm)
 	if err != nil {
 		return err
 	}
+
 	bound, err := ids.GetFelt("bound", vm)
 	if err != nil {
 		return err
@@ -279,6 +351,58 @@ func signedDivRem(ids IdsManager, vm *VirtualMachine) error {
 
 	ids.Insert("r", NewMaybeRelocatableFelt(rFelt), vm)
 	ids.Insert("biased_q", NewMaybeRelocatableFelt(biasedQFelt), vm)
+
+	return nil
+}
+
+// Implements hint:
+//
+//	%{
+//	    from starkware.cairo.common.math_utils import assert_integer
+//	    assert ids.MAX_HIGH < 2**128 and ids.MAX_LOW < 2**128
+//	    assert PRIME - 1 == ids.MAX_HIGH * 2**128 + ids.MAX_LOW
+//	    assert_integer(ids.value)
+//	    ids.low = ids.value & ((1 << 128) - 1)
+//	    ids.high = ids.value >> 128
+//
+// %}
+func SplitFelt(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt) error {
+	maxHigh, err := ids.GetConst("MAX_HIGH", constants)
+	if err != nil {
+		return err
+	}
+
+	maxLow, err := ids.GetConst("MAX_LOW", constants)
+	if err != nil {
+		return err
+	}
+
+	if maxHigh.Bits() > 128 || maxLow.Bits() > 128 {
+		return errors.New("Assertion Failed: assert ids.MAX_HIGH < 2**128 and ids.MAX_LOW < 2**128")
+	}
+
+	twoToTheOneTwentyEight := lambdaworks.FeltOne().Shl(128)
+	if lambdaworks.FeltFromDecString("-1") != maxHigh.Mul(twoToTheOneTwentyEight).Add(maxLow) {
+		return errors.New("Assertion Failed: assert PRIME - 1 == ids.MAX_HIGH * 2**128 + ids.MAX_LOW")
+	}
+
+	value, err := ids.GetFelt("value", vm)
+	if err != nil {
+		return err
+	}
+
+	low := value.And(twoToTheOneTwentyEight.Sub(lambdaworks.FeltOne()))
+	high := value.Shr(128)
+
+	err = ids.Insert("high", NewMaybeRelocatableFelt(high), vm)
+	if err != nil {
+		return err
+	}
+
+	err = ids.Insert("low", NewMaybeRelocatableFelt(low), vm)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
