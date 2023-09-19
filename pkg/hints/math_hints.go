@@ -188,50 +188,50 @@ Implements hint:
     %}
 */
 
-func signedDivRem(ids IdsManager, vm *VirtualMachine) error {
-	div, err := ids.GetFelt("div", vm)
-	if err != nil {
-		return err
-	}
-	value, err := ids.GetFelt("value", vm)
-	if err != nil {
-		return err
-	}
-	bound, err := ids.GetFelt("bound", vm)
-	if err != nil {
-		return err
-	}
+// func signedDivRem(ids IdsManager, vm *VirtualMachine) error {
+// 	div, err := ids.GetFelt("div", vm)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	value, err := ids.GetFelt("value", vm)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	bound, err := ids.GetFelt("bound", vm)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	// It is safe to cast INNER_RC_BOUND into int64 since the constant is set to 65536
-	rcBound, err := vm.GetRangeCheckBound()
-	if err != nil {
-		return err
-	}
+// 	// It is safe to cast INNER_RC_BOUND into int64 since the constant is set to 65536
+// 	rcBound, err := vm.GetRangeCheckBound()
+// 	if err != nil {
+// 		return err
+// 	}
 
-	if rcBound.Cmp(lambdaworks.FeltZero()) == 0 {
-		return errors.New("range check bound cannot be zero")
-	}
-	primeBoundDivision := new(big.Int).Div(lambdaworks.Prime(), rcBound.ToBigInt())
+// 	if rcBound.Cmp(lambdaworks.FeltZero()) == 0 {
+// 		return errors.New("range check bound cannot be zero")
+// 	}
+// 	primeBoundDivision := new(big.Int).Div(lambdaworks.Prime(), rcBound.ToBigInt())
 
-	// Check if `div` is greater than `limit` and make assertions
-	divGreater := div.ToBigInt().Cmp(primeBoundDivision) == 1
-	if div.IsZero() || divGreater {
-		return errors.Errorf("div=%d is out of the valid range", div)
-	}
+// 	// Check if `div` is greater than `limit` and make assertions
+// 	divGreater := div.ToBigInt().Cmp(primeBoundDivision) == 1
+// 	if div.IsZero() || divGreater {
+// 		return errors.Errorf("div=%d is out of the valid range", div)
+// 	}
 
-	if bound.Cmp(rcBound.Shr(1)) == 1 {
-		return errors.Errorf("bound=%d is out of the valid range")
-	}
+// 	if bound.Cmp(rcBound.Shr(1)) == 1 {
+// 		return errors.Errorf("bound=%d is out of the valid range")
+// 	}
 
-	sgnValue := value.ToSigned()
-	sgnBound := bound.ToBigInt()
-	intDiv := div.ToBigInt()
+// 	sgnValue := value.ToSigned()
+// 	sgnBound := bound.ToBigInt()
+// 	intDiv := div.ToBigInt()
 
-	q := new(big.Int).Div(sgnValue, intDiv)
-	r := new(big.Int).Rem(sgnValue, intDiv)
+// 	q := new(big.Int).Div(sgnValue, intDiv)
+// 	r := new(big.Int).Rem(sgnValue, intDiv)
 
-	return nil
-}
+// 	return nil
+// }
 
 // pub fn signed_div_rem(
 //     vm: &mut VirtualMachine,
