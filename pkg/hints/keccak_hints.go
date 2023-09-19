@@ -72,7 +72,7 @@ func unsafeKeccak(ids IdsManager, vm *VirtualMachine, scopes ExecutionScopes) er
 	return ids.Insert("low", NewMaybeRelocatableFelt(low), vm)
 }
 
-func unsafeKeccakFinalize(ids IdsManager, vm *VirtualMachine, scopes ExecutionScopes) error {
+func unsafeKeccakFinalize(ids IdsManager, vm *VirtualMachine) error {
 	// Fetch ids variables
 	startPtr, err := ids.GetStructFieldRelocatable("keccak_state", 0, vm)
 	if err != nil {
