@@ -210,7 +210,6 @@ func TestSqrtHint(t *testing.T) {
 	}
 }
 
-
 func TestMathCmp(t *testing.T) {
 	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
 	_, err := cairo_run.CairoRun("../../../cairo_programs/math_cmp.json", cairoRunConfig)
