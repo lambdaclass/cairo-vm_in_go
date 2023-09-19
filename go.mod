@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/pkg/errors v0.9.1
 	golang.org/x/crypto v0.12.0
+	golang.org/x/exp v0.0.0-20230515195305-f3d0a9c9a5cc
 )
 
 require (
