@@ -1,6 +1,7 @@
 package hint_utils
 
 import (
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
@@ -17,7 +18,7 @@ import (
 // All references will be FP-based, so please don't update the value of FP after calling this function,
 // and make sure that the memory at fp's segment is clear from its current offset onwards
 func SetupIdsForTest(ids map[string][]*memory.MaybeRelocatable, vm *VirtualMachine) IdsManager {
-	manager := NewIdsManager(make(map[string]HintReference), parser.ApTrackingData{})
+	manager := NewIdsManager(make(map[string]HintReference), parser.ApTrackingData{}, []string{})
 	base_addr := vm.RunContext.Fp
 	current_offset := 0
 	for name, elems := range ids {
@@ -42,4 +43,15 @@ func SetupIdsForTest(ids map[string][]*memory.MaybeRelocatable, vm *VirtualMachi
 		base_addr.Offset += uint(len(elems))
 	}
 	return manager
+}
+
+// Returns a constants map accoring to the new_constants map received
+// Adds a path to each constant and a matching path to the hint's accessible scopes
+func SetupConstantsForTest(new_constants map[string]lambdaworks.Felt, ids *IdsManager) map[string]lambdaworks.Felt {
+	constants := make(map[string]lambdaworks.Felt)
+	ids.AccessibleScopes = append(ids.AccessibleScopes, "path")
+	for name, constant := range new_constants {
+		constants["path."+name] = constant
+	}
+	return constants
 }

@@ -7,6 +7,7 @@ import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
+	. "github.com/lambdaclass/cairo-vm.go/pkg/utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )

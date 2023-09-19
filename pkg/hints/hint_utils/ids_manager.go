@@ -12,8 +12,9 @@ import (
 // Identifier Manager
 // Provides methods that allow hints to interact with cairo variables given their identifier name
 type IdsManager struct {
-	References     map[string]HintReference
-	HintApTracking parser.ApTrackingData
+	References       map[string]HintReference
+	HintApTracking   parser.ApTrackingData
+	AccessibleScopes []string
 }
 
 func ErrIdsManager(err error) error {
@@ -28,11 +29,28 @@ func ErrIdentifierNotFelt(name string) error {
 	return ErrIdsManager(errors.Errorf("Identifier %s is not a Felt", name))
 }
 
-func NewIdsManager(references map[string]HintReference, hintApTracking parser.ApTrackingData) IdsManager {
+func NewIdsManager(references map[string]HintReference, hintApTracking parser.ApTrackingData, accessibleScopes []string) IdsManager {
 	return IdsManager{
-		References:     references,
-		HintApTracking: hintApTracking,
+		References:       references,
+		HintApTracking:   hintApTracking,
+		AccessibleScopes: accessibleScopes,
 	}
+}
+
+// Fetches a constant used by the hint
+// Searches inner modules first for name-matching constants
+func (ids *IdsManager) GetConst(name string, constants *map[string]lambdaworks.Felt) (lambdaworks.Felt, error) {
+	// Hints should always have accessible scopes
+	if len(ids.AccessibleScopes) != 0 {
+		// Accessible scopes are listed from outer to inner
+		for i := len(ids.AccessibleScopes) - 1; i >= 0; i-- {
+			constant, ok := (*constants)[ids.AccessibleScopes[i]+"."+name]
+			if ok {
+				return constant, nil
+			}
+		}
+	}
+	return lambdaworks.FeltZero(), errors.Errorf("Missing constant %s", name)
 }
 
 // Inserts value into memory given its identifier name
