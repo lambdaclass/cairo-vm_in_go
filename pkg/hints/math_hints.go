@@ -1,11 +1,14 @@
 package hints
 
 import (
+	"math/big"
+
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/math_utils"
+	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	"github.com/pkg/errors"
@@ -181,6 +184,126 @@ func sqrt(ids IdsManager, vm *VirtualMachine) error {
 	}
 	root_felt := FeltFromDecString(root_big.String())
 	ids.Insert("root", NewMaybeRelocatableFelt(root_felt), vm)
+	return nil
+}
+
+func assertLeFelt(ids IdsManager, vm *VirtualMachine, scopes *ExecutionScopes, constants *map[string]Felt) error {
+	// Fetch constants
+	primeOver3HighFelt, err := ids.GetConst("PRIME_OVER_3_HIGH", constants)
+	if err != nil {
+		return err
+	}
+	primeOver3High := primeOver3HighFelt.ToBigInt()
+	primeOver2HighFelt, err := ids.GetConst("PRIME_OVER_2_HIGH", constants)
+	if err != nil {
+		return err
+	}
+	primeOver2High := primeOver2HighFelt.ToBigInt()
+	// Fetch ids variables
+	aFelt, err := ids.GetFelt("a", vm)
+	if err != nil {
+		return err
+	}
+	a := aFelt.ToBigInt()
+	bFelt, err := ids.GetFelt("b", vm)
+	if err != nil {
+		return err
+	}
+	b := bFelt.ToBigInt()
+	rangeCheckPtr, err := ids.GetRelocatable("range_check_ptr", vm)
+	if err != nil {
+		return err
+	}
+	// Hint Logic
+	cairoPrime, _ := new(big.Int).SetString(CAIRO_PRIME_HEX, 0)
+	halfPrime := new(big.Int).Div(cairoPrime, new(big.Int).SetUint64(2))
+	thirdOfPrime := new(big.Int).Div(cairoPrime, new(big.Int).SetUint64(3))
+	if a.Cmp(b) == 1 {
+		return errors.Errorf("Assertion failed, %v, is not less or equal to %v", a, b)
+	}
+	arc1 := new(big.Int).Sub(b, a)
+	arc2 := new(big.Int).Sub(new(big.Int).Sub(cairoPrime, (big.NewInt(1))), b)
+
+	// Split lengthsAndIndices array into lenght & idxs array and mantain the same order between them
+	lengths := []*big.Int{a, arc1, arc2}
+	idxs := []int{0, 1, 2}
+	// Sort lengths & idxs by lengths
+	for i := 0; i < 3; i++ {
+		for j := i; j > 0 && lengths[j-1].Cmp(lengths[j]) == 1; j-- {
+			lengths[j], lengths[j-1] = lengths[j-1], lengths[j]
+			idxs[j], idxs[j-1] = idxs[j-1], idxs[j]
+		}
+	}
+
+	if lengths[0].Cmp(thirdOfPrime) == 1 || lengths[1].Cmp(halfPrime) == 1 {
+		return errors.Errorf("Arc too big, %v must be <= %v and %v <= %v", lengths[0], thirdOfPrime, lengths[1], halfPrime)
+	}
+	excluded := idxs[2]
+	scopes.AssignOrUpdateVariable("excluded", excluded)
+	q_0, r_0 := new(big.Int).DivMod(lengths[0], primeOver3High, primeOver3High)
+	q_1, r_1 := new(big.Int).DivMod(lengths[1], primeOver2High, primeOver2High)
+
+	// Insert values into range_check_ptr
+	data := []MaybeRelocatable{
+		*NewMaybeRelocatableFelt(FeltFromBigInt(r_0)),
+		*NewMaybeRelocatableFelt(FeltFromBigInt(q_0)),
+		*NewMaybeRelocatableFelt(FeltFromBigInt(r_1)),
+		*NewMaybeRelocatableFelt(FeltFromBigInt(q_1)),
+	}
+	_, err = vm.Segments.LoadData(rangeCheckPtr, &data)
+
+	return err
+}
+
+// "memory[ap] = 1 if excluded != 0 else 0"
+func assertLeFeltExcluded0(vm *VirtualMachine, scopes *ExecutionScopes) error {
+	// Fetch scope var
+	excludedAny, err := scopes.Get("excluded")
+	if err != nil {
+		return err
+	}
+	excluded, ok := excludedAny.(int)
+	if !ok {
+		return errors.New("excluded not in scope")
+	}
+	if excluded == 0 {
+		return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltZero()))
+	}
+	return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltOne()))
+}
+
+// "memory[ap] = 1 if excluded != 1 else 0"
+func assertLeFeltExcluded1(vm *VirtualMachine, scopes *ExecutionScopes) error {
+	// Fetch scope var
+	excludedAny, err := scopes.Get("excluded")
+	if err != nil {
+		return err
+	}
+	excluded, ok := excludedAny.(int)
+	if !ok {
+		return errors.New("excluded not in scope")
+	}
+	if excluded == 1 {
+		return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltZero()))
+	}
+	return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltOne()))
+}
+
+// "assert excluded == 2"
+func assertLeFeltExcluded2(vm *VirtualMachine, scopes *ExecutionScopes) error {
+	// Fetch scope var
+	excludedAny, err := scopes.Get("excluded")
+	if err != nil {
+		return err
+	}
+	excluded, ok := excludedAny.(int)
+	if !ok {
+		return errors.New("excluded not in scope")
+	}
+	if excluded != 2 {
+		return errors.New("Assertion Failed: excluded == 2")
+	}
+
 	return nil
 }
 
