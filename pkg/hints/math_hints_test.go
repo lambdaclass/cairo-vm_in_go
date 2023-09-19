@@ -15,7 +15,7 @@ import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
-func TestIsNNHintOk(t *testing.T) {
+func TestAssertNNHintOk(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()
 	idsManager := SetupIdsForTest(
@@ -35,7 +35,7 @@ func TestIsNNHintOk(t *testing.T) {
 	}
 }
 
-func TestIsNNHintFail(t *testing.T) {
+func TestAssertNNHintFail(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()
 	idsManager := SetupIdsForTest(
