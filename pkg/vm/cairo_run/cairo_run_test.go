@@ -205,7 +205,7 @@ func TestSqrtHint(t *testing.T) {
 
 func TestUnsignedDivRemHint(t *testing.T) {
 	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
-	_, err := cairo_run.CairoRun("../../../cairo_programs/sqrt.json", cairoRunConfig)
+	_, err := cairo_run.CairoRun("../../../cairo_programs/unsigned_div_rem.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
