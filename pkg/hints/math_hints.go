@@ -161,33 +161,18 @@ func sqrt(ids IdsManager, vm *VirtualMachine) error {
 //	# Calculation for the assertion.
 //	ids.high, ids.low = divmod(ids.value, ids.SHIFT)
 func Assert250Bit(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt) error {
-	const UPPER_BOUND = "starkware.cairo.common.math.assert_250_bit.UPPER_BOUND"
-	const SHIFT = "starkware.cairo.common.math.assert_250_bit.SHIFT"
-
 	if constants == nil {
 		return errors.New("Called Assert250Bit with a nil constants map")
 	}
 
-	upperBound, ok := (*constants)[UPPER_BOUND]
-
-	if !ok {
-		var err error
-		upperBound, err = ids.GetConst("UPPER_BOUND", constants)
-
-		if err != nil {
-			return err
-		}
+	upperBound, err := ids.GetConst("UPPER_BOUND", constants)
+	if err != nil {
+		return err
 	}
 
-	shift, ok := (*constants)[SHIFT]
-
-	if !ok {
-		var err error
-		shift, err = ids.GetConst("SHIFT", constants)
-
-		if err != nil {
-			return err
-		}
+	shift, err := ids.GetConst("SHIFT", constants)
+	if err != nil {
+		return err
 	}
 
 	value, err := ids.GetFelt("value", vm)
