@@ -2,7 +2,6 @@ package hints
 
 import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
-	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/types"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
@@ -35,36 +34,5 @@ func memcpy_enter_scope(ids IdsManager, vm *VirtualMachine, execScopes *types.Ex
 // Implements hint: vm_enter_scope()
 func vm_enter_scope(executionScopes *types.ExecutionScopes) error {
 	executionScopes.EnterScope(make(map[string]interface{}))
-	return nil
-}
-
-/*
-	Implements hint:
-
-	%{
-	    n -= 1
-	    ids.`i_name` = 1 if n > 0 else 0
-
-%}
-*/
-func memcpy_continue_id(ids IdsManager, vm *VirtualMachine, execScopes *types.ExecutionScopes, id string) error {
-	n, err := execScopes.Get("n")
-	if err != nil {
-		return err
-	}
-	n_felt := (n).(Felt).Sub(FeltOne())
-	execScopes.AssignOrUpdateVariable("n", n_felt.Sub(FeltOne()))
-	if n_felt.IsZero() {
-		err := ids.Insert(id, NewMaybeRelocatableFelt(FeltZero()), vm)
-		if err != nil {
-			return err
-		}
-	} else {
-		err := ids.Insert(id, NewMaybeRelocatableFelt(FeltOne()), vm)
-		if err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
