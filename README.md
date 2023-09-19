@@ -124,6 +124,9 @@ Below is a list of requirements to have a full implementation along with their p
     - Implement each hint. This is a long task which we divided into milestones. You can check out their progress [here](https://github.com/lambdaclass/cairo-vm_in_go/milestones).
 - ✅ Proof mode. It's important to explain in detail what this is when we do it. It's one of the most obscure parts of the VM in my experience.
 - ✅ Program tests from Cairo VM in Rust.
+- Support for Temporary Memory
+    - Handle temporary addresses in memory-related code
+    - Implement relocation process for temporary memory
 - Print debug information on failure (i.e. introduce the concept of a `VmException`)
 - Air Public inputs. (Tied to Proof mode)
 - Starknet integration:
