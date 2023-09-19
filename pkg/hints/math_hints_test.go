@@ -3,6 +3,7 @@ package hints_test
 import (
 	"testing"
 
+	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_codes"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
@@ -315,5 +316,50 @@ func TestSqrtOk(t *testing.T) {
 	}
 	if root != FeltFromUint64(3) {
 		t.Errorf("Expected sqrt(9) == 3. Got: %v", root)
+	}
+}
+
+func TestUnsignedDivRemHintSuccess(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"div":   {NewMaybeRelocatableFelt(FeltFromDecString("3"))},
+			"value": {NewMaybeRelocatableFelt(FeltFromDecString("10"))},
+			"r":     nil,
+			"q":     nil,
+		},
+		vm,
+	)
+	rcBuiltin := builtins.DefaultRangeCheckBuiltinRunner()
+	vm.BuiltinRunners = []builtins.BuiltinRunner{rcBuiltin}
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: UNSIGNED_DIV_REM,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("UNSIGNED_DIV_REM hint failed with error: %s", err)
+	}
+
+	q, err := idsManager.GetFelt("q", vm)
+	if err != nil {
+		t.Errorf("failed to get `q`: %s", err)
+	}
+
+	r, err := idsManager.GetFelt("r", vm)
+	if err != nil {
+		t.Errorf("failed to get `r`: %s", err)
+	}
+
+	if q != FeltFromUint64(3) {
+		t.Errorf("Expected q=3, got: %v", q)
+	}
+
+	if r != FeltFromUint64(1) {
+		t.Errorf("Expected r=1, got: %v", r)
 	}
 }

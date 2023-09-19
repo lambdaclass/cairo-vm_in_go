@@ -193,8 +193,15 @@ func unsignedDivRem(ids IdsManager, vm *VirtualMachine) error {
 	}
 
 	q, r := value.DivRem(div)
-	ids.Insert("q", NewMaybeRelocatableFelt(q), vm)
-	ids.Insert("r", NewMaybeRelocatableFelt(r), vm)
+
+	err = ids.Insert("q", NewMaybeRelocatableFelt(q), vm)
+	if err != nil {
+		return err
+	}
+	err = ids.Insert("r", NewMaybeRelocatableFelt(r), vm)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
