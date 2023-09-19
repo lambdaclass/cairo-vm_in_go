@@ -134,7 +134,7 @@ Implements hint:
 func computeDoublingSlope(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager, point_alias string, secp_p big.Int, alpha big.Int) error {
 	exec_scopes.AssignOrUpdateVariable("SECP_P", secp_p)
 
-	point, err := EcFromVarName(point_alias, virtual_machine, ids_data)
+	point, err := EcPointFromVarName(point_alias, virtual_machine, ids_data)
 	if err != nil {
 		return err
 	}
@@ -176,11 +176,11 @@ func computeSlopeAndAssingSecpP(virtual_machine vm.VirtualMachine, exec_scopes t
 }
 
 func computeSlope(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager, point0_alias string, point1_alias string) error {
-	point0, err := EcFromVarName(point0_alias, virtual_machine, ids_data)
+	point0, err := EcPointFromVarName(point0_alias, virtual_machine, ids_data)
 	if err != nil {
 		return err
 	}
-	point1, err := EcFromVarName(point1_alias, virtual_machine, ids_data)
+	point1, err := EcPointFromVarName(point1_alias, virtual_machine, ids_data)
 	if err != nil {
 		return err
 	}
