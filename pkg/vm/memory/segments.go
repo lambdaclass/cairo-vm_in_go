@@ -172,3 +172,15 @@ func (m *MemorySegmentManager) Finalize(size *uint, segmentIndex uint, publicMem
 		m.PublicMemoryOffsets[segmentIndex] = emptyList
 	}
 }
+
+func (m *MemorySegmentManager) GetFeltRange(start Relocatable, size uint) ([]lambdaworks.Felt, error) {
+	feltRange := make([]lambdaworks.Felt, 0, size)
+	for i := uint(0); i < size; i++ {
+		val, err := m.Memory.GetFelt(start.AddUint(i))
+		if err != nil {
+			return nil, err
+		}
+		feltRange = append(feltRange, val)
+	}
+	return feltRange, nil
+}
