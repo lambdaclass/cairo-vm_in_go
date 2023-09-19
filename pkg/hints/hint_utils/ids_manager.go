@@ -163,6 +163,35 @@ func (ids *IdsManager) GetStructFieldFelt(name string, field_off uint, vm *Virtu
 }
 
 /*
+	 Returns the value of an ids' field (given that the identifier is a sruct) as a Relocatable
+		For example:
+
+		struct shelter {
+			cats cat*
+			dogs dog*
+		}
+
+		to access each struct field, cats will be field 0 and dogs will be field 1, so to access them we can use:
+		ids_cats := ids.GetStructFieldFelt("shelter", 0, vm) or ids_cats := ids.Get("shelter", vm)
+		ids_dogs := ids.GetStructFieldFelt("shelter", 1, vm)
+*/
+func (ids *IdsManager) GetStructFieldRelocatable(name string, field_off uint, vm *VirtualMachine) (Relocatable, error) {
+	reference, ok := ids.References[name]
+	if ok {
+		val, ok := getStructFieldFromReference(&reference, field_off, ids.HintApTracking, vm)
+		if ok {
+			rel, is_rel := val.GetRelocatable()
+			if !is_rel {
+				return Relocatable{}, errors.Errorf("Identifier %s is not a Relocatable", name)
+			}
+			return rel, nil
+		}
+	}
+
+	return Relocatable{}, ErrUnknownIdentifier(name)
+}
+
+/*
 	 Inserts value into an ids' field (given that the identifier is a sruct)
 		For example:
 
