@@ -64,7 +64,7 @@ func DeserializeProgramJson(compiledProgram parser.CompiledJson) Program {
 func (p *Program) ExtractConstants() map[string]lambdaworks.Felt {
 	constants := make(map[string]lambdaworks.Felt)
 	for name, identifier := range p.Identifiers {
-		if identifier.Type == "constant" {
+		if identifier.Type == "const" {
 			constants[name] = identifier.Value
 		}
 	}
