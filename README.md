@@ -117,7 +117,6 @@ Below is a list of requirements to have a full implementation along with their p
   - ✅ `Keccak`
   - ✅ `Poseidon`
   - ✅ `Signature`
-  - ✅ `Segment Arena`
 - ✅ Memory layouts. (plain, small, all_cairo)
 - Hints. 
     - ✅ Add the `HintProcessor` logic
