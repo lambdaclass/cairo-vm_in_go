@@ -1,13 +1,13 @@
 package hints
 
 import (
+	"github.com/ebfe/keccak"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	"github.com/pkg/errors"
-	"golang.org/x/crypto/sha3"
 )
 
 func unsafeKeccak(ids IdsManager, vm *VirtualMachine, scopes ExecutionScopes) error {
@@ -55,8 +55,9 @@ func unsafeKeccak(ids IdsManager, vm *VirtualMachine, scopes ExecutionScopes) er
 
 	}
 
-	hasher := sha3.New256()
-	resBytes := hasher.Sum(keccakInput)
+	hasher := keccak.New256()
+	hasher.Write(keccakInput)
+	resBytes := hasher.Sum(nil)
 
 	highBytes := append([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, resBytes[:16]...)
 	lowBytes := append([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, resBytes[16:32]...)
