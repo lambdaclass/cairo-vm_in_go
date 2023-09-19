@@ -5,6 +5,7 @@ import (
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
@@ -497,5 +498,78 @@ func TestAssertLeFeltHintErr(t *testing.T) {
 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err == nil {
 		t.Errorf("ASSERT_LT_FELT hint test should have failed")
+	}
+}
+func TestAssert250BitHintSuccess(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(FeltFromUint64(3))},
+			"high":  {nil},
+			"low":   {nil},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: ASSERT_250_BITS,
+	})
+
+	constants := make(map[string]Felt)
+	constants["UPPER_BOUND"] = lambdaworks.FeltFromUint64(10)
+	constants["SHIFT"] = lambdaworks.FeltFromUint64(1)
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err != nil {
+		t.Errorf("ASSERT_250_BIT hint failed with error %s", err)
+	}
+
+	high, err := idsManager.GetFelt("high", vm)
+	if err != nil {
+		t.Errorf("failed to get high: %s", err)
+	}
+
+	low, err := idsManager.GetFelt("low", vm)
+	if err != nil {
+		t.Errorf("failed to get low: %s", err)
+	}
+
+	if high != FeltFromUint64(3) {
+		t.Errorf("Expected high == 3. Got: %v", high)
+	}
+
+	if low != FeltFromUint64(0) {
+		t.Errorf("Expected low == 0. Got: %v", low)
+	}
+}
+
+func TestAssert250BitHintFail(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(FeltFromUint64(20))},
+			"high":  {nil},
+			"low":   {nil},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: ASSERT_250_BITS,
+	})
+
+	constants := make(map[string]Felt)
+	constants["UPPER_BOUND"] = lambdaworks.FeltFromUint64(10)
+	constants["SHIFT"] = lambdaworks.FeltFromUint64(1)
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err == nil {
+		t.Errorf("ASSERT_250_BIT hint should have failed with Value outside of 250 bit error")
 	}
 }
