@@ -123,6 +123,13 @@ func TestAbsValue(t *testing.T) {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
 }
+func TestCommonSignature(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, ProofMode: false, Layout: "all_cairo"}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/common_signature.json", cairoRunConfig)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
 func TestAssertNotZeroHint(t *testing.T) {
 	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, ProofMode: false, Layout: "all_cairo"}
 	_, err := cairo_run.CairoRun("../../../cairo_programs/assert_not_zero.json", cairoRunConfig)

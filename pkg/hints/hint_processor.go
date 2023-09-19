@@ -44,6 +44,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return add_segment(vm)
 	case ASSERT_NN:
 		return assert_nn(data.Ids, vm)
+	case VERIFY_ECDSA_SIGNATURE:
+		return verify_ecdsa_signature(data.Ids, vm)
 	case IS_POSITIVE:
 		return is_positive(data.Ids, vm)
 	case ASSERT_NOT_ZERO:
