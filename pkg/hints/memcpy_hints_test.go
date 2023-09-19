@@ -158,9 +158,7 @@ func TestEnterScope(t *testing.T) {
 
 func TestMemcpyContinueCopyingValid(t *testing.T) {
 	vm := NewVirtualMachine()
-	vm.Segments.AddSegment()
-	vm.Segments.AddSegment()
-	vm.Segments.AddSegment()
+	vm.Segments = AddNSegments(vm.Segments, 3)
 	vm.RunContext.Fp = NewRelocatable(2, 0)
 	vm.Segments.Memory.Data[NewRelocatable(1, 2)] = *NewMaybeRelocatableFelt(FeltFromUint64(5))
 
@@ -215,8 +213,7 @@ func TestMemcpyContinueCopyingVarNotInScope(t *testing.T) {
 
 func TestMemcpyContinueCopyingInsertError(t *testing.T) {
 	vm := NewVirtualMachine()
-	vm.Segments.AddSegment()
-	vm.Segments.AddSegment()
+	vm.Segments = AddNSegments(vm.Segments, 2)
 	executionScopes := NewExecutionScopes()
 
 	scope := make(map[string]interface{})
