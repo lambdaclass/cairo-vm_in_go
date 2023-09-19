@@ -4,7 +4,10 @@ import (
 	"errors"
 	"math/big"
 
+<<<<<<< HEAD
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
+=======
+>>>>>>> main
 	"github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/types"
@@ -209,3 +212,4 @@ func computeSlope(virtual_machine vm.VirtualMachine, exec_scopes types.Execution
 
 	return nil
 }
+
