@@ -62,6 +62,30 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return dictUpdate(data.Ids, execScopes, vm)
 	case VM_ENTER_SCOPE:
 		return vm_enter_scope(execScopes)
+	case SQUASH_DICT:
+		return squashDict(data.Ids, execScopes, vm)
+	case SQUASH_DICT_INNER_SKIP_LOOP:
+		return squashDictInnerSkipLoop(data.Ids, execScopes, vm)
+	case SQUASH_DICT_INNER_FIRST_ITERATION:
+		return squashDictInnerFirstIteration(data.Ids, execScopes, vm)
+	case SQUASH_DICT_INNER_CHECK_ACCESS_INDEX:
+		return squashDictInnerCheckAccessIndex(data.Ids, execScopes, vm)
+	case SQUASH_DICT_INNER_CONTINUE_LOOP:
+		return squashDictInnerContinueLoop(data.Ids, execScopes, vm)
+	case SQUASH_DICT_INNER_ASSERT_LEN_KEYS:
+		return squashDictInnerAssertLenKeys(execScopes)
+	case SQUASH_DICT_INNER_LEN_ASSERT:
+		return squashDictInnerLenAssert(execScopes)
+	case SQUASH_DICT_INNER_USED_ACCESSES_ASSERT:
+		return squashDictInnerUsedAccessesAssert(data.Ids, execScopes, vm)
+	case SQUASH_DICT_INNER_NEXT_KEY:
+		return squashDictInnerNextKey(data.Ids, execScopes, vm)
+	case DICT_SQUASH_COPY_DICT:
+		return dictSquashCopyDict(data.Ids, execScopes, vm)
+	case DICT_SQUASH_UPDATE_PTR:
+		return dictSquashUpdatePtr(data.Ids, execScopes, vm)
+	case DICT_NEW:
+		return dictNew(data.Ids, execScopes, vm)
 	case VM_EXIT_SCOPE:
 		return vm_exit_scope(execScopes)
 	case ASSERT_NOT_EQUAL:
