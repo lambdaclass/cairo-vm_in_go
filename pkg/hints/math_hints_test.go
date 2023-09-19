@@ -3,11 +3,15 @@ package hints_test
 import (
 	"testing"
 
+	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints"
+	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_codes"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -160,6 +164,80 @@ func TestAssertNotZeroHintFail(t *testing.T) {
 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err == nil {
 		t.Errorf("ASSERT_NOT_ZERO hint should have failed")
+	}
+}
+
+func TestVerifyValidSignature(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	signature_builtin := builtins.NewSignatureBuiltinRunner(2048)
+	vm.BuiltinRunners = append(vm.BuiltinRunners, signature_builtin)
+
+	hintProcessor := CairoVmHintProcessor{}
+	vm.Segments.AddSegment()
+
+	r_felt := lambdaworks.FeltFromDecString("3086480810278599376317923499561306189851900463386393948998357832163236918254")
+	s_felt := lambdaworks.FeltFromDecString("598673427589502599949712887611119751108407514580626464031881322743364689811")
+	r := memory.NewMaybeRelocatableFelt(r_felt)
+	s := memory.NewMaybeRelocatableFelt(s_felt)
+
+	vm.RunContext.Fp = memory.NewRelocatable(1, 3)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"ecdsa_ptr":   {nil},
+			"signature_r": {r},
+			"signature_s": {s},
+		},
+		vm,
+	)
+
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: VERIFY_ECDSA_SIGNATURE,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+
+	if err != nil {
+		t.Errorf("Verify signature hint for correct signature failed with error: %s", err)
+	}
+}
+
+func TestVerifySignatureInvalidEcdsaPointer(t *testing.T) {
+	vm := NewVirtualMachine()
+	signature_builtin := builtins.NewSignatureBuiltinRunner(2048)
+	vm.BuiltinRunners = append(vm.BuiltinRunners, signature_builtin)
+
+	hintProcessor := CairoVmHintProcessor{}
+	vm.Segments.AddSegment()
+
+	r_felt := lambdaworks.FeltFromDecString("3086480810278599376317923499561306189851900463386393948998357832163236918254")
+	s_felt := lambdaworks.FeltFromDecString("598673427589502599949712887611119751108407514580626464031881322743364689811")
+	three := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(3))
+	r := memory.NewMaybeRelocatableFelt(r_felt)
+	s := memory.NewMaybeRelocatableFelt(s_felt)
+
+	vm.RunContext.Fp = memory.NewRelocatable(1, 3)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"ecdsa_ptr":   {three},
+			"signature_r": {r},
+			"signature_s": {s},
+		},
+		vm,
+	)
+
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: VERIFY_ECDSA_SIGNATURE,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+
+	if err == nil {
+		t.Errorf("Verified a signature with an invalid pointer")
 	}
 }
 
@@ -455,5 +533,232 @@ func TestAssertLeFeltExcluded2Err(t *testing.T) {
 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
 	if err == nil {
 		t.Errorf("ASSERT_LE_FELT_EXCLUDED_2 hint test should have failed")
+	}
+}
+func TestAssert250BitHintSuccess(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(FeltFromUint64(3))},
+			"high":  {nil},
+			"low":   {nil},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	constants := SetupConstantsForTest(map[string]Felt{
+		"UPPER_BOUND": lambdaworks.FeltFromUint64(10),
+		"SHIFT":       lambdaworks.FeltFromUint64(1),
+	},
+		&idsManager,
+	)
+
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: ASSERT_250_BITS,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err != nil {
+		t.Errorf("ASSERT_250_BIT hint failed with error %s", err)
+	}
+
+	high, err := idsManager.GetFelt("high", vm)
+	if err != nil {
+		t.Errorf("failed to get high: %s", err)
+	}
+
+	low, err := idsManager.GetFelt("low", vm)
+	if err != nil {
+		t.Errorf("failed to get low: %s", err)
+	}
+
+	if high != FeltFromUint64(3) {
+		t.Errorf("Expected high == 3. Got: %v", high)
+	}
+
+	if low != FeltFromUint64(0) {
+		t.Errorf("Expected low == 0. Got: %v", low)
+	}
+}
+
+func TestAssert250BitHintFail(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(FeltFromUint64(20))},
+			"high":  {nil},
+			"low":   {nil},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	constants := SetupConstantsForTest(map[string]Felt{
+		"UPPER_BOUND": lambdaworks.FeltFromUint64(10),
+		"SHIFT":       lambdaworks.FeltFromUint64(1),
+	},
+		&idsManager,
+	)
+
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: ASSERT_250_BITS,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err == nil {
+		t.Errorf("ASSERT_250_BIT hint should have failed with Value outside of 250 bit error")
+	}
+}
+
+func TestSplitFeltAssertPrimeFailure(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(FeltFromUint64(1))},
+			"high":  {nil},
+			"low":   {nil},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	constants := SetupConstantsForTest(map[string]Felt{
+		"MAX_HIGH": lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffff"),
+		"MAX_LOW":  lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffff"),
+	},
+		&idsManager,
+	)
+
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SPLIT_FELT,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err == nil {
+		t.Errorf("SPLIT_FELT hint should have failed with assert PRIME - 1 == ids.MAX_HIGH * 2**128 + ids.MAX_LOW error")
+	}
+}
+
+func TestSplitFeltAssertMaxHighFailedAssertion(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(FeltFromUint64(1))},
+			"high":  {nil},
+			"low":   {nil},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	constants := SetupConstantsForTest(map[string]Felt{
+		"MAX_HIGH": lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffffffff"),
+		"MAX_LOW":  lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffff"),
+	},
+		&idsManager,
+	)
+
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SPLIT_FELT,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err == nil {
+		t.Errorf("SPLIT_FELT hint should have failed with assert ids.MAX_HIGH < 2**128 and ids.MAX_LOW < 2**128")
+	}
+}
+
+func TestSplitFeltAssertMaxLowFailedAssertion(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(FeltFromUint64(1))},
+			"high":  {nil},
+			"low":   {nil},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	constants := SetupConstantsForTest(map[string]Felt{
+		"MAX_HIGH": lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffff"),
+		"MAX_LOW":  lambdaworks.FeltFromHex("0xffffffffffffffffffffffffffffffffffff"),
+	},
+		&idsManager,
+	)
+
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SPLIT_FELT,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err == nil {
+		t.Errorf("SPLIT_FELT hint should have failed with assert ids.MAX_HIGH < 2**128 and ids.MAX_LOW < 2**128")
+	}
+}
+
+func TestSplitFeltSuccess(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+
+	firstLimb := lambdaworks.FeltFromUint64(1)
+	secondLimb := lambdaworks.FeltFromUint64(2)
+	thirdLimb := lambdaworks.FeltFromUint64(3)
+	fourthLimb := lambdaworks.FeltFromUint64(4)
+	value := fourthLimb.Or(thirdLimb.Shl(64).Or(secondLimb.Shl(128).Or(firstLimb.Shl(192))))
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(value)},
+			"high":  {nil},
+			"low":   {nil},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	constants := SetupConstantsForTest(map[string]Felt{
+		"MAX_HIGH": lambdaworks.FeltFromDecString("10633823966279327296825105735305134080"),
+		"MAX_LOW":  lambdaworks.FeltFromUint64(0),
+	},
+		&idsManager,
+	)
+
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SPLIT_FELT,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err != nil {
+		t.Errorf("SPLIT_FELT hint failed with error %s", err)
+	}
+
+	high, err := idsManager.GetFelt("high", vm)
+	if err != nil {
+		t.Errorf("failed to get high: %s", err)
+	}
+
+	low, err := idsManager.GetFelt("low", vm)
+	if err != nil {
+		t.Errorf("failed to get low: %s", err)
+	}
+
+	if high != firstLimb.Shl(64).Or(secondLimb) {
+		t.Errorf("Expected high == 335438970432432812899076431678123043273. Got: %v", high)
+	}
+
+	if low != thirdLimb.Shl(64).Or(fourthLimb) {
+		t.Errorf("Expected low == 0. Got: %v", low)
 	}
 }
