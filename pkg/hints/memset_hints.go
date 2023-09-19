@@ -9,7 +9,7 @@ import (
 // Implements hint:
 // %{ vm_enter_scope({'n': ids.n}) %}
 func memset_enter_scope(ids IdsManager, vm *VirtualMachine, execScopes *ExecutionScopes) error {
-	n, err := ids.Get("n", vm)
+	n, err := ids.GetFelt("n", vm)
 	if err != nil {
 		return err
 	}
