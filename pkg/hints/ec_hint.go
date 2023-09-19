@@ -4,6 +4,7 @@ import (
 	"errors"
 	"math/big"
 
+	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/types"
@@ -113,4 +114,98 @@ func ecNegateEmbeddedSecpP(virtual_machine vm.VirtualMachine, exec_scopes types.
 	secp_p.Lsh(secp_p, 255)
 	secp_p.Sub(secp_p, big.NewInt(19))
 	return ecNegate(virtual_machine, exec_scopes, ids_data, *secp_p)
+}
+
+/*
+Implements hint:
+
+	%{
+	    from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
+	    from starkware.python.math_utils import ec_double_slope
+
+	    # Compute the slope.
+	    x = pack(ids.point.x, PRIME)
+	    y = pack(ids.point.y, PRIME)
+	    value = slope = ec_double_slope(point=(x, y), alpha=0, p=SECP_P)
+
+%}
+*/
+func computeDoublingSlope(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager, point_alias string, secp_p big.Int, alpha big.Int) error {
+	exec_scopes.AssignOrUpdateVariable("SECP_P", secp_p)
+
+	point, err := BigInt3FromVarName(point_alias, virtual_machine, ids_data)
+	if err != nil {
+		return err
+	}
+
+	x := point.X.Pack86()
+	y := point.Y.Pack86()
+	double_point := builtins.DoublePointB{X: x, Y: y}
+
+	value, err := builtins.EcDoubleSlope(double_point, alpha, secp_p)
+	if err != nil {
+		return err
+	}
+
+	exec_scopes.AssignOrUpdateVariable("value", value)
+	exec_scopes.AssignOrUpdateVariable("slope", value)
+
+	return nil
+}
+
+/*
+Implements hint:
+%{
+    from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
+    from starkware.python.math_utils import line_slope
+
+    # Compute the slope.
+    x0 = pack(ids.point0.x, PRIME)
+    y0 = pack(ids.point0.y, PRIME)
+    x1 = pack(ids.point1.x, PRIME)
+    y1 = pack(ids.point1.y, PRIME)
+    value = slope = line_slope(point1=(x0, y0), point2=(x1, y1), p=SECP_P)
+%}
+*/
+
+func computeSlopeAndAssingSecpP(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager, point0_alias string, point1_alias string, secp_p big.Int) error {
+	exec_scopes.AssignOrUpdateVariable("SECP_P", secp_p)
+	return computeSlope(virtual_machine, exec_scopes, ids_data, point0_alias, point1_alias)
+}
+
+func computeSlope(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager, point0_alias string, point1_alias string) error {
+	point0, err := BigInt3FromVarName(point0_alias, virtual_machine, ids_data)
+	if err != nil {
+		return err
+	}
+	point1, err := BigInt3FromVarName(point1_alias, virtual_machine, ids_data)
+	if err != nil {
+		return err
+	}
+
+	secp_p, err := exec_scopes.Get("SECP_P")
+	if err != nil {
+		return err
+	}
+	secp := secp_p.(big.Int)
+
+	// build partial sum
+	x0 := point0.X.Pack86()
+	y0 := point0.Y.Pack86()
+	point_a := builtins.PartialSumB{X: x0, Y: y0}
+
+	// build double point
+	x1 := point1.X.Pack86()
+	y1 := point1.Y.Pack86()
+	point_b := builtins.DoublePointB{X: x1, Y: y1}
+
+	value, err := builtins.LineSlope(point_a, point_b, secp)
+	if err != nil {
+		return err
+	}
+
+	exec_scopes.AssignOrUpdateVariable("value", value)
+	exec_scopes.AssignOrUpdateVariable("slope", value)
+
+	return nil
 }

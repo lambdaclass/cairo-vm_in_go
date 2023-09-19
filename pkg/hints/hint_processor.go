@@ -74,6 +74,10 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return memcpy_enter_scope(data.Ids, vm, execScopes)
 	case VM_ENTER_SCOPE:
 		return vm_enter_scope(execScopes)
+	case COMPUTE_SLOPE_V1:
+		return computeSlopeAndAssingSecpP(*vm, *execScopes, data.Ids, "point0", "point1", SECP_P())
+	case EC_DOUBLE_SLOPE_V1:
+		return computeDoublingSlope(*vm, *execScopes, data.Ids, "point", SECP_P(), ALPHA())
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
