@@ -47,10 +47,7 @@ func BigInt3FromBaseAddr(addr memory.Relocatable, virtual_machine vm.VirtualMach
 }
 
 func BigInt3FromVarName(name string, virtual_machine vm.VirtualMachine, ids_data hint_utils.IdsManager) (EcPoint, error) {
-	fmt.Println(name)
-	fmt.Println("ids data", ids_data)
 	point_addr, err := ids_data.GetAddr(name, &virtual_machine)
-	fmt.Println(point_addr)
 	if err != nil {
 		return EcPoint{}, err
 	}
@@ -137,7 +134,6 @@ Implements hint:
 func computeDoublingSlope(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager, point_alias string, secp_p big.Int, alpha big.Int) error {
 	exec_scopes.AssignOrUpdateVariable("SECP_P", secp_p)
 
-	fmt.Println(ids_data)
 	point, err := BigInt3FromVarName(point_alias, virtual_machine, ids_data)
 	if err != nil {
 		return err

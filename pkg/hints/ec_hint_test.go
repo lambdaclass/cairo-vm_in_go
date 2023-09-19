@@ -133,80 +133,84 @@ func TestRunEcEmbeddedSecpOk(t *testing.T) {
 
 }
 
-// func TestComputeDoublingSlopeOk(t *testing.T) {
-// 	vm := NewVirtualMachine()
-// 	vm.Segments.AddSegment()
-// 	vm.Segments.AddSegment()
-// 	vm.Segments.Memory.Insert(NewRelocatable(1, 0), NewMaybeRelocatableFelt(FeltFromUint64(614323)))
-// 	vm.Segments.Memory.Insert(NewRelocatable(1, 1), NewMaybeRelocatableFelt(FeltFromUint64(5456867)))
-// 	vm.Segments.Memory.Insert(NewRelocatable(1, 2), NewMaybeRelocatableFelt(FeltFromUint64(101208)))
-// 	vm.Segments.Memory.Insert(NewRelocatable(1, 3), NewMaybeRelocatableFelt(FeltFromUint64(773712524)))
-// 	vm.Segments.Memory.Insert(NewRelocatable(1, 4), NewMaybeRelocatableFelt(FeltFromUint64(77371252)))
-// 	vm.Segments.Memory.Insert(NewRelocatable(1, 5), NewMaybeRelocatableFelt(FeltFromUint64(5298795)))
+func TestComputeDoublingSlopeOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
 
-// 	vm.RunContext.Fp = NewRelocatable(1, 1)
+	vm.RunContext.Fp = NewRelocatable(1, 1)
 
-// 	idsManager := SetupIdsForTest(
-// 		map[string][]*MaybeRelocatable{
-// 			"point": {NewMaybeRelocatableRelocatable(NewRelocatable(1, 0))},
-// 		},
-// 		vm,
-// 	)
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"point": {
+				NewMaybeRelocatableFelt(FeltFromUint64(614323)),
+				NewMaybeRelocatableFelt(FeltFromUint64(5456867)),
+				NewMaybeRelocatableFelt(FeltFromUint64(101208)),
+				NewMaybeRelocatableFelt(FeltFromUint64(773712524)),
+				NewMaybeRelocatableFelt(FeltFromUint64(77371252)),
+				NewMaybeRelocatableFelt(FeltFromUint64(5298795)),
+			},
+		},
+		vm,
+	)
 
-// 	hintProcessor := CairoVmHintProcessor{}
-// 	hintData := any(HintData{
-// 		Ids:  idsManager,
-// 		Code: EC_DOUBLE_SLOPE_V1,
-// 	})
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: EC_DOUBLE_SLOPE_V1,
+	})
 
-// 	exec_scopes := types.NewExecutionScopes()
-// 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, exec_scopes)
-// 	if err != nil {
-// 		t.Errorf("EC_DOUBLE_SLOPE_V1 hint test failed with error %s", err)
-// 	} else {
-// 		value, _ := exec_scopes.Get("value")
-// 		val := value.(big.Int)
+	exec_scopes := types.NewExecutionScopes()
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, exec_scopes)
+	if err != nil {
+		t.Errorf("EC_DOUBLE_SLOPE_V1 hint test failed with error %s", err)
+	} else {
+		value, _ := exec_scopes.Get("value")
+		val := value.(big.Int)
 
-// 		slope_res, _ := exec_scopes.Get("slope")
-// 		slope := slope_res.(big.Int)
+		slope_res, _ := exec_scopes.Get("slope")
+		slope := slope_res.(big.Int)
 
-// 		// expected values
-// 		expected_val, _ := new(big.Int).SetString("40442433062102151071094722250325492738932110061897694430475034100717288403728", 10)
+		// expected values
+		expected_val, _ := new(big.Int).SetString("40442433062102151071094722250325492738932110061897694430475034100717288403728", 10)
 
-// 		expected_slope, _ := new(big.Int).SetString("40442433062102151071094722250325492738932110061897694430475034100717288403728", 10)
+		expected_slope, _ := new(big.Int).SetString("40442433062102151071094722250325492738932110061897694430475034100717288403728", 10)
 
-// 		if expected_val.Cmp(&val) != 0 || expected_slope.Cmp(&slope) != 0 {
-// 			t.Errorf("EC_DOUBLE_SLOPE_V1 hint test incorrect value for exec_scopes.value or exec_scopes.slope")
-// 		}
-// 	}
-// }
+		if expected_val.Cmp(&val) != 0 || expected_slope.Cmp(&slope) != 0 {
+			t.Errorf("EC_DOUBLE_SLOPE_V1 hint test incorrect value for exec_scopes.value or exec_scopes.slope")
+		}
+	}
+}
 
 func TestRunComputeSlopeOk(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()
 	vm.Segments.AddSegment()
-	vm.Segments.Memory.Insert(NewRelocatable(1, 0), NewMaybeRelocatableFelt(FeltFromUint64(134)))
-	vm.Segments.Memory.Insert(NewRelocatable(1, 1), NewMaybeRelocatableFelt(FeltFromUint64(5123)))
-	vm.Segments.Memory.Insert(NewRelocatable(1, 2), NewMaybeRelocatableFelt(FeltFromUint64(140)))
-	vm.Segments.Memory.Insert(NewRelocatable(1, 3), NewMaybeRelocatableFelt(FeltFromUint64(1232)))
-	vm.Segments.Memory.Insert(NewRelocatable(1, 4), NewMaybeRelocatableFelt(FeltFromUint64(4652)))
-	vm.Segments.Memory.Insert(NewRelocatable(1, 5), NewMaybeRelocatableFelt(FeltFromUint64(720)))
-	vm.Segments.Memory.Insert(NewRelocatable(1, 6), NewMaybeRelocatableFelt(FeltFromUint64(156)))
-	vm.Segments.Memory.Insert(NewRelocatable(1, 7), NewMaybeRelocatableFelt(FeltFromUint64(6545)))
-	vm.Segments.Memory.Insert(NewRelocatable(1, 8), NewMaybeRelocatableFelt(FeltFromUint64(100010)))
-	vm.Segments.Memory.Insert(NewRelocatable(1, 9), NewMaybeRelocatableFelt(FeltFromUint64(1123)))
-	vm.Segments.Memory.Insert(NewRelocatable(1, 10), NewMaybeRelocatableFelt(FeltFromUint64(1325)))
-	vm.Segments.Memory.Insert(NewRelocatable(1, 11), NewMaybeRelocatableFelt(FeltFromUint64(910)))
 
 	vm.RunContext.Fp = NewRelocatable(1, 14)
 
 	idsManager := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
-			"point0": {NewMaybeRelocatableRelocatable(NewRelocatable(1, 0))},
-			"point1": {NewMaybeRelocatableRelocatable(NewRelocatable(1, 6))},
+			"point0": {
+				NewMaybeRelocatableFelt(FeltFromUint64(134)),
+				NewMaybeRelocatableFelt(FeltFromUint64(5123)),
+				NewMaybeRelocatableFelt(FeltFromUint64(140)),
+				NewMaybeRelocatableFelt(FeltFromUint64(1232)),
+				NewMaybeRelocatableFelt(FeltFromUint64(4652)),
+				NewMaybeRelocatableFelt(FeltFromUint64(720)),
+			},
+			"point1": {
+				NewMaybeRelocatableFelt(FeltFromUint64(156)),
+				NewMaybeRelocatableFelt(FeltFromUint64(6545)),
+				NewMaybeRelocatableFelt(FeltFromUint64(100010)),
+				NewMaybeRelocatableFelt(FeltFromUint64(1123)),
+				NewMaybeRelocatableFelt(FeltFromUint64(1325)),
+				NewMaybeRelocatableFelt(FeltFromUint64(910)),
+			},
 		},
 		vm,
 	)
+
 	hintProcessor := CairoVmHintProcessor{}
 	hintData := any(HintData{
 		Ids:  idsManager,
