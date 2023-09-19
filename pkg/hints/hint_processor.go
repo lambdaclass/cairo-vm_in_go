@@ -100,6 +100,12 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return memcpy_enter_scope(data.Ids, vm, execScopes)
 	case VM_ENTER_SCOPE:
 		return vm_enter_scope(execScopes)
+	case IS_NN:
+		return isNN(data.Ids, vm)
+	case IS_NN_OUT_OF_RANGE:
+		return isNNOutOfRange(data.Ids, vm)
+	case IS_LE_FELT:
+		return isLeFelt(data.Ids, vm)
 	case ASSERT_250_BITS:
 		return Assert250Bit(data.Ids, vm, constants)
 	case SPLIT_FELT:
