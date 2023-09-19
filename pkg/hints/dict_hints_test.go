@@ -6,6 +6,7 @@ import (
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints"
 	"github.com/lambdaclass/cairo-vm.go/pkg/hints/dict_manager"
+	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_codes"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/types"

@@ -3,6 +3,7 @@ package hints
 import (
 	"strings"
 
+	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_codes"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
@@ -43,6 +44,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return add_segment(vm)
 	case ASSERT_NN:
 		return assert_nn(data.Ids, vm)
+	case VERIFY_ECDSA_SIGNATURE:
+		return verify_ecdsa_signature(data.Ids, vm)
 	case IS_POSITIVE:
 		return is_positive(data.Ids, vm)
 	case ASSERT_NOT_ZERO:
@@ -85,6 +88,10 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return vm_exit_scope(execScopes)
 	case ASSERT_NOT_EQUAL:
 		return assert_not_equal(data.Ids, vm)
+	case EC_NEGATE:
+		return ecNegateImportSecpP(*vm, *execScopes, data.Ids)
+	case EC_NEGATE_EMBEDDED_SECP:
+		return ecNegateEmbeddedSecpP(*vm, *execScopes, data.Ids)
 	case POW:
 		return pow(data.Ids, vm)
 	case SQRT:
@@ -93,6 +100,10 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return memcpy_enter_scope(data.Ids, vm, execScopes)
 	case VM_ENTER_SCOPE:
 		return vm_enter_scope(execScopes)
+	case ASSERT_250_BITS:
+		return Assert250Bit(data.Ids, vm, constants)
+	case SPLIT_FELT:
+		return SplitFelt(data.Ids, vm, constants)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
