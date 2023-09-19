@@ -437,7 +437,7 @@ func TestValidateMemoryForValidSignature(t *testing.T) {
 		S: signature_s_felt,
 	}
 
-	builtins.AddSignature(signature_builtin, signature_address, signature)
+	signature_builtin.AddSignature(signature_address, signature)
 
 	pub_key_address := memory.NewRelocatable(1, 0)
 	message_hash_address := memory.NewRelocatable(1, 1)

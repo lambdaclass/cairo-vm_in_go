@@ -55,6 +55,7 @@ func is_positive(ids IdsManager, vm *VirtualMachine) error {
 //	    assert ids.value % PRIME != 0, f'assert_not_zero failed: {ids.value} = 0.'
 //
 // %}
+
 func assert_not_zero(ids IdsManager, vm *VirtualMachine) error {
 	value, err := ids.GetFelt("value", vm)
 	if err != nil {
@@ -63,6 +64,37 @@ func assert_not_zero(ids IdsManager, vm *VirtualMachine) error {
 	if value.IsZero() {
 		return errors.Errorf("Assertion failed, %s %% PRIME is equal to 0", value.ToHexString())
 	}
+	return nil
+}
+
+func verify_ecdsa_signature(ids IdsManager, vm *VirtualMachine) error {
+	r, err_get_r := ids.GetFelt("signature_r", vm)
+	if err_get_r != nil {
+		return err_get_r
+	}
+
+	s, err_get_s := ids.GetFelt("signature_s", vm)
+	if err_get_s != nil {
+		return err_get_s
+	}
+
+	ecdsa_ptr, err_get_ecdsa := ids.GetAddr("ecdsa_ptr", vm)
+	if err_get_ecdsa != nil {
+		return err_get_ecdsa
+	}
+
+	signature_builtin_interface, err_get_builtin := vm.GetBuiltinRunner(builtins.SIGNATURE_BUILTIN_NAME)
+	if err_get_builtin != nil {
+		return err_get_builtin
+	}
+
+	signature_builtin := (*signature_builtin_interface).(*builtins.SignatureBuiltinRunner)
+
+	signature := builtins.Signature{
+		R: r,
+		S: s,
+	}
+	signature_builtin.AddSignature(ecdsa_ptr, signature)
 	return nil
 }
 

@@ -1,7 +1,6 @@
 package hints_test
 
 import (
-	"fmt"
 	"math/big"
 	"testing"
 
@@ -51,9 +50,6 @@ func TestRunEcNegateOk(t *testing.T) {
 		},
 		vm,
 	)
-
-	point, _ := idsManager.Get("point", vm)
-	fmt.Println("Ids manager: ", point)
 	hintProcessor := CairoVmHintProcessor{}
 	hintData := any(HintData{
 		Ids:  idsManager,
