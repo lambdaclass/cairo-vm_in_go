@@ -495,7 +495,7 @@ func TestAssertLeFeltHintErr(t *testing.T) {
 		Code: ASSERT_LT_FELT,
 	})
 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
-	if err != nil {
+	if err == nil {
 		t.Errorf("ASSERT_LT_FELT hint test should have failed")
 	}
 }
