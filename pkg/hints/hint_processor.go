@@ -112,6 +112,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return unsafeKeccakFinalize(data.Ids, vm)
 	case COMPARE_BYTES_IN_WORD_NONDET:
 		return compareBytesInWordNondet(data.Ids, vm, constants)
+	case COMPARE_KECCAK_FULL_RATE_IN_BYTES_NONDET:
+		return compareKeccakFullRateInBytesNondet(data.Ids, vm, constants)
 	case UNSIGNED_DIV_REM:
 		return unsignedDivRem(data.Ids, vm)
 	case SIGNED_DIV_REM:

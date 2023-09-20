@@ -129,3 +129,15 @@ func compareBytesInWordNondet(ids IdsManager, vm *VirtualMachine, constants *map
 	}
 	return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltZero()))
 }
+
+func compareKeccakFullRateInBytesNondet(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt) error {
+	nBytes, err := ids.GetFelt("n_bytes", vm)
+	if err != nil {
+		return err
+	}
+	bytesInWord, err := ids.GetConst("KECCAK_FULL_RATE_IN_BYTES", constants)
+	if !(nBytes.Cmp(bytesInWord) == -1) {
+		return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltOne()))
+	}
+	return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltZero()))
+}
