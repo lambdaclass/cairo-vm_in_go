@@ -352,6 +352,22 @@ func assertLeFeltExcluded2(vm *VirtualMachine, scopes *ExecutionScopes) error {
 	if excluded != 2 {
 		return errors.New("Assertion Failed: excluded == 2")
 	}
+	return nil
+}
+
+func assertLtFelt(ids IdsManager, vm *VirtualMachine) error {
+	// Fetch ids variables
+	a, err := ids.GetFelt("a", vm)
+	if err != nil {
+		return err
+	}
+	b, err := ids.GetFelt("b", vm)
+	if err != nil {
+		return err
+	}
+	if a.Cmp(b) != -1 {
+		return errors.Errorf("Assertion failed, a = %s %% PRIME is not less than b = %s %% PRIME", a.ToHexString(), b.ToHexString())
+	}
 
 	return nil
 }
@@ -522,6 +538,69 @@ func SplitFelt(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt) e
 	err = ids.Insert("low", NewMaybeRelocatableFelt(low), vm)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+/*
+Implements hint:
+
+	%{
+		memory[ids.output] = res = (int(ids.value) % PRIME) % ids.base
+		assert res < ids.bound, f'split_int(): Limb {res} is out of range.'"
+	%}
+*/
+func splitInt(ids IdsManager, vm *VirtualMachine) error {
+	value, err := ids.GetFelt("value", vm)
+	if err != nil {
+		return err
+	}
+
+	base, err := ids.GetFelt("base", vm)
+	if err != nil {
+		return err
+	}
+
+	bound, err := ids.GetFelt("bound", vm)
+	if err != nil {
+		return err
+	}
+
+	output, err := ids.GetRelocatable("output", vm)
+	if err != nil {
+		return err
+	}
+
+	res := value.ModFloor(base)
+
+	if res.Cmp(bound) == 1 {
+		return errors.Errorf("split_int(): Limb %d is out of range", res.ToBigInt())
+	}
+
+	err = vm.Segments.Memory.Insert(output, NewMaybeRelocatableFelt(res))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+/*
+Implements hint:
+
+	%{
+		assert ids.value == 0, 'split_int(): value is out of range.'
+	%}
+*/
+func splitIntAssertRange(ids IdsManager, vm *VirtualMachine) error {
+	value, err := ids.GetFelt("value", vm)
+	if err != nil {
+		return err
+	}
+
+	if !value.IsZero() {
+		return errors.Errorf("split_int(): value is out of range")
 	}
 
 	return nil
