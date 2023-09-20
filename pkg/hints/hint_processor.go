@@ -60,8 +60,6 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return dictWrite(data.Ids, execScopes, vm)
 	case DICT_UPDATE:
 		return dictUpdate(data.Ids, execScopes, vm)
-	case VM_ENTER_SCOPE:
-		return vm_enter_scope(execScopes)
 	case SQUASH_DICT:
 		return squashDict(data.Ids, execScopes, vm)
 	case SQUASH_DICT_INNER_SKIP_LOOP:
@@ -106,6 +104,22 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return memset_step_loop(data.Ids, vm, execScopes, "continue_copying")
 	case MEMSET_CONTINUE_LOOP:
 		return memset_step_loop(data.Ids, vm, execScopes, "continue_loop")
+	case VM_ENTER_SCOPE:
+		return vm_enter_scope(execScopes)
+	case ASSERT_LE_FELT:
+		return assertLeFelt(data.Ids, vm, execScopes, constants)
+	case ASSERT_LE_FELT_EXCLUDED_0:
+		return assertLeFeltExcluded0(vm, execScopes)
+	case ASSERT_LE_FELT_EXCLUDED_1:
+		return assertLeFeltExcluded1(vm, execScopes)
+	case ASSERT_LE_FELT_EXCLUDED_2:
+		return assertLeFeltExcluded2(vm, execScopes)
+	case IS_NN:
+		return isNN(data.Ids, vm)
+	case IS_NN_OUT_OF_RANGE:
+		return isNNOutOfRange(data.Ids, vm)
+	case IS_LE_FELT:
+		return isLeFelt(data.Ids, vm)
 	case ASSERT_250_BITS:
 		return Assert250Bit(data.Ids, vm, constants)
 	case SPLIT_FELT:

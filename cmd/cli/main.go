@@ -11,13 +11,13 @@ import (
 
 func handleCommands(ctx *cli.Context) error {
 	programPath := ctx.Args().First()
-	
+
 	layout := ctx.String("layout")
 	if layout == "" {
 		layout = "plain"
 	}
 
- 	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, ProofMode: ctx.Bool("proof_mode"), Layout: layout}
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, ProofMode: ctx.Bool("proof_mode"), Layout: layout}
 
 	cairoRunner, err := cairo_run.CairoRun(programPath, cairoRunConfig)
 	if err != nil {
