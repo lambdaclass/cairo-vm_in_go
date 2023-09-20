@@ -110,6 +110,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return computeSlopeAndAssingSecpP(*vm, *execScopes, data.Ids, "point0", "point1", SECP_P())
 	case EC_DOUBLE_SLOPE_V1:
 		return computeDoublingSlope(*vm, *execScopes, data.Ids, "point", SECP_P(), ALPHA())
+	case UNSAFE_KECCAK:
+		return unsafeKeccak(data.Ids, vm, *execScopes)
 	case UNSIGNED_DIV_REM:
 		return unsignedDivRem(data.Ids, vm)
 	case SIGNED_DIV_REM:
@@ -122,6 +124,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return assertLeFeltExcluded1(vm, execScopes)
 	case ASSERT_LE_FELT_EXCLUDED_2:
 		return assertLeFeltExcluded2(vm, execScopes)
+	case ASSERT_LT_FELT:
+		return assertLtFelt(data.Ids, vm)
 	case IS_NN:
 		return isNN(data.Ids, vm)
 	case IS_NN_OUT_OF_RANGE:
@@ -132,6 +136,10 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return Assert250Bit(data.Ids, vm, constants)
 	case SPLIT_FELT:
 		return SplitFelt(data.Ids, vm, constants)
+	case SPLIT_INT:
+		return splitInt(data.Ids, vm)
+	case SPLIT_INT_ASSERT_RANGE:
+		return splitIntAssertRange(data.Ids, vm)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
