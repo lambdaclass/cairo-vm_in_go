@@ -2,6 +2,7 @@ package hints
 
 import (
 	"github.com/ebfe/keccak"
+	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
@@ -136,8 +137,51 @@ func compareKeccakFullRateInBytesNondet(ids IdsManager, vm *VirtualMachine, cons
 		return err
 	}
 	bytesInWord, err := ids.GetConst("KECCAK_FULL_RATE_IN_BYTES", constants)
-	if !(nBytes.Cmp(bytesInWord) == -1) {
+	if nBytes.Cmp(bytesInWord) != -1 {
 		return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltOne()))
 	}
 	return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltZero()))
+}
+
+func blockPermutation(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt) error {
+	const KECCAK_SIZE = 25
+	keccakStateSizeFeltsFelt, err := ids.GetConst("KECCAK_STATE_SIZE_FELTS", constants)
+	if err != nil {
+		return err
+	}
+	if keccakStateSizeFeltsFelt.Cmp(FeltFromUint64(KECCAK_SIZE)) != 0 {
+		return errors.New("Assertion failed: _keccak_state_size_felts == 25")
+	}
+
+	keccakPtr, err := ids.GetRelocatable("keccak_ptr", vm)
+	if err != nil {
+		return err
+	}
+	startPtr, err := keccakPtr.SubUint(KECCAK_SIZE)
+	if err != nil {
+		return err
+	}
+	inputFelt, err := vm.Segments.GetFeltRange(startPtr, KECCAK_SIZE)
+	if err != nil {
+		return err
+	}
+
+	var inputU64 [KECCAK_SIZE]uint64
+	for i := 0; i < KECCAK_SIZE; i++ {
+		val, err := inputFelt[i].ToU64()
+		if err != nil {
+			return err
+		}
+		inputU64[i] = val
+	}
+
+	builtins.KeccakF1600(&inputU64)
+
+	output := make([]MaybeRelocatable, 0, KECCAK_SIZE)
+	for i := 0; i < KECCAK_SIZE; i++ {
+		output = append(output, *NewMaybeRelocatableFelt(FeltFromUint64(inputU64[i])))
+	}
+
+	_, err = vm.Segments.LoadData(keccakPtr, &output)
+	return err
 }

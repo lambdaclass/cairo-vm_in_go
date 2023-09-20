@@ -7,3 +7,11 @@ const UNSAFE_KECCAK_FINALIZE = "from eth_hash.auto import keccak\nkeccak_input =
 const COMPARE_BYTES_IN_WORD_NONDET = "memory[ap] = to_felt_or_relocatable(ids.n_bytes < ids.BYTES_IN_WORD)"
 
 const COMPARE_KECCAK_FULL_RATE_IN_BYTES_NONDET = "memory[ap] = to_felt_or_relocatable(ids.n_bytes >= ids.KECCAK_FULL_RATE_IN_BYTES)"
+
+const BLOCK_PERMUTATIONr = `from starkware.cairo.common.keccak_utils.keccak_utils import keccak_func
+_keccak_state_size_felts = int(ids.KECCAK_STATE_SIZE_FELTS)
+assert 0 <= _keccak_state_size_felts < 100
+
+output_values = keccak_func(memory.get_range(
+    ids.keccak_ptr - _keccak_state_size_felts, _keccak_state_size_felts))
+segments.write_arg(ids.keccak_ptr, output_values)`
