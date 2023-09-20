@@ -216,10 +216,10 @@ func cairoKeccakFinalize(ids IdsManager, vm *VirtualMachine, constants *map[stri
 	for i := 0; i < int(blockSize); i++ {
 		padding = append(padding, padding[:25]...)
 	}
-	keccakPtrEnd, err := ids.GetRelocatable("keccak_end_ptr", vm)
+	keccakEndPtr, err := ids.GetRelocatable("keccak_ptr_end", vm)
 	if err != nil {
 		return err
 	}
-	_, err = vm.Segments.LoadData(keccakPtrEnd, &padding)
+	_, err = vm.Segments.LoadData(keccakEndPtr, &padding)
 	return err
 }
