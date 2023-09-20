@@ -247,7 +247,7 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 			return &VirtualMachineError{"UnconstrainedResAssertEq"}
 		}
 		if !operands.Res.IsEqual(&operands.Dst) {
-			return &VirtualMachineError{"DiffAssertValues"}
+			return &VirtualMachineError{fmt.Sprintf("An ASSERT_EQ instruction failed: %s != %s.", operands.Res.ToString(), operands.Dst.ToString())}
 		}
 	case Call:
 		new_rel := vm.RunContext.Pc.AddUint(instruction.Size())
