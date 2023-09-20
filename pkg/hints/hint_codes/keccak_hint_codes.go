@@ -33,3 +33,6 @@ assert 0 <= _block_size < 1000
 inp = [0] * _keccak_state_size_felts
 padding = (inp + keccak_func(inp)) * _block_size
 segments.write_arg(ids.keccak_ptr_end, padding)`
+
+const KECCAK_WRITE_ARGS = `segments.write_arg(ids.inputs, [ids.low % 2 ** 64, ids.low // 2 ** 64])
+segments.write_arg(ids.inputs + 2, [ids.high % 2 ** 64, ids.high // 2 ** 64])`

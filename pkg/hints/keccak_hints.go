@@ -1,6 +1,8 @@
 package hints
 
 import (
+	"math"
+
 	"github.com/ebfe/keccak"
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
@@ -221,5 +223,35 @@ func cairoKeccakFinalize(ids IdsManager, vm *VirtualMachine, constants *map[stri
 		return err
 	}
 	_, err = vm.Segments.LoadData(keccakEndPtr, &padding)
+	return err
+}
+
+func keccakWriteArgs(ids IdsManager, vm *VirtualMachine) error {
+	inputs, err := ids.GetRelocatable("inputs", vm)
+	if err != nil {
+		return err
+	}
+	low, err := ids.GetFelt("low", vm)
+	if err != nil {
+		return err
+	}
+	high, err := ids.GetFelt("high", vm)
+	if err != nil {
+		return err
+	}
+	low_args := []MaybeRelocatable{
+		*NewMaybeRelocatableFelt(low.And(FeltFromUint64(math.MaxUint64))),
+		*NewMaybeRelocatableFelt(low.Shr(64)),
+	}
+	high_args := []MaybeRelocatable{
+		*NewMaybeRelocatableFelt(high.And(FeltFromUint64(math.MaxUint64))),
+		*NewMaybeRelocatableFelt(high.Shr(64)),
+	}
+
+	inputs, err = vm.Segments.LoadData(inputs, &low_args)
+	if err != nil {
+		return err
+	}
+	_, err = vm.Segments.LoadData(inputs, &high_args)
 	return err
 }
