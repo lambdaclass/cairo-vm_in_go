@@ -114,7 +114,7 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return compareBytesInWordNondet(data.Ids, vm, constants)
 	case COMPARE_KECCAK_FULL_RATE_IN_BYTES_NONDET:
 		return compareKeccakFullRateInBytesNondet(data.Ids, vm, constants)
-	case BLOCK_PERMUTATIONr:
+	case BLOCK_PERMUTATION:
 		return blockPermutation(data.Ids, vm, constants)
 	case UNSIGNED_DIV_REM:
 		return unsignedDivRem(data.Ids, vm)

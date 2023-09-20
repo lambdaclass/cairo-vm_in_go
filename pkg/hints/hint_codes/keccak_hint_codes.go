@@ -8,7 +8,7 @@ const COMPARE_BYTES_IN_WORD_NONDET = "memory[ap] = to_felt_or_relocatable(ids.n_
 
 const COMPARE_KECCAK_FULL_RATE_IN_BYTES_NONDET = "memory[ap] = to_felt_or_relocatable(ids.n_bytes >= ids.KECCAK_FULL_RATE_IN_BYTES)"
 
-const BLOCK_PERMUTATIONr = `from starkware.cairo.common.keccak_utils.keccak_utils import keccak_func
+const BLOCK_PERMUTATION = `from starkware.cairo.common.keccak_utils.keccak_utils import keccak_func
 _keccak_state_size_felts = int(ids.KECCAK_STATE_SIZE_FELTS)
 assert 0 <= _keccak_state_size_felts < 100
 
