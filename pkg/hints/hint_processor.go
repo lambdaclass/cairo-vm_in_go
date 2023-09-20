@@ -125,7 +125,9 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 	case SPLIT_FELT:
 		return SplitFelt(data.Ids, vm, constants)
 	case SPLIT_INT:
-		return SplitInt(data.Ids, vm)
+		return splitInt(data.Ids, vm)
+	case SPLIT_INT_ASSERT_RANGE:
+		return splitIntAssertRange(data.Ids, vm)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
