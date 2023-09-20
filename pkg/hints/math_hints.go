@@ -402,3 +402,49 @@ func SplitFelt(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt) e
 
 	return nil
 }
+
+/*
+Implements hint:
+
+	%{
+		memory[ids.output] = res = (int(ids.value) % PRIME) % ids.base
+		assert res < ids.bound, f'split_int(): Limb {res} is out of range.'"
+	}
+*/
+func SplitInt(ids IdsManager, vm *VirtualMachine) error {
+	value, err := ids.GetFelt("value", vm)
+	if err != nil {
+		return err
+	}
+
+	base, err := ids.GetFelt("base", vm)
+	if err != nil {
+		return err
+	}
+
+	bound, err := ids.GetFelt("bound", vm)
+	if err != nil {
+		return err
+	
+
+	return nil
+}
+
+// pub fn split_int(
+//     vm: &mut VirtualMachine,
+//     ids_data: &HashMap<String, HintReference>,
+//     ap_tracking: &ApTracking,
+// ) -> Result<(), HintError> {
+//     let value = get_integer_from_var_name("value", vm, ids_data, ap_tracking)?;
+//     let base = get_integer_from_var_name("base", vm, ids_data, ap_tracking)?;
+//     let bound = get_integer_from_var_name("bound", vm, ids_data, ap_tracking)?;
+//     let base = base.as_ref();
+//     let bound = bound.as_ref();
+//     let output = get_ptr_from_var_name("output", vm, ids_data, ap_tracking)?;
+//     //Main Logic
+//     let res = value.mod_floor(base);
+//     if &res > bound {
+//         return Err(HintError::SplitIntLimbOutOfRange(Box::new(res)));
+//     }
+//     vm.insert_value(output, res).map_err(HintError::Memory)
+// }
