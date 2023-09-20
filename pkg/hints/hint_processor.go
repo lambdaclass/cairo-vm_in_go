@@ -77,7 +77,9 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 	case SET_ADD:
 		return set_add(data.Ids, vm)
 	case FIND_ELEMENT:
-		return find_element(data.Ids, vm)
+		return find_element(data.Ids, vm, *execScopes)
+	case SEARCH_SORTED_LOWER:
+		return search_sorted_lower(data.Ids, vm, *execScopes)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}

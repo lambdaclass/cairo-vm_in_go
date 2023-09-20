@@ -410,6 +410,41 @@ func TestToU64Fail(t *testing.T) {
 		t.Errorf("Conversion test should fail with error: %v", expected_err)
 	}
 }
+
+func TestToUint1(t *testing.T) {
+	felt := lambdaworks.FeltOne()
+	result, err := felt.ToUint()
+
+	var expected uint = 1
+
+	if expected != result {
+		t.Errorf("Error in conversion expected: %v, got %v with err: %v", expected, result, err)
+	}
+
+}
+
+func TestToUint10230(t *testing.T) {
+	felt := lambdaworks.FeltFromUint(10230)
+	result, err := felt.ToUint()
+
+	var expected uint = 10230
+
+	if expected != result {
+		t.Errorf("Error in conversion expected: %v, got %v with err: %v", expected, result, err)
+	}
+}
+
+func TestToUintFail(t *testing.T) {
+	felt := lambdaworks.FeltFromDecString("9999999999999999999999999")
+
+	_, err := felt.ToUint()
+	expected_err := lambdaworks.ConversionError(felt, "uint")
+
+	if err.Error() != expected_err.Error() {
+		t.Errorf("Conversion test should fail with error: %v", expected_err)
+	}
+}
+
 func TestFeltIsZero(t *testing.T) {
 	f_zero := lambdaworks.FeltZero()
 

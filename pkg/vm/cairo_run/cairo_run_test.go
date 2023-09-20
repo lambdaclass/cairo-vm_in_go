@@ -218,3 +218,11 @@ func TestFindElementHint(t *testing.T) {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
 }
+
+func TestSearchSortedLowerHint(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/search_sorted_lower.json", cairoRunConfig)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
