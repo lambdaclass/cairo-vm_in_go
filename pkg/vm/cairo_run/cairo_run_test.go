@@ -131,9 +131,18 @@ func TestSqrtHint(t *testing.T) {
 	testProgram("sqrt", t)
 }
 
+func TestUnsignedDivRemHint(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/unsigned_div_rem.json", cairoRunConfig)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
+
 func TestMemcpyHint(t *testing.T) {
 	testProgram("memcpy_test", t)
 }
+
 func TestAssertLeFelt(t *testing.T) {
 	testProgram("assert_le_felt", t)
 }
@@ -147,6 +156,15 @@ func TestMathCmp(t *testing.T) {
 func TestSquashDict(t *testing.T) {
 	testProgram("squash_dict", t)
 }
+
+func TestSignedDivRemHint(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/signed_div_rem.json", cairoRunConfig)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
+
 func TestAssert250BitHint(t *testing.T) {
 	testProgram("assert_250_bit_element_array", t)
 }
