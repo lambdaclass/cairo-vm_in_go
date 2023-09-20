@@ -25,6 +25,10 @@ func ErrUnknownIdentifier(name string) error {
 	return ErrIdsManager(errors.Errorf("Unknown identifier %s", name))
 }
 
+func ErrIdentifierNotFelt(name string) error {
+	return ErrIdsManager(errors.Errorf("Identifier %s is not a Felt", name))
+}
+
 func NewIdsManager(references map[string]HintReference, hintApTracking parser.ApTrackingData, accessibleScopes []string) IdsManager {
 	return IdsManager{
 		References:       references,
@@ -67,7 +71,7 @@ func (ids *IdsManager) GetFelt(name string, vm *VirtualMachine) (lambdaworks.Fel
 	}
 	felt, is_felt := val.GetFelt()
 	if !is_felt {
-		return lambdaworks.Felt{}, errors.Errorf("Identifier %s is not a Felt", name)
+		return lambdaworks.Felt{}, ErrIdentifierNotFelt(name)
 	}
 	return felt, nil
 }

@@ -7,55 +7,44 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/cairo_run"
 )
 
-func TestFibonacci(t *testing.T) {
+func testProgram(programName string, t *testing.T) {
 	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
-	_, err := cairo_run.CairoRun("../../../cairo_programs/fibonacci.json", cairoRunConfig)
+	_, err := cairo_run.CairoRun("../../../cairo_programs/"+programName+".json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
+}
+
+func testProgramProof(programName string, t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: true}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/proof_programs/"+programName+".json", cairoRunConfig)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
+
+func TestFibonacci(t *testing.T) {
+	testProgram("fibonacci", t)
 }
 
 func TestFibonacciProofMode(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: true}
-	_, err := cairo_run.CairoRun("../../../cairo_programs/proof_programs/fibonacci.json", cairoRunConfig)
-	if err != nil {
-		t.Errorf("Program execution failed with error: %s", err)
-	}
+	testProgramProof("fibonacci", t)
 }
 
 func TestFactorial(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
-	_, err := cairo_run.CairoRun("../../../cairo_programs/factorial.json", cairoRunConfig)
-	if err != nil {
-		t.Errorf("Program execution failed with error: %s", err)
-	}
+	testProgram("factorial", t)
 }
 
 func TestPoseidonBuiltin(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
-
-	_, err := cairo_run.CairoRun("../../../cairo_programs/poseidon_builtin.json", cairoRunConfig)
-	if err != nil {
-		t.Errorf("Program execution failed with error: %s", err)
-	}
+	testProgram("poseidon_builtin", t)
 }
 
 func TestPoseidonHash(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
-
-	_, err := cairo_run.CairoRun("../../../cairo_programs/poseidon_hash.json", cairoRunConfig)
-	if err != nil {
-		t.Errorf("Program execution failed with error: %s", err)
-	}
+	testProgram("poseidon_hash", t)
 }
 
 func TestSimplePrint(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
-
-	_, err := cairo_run.CairoRun("../../../cairo_programs/simple_print.json", cairoRunConfig)
-	if err != nil {
-		t.Errorf("Program execution failed with error: %s", err)
-	}
+	testProgram("simple_print", t)
 }
 
 func TestWriteOutputProgram(t *testing.T) {
@@ -77,128 +66,122 @@ func TestWriteOutputProgram(t *testing.T) {
 }
 
 func TestPedersenBuiltin(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, ProofMode: false, Layout: "all_cairo"}
-	_, err := cairo_run.CairoRun("../../../cairo_programs/pedersen_test.json", cairoRunConfig)
-	if err != nil {
-		t.Errorf("Program execution failed with error: %s", err)
-	}
+	testProgram("pedersen_test", t)
 }
 
 func TestPedersenAndBitwiseBuiltins(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, ProofMode: false, Layout: "all_cairo"}
-	_, err := cairo_run.CairoRun("../../../cairo_programs/pedersen_and_bitwise_builtins.json", cairoRunConfig)
-	if err != nil {
-		t.Errorf("Program execution failed with error: %s", err)
-	}
+	testProgram("pedersen_and_bitwise_builtins", t)
 }
 
 func TestPedersenAndBitwiseBuiltinsWithAllocLocals(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, ProofMode: false, Layout: "all_cairo"}
-	_, err := cairo_run.CairoRun("../../../cairo_programs/pedersen_and_bitwise_builtins_with_alloc_locals.json", cairoRunConfig)
-	if err != nil {
-		t.Errorf("Program execution failed with error: %s", err)
-	}
+	testProgram("pedersen_and_bitwise_builtins_with_alloc_locals", t)
 }
 
 func TestAllocAddSegmentHint(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, ProofMode: false, Layout: "all_cairo"}
-	_, err := cairo_run.CairoRun("../../../cairo_programs/if_reloc_equal.json", cairoRunConfig)
-	if err != nil {
-		t.Errorf("Program execution failed with error: %s", err)
-	}
+	testProgram("if_reloc_equal", t)
 }
 
 func TestAssertNNHint(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, ProofMode: false, Layout: "all_cairo"}
-	_, err := cairo_run.CairoRun("../../../cairo_programs/assert_nn.json", cairoRunConfig)
-	if err != nil {
-		t.Errorf("Program execution failed with error: %s", err)
-	}
+	testProgram("assert_nn", t)
 }
 
 func TestAbsValue(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, ProofMode: false, Layout: "all_cairo"}
-	_, err := cairo_run.CairoRun("../../../cairo_programs/abs_value.json", cairoRunConfig)
-	if err != nil {
-		t.Errorf("Program execution failed with error: %s", err)
-	}
+	testProgram("abs_value", t)
+}
+func TestCommonSignature(t *testing.T) {
+	testProgram("common_signature", t)
 }
 func TestAssertNotZeroHint(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, ProofMode: false, Layout: "all_cairo"}
-	_, err := cairo_run.CairoRun("../../../cairo_programs/assert_not_zero.json", cairoRunConfig)
-	if err != nil {
-		t.Errorf("Program execution failed with error: %s", err)
-	}
+	testProgram("assert_not_zero", t)
 }
 
 func TestBitwiseRecursion(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
-	_, err := cairo_run.CairoRun("../../../cairo_programs/bitwise_recursion.json", cairoRunConfig)
-	if err != nil {
-		t.Errorf("Program execution failed with error: %s", err)
-	}
+	testProgram("bitwise_recursion", t)
 }
 
 func TestBitwiseRecursionProofMode(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: true}
-	_, err := cairo_run.CairoRun("../../../cairo_programs/proof_programs/bitwise_recursion.json", cairoRunConfig)
-	if err != nil {
-		t.Errorf("Program execution failed with error: %s", err)
-	}
+	testProgramProof("bitwise_recursion", t)
 }
 
 func TestIsQuadResidueoHint(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "small", ProofMode: false}
-	_, err := cairo_run.CairoRun("../../../cairo_programs/is_quad_residue.json", cairoRunConfig)
-	if err != nil {
-		t.Errorf("Program execution failed with error: %s", err)
-	}
+	testProgram("is_quad_residue", t)
 }
 
 func TestIsQuadResidueoHintProofMode(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "small", ProofMode: true}
-	_, err := cairo_run.CairoRun("../../../cairo_programs/proof_programs/is_quad_residue.json", cairoRunConfig)
-	if err != nil {
-		t.Errorf("Program execution failed with error: %s", err)
-	}
+	testProgramProof("is_quad_residue", t)
 }
 
 func TestDict(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "small", ProofMode: false}
-	_, err := cairo_run.CairoRun("../../../cairo_programs/dict.json", cairoRunConfig)
-	if err != nil {
-		t.Errorf("Program execution failed with error: %s", err)
-	}
+	testProgram("dict", t)
 }
 
 func TestDictUpdate(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "small", ProofMode: false}
-	_, err := cairo_run.CairoRun("../../../cairo_programs/dict_update.json", cairoRunConfig)
-	if err != nil {
-		t.Errorf("Program execution failed with error: %s", err)
-	}
+	testProgram("dict_update", t)
 }
 
 func TestAssertNotEqualHint(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
-	_, err := cairo_run.CairoRun("../../../cairo_programs/assert_not_equal.json", cairoRunConfig)
-	if err != nil {
-		t.Errorf("Program execution failed with error: %s", err)
-	}
+	testProgram("assert_not_equal", t)
 }
 
 func TestPowHint(t *testing.T) {
+	testProgram("pow", t)
+}
+
+func TestSqrtHint(t *testing.T) {
+	testProgram("sqrt", t)
+}
+
+func TestUnsafeKeccak(t *testing.T) {
 	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
-	_, err := cairo_run.CairoRun("../../../cairo_programs/pow.json", cairoRunConfig)
+	_, err := cairo_run.CairoRun("../../../cairo_programs/unsafe_keccak.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
 }
 
-func TestSqrtHint(t *testing.T) {
+func TestUnsignedDivRemHint(t *testing.T) {
 	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
-	_, err := cairo_run.CairoRun("../../../cairo_programs/sqrt.json", cairoRunConfig)
+	_, err := cairo_run.CairoRun("../../../cairo_programs/unsigned_div_rem.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
+}
+
+func TestMemcpyHint(t *testing.T) {
+	testProgram("memcpy_test", t)
+}
+
+func TestAssertLeFelt(t *testing.T) {
+	testProgram("assert_le_felt", t)
+}
+
+func TestMemsetHint(t *testing.T) {
+	testProgram("memset", t)
+}
+
+func TestMathCmp(t *testing.T) {
+	testProgram("math_cmp", t)
+}
+func TestSquashDict(t *testing.T) {
+	testProgram("squash_dict", t)
+}
+
+func TestSignedDivRemHint(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/signed_div_rem.json", cairoRunConfig)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
+
+func TestAssert250BitHint(t *testing.T) {
+	testProgram("assert_250_bit_element_array", t)
+}
+
+func TestDictSquash(t *testing.T) {
+	testProgram("dict_squash", t)
+}
+
+func TestSplitFeltHint(t *testing.T) {
+	testProgram("split_felt", t)
 }

@@ -94,9 +94,8 @@ void div_rem(felt_t a, felt_t b, felt_t div, felt_t rem);
 
 /*
 Compares x and y and returns:
-
-        -1 if a <  b
-         0 if a == b
-        +1 if a >  b
+	-1 if a <  b
+	 0 if a == b
+	+1 if a >  b
 */
 int cmp(felt_t a, felt_t b);
