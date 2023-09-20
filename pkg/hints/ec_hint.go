@@ -240,3 +240,48 @@ func importSECP256R1P(exec_scopes types.ExecutionScopes) error {
 	exec_scopes.AssignOrUpdateVariable("SECP_P", SECP256R1_P())
 	return nil
 }
+
+/*
+Implements hint:
+
+	%{
+	    from starkware.cairo.common.cairo_secp.secp_utils import pack
+	    from starkware.python.math_utils import ec_double_slope
+
+	    # Compute the slope.
+	    x = pack(ids.point.x, PRIME)
+	    y = pack(ids.point.y, PRIME)
+	    value = slope = ec_double_slope(point=(x, y), alpha=ALPHA, p=SECP_P)
+
+%}
+*/
+func computeDoublingSlopeExternalConsts(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data IdsManager) error {
+	// ids.point
+	point, err := EcPointFromVarName("point", virtual_machine, ids_data)
+	if err != nil {
+		return err
+	}
+
+	secp_p_uncast, err := exec_scopes.Get("SECP_P")
+	if err != nil {
+		return err
+	}
+	secp_p := secp_p_uncast.(big.Int)
+
+	alpha_uncast, err := exec_scopes.Get("ALPHA")
+	if err != nil {
+		return nil
+	}
+
+	alpha := alpha_uncast.(big.Int)
+	double_point_b := builtins.DoublePointB{X: point.X.Pack86(), Y: point.Y.Pack86()}
+
+	value, err := builtins.EcDoubleSlope(double_point_b, alpha, secp_p)
+	if err != nil {
+		return err
+	}
+
+	exec_scopes.AssignOrUpdateVariable("value", value)
+	exec_scopes.AssignOrUpdateVariable("slope", value)
+	return nil
+}
