@@ -609,7 +609,7 @@ func TestCheckRangeUsageInsufficientAllocatedCells(t *testing.T) {
 		t.Error("Could not initialize Cairo Runner")
 	}
 	runner.Vm.Trace = make([]vm.TraceEntry, 0)
-	builtin := builtins.NewRangeCheckBuiltinRunner(8)
+	builtin := builtins.DefaultRangeCheckBuiltinRunner()
 	runner.Vm.BuiltinRunners = append(runner.Vm.BuiltinRunners, builtin)
 	runner.Vm.Segments.AddSegment()
 	runner.Vm.Segments.Memory.Insert(

@@ -98,12 +98,30 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return sqrt(data.Ids, vm)
 	case MEMCPY_ENTER_SCOPE:
 		return memcpy_enter_scope(data.Ids, vm, execScopes)
+	case MEMSET_ENTER_SCOPE:
+		return memset_enter_scope(data.Ids, vm, execScopes)
+	case MEMCPY_CONTINUE_COPYING:
+		return memset_step_loop(data.Ids, vm, execScopes, "continue_copying")
+	case MEMSET_CONTINUE_LOOP:
+		return memset_step_loop(data.Ids, vm, execScopes, "continue_loop")
 	case VM_ENTER_SCOPE:
 		return vm_enter_scope(execScopes)
 	case UNSAFE_KECCAK:
 		return unsafeKeccak(data.Ids, vm, *execScopes)
 	case UNSAFE_KECCAK_FINALIZE:
 		return unsafeKeccakFinalize(data.Ids, vm)
+	case UNSIGNED_DIV_REM:
+		return unsignedDivRem(data.Ids, vm)
+	case SIGNED_DIV_REM:
+		return signedDivRem(data.Ids, vm)
+	case ASSERT_LE_FELT:
+		return assertLeFelt(data.Ids, vm, execScopes, constants)
+	case ASSERT_LE_FELT_EXCLUDED_0:
+		return assertLeFeltExcluded0(vm, execScopes)
+	case ASSERT_LE_FELT_EXCLUDED_1:
+		return assertLeFeltExcluded1(vm, execScopes)
+	case ASSERT_LE_FELT_EXCLUDED_2:
+		return assertLeFeltExcluded2(vm, execScopes)
 	case IS_NN:
 		return isNN(data.Ids, vm)
 	case IS_NN_OUT_OF_RANGE:

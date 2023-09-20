@@ -9,6 +9,7 @@ import "C"
 
 import (
 	"math/big"
+	"reflect"
 	"strings"
 	"unsafe"
 
@@ -29,8 +30,8 @@ func LambdaworksError(err error) error {
 	return errors.Wrapf(err, "Lambdaworks Error")
 }
 
-func ConversionError(felt Felt, targetType string) error {
-	return LambdaworksError(errors.Errorf("Cannot convert felt: %d to %s", felt, targetType))
+func ConversionError(val interface{}, targetType string) error {
+	return LambdaworksError(errors.Errorf("Cannot convert %s: %d to %s", reflect.TypeOf(val), val, targetType))
 }
 
 // Converts a Go Felt to a C felt_t.
@@ -153,6 +154,10 @@ func SignedFeltMaxValue() Felt {
 
 func (f Felt) IsZero() bool {
 	return f == FeltZero()
+}
+
+func (f Felt) IsPositive() bool {
+	return !f.IsZero()
 }
 
 func (f Felt) IsOne() bool {
@@ -283,8 +288,25 @@ func (f Felt) ToBigInt() *big.Int {
 	return new(big.Int).SetBytes(f.ToBeBytes()[:32])
 }
 
+func FeltFromBigInt(n *big.Int) Felt {
+	// Perform modulo prime
+	prime, _ := new(big.Int).SetString(CAIRO_PRIME_HEX, 0)
+	if n.Cmp(prime) != -1 {
+		n = new(big.Int).Mod(n, prime)
+	}
+	bytes := n.Bytes()
+	var bytes32 [32]byte
+	copy(bytes32[:], bytes)
+	return FeltFromLeBytes(&bytes32)
+}
+
 const CAIRO_PRIME_HEX = "0x800000000000011000000000000000000000000000000000000000000000001"
 const SIGNED_FELT_MAX_HEX = "0x400000000000008800000000000000000000000000000000000000000000000"
+
+func Prime() *big.Int {
+	cairoPrime, _ := new(big.Int).SetString(CAIRO_PRIME_HEX, 0)
+	return cairoPrime
+}
 
 // Implements `as_int` behaviour
 func (f Felt) ToSigned() *big.Int {
