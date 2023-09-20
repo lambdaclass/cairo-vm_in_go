@@ -22,7 +22,7 @@ func ErrIdsManager(err error) error {
 }
 
 func ErrUnknownIdentifier(name string) error {
-	return ErrIdsManager(errors.Errorf("Unknow identifier %s", name))
+	return ErrIdsManager(errors.Errorf("Unknown identifier %s", name))
 }
 
 func ErrIdentifierNotFelt(name string) error {
