@@ -213,7 +213,7 @@ func TestSqrtHint(t *testing.T) {
 func TestUnsafeKeccak(t *testing.T) {
 	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
 	_, err := cairo_run.CairoRun("../../../cairo_programs/unsafe_keccak.json", cairoRunConfig)
-  	if err != nil {
+	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
 }
