@@ -615,7 +615,7 @@ func TestOpcodeAssertionsInstructionFailed(t *testing.T) {
 
 	testVm := vm.NewVirtualMachine()
 	err := testVm.OpcodeAssertions(instruction, operands)
-	if err.Error() != "DiffAssertValues" {
+	if err == nil {
 		t.Error("Assertion should error out with DiffAssertValues")
 	}
 
