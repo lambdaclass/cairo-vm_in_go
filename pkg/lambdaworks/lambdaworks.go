@@ -58,12 +58,6 @@ func FeltFromUint64(value uint64) Felt {
 	return fromC(result)
 }
 
-func FeltFromBigInt(value *big.Int) Felt {
-	buff := make([]byte, 32)
-	bytes := value.FillBytes(buff)
-	return FeltFromBeBytes((*[32]byte)(bytes))
-}
-
 func FeltFromHex(value string) Felt {
 	cs := C.CString(value)
 	defer C.free(unsafe.Pointer(cs))
@@ -287,6 +281,18 @@ func (a Felt) Shr(b uint) Felt {
 
 func (f Felt) ToBigInt() *big.Int {
 	return new(big.Int).SetBytes(f.ToBeBytes()[:32])
+}
+
+func FeltFromBigInt(n *big.Int) Felt {
+	// Perform modulo prime
+	prime, _ := new(big.Int).SetString(CAIRO_PRIME_HEX, 0)
+	if n.Cmp(prime) != -1 {
+		n = new(big.Int).Mod(n, prime)
+	}
+	bytes := n.Bytes()
+	var bytes32 [32]byte
+	copy(bytes32[:], bytes)
+	return FeltFromLeBytes(&bytes32)
 }
 
 const CAIRO_PRIME_HEX = "0x800000000000011000000000000000000000000000000000000000000000001"

@@ -70,6 +70,22 @@ func TestToBigInt(t *testing.T) {
 	}
 }
 
+func TestFromBigInt(t *testing.T) {
+	expectedFelt := lambdaworks.FeltFromUint64(26)
+	bigInt := new(big.Int).SetUint64(26)
+	if !reflect.DeepEqual(lambdaworks.FeltFromBigInt(bigInt), expectedFelt) {
+		t.Errorf("TestToBigInt failed. Expected: %v, Got: %v", 26, lambdaworks.FeltFromBigInt(bigInt))
+	}
+}
+
+func TestFromBigIntPrime(t *testing.T) {
+	expectedFelt := lambdaworks.FeltFromDecString("0")
+	bigInt, _ := new(big.Int).SetString(lambdaworks.CAIRO_PRIME_HEX, 0)
+	if !reflect.DeepEqual(lambdaworks.FeltFromBigInt(bigInt), expectedFelt) {
+		t.Errorf("TestToBigInt failed. Expected: PRIME, Got: %v", lambdaworks.FeltFromBigInt(bigInt))
+	}
+}
+
 func TestToSignedNegative(t *testing.T) {
 	felt := lambdaworks.FeltFromDecString("-1")
 	bigInt := felt.ToSigned()
@@ -177,17 +193,6 @@ func TestFromBeBytes(t *testing.T) {
 
 	if !reflect.DeepEqual(felt_from_bytes, lambdaworks.FeltOne()) {
 		t.Errorf("TestToFromBeBytes failed. Expected 1, Got: %v", felt_from_bytes)
-	}
-}
-
-func TestFromBigInt(t *testing.T) {
-	big := big.NewInt(15)
-
-	expectedFelt := lambdaworks.FeltFromDecString("15")
-	resFelt := lambdaworks.FeltFromBigInt(big)
-
-	if resFelt.Cmp(expectedFelt) != 0 {
-		t.Errorf("TestFromBigInt failed. Expected 15, got: %v", resFelt)
 	}
 }
 
