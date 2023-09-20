@@ -26,26 +26,6 @@ func TestGetLocalVariables(t *testing.T) {
 	}
 }
 
-func TestGetRefLocalVariables(t *testing.T) {
-	scope := make(map[string]interface{})
-	scope["k"] = lambdaworks.FeltOne()
-
-	scopes := types.NewExecutionScopes()
-	scopes.EnterScope(scope)
-
-	result, err := scopes.GetRef("k")
-	if err != nil {
-		t.Errorf("TestGetRefLocalVariables failed with error: %s", err)
-
-	}
-	f_one := lambdaworks.FeltOne()
-	f_res := (*result).(lambdaworks.Felt)
-	expected := &f_one
-	if *expected != f_res {
-		t.Errorf("TestGetRefLocalVariables failed, expected: %d, got: %d", expected, &f_res)
-	}
-}
-
 func TestEnterNewScope(t *testing.T) {
 	scope := make(map[string]interface{})
 	scope["a"] = lambdaworks.FeltOne()

@@ -10,13 +10,15 @@ import (
 // Implements hint:
 // %{ ids.locs.bit = (ids.prev_locs.exp % PRIME) & 1 %}
 func pow(ids IdsManager, vm *VirtualMachine) error {
-	prev_locs_exp_addr, err := ids.GetAddr("prev_locs", vm)
-	prev_locs_exp, _ := vm.Segments.Memory.GetFelt(prev_locs_exp_addr.AddUint(4))
-
+	prev_locs_exp_addr, err := ids.GetRelocatable("prev_locs", vm)
 	if err != nil {
 		return err
 	}
 
-	ids.Insert("locs", NewMaybeRelocatableFelt(prev_locs_exp.And(FeltOne())), vm)
-	return nil
+	prev_locs_exp, err := vm.Segments.Memory.GetFelt(prev_locs_exp_addr.AddUint(4))
+	if err != nil {
+		return err
+	}
+
+	return ids.Insert("locs", NewMaybeRelocatableFelt(prev_locs_exp.And(FeltOne())), vm)
 }

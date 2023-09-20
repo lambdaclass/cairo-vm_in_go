@@ -33,6 +33,7 @@ func SetupIdsForTest(ids map[string][]*memory.MaybeRelocatable, vm *VirtualMachi
 		}
 		// Update current_offset
 		current_offset += len(elems)
+
 		// Insert ids variables (if present)
 		for n, elem := range elems {
 			if elem != nil {

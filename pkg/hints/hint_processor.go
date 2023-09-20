@@ -44,6 +44,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return add_segment(vm)
 	case ASSERT_NN:
 		return assert_nn(data.Ids, vm)
+	case VERIFY_ECDSA_SIGNATURE:
+		return verify_ecdsa_signature(data.Ids, vm)
 	case IS_POSITIVE:
 		return is_positive(data.Ids, vm)
 	case ASSERT_NOT_ZERO:
@@ -58,6 +60,30 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return dictWrite(data.Ids, execScopes, vm)
 	case DICT_UPDATE:
 		return dictUpdate(data.Ids, execScopes, vm)
+	case SQUASH_DICT:
+		return squashDict(data.Ids, execScopes, vm)
+	case SQUASH_DICT_INNER_SKIP_LOOP:
+		return squashDictInnerSkipLoop(data.Ids, execScopes, vm)
+	case SQUASH_DICT_INNER_FIRST_ITERATION:
+		return squashDictInnerFirstIteration(data.Ids, execScopes, vm)
+	case SQUASH_DICT_INNER_CHECK_ACCESS_INDEX:
+		return squashDictInnerCheckAccessIndex(data.Ids, execScopes, vm)
+	case SQUASH_DICT_INNER_CONTINUE_LOOP:
+		return squashDictInnerContinueLoop(data.Ids, execScopes, vm)
+	case SQUASH_DICT_INNER_ASSERT_LEN_KEYS:
+		return squashDictInnerAssertLenKeys(execScopes)
+	case SQUASH_DICT_INNER_LEN_ASSERT:
+		return squashDictInnerLenAssert(execScopes)
+	case SQUASH_DICT_INNER_USED_ACCESSES_ASSERT:
+		return squashDictInnerUsedAccessesAssert(data.Ids, execScopes, vm)
+	case SQUASH_DICT_INNER_NEXT_KEY:
+		return squashDictInnerNextKey(data.Ids, execScopes, vm)
+	case DICT_SQUASH_COPY_DICT:
+		return dictSquashCopyDict(data.Ids, execScopes, vm)
+	case DICT_SQUASH_UPDATE_PTR:
+		return dictSquashUpdatePtr(data.Ids, execScopes, vm)
+	case DICT_NEW:
+		return dictNew(data.Ids, execScopes, vm)
 	case VM_EXIT_SCOPE:
 		return vm_exit_scope(execScopes)
 	case ASSERT_NOT_EQUAL:
@@ -72,6 +98,12 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return sqrt(data.Ids, vm)
 	case MEMCPY_ENTER_SCOPE:
 		return memcpy_enter_scope(data.Ids, vm, execScopes)
+	case MEMSET_ENTER_SCOPE:
+		return memset_enter_scope(data.Ids, vm, execScopes)
+	case MEMCPY_CONTINUE_COPYING:
+		return memset_step_loop(data.Ids, vm, execScopes, "continue_copying")
+	case MEMSET_CONTINUE_LOOP:
+		return memset_step_loop(data.Ids, vm, execScopes, "continue_loop")
 	case VM_ENTER_SCOPE:
 		return vm_enter_scope(execScopes)
 	case SET_ADD:
@@ -80,6 +112,30 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return find_element(data.Ids, vm, *execScopes)
 	case SEARCH_SORTED_LOWER:
 		return search_sorted_lower(data.Ids, vm, *execScopes)
+	case UNSAFE_KECCAK:
+		return unsafeKeccak(data.Ids, vm, *execScopes)
+	case UNSIGNED_DIV_REM:
+		return unsignedDivRem(data.Ids, vm)
+	case SIGNED_DIV_REM:
+		return signedDivRem(data.Ids, vm)
+	case ASSERT_LE_FELT:
+		return assertLeFelt(data.Ids, vm, execScopes, constants)
+	case ASSERT_LE_FELT_EXCLUDED_0:
+		return assertLeFeltExcluded0(vm, execScopes)
+	case ASSERT_LE_FELT_EXCLUDED_1:
+		return assertLeFeltExcluded1(vm, execScopes)
+	case ASSERT_LE_FELT_EXCLUDED_2:
+		return assertLeFeltExcluded2(vm, execScopes)
+	case IS_NN:
+		return isNN(data.Ids, vm)
+	case IS_NN_OUT_OF_RANGE:
+		return isNNOutOfRange(data.Ids, vm)
+	case IS_LE_FELT:
+		return isLeFelt(data.Ids, vm)
+	case ASSERT_250_BITS:
+		return Assert250Bit(data.Ids, vm, constants)
+	case SPLIT_FELT:
+		return SplitFelt(data.Ids, vm, constants)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}

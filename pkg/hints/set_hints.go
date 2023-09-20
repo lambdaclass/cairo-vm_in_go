@@ -6,6 +6,7 @@ import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	"github.com/pkg/errors"
+    "reflect"
 )
 
 /*
@@ -47,7 +48,7 @@ func set_add(ids IdsManager, vm *VirtualMachine) error {
 		return errors.Errorf("assert ids.elm_size > 0")
 	}
 
-	elm_size, err := elm_size_felt.ToU64()
+	elm_size, err := elm_size_felt.ToUint()
 
 	if err != nil {
 		return err
@@ -57,20 +58,25 @@ func set_add(ids IdsManager, vm *VirtualMachine) error {
 		return errors.Errorf("expected set_ptr: %v <= set_end_ptr: %v", set_ptr, set_end_ptr)
 	}
 
-	elem, err := vm.Segments.Memory.GetRange(elm_ptr, uint(elm_size))
+	elem, err := vm.Segments.Memory.GetRange(elm_ptr, elm_size)
 	if err != nil {
 		return err
 	}
 
-	for i := uint(0); i < set_end_ptr.Offset-set_ptr.Offset; i += uint(elm_size) {
-		other_elm, err := vm.Segments.Memory.GetRange(set_ptr.AddUint(i), uint(elm_size))
+	for i := uint(0); i < set_end_ptr.Offset - set_ptr.Offset; i++ {
+		other_elm, err := vm.Segments.Memory.GetRange(set_ptr.AddUint(i * elm_size), elm_size)
 		if err != nil {
 			return err
 		}
-		if &elem == &other_elm {
+		if reflect.DeepEqual(elem, other_elm) {
+            err := ids.Insert("index", NewMaybeRelocatableFelt(FeltFromUint(i)), vm)
+            if err != nil {
+                return err
+            }
 			return ids.Insert("is_elm_in_set", NewMaybeRelocatableFelt(FeltOne()), vm)
 		}
 	}
 
 	return ids.Insert("is_elm_in_set", NewMaybeRelocatableFelt(FeltZero()), vm)
 }
+
