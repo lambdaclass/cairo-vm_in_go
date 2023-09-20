@@ -128,6 +128,10 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return Assert250Bit(data.Ids, vm, constants)
 	case SPLIT_FELT:
 		return SplitFelt(data.Ids, vm, constants)
+	case IMPORT_SECP256R1_ALPHA:
+		return importSecp256r1Alpha(*execScopes)
+	case IMPORT_SECP256R1_N:
+		return importSECP256R1N(*execScopes)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
