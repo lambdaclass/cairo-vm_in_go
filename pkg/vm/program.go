@@ -76,7 +76,6 @@ func (p *Program) ExtractConstants() map[string]lambdaworks.Felt {
 			}
 		}
 	}
-
 	return constants
 }
 
