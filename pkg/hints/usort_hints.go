@@ -196,3 +196,48 @@ func usort_verify_multiplicity_assert(executionScopes *types.ExecutionScopes) er
 	return nil
 
 }
+
+// Implements hint:
+// %{
+//	 current_pos = positions.pop()
+//	 ids.next_item_index = current_pos - last_pos
+//	 last_pos = current_pos + 1
+//  %}
+
+func usort_verify_multiplicity_body(ids IdsManager, executionScopes *types.ExecutionScopes, vm *VirtualMachine) error {
+
+	positions_interface, err := executionScopes.Get("positions")
+
+	if err != nil {
+		return err
+	}
+
+	positions, cast_ok := positions_interface.([]uint64)
+
+	if !cast_ok {
+		return errors.New("Error casting positions to []uint64")
+	}
+
+	last_pos_interface, err := executionScopes.Get("last_pos")
+
+	if err != nil {
+		return err
+	}
+
+	last_pos, cast_ok := last_pos_interface.(uint64)
+
+	if !cast_ok {
+		return errors.New("Error casting last_pos to uint64")
+	}
+
+	current_pos := positions[len(positions)-1]
+
+	executionScopes.AssignOrUpdateVariable("positions", positions[:len(positions)-1])
+
+	next_item_index := current_pos - last_pos
+	ids.Insert("next_item_index", memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(next_item_index)), vm)
+
+	executionScopes.AssignOrUpdateVariable("last_pos", current_pos+1)
+
+	return nil
+}
