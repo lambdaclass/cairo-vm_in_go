@@ -303,6 +303,11 @@ func FeltFromBigInt(n *big.Int) Felt {
 const CAIRO_PRIME_HEX = "0x800000000000011000000000000000000000000000000000000000000000001"
 const SIGNED_FELT_MAX_HEX = "0x400000000000008800000000000000000000000000000000000000000000000"
 
+func Prime() *big.Int {
+	cairoPrime, _ := new(big.Int).SetString(CAIRO_PRIME_HEX, 0)
+	return cairoPrime
+}
+
 // Implements `as_int` behaviour
 func (f Felt) ToSigned() *big.Int {
 	n := f.ToBigInt()

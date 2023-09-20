@@ -172,3 +172,17 @@ func (m *MemorySegmentManager) Finalize(size *uint, segmentIndex uint, publicMem
 		m.PublicMemoryOffsets[segmentIndex] = emptyList
 	}
 }
+
+// Gets a range of Felt memory values from addr to addr + size
+// Fails if any of the values inside the range is missing (memory gap), or is not a Felt
+func (m *MemorySegmentManager) GetFeltRange(start Relocatable, size uint) ([]lambdaworks.Felt, error) {
+	feltRange := make([]lambdaworks.Felt, 0, size)
+	for i := uint(0); i < size; i++ {
+		val, err := m.Memory.GetFelt(start.AddUint(i))
+		if err != nil {
+			return nil, err
+		}
+		feltRange = append(feltRange, val)
+	}
+	return feltRange, nil
+}

@@ -213,6 +213,14 @@ func TestSqrtHint(t *testing.T) {
 func TestUnsafeKeccak(t *testing.T) {
 	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
 	_, err := cairo_run.CairoRun("../../../cairo_programs/unsafe_keccak.json", cairoRunConfig)
+  	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
+
+func TestUnsignedDivRemHint(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/unsigned_div_rem.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
@@ -256,6 +264,15 @@ func TestSquashDict(t *testing.T) {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
 }
+
+func TestSignedDivRemHint(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/signed_div_rem.json", cairoRunConfig)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
+
 func TestAssert250BitHint(t *testing.T) {
 	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
 	_, err := cairo_run.CairoRun("../../../cairo_programs/assert_250_bit_element_array.json", cairoRunConfig)
