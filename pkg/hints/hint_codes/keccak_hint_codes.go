@@ -15,3 +15,21 @@ assert 0 <= _keccak_state_size_felts < 100
 output_values = keccak_func(memory.get_range(
     ids.keccak_ptr - _keccak_state_size_felts, _keccak_state_size_felts))
 segments.write_arg(ids.keccak_ptr, output_values)`
+
+const CAIRO_KECCAK_FINALIZE_V1 = `# Add dummy pairs of input and output.
+_keccak_state_size_felts = int(ids.KECCAK_STATE_SIZE_FELTS)
+_block_size = int(ids.BLOCK_SIZE)
+assert 0 <= _keccak_state_size_felts < 100
+assert 0 <= _block_size < 10
+inp = [0] * _keccak_state_size_felts
+padding = (inp + keccak_func(inp)) * _block_size
+segments.write_arg(ids.keccak_ptr_end, padding)`
+
+const CAIRO_KECCAK_FINALIZE_V2 = `# Add dummy pairs of input and output.
+_keccak_state_size_felts = int(ids.KECCAK_STATE_SIZE_FELTS)
+_block_size = int(ids.BLOCK_SIZE)
+assert 0 <= _keccak_state_size_felts < 100
+assert 0 <= _block_size < 1000
+inp = [0] * _keccak_state_size_felts
+padding = (inp + keccak_func(inp)) * _block_size
+segments.write_arg(ids.keccak_ptr_end, padding)`

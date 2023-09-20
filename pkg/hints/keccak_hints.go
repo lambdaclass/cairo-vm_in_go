@@ -185,3 +185,41 @@ func blockPermutation(ids IdsManager, vm *VirtualMachine, constants *map[string]
 	_, err = vm.Segments.LoadData(keccakPtr, &output)
 	return err
 }
+
+func cairoKeccakFinalize(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt, blockSizeLimit uint64) error {
+	const KECCAK_SIZE = 25
+	keccakStateSizeFeltsFelt, err := ids.GetConst("KECCAK_STATE_SIZE_FELTS", constants)
+	if err != nil {
+		return err
+	}
+	if keccakStateSizeFeltsFelt.Cmp(FeltFromUint64(KECCAK_SIZE)) != 0 {
+		return errors.New("Assertion failed: _keccak_state_size_felts == 25")
+	}
+
+	blockSizeFelt, err := ids.GetConst("BLOCK_SIZE", constants)
+	if err != nil {
+		return err
+	}
+	if blockSizeFelt.Cmp(FeltFromUint64(blockSizeLimit)) != -1 {
+		return errors.Errorf("assert 0 <= _block_size < %d", blockSizeLimit)
+	}
+	blockSize, _ := blockSizeFelt.ToU64()
+	var input [KECCAK_SIZE]uint64
+	builtins.KeccakF1600(&input)
+	padding := make([]MaybeRelocatable, 0, KECCAK_SIZE*2)
+	for i := 0; i < KECCAK_SIZE; i++ {
+		padding[i] = *NewMaybeRelocatableFelt(FeltZero())
+	}
+	for i := 0; i < KECCAK_SIZE; i++ {
+		padding[i+KECCAK_SIZE] = *NewMaybeRelocatableFelt(FeltFromUint64(input[i]))
+	}
+	for i := 0; i < int(blockSize); i++ {
+		padding = append(padding, padding[:25]...)
+	}
+	keccakPtrEnd, err := ids.GetRelocatable("keccak_end_ptr", vm)
+	if err != nil {
+		return err
+	}
+	_, err = vm.Segments.LoadData(keccakPtrEnd, &padding)
+	return err
+}

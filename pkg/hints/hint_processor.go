@@ -116,6 +116,10 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return compareKeccakFullRateInBytesNondet(data.Ids, vm, constants)
 	case BLOCK_PERMUTATION:
 		return blockPermutation(data.Ids, vm, constants)
+	case CAIRO_KECCAK_FINALIZE_V1:
+		return cairoKeccakFinalize(data.Ids, vm, constants, 100)
+	case CAIRO_KECCAK_FINALIZE_V2:
+		return cairoKeccakFinalize(data.Ids, vm, constants, 1000)
 	case UNSIGNED_DIV_REM:
 		return unsignedDivRem(data.Ids, vm)
 	case SIGNED_DIV_REM:
