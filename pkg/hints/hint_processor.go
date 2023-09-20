@@ -98,6 +98,12 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return sqrt(data.Ids, vm)
 	case MEMCPY_ENTER_SCOPE:
 		return memcpy_enter_scope(data.Ids, vm, execScopes)
+	case MEMSET_ENTER_SCOPE:
+		return memset_enter_scope(data.Ids, vm, execScopes)
+	case MEMCPY_CONTINUE_COPYING:
+		return memset_step_loop(data.Ids, vm, execScopes, "continue_copying")
+	case MEMSET_CONTINUE_LOOP:
+		return memset_step_loop(data.Ids, vm, execScopes, "continue_loop")
 	case VM_ENTER_SCOPE:
 		return vm_enter_scope(execScopes)
 	case UNSIGNED_DIV_REM:
