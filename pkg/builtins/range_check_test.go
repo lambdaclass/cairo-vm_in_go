@@ -148,3 +148,15 @@ func TestGetRangeCheckUsageEmptyMemory(t *testing.T) {
 		t.Errorf("rcMax should return nil, got %d", *resultMax)
 	}
 }
+
+// Range check bound is calculated via the constant RANGE_CHECK_N_PARTS.
+// If something changes and the bound is set to zero, there could be unexpected errors.
+func TestBoundIsNotZero(t *testing.T) {
+	rangeCheck := builtins.DefaultRangeCheckBuiltinRunner()
+
+	bound := rangeCheck.Bound()
+
+	if bound.IsZero() {
+		t.Error("range check bound should never be zero")
+	}
+}

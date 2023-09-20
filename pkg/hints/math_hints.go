@@ -209,9 +209,10 @@ func unsignedDivRem(ids IdsManager, vm *VirtualMachine) error {
 	}
 
 	rcBound, err := vm.GetRangeCheckBound()
-	if rcBound.Cmp(lambdaworks.FeltZero()) == 0 {
-		return errors.New("range check bound cannot be zero")
+	if err != nil {
+		return err
 	}
+
 	primeBoundDivision := new(big.Int).Div(lambdaworks.Prime(), rcBound.ToBigInt())
 
 	// Check if `div` is greater than `limit`
@@ -443,9 +444,6 @@ func signedDivRem(ids IdsManager, vm *VirtualMachine) error {
 		return err
 	}
 
-	if rcBound.Cmp(lambdaworks.FeltZero()) == 0 {
-		return errors.New("range check bound cannot be zero")
-	}
 	primeBoundDivision := new(big.Int).Div(lambdaworks.Prime(), rcBound.ToBigInt())
 
 	// Check if `div` is greater than `limit` and make assertions

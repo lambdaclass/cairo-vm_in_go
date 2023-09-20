@@ -638,5 +638,5 @@ func (vm *VirtualMachine) GetRangeCheckBound() (lambdaworks.Felt, error) {
 		return lambdaworks.FeltZero(), errors.New("could not cast to RangeCheckBuiltinRunner")
 	}
 
-	return rcBuiltin.Bound, nil
+	return rcBuiltin.Bound(), nil
 }
