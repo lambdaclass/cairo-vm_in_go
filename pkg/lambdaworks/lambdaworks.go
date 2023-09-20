@@ -58,6 +58,12 @@ func FeltFromUint64(value uint64) Felt {
 	return fromC(result)
 }
 
+func FeltFromUint(value uint) Felt {
+	var result C.felt_t
+	C.from_uint(&result[0], C.uint_t(value))
+	return fromC(result)
+}
+
 func FeltFromHex(value string) Felt {
 	cs := C.CString(value)
 	defer C.free(unsafe.Pointer(cs))
@@ -76,12 +82,21 @@ func FeltFromDecString(value string) Felt {
 	return fromC(result)
 }
 
-// turns a felt to usize
+// turns a felt to u64
 func (felt Felt) ToU64() (uint64, error) {
 	if felt.limbs[0] == 0 && felt.limbs[1] == 0 && felt.limbs[2] == 0 {
 		return uint64(felt.limbs[3]), nil
 	} else {
 		return 0, ConversionError(felt, "u64")
+	}
+}
+
+// turns a felt to usize
+func (felt Felt) ToUint() (uint, error) {
+	if felt.limbs[0] == 0 && felt.limbs[1] == 0 && felt.limbs[2] == 0 {
+		return uint(felt.limbs[3]), nil
+	} else {
+		return 0, ConversionError(felt, "uint")
 	}
 }
 

@@ -9,18 +9,21 @@ import (
 )
 
 /*
-	Implements hint:
+Implements hint:
 
-	assert ids.elm_size > 0
-	assert ids.set_ptr <= ids.set_end_ptr
-	elm_list = memory.get_range(ids.elm_ptr, ids.elm_size)
-	for i in range(0, ids.set_end_ptr - ids.set_ptr, ids.elm_size):
-	    if memory.get_range(ids.set_ptr + i, ids.elm_size) == elm_list:
-	        ids.index = i // ids.elm_size
-	        ids.is_elm_in_set = 1
-	        break
-	else:
-	    ids.is_elm_in_set = 0
+assert ids.elm_size > 0
+assert ids.set_ptr <= ids.set_end_ptr
+elm_list = memory.get_range(ids.elm_ptr, ids.elm_size)
+for i in range(0, ids.set_end_ptr - ids.set_ptr, ids.elm_size):
+
+	if memory.get_range(ids.set_ptr + i, ids.elm_size) == elm_list:
+	    ids.index = i // ids.elm_size
+	    ids.is_elm_in_set = 1
+	    break
+
+else:
+
+	ids.is_elm_in_set = 0
 */
 func set_add(ids IdsManager, vm *VirtualMachine) error {
 	set_ptr, err := ids.GetRelocatable("set_ptr", vm)
@@ -55,15 +58,15 @@ func set_add(ids IdsManager, vm *VirtualMachine) error {
 	}
 
 	elem, err := vm.Segments.Memory.GetRange(elm_ptr, uint(elm_size))
-    if err != nil {
-        return err
-    }
+	if err != nil {
+		return err
+	}
 
 	for i := uint(0); i < set_end_ptr.Offset-set_ptr.Offset; i += uint(elm_size) {
 		other_elm, err := vm.Segments.Memory.GetRange(set_ptr.AddUint(i), uint(elm_size))
-        if err != nil {
-            return err
-        }
+		if err != nil {
+			return err
+		}
 		if &elem == &other_elm {
 			return ids.Insert("is_elm_in_set", NewMaybeRelocatableFelt(FeltOne()), vm)
 		}
