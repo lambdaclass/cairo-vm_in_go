@@ -206,12 +206,12 @@ func cairoKeccakFinalize(ids IdsManager, vm *VirtualMachine, constants *map[stri
 	blockSize, _ := blockSizeFelt.ToU64()
 	var input [KECCAK_SIZE]uint64
 	builtins.KeccakF1600(&input)
-	padding := make([]MaybeRelocatable, 0, KECCAK_SIZE*2)
+	padding := make([]MaybeRelocatable, 0, KECCAK_SIZE*2*blockSize)
 	for i := 0; i < KECCAK_SIZE; i++ {
-		padding[i] = *NewMaybeRelocatableFelt(FeltZero())
+		padding = append(padding, *NewMaybeRelocatableFelt(FeltZero()))
 	}
 	for i := 0; i < KECCAK_SIZE; i++ {
-		padding[i+KECCAK_SIZE] = *NewMaybeRelocatableFelt(FeltFromUint64(input[i]))
+		padding = append(padding, *NewMaybeRelocatableFelt(FeltFromUint64(input[i])))
 	}
 	for i := 0; i < int(blockSize); i++ {
 		padding = append(padding, padding[:25]...)
