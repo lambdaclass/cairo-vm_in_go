@@ -110,6 +110,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return usort_enter_scope(execScopes)
 	case USORT_BODY:
 		return usort_body(data.Ids, execScopes, vm)
+	case USORT_VERIFY:
+		return usort_verify(data.Ids, execScopes, vm)
 	case UNSAFE_KECCAK:
 		return unsafeKeccak(data.Ids, vm, *execScopes)
 	case UNSIGNED_DIV_REM:

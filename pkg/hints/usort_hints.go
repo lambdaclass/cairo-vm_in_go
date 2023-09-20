@@ -53,9 +53,6 @@ func usort_enter_scope(executionScopes *types.ExecutionScopes) error {
 	return nil
 }
 
-// Implements hint:
-// %{ vm_enter_scope(dict(__usort_max_size = globals().get('__usort_max_size'))) %}
-
 func usort_body(ids IdsManager, executionScopes *types.ExecutionScopes, vm *VirtualMachine) error {
 	input_ptr, err := ids.GetAddr("input", vm)
 	if err != nil {
@@ -132,6 +129,47 @@ func usort_body(ids IdsManager, executionScopes *types.ExecutionScopes, vm *Virt
 	}
 	ids.Insert("output", memory.NewMaybeRelocatableRelocatable(output_base), vm)
 	ids.Insert("multiplicities", memory.NewMaybeRelocatableRelocatable(multiplicities_base), vm)
+
+	return nil
+}
+
+// Implements hint:
+// %{
+//		last_pos = 0
+// 		positions = positions_dict[ids.value][::-1]
+//  %}
+
+func usort_verify(ids IdsManager, executionScopes *types.ExecutionScopes, vm *VirtualMachine) error {
+	executionScopes.AssignOrUpdateVariable("last_pos", lambdaworks.FeltZero())
+
+	positions_dict_interface, err := executionScopes.Get("positions_dict")
+
+	if err != nil {
+		return err
+	}
+
+	positions_dict, cast_ok := positions_dict_interface.(map[lambdaworks.Felt][]uint64)
+
+	if !cast_ok {
+		return errors.New("Error casting positions_dict")
+	}
+
+	value, err := ids.GetFelt("value", vm)
+	if err != nil {
+		return err
+	}
+
+	if err != nil {
+		return err
+	}
+
+	positions := positions_dict[value]
+
+	for i, j := 0, len(positions)-1; i < j; i, j = i+1, j-1 {
+		positions[i], positions[j] = positions[j], positions[i]
+	}
+
+	executionScopes.AssignOrUpdateVariable("positions", positions)
 
 	return nil
 }
