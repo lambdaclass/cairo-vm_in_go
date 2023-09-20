@@ -187,6 +187,55 @@ func sqrt(ids IdsManager, vm *VirtualMachine) error {
 	return nil
 }
 
+/*
+Implements hint:
+
+	%{
+	    from starkware.cairo.common.math_utils import assert_integer
+	    assert_integer(ids.div)
+	    assert 0 < ids.div <= PRIME // range_check_builtin.bound, \
+	        f'div={hex(ids.div)} is out of the valid range.'
+	    ids.q, ids.r = divmod(ids.value, ids.div)
+	%}
+*/
+func unsignedDivRem(ids IdsManager, vm *VirtualMachine) error {
+	div, err := ids.GetFelt("div", vm)
+	if err != nil {
+		return err
+	}
+	value, err := ids.GetFelt("value", vm)
+	if err != nil {
+		return err
+	}
+
+	rcBound, err := vm.GetRangeCheckBound()
+	if err != nil {
+		return err
+	}
+
+	primeBoundDivision := new(big.Int).Div(lambdaworks.Prime(), rcBound.ToBigInt())
+
+	// Check if `div` is greater than `limit`
+	divGreater := div.ToBigInt().Cmp(primeBoundDivision) == 1
+
+	if div.IsZero() || divGreater {
+		return errors.Errorf("Div out of range: 0 < %d <= %d", div.ToBigInt(), rcBound.ToBigInt())
+	}
+
+	q, r := value.DivRem(div)
+
+	err = ids.Insert("q", NewMaybeRelocatableFelt(q), vm)
+	if err != nil {
+		return err
+	}
+	err = ids.Insert("r", NewMaybeRelocatableFelt(r), vm)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func assertLeFelt(ids IdsManager, vm *VirtualMachine, scopes *ExecutionScopes, constants *map[string]Felt) error {
 	// Fetch constants
 	primeOver3HighFelt, err := ids.GetConst("PRIME_OVER_3_HIGH", constants)
@@ -343,7 +392,6 @@ func Assert250Bit(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt
 	}
 
 	value, err := ids.GetFelt("value", vm)
-
 	if err != nil {
 		return err
 	}
@@ -363,6 +411,82 @@ func Assert250Bit(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+/*
+Implements hint:
+
+    %{
+        from starkware.cairo.common.math_utils import as_int, assert_integer
+
+        assert_integer(ids.div)
+        assert 0 < ids.div <= PRIME // range_check_builtin.bound, \
+            f'div={hex(ids.div)} is out of the valid range.'
+
+        assert_integer(ids.bound)
+        assert ids.bound <= range_check_builtin.bound // 2, \
+            f'bound={hex(ids.bound)} is out of the valid range.'
+
+        int_value = as_int(ids.value, PRIME)
+        q, ids.r = divmod(int_value, ids.div)
+
+        assert -ids.bound <= q < ids.bound, \
+            f'{int_value} / {ids.div} = {q} is out of the range [{-ids.bound}, {ids.bound}).'
+
+        ids.biased_q = q + ids.bound
+    %}
+*/
+
+func signedDivRem(ids IdsManager, vm *VirtualMachine) error {
+	div, err := ids.GetFelt("div", vm)
+	if err != nil {
+		return err
+	}
+
+	value, err := ids.GetFelt("value", vm)
+	if err != nil {
+		return err
+	}
+
+	bound, err := ids.GetFelt("bound", vm)
+	if err != nil {
+		return err
+	}
+
+	rcBound, err := vm.GetRangeCheckBound()
+	if err != nil {
+		return err
+	}
+
+	primeBoundDivision := new(big.Int).Div(lambdaworks.Prime(), rcBound.ToBigInt())
+
+	// Check if `div` is greater than `limit` and make assertions
+	divGreater := div.ToBigInt().Cmp(primeBoundDivision) == 1
+	if div.IsZero() || divGreater {
+		return errors.Errorf("div=%d is out of the valid range", div)
+	}
+	if bound.Cmp(rcBound.Shr(1)) == 1 {
+		return errors.Errorf("bound=%d is out of the valid range", bound)
+	}
+
+	sgnValue := value.ToSigned()
+	intBound := bound.ToBigInt()
+	intDiv := div.ToBigInt()
+
+	q, r := new(big.Int).DivMod(sgnValue, intDiv, new(big.Int))
+
+	if new(big.Int).Abs(intBound).Cmp(new(big.Int).Abs(q)) == -1 {
+		return errors.Errorf("%d / %d = %d is out of the range [-%d, %d]", sgnValue, div, q, bound, bound)
+	}
+
+	biasedQ := new(big.Int).Add(q, intBound)
+	biasedQFelt := lambdaworks.FeltFromBigInt(biasedQ)
+	rFelt := lambdaworks.FeltFromBigInt(r)
+
+	ids.Insert("r", NewMaybeRelocatableFelt(rFelt), vm)
+	ids.Insert("biased_q", NewMaybeRelocatableFelt(biasedQFelt), vm)
 
 	return nil
 }

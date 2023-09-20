@@ -106,6 +106,12 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return memset_step_loop(data.Ids, vm, execScopes, "continue_loop")
 	case VM_ENTER_SCOPE:
 		return vm_enter_scope(execScopes)
+	case UNSAFE_KECCAK:
+		return unsafeKeccak(data.Ids, vm, *execScopes)
+	case UNSIGNED_DIV_REM:
+		return unsignedDivRem(data.Ids, vm)
+	case SIGNED_DIV_REM:
+		return signedDivRem(data.Ids, vm)
 	case ASSERT_LE_FELT:
 		return assertLeFelt(data.Ids, vm, execScopes, constants)
 	case ASSERT_LE_FELT_EXCLUDED_0:

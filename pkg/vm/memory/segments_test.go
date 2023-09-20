@@ -250,3 +250,63 @@ func TestGetMemoryHoles(t *testing.T) {
 		t.Errorf("Get Memory Holes Returned the wrong value. Expected: 2, got %d", result)
 	}
 }
+
+func TestGetFeltRangeOk(t *testing.T) {
+	segments := memory.NewMemorySegmentManager()
+	segments.AddSegment()
+	segments.Memory.Insert(memory.NewRelocatable(0, 1), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 2), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 3), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(3)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 4), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(4)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 5), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 6), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(6)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 7), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(7)))
+
+	feltRange, err := segments.GetFeltRange(memory.NewRelocatable(0, 2), 4)
+	expectedFeltRange := []lambdaworks.Felt{
+		lambdaworks.FeltFromUint64(2),
+		lambdaworks.FeltFromUint64(3),
+		lambdaworks.FeltFromUint64(4),
+		lambdaworks.FeltFromUint64(5),
+	}
+
+	if err != nil || !reflect.DeepEqual(feltRange, expectedFeltRange) {
+		t.Errorf("GetFeltRange failed or returned wrong value")
+	}
+}
+
+func TestGetFeltRangeGap(t *testing.T) {
+	segments := memory.NewMemorySegmentManager()
+	segments.AddSegment()
+	segments.Memory.Insert(memory.NewRelocatable(0, 1), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 2), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2)))
+	//segments.Memory.Insert(memory.NewRelocatable(0, 3), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(3)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 4), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(4)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 5), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 6), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(6)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 7), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(7)))
+
+	_, err := segments.GetFeltRange(memory.NewRelocatable(0, 2), 4)
+
+	if err == nil {
+		t.Errorf("GetFeltRange should have failed")
+	}
+}
+
+func TestGetFeltRangeRelocatable(t *testing.T) {
+	segments := memory.NewMemorySegmentManager()
+	segments.AddSegment()
+	segments.Memory.Insert(memory.NewRelocatable(0, 1), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 2), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(2)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 3), memory.NewMaybeRelocatableRelocatable(memory.NewRelocatable(0, 0)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 4), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(4)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 5), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 6), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(6)))
+	segments.Memory.Insert(memory.NewRelocatable(0, 7), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(7)))
+
+	_, err := segments.GetFeltRange(memory.NewRelocatable(0, 2), 4)
+
+	if err == nil {
+		t.Errorf("GetFeltRange should have failed")
+	}
+}
