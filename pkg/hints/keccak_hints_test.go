@@ -166,3 +166,99 @@ func TestUnsafeKeccakFinalizeOk(t *testing.T) {
 		t.Errorf("Wrong/No ids.low\n Expected %s, got %s.", expectedLow.ToHexString(), low.ToHexString())
 	}
 }
+
+func TestCompareBytesInWordHintEq(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	// Advance fp to avoid clashes with values inserted into ap
+	vm.RunContext.Fp.Offset += 1
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"n_bytes": {NewMaybeRelocatableFelt(FeltFromUint64(17))},
+		},
+		vm,
+	)
+	constants := SetupConstantsForTest(
+		map[string]Felt{
+			"BYTES_IN_WORD": FeltFromUint64(17),
+		},
+		&idsManager)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: COMPARE_BYTES_IN_WORD_NONDET,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err != nil {
+		t.Errorf("COMPARE_BYTES_IN_WORD_NONDET hint test failed with error %s", err)
+	}
+	// Check the value of memory[ap]
+	val, err := vm.Segments.Memory.GetFelt(vm.RunContext.Ap)
+	if err != nil || !val.IsZero() {
+		t.Error("Wrong/No value inserted into ap")
+	}
+}
+
+func TestCompareBytesInWordHintGt(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	// Advance fp to avoid clashes with values inserted into ap
+	vm.RunContext.Fp.Offset += 1
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"n_bytes": {NewMaybeRelocatableFelt(FeltFromUint64(18))},
+		},
+		vm,
+	)
+	constants := SetupConstantsForTest(
+		map[string]Felt{
+			"BYTES_IN_WORD": FeltFromUint64(17),
+		},
+		&idsManager)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: COMPARE_BYTES_IN_WORD_NONDET,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err != nil {
+		t.Errorf("COMPARE_BYTES_IN_WORD_NONDET hint test failed with error %s", err)
+	}
+	// Check the value of memory[ap]
+	val, err := vm.Segments.Memory.GetFelt(vm.RunContext.Ap)
+	if err != nil || !val.IsZero() {
+		t.Error("Wrong/No value inserted into ap")
+	}
+}
+
+func TestCompareBytesInWordHintLt(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	// Advance fp to avoid clashes with values inserted into ap
+	vm.RunContext.Fp.Offset += 1
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"n_bytes": {NewMaybeRelocatableFelt(FeltFromUint64(16))},
+		},
+		vm,
+	)
+	constants := SetupConstantsForTest(
+		map[string]Felt{
+			"BYTES_IN_WORD": FeltFromUint64(17),
+		},
+		&idsManager)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: COMPARE_BYTES_IN_WORD_NONDET,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err != nil {
+		t.Errorf("COMPARE_BYTES_IN_WORD_NONDET hint test failed with error %s", err)
+	}
+	// Check the value of memory[ap]
+	val, err := vm.Segments.Memory.GetFelt(vm.RunContext.Ap)
+	if err != nil || val != FeltOne() {
+		t.Error("Wrong/No value inserted into ap")
+	}
+}

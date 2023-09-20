@@ -104,6 +104,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return unsafeKeccak(data.Ids, vm, *execScopes)
 	case UNSAFE_KECCAK_FINALIZE:
 		return unsafeKeccakFinalize(data.Ids, vm)
+	case COMPARE_BYTES_IN_WORD_NONDET:
+		return compareBytesInWordNondet(data.Ids, vm, constants)
 	case IS_NN:
 		return isNN(data.Ids, vm)
 	case IS_NN_OUT_OF_RANGE:

@@ -117,3 +117,15 @@ func unsafeKeccakFinalize(ids IdsManager, vm *VirtualMachine) error {
 	}
 	return ids.Insert("low", NewMaybeRelocatableFelt(low), vm)
 }
+
+func compareBytesInWordNondet(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt) error {
+	nBytes, err := ids.GetFelt("n_bytes", vm)
+	if err != nil {
+		return err
+	}
+	bytesInWord, err := ids.GetConst("BYTES_IN_WORD", constants)
+	if nBytes.Cmp(bytesInWord) == -1 {
+		return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltOne()))
+	}
+	return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltZero()))
+}
