@@ -142,6 +142,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return importSECP256R1P(*execScopes)
 	case EC_DOUBLE_SLOPE_EXTERNAL_CONSTS:
 		return computeDoublingSlopeExternalConsts(*vm, *execScopes, data.Ids)
+	case NONDET_BIGINT3_V1:
+		return NondetBigInt3(*vm, *execScopes, data.Ids)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}

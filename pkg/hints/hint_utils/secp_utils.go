@@ -1,6 +1,9 @@
 package hint_utils
 
-import "math/big"
+import (
+	"errors"
+	"math/big"
+)
 
 func SECP_P() big.Int {
 	secp_p, _ := new(big.Int).SetString("115792089237316195423570985008687907853269984665640564039457584007908834671663", 10)
@@ -25,4 +28,23 @@ func SECP256R1_N() big.Int {
 func SECP256R1_P() big.Int {
 	secp256r1, _ := new(big.Int).SetString("115792089210356248762697446949407573530086143415290314195533631308867097853951", 10)
 	return *secp256r1
+}
+
+func BASE_MINUS_ONE() *big.Int {
+	res, _ := new(big.Int).SetString("77371252455336267181195263", 10)
+	return res
+}
+
+func Bigint3Split(integer big.Int) ([]big.Int, error) {
+	canonical_repr := make([]big.Int, 3)
+	num := integer
+	for i := 0; i < 3; i++ {
+		canonical_repr[i] = *new(big.Int).And(&num, BASE_MINUS_ONE())
+		num.Rsh(&num, 86)
+	}
+	if num.Cmp(big.NewInt(0)) != 0 {
+		return nil, errors.New("HintError SecpSplitOutOfRange")
+	}
+
+	return canonical_repr, nil
 }
