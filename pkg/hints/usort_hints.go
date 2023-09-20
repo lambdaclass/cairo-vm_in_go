@@ -173,3 +173,26 @@ func usort_verify(ids IdsManager, executionScopes *types.ExecutionScopes, vm *Vi
 
 	return nil
 }
+
+// Implements hint:
+// %{ assert len(positions) == 0 %}
+func usort_verify_multiplicity_assert(executionScopes *types.ExecutionScopes) error {
+	positions_interface, err := executionScopes.Get("positions")
+
+	if err != nil {
+		return err
+	}
+
+	positions, cast_ok := positions_interface.([]uint64)
+
+	if !cast_ok {
+		return errors.New("Error casting positions to []uint64")
+	}
+
+	if len(positions) != 0 {
+		return errors.New("unexpected verify multiplicity fail: positions length != 0")
+	}
+
+	return nil
+
+}
