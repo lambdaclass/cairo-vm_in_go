@@ -38,13 +38,13 @@ type RangeCheckBuiltinRunner struct {
 	StopPtr               *uint
 }
 
-func NewRangeCheckBuiltinRunner(ratio uint, nParts uint) *RangeCheckBuiltinRunner {
+func NewRangeCheckBuiltinRunner(ratio uint) *RangeCheckBuiltinRunner {
 
 	return &RangeCheckBuiltinRunner{ratio: ratio, instancesPerComponent: 1}
 }
 
 func DefaultRangeCheckBuiltinRunner() *RangeCheckBuiltinRunner {
-	return NewRangeCheckBuiltinRunner(8, 8)
+	return NewRangeCheckBuiltinRunner(8)
 }
 
 func (r *RangeCheckBuiltinRunner) Base() memory.Relocatable {
