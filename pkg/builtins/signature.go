@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const SIGNATURE_BUILTIN_NAME = "signature"
+const SIGNATURE_BUILTIN_NAME = "ecdsa"
 
 // Notice changing this to any other number breaks the code
 const SIGNATURE_CELLS_PER_INSTANCE = 2
@@ -166,12 +166,11 @@ func (r *SignatureBuiltinRunner) AddValidationRule(mem *memory.Memory) {
 }
 
 // Helper function to AddSignature
-func AddSignature(
-	signatureBuiltin *SignatureBuiltinRunner,
+func (r *SignatureBuiltinRunner) AddSignature(
 	address memory.Relocatable,
 	signature Signature,
 ) {
-	signatureBuiltin.signatures[address] = signature
+	r.signatures[address] = signature
 }
 
 func (runner *SignatureBuiltinRunner) GetMemoryAccesses(manager *memory.MemorySegmentManager) ([]memory.Relocatable, error) {

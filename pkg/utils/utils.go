@@ -1,6 +1,9 @@
 package utils
 
 import (
+	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+
 	"github.com/pkg/errors"
 )
 
@@ -37,4 +40,20 @@ func CheckBuiltinsSubsequence(programBuiltins []string) error {
 		return errors.Errorf("program builtins are not in appropiate order")
 	}
 	return nil
+}
+
+// Creates a new MaybeRelocatable from a uint64 value
+func NewMaybeRelocatableFeltFromUint64(val uint64) *MaybeRelocatable {
+	return NewMaybeRelocatableFelt(FeltFromUint64(val))
+}
+
+func NewMaybeRelocatableRelocatableParams(segment_idx int, offset uint) *MaybeRelocatable {
+	return NewMaybeRelocatableRelocatable(NewRelocatable(segment_idx, offset))
+}
+
+func AddNSegments(segments MemorySegmentManager, nSegments int) MemorySegmentManager {
+	for i := 0; i < nSegments; i++ {
+		segments.AddSegment()
+	}
+	return segments
 }

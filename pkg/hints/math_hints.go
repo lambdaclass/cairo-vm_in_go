@@ -58,6 +58,7 @@ func is_positive(ids IdsManager, vm *VirtualMachine) error {
 //	    assert ids.value % PRIME != 0, f'assert_not_zero failed: {ids.value} = 0.'
 //
 // %}
+
 func assert_not_zero(ids IdsManager, vm *VirtualMachine) error {
 	value, err := ids.GetFelt("value", vm)
 	if err != nil {
@@ -66,6 +67,37 @@ func assert_not_zero(ids IdsManager, vm *VirtualMachine) error {
 	if value.IsZero() {
 		return errors.Errorf("Assertion failed, %s %% PRIME is equal to 0", value.ToHexString())
 	}
+	return nil
+}
+
+func verify_ecdsa_signature(ids IdsManager, vm *VirtualMachine) error {
+	r, err_get_r := ids.GetFelt("signature_r", vm)
+	if err_get_r != nil {
+		return err_get_r
+	}
+
+	s, err_get_s := ids.GetFelt("signature_s", vm)
+	if err_get_s != nil {
+		return err_get_s
+	}
+
+	ecdsa_ptr, err_get_ecdsa := ids.GetAddr("ecdsa_ptr", vm)
+	if err_get_ecdsa != nil {
+		return err_get_ecdsa
+	}
+
+	signature_builtin_interface, err_get_builtin := vm.GetBuiltinRunner(builtins.SIGNATURE_BUILTIN_NAME)
+	if err_get_builtin != nil {
+		return err_get_builtin
+	}
+
+	signature_builtin := (*signature_builtin_interface).(*builtins.SignatureBuiltinRunner)
+
+	signature := builtins.Signature{
+		R: r,
+		S: s,
+	}
+	signature_builtin.AddSignature(ecdsa_ptr, signature)
 	return nil
 }
 
@@ -287,6 +319,7 @@ func assertLtFelt(ids IdsManager, vm *VirtualMachine) error {
 	if a.Cmp(b) != -1 {
 		return errors.Errorf("Assertion failed, a = %s %% PRIME is not less than b = %s %% PRIME", a.ToHexString(), b.ToHexString())
 	}
+
 	return nil
 }
 
@@ -299,33 +332,14 @@ func assertLtFelt(ids IdsManager, vm *VirtualMachine) error {
 //	# Calculation for the assertion.
 //	ids.high, ids.low = divmod(ids.value, ids.SHIFT)
 func Assert250Bit(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt) error {
-	const UPPER_BOUND = "starkware.cairo.common.math.assert_250_bit.UPPER_BOUND"
-	const SHIFT = "starkware.cairo.common.math.assert_250_bit.SHIFT"
-
-	if constants == nil {
-		return errors.New("Called Assert250Bit with a nil constants map")
+	upperBound, err := ids.GetConst("UPPER_BOUND", constants)
+	if err != nil {
+		return err
 	}
 
-	upperBound, ok := (*constants)[UPPER_BOUND]
-
-	if !ok {
-		var err error
-		upperBound, err = GetConstantFromVarName("UPPER_BOUND", constants)
-
-		if err != nil {
-			return err
-		}
-	}
-
-	shift, ok := (*constants)[SHIFT]
-
-	if !ok {
-		var err error
-		shift, err = GetConstantFromVarName("SHIFT", constants)
-
-		if err != nil {
-			return err
-		}
+	shift, err := ids.GetConst("SHIFT", constants)
+	if err != nil {
+		return err
 	}
 
 	value, err := ids.GetFelt("value", vm)
@@ -365,12 +379,12 @@ func Assert250Bit(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt
 //
 // %}
 func SplitFelt(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt) error {
-	maxHigh, err := GetConstantFromVarName("MAX_HIGH", constants)
+	maxHigh, err := ids.GetConst("MAX_HIGH", constants)
 	if err != nil {
 		return err
 	}
 
-	maxLow, err := GetConstantFromVarName("MAX_LOW", constants)
+	maxLow, err := ids.GetConst("MAX_LOW", constants)
 	if err != nil {
 		return err
 	}

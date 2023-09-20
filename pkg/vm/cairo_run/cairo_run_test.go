@@ -123,6 +123,13 @@ func TestAbsValue(t *testing.T) {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
 }
+func TestCommonSignature(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, ProofMode: false, Layout: "all_cairo"}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/common_signature.json", cairoRunConfig)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
 func TestAssertNotZeroHint(t *testing.T) {
 	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, ProofMode: false, Layout: "all_cairo"}
 	_, err := cairo_run.CairoRun("../../../cairo_programs/assert_not_zero.json", cairoRunConfig)
@@ -203,6 +210,13 @@ func TestSqrtHint(t *testing.T) {
 	}
 }
 
+func TestMemcpyHint(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/memcpy_test.json", cairoRunConfig)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
 func TestAssertLeFelt(t *testing.T) {
 	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
 	_, err := cairo_run.CairoRun("../../../cairo_programs/assert_le_felt.json", cairoRunConfig)
@@ -218,10 +232,39 @@ func TestAssertLtFelt(t *testing.T) {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
 }
+func TestMemsetHint(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/memset.json", cairoRunConfig)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
 
+func TestMathCmp(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/math_cmp.json", cairoRunConfig)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
+func TestSquashDict(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "small", ProofMode: false}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/squash_dict.json", cairoRunConfig)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
 func TestAssert250BitHint(t *testing.T) {
 	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
 	_, err := cairo_run.CairoRun("../../../cairo_programs/assert_250_bit_element_array.json", cairoRunConfig)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+}
+
+func TestDictSquash(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "small", ProofMode: false}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/dict_squash.json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
