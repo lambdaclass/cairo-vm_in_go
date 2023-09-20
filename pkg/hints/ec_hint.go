@@ -228,3 +228,15 @@ func importSECP256R1N(exec_scopes types.ExecutionScopes) error {
 	exec_scopes.AssignOrUpdateVariable("N", SECP256R1_N())
 	return nil
 }
+
+/*
+Implements hint:
+%{
+from starkware.cairo.common.cairo_secp.secp256r1_utils import SECP256R1_P as SECP_P
+%}
+*/
+
+func importSECP256R1P(exec_scopes types.ExecutionScopes) error {
+	exec_scopes.AssignOrUpdateVariable("SECP_P", SECP256R1_P())
+	return nil
+}
