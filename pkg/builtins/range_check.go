@@ -56,7 +56,7 @@ func (r *RangeCheckBuiltinRunner) Name() string {
 }
 
 func (r *RangeCheckBuiltinRunner) Bound() lambdaworks.Felt {
-	bound := lambdaworks.FeltOne().Shl(16 * uint64(RANGE_CHECK_N_PARTS))
+	bound := lambdaworks.FeltOne().Shl(INNER_RC_BOUND_SHIFT * RANGE_CHECK_N_PARTS)
 	return bound
 }
 
