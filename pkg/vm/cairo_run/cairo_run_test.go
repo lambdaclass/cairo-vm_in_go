@@ -155,6 +155,10 @@ func TestAssertLeFelt(t *testing.T) {
 	testProgram("assert_le_felt", t)
 }
 
+func TestAssertLtFelt(t *testing.T) {
+	testProgram("assert_lt_felt", t)
+}
+
 func TestMemsetHint(t *testing.T) {
 	testProgram("memset", t)
 }
@@ -184,4 +188,12 @@ func TestDictSquash(t *testing.T) {
 
 func TestSplitFeltHint(t *testing.T) {
 	testProgram("split_felt", t)
+}
+
+func TestSplitIntHint(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
+	_, err := cairo_run.CairoRun("../../../cairo_programs/split_int.json", cairoRunConfig)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
 }

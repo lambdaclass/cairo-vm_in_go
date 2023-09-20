@@ -19,7 +19,7 @@ Implements hint:
 */
 
 func NondetBigInt3(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data IdsManager) error {
-	res_relloc, err := ids_data.GetRelocatable("res", &virtual_machine)
+	res_relloc, err := ids_data.GetAddr("res", &virtual_machine)
 	if err != nil {
 		return err
 	}
