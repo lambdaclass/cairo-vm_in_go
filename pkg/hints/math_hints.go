@@ -352,6 +352,22 @@ func assertLeFeltExcluded2(vm *VirtualMachine, scopes *ExecutionScopes) error {
 	if excluded != 2 {
 		return errors.New("Assertion Failed: excluded == 2")
 	}
+	return nil
+}
+
+func assertLtFelt(ids IdsManager, vm *VirtualMachine) error {
+	// Fetch ids variables
+	a, err := ids.GetFelt("a", vm)
+	if err != nil {
+		return err
+	}
+	b, err := ids.GetFelt("b", vm)
+	if err != nil {
+		return err
+	}
+	if a.Cmp(b) != -1 {
+		return errors.Errorf("Assertion failed, a = %s %% PRIME is not less than b = %s %% PRIME", a.ToHexString(), b.ToHexString())
+	}
 
 	return nil
 }
