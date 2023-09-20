@@ -120,6 +120,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return assertLeFeltExcluded1(vm, execScopes)
 	case ASSERT_LE_FELT_EXCLUDED_2:
 		return assertLeFeltExcluded2(vm, execScopes)
+	case ASSERT_LT_FELT:
+		return assertLtFelt(data.Ids, vm)
 	case IS_NN:
 		return isNN(data.Ids, vm)
 	case IS_NN_OUT_OF_RANGE:

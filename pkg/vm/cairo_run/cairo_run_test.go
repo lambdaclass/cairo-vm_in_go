@@ -155,6 +155,10 @@ func TestAssertLeFelt(t *testing.T) {
 	testProgram("assert_le_felt", t)
 }
 
+func TestAssertLtFelt(t *testing.T) {
+	testProgram("assert_lt_felt", t)
+}
+
 func TestMemsetHint(t *testing.T) {
 	testProgram("memset", t)
 }
