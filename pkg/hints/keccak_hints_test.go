@@ -358,3 +358,34 @@ func TestCompareKeccakFullRateInBytesHintLt(t *testing.T) {
 		t.Error("Wrong/No value inserted into ap")
 	}
 }
+
+func TestBlockPermutationOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	keccak_ptr := vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"keccak_ptr": {NewMaybeRelocatableRelocatable(keccak_ptr.AddUint(25))},
+		},
+		vm,
+	)
+	data := make([]MaybeRelocatable, 0, 25)
+	for i := 0; i < 25; i++ {
+		data = append(data, *NewMaybeRelocatableFelt(FeltZero()))
+	}
+	vm.Segments.LoadData(keccak_ptr, &data)
+	hintProcessor := CairoVmHintProcessor{}
+	constants := SetupConstantsForTest(
+		map[string]Felt{
+			"KECCAK_STATE_SIZE_FELTS": FeltFromUint64(25),
+		},
+		&idsManager)
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: BLOCK_PERMUTATION,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err != nil {
+		t.Errorf("BLOCK_PERMUTATION hint test failed with error %s", err)
+	}
+}
