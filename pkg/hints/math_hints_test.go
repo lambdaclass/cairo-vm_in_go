@@ -1035,3 +1035,106 @@ func TestSplitFeltSuccess(t *testing.T) {
 		t.Errorf("Expected low == 0. Got: %v", low)
 	}
 }
+
+func TestSplitIntHintSuccess(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value":  {NewMaybeRelocatableFelt(FeltFromDecString("6"))},
+			"base":   {NewMaybeRelocatableFelt(FeltFromDecString("4"))},
+			"bound":  {NewMaybeRelocatableFelt(FeltFromDecString("58"))},
+			"output": {NewMaybeRelocatableRelocatable(NewRelocatable(0, 4))},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SPLIT_INT,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("SPLIT_INT hint failed with error %s", err)
+	}
+
+	res, err := vm.Segments.Memory.GetFelt(NewRelocatable(0, 4))
+	if err != nil {
+		t.Errorf("SPLIT_INT hint failed, `res` value not inserted")
+	}
+
+	if res.Cmp(lambdaworks.FeltFromUint64(2)) != 0 {
+		t.Errorf("SPLIT_INT hint failed. Expected 2, got: %d", res.ToBigInt())
+	}
+}
+
+func TestSplitIntHintOutOfBoundsError(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value":  {NewMaybeRelocatableFelt(FeltFromDecString("17"))},
+			"base":   {NewMaybeRelocatableFelt(FeltFromDecString("9"))},
+			"bound":  {NewMaybeRelocatableFelt(FeltFromDecString("5"))},
+			"output": {NewMaybeRelocatableRelocatable(NewRelocatable(0, 4))},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SPLIT_INT,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err == nil {
+		t.Errorf("SPLIT_INT hint should have failed")
+	}
+}
+
+func TestSplitIntAssertRangeHintSuccess(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(FeltFromDecString("0"))},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SPLIT_INT_ASSERT_RANGE,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("SPLIT_INT_ASSERT_RANGE hint failed with error: %s", err)
+	}
+}
+
+func TestSplitIntAssertRangeHintOutOfRangeError(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(FeltFromDecString("3"))},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SPLIT_INT_ASSERT_RANGE,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err == nil {
+		t.Errorf("SPLIT_INT_ASSERT_RANGE hint should have failed")
+	}
+}
