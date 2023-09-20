@@ -39,6 +39,7 @@ type RangeCheckBuiltinRunner struct {
 }
 
 func NewRangeCheckBuiltinRunner(ratio uint) *RangeCheckBuiltinRunner {
+
 	return &RangeCheckBuiltinRunner{ratio: ratio, instancesPerComponent: 1}
 }
 
@@ -52,6 +53,11 @@ func (r *RangeCheckBuiltinRunner) Base() memory.Relocatable {
 
 func (r *RangeCheckBuiltinRunner) Name() string {
 	return RANGE_CHECK_BUILTIN_NAME
+}
+
+func (r *RangeCheckBuiltinRunner) Bound() lambdaworks.Felt {
+	bound := lambdaworks.FeltOne().Shl(INNER_RC_BOUND_SHIFT * RANGE_CHECK_N_PARTS)
+	return bound
 }
 
 func (r *RangeCheckBuiltinRunner) SetBase(value memory.Relocatable) {
