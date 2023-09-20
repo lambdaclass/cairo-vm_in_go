@@ -58,7 +58,7 @@ func TestGetAllocatedMemoryUnitsRangeCheck(t *testing.T) {
 }
 
 func TestGetRangeCheckUsageSuccessfulA(t *testing.T) {
-	var builtin = builtins.NewRangeCheckBuiltinRunner(8)
+	var builtin = builtins.DefaultRangeCheckBuiltinRunner()
 	builtin.Include(true)
 	builtin.SetBase(memory.NewRelocatable(0, 0))
 
@@ -82,7 +82,7 @@ func TestGetRangeCheckUsageSuccessfulA(t *testing.T) {
 }
 
 func TestGetRangeCheckUsageSuccessfulB(t *testing.T) {
-	var builtin = builtins.NewRangeCheckBuiltinRunner(8)
+	var builtin = builtins.DefaultRangeCheckBuiltinRunner()
 	builtin.Include(true)
 	builtin.SetBase(memory.NewRelocatable(0, 0))
 
@@ -106,7 +106,7 @@ func TestGetRangeCheckUsageSuccessfulB(t *testing.T) {
 }
 
 func TestGetRangeCheckUsageSuccessfulC(t *testing.T) {
-	var builtin = builtins.NewRangeCheckBuiltinRunner(8)
+	var builtin = builtins.DefaultRangeCheckBuiltinRunner()
 	builtin.Include(true)
 	builtin.SetBase(memory.NewRelocatable(0, 0))
 
@@ -132,7 +132,7 @@ func TestGetRangeCheckUsageSuccessfulC(t *testing.T) {
 }
 
 func TestGetRangeCheckUsageEmptyMemory(t *testing.T) {
-	var builtin = builtins.NewRangeCheckBuiltinRunner(8)
+	var builtin = builtins.DefaultRangeCheckBuiltinRunner()
 	builtin.Include(true)
 	builtin.SetBase(memory.NewRelocatable(0, 0))
 
@@ -146,5 +146,17 @@ func TestGetRangeCheckUsageEmptyMemory(t *testing.T) {
 
 	if resultMax != nil {
 		t.Errorf("rcMax should return nil, got %d", *resultMax)
+	}
+}
+
+// Range check bound is calculated via the constant RANGE_CHECK_N_PARTS.
+// If something changes and the bound is set to zero, there could be unexpected errors.
+func TestBoundIsNotZero(t *testing.T) {
+	rangeCheck := builtins.DefaultRangeCheckBuiltinRunner()
+
+	bound := rangeCheck.Bound()
+
+	if bound.IsZero() {
+		t.Error("range check bound should never be zero")
 	}
 }

@@ -626,3 +626,17 @@ func (vm *VirtualMachine) GetBuiltinRunner(builtinName string) (*builtins.Builti
 	}
 	return nil, &VirtualMachineError{"BuiltinNotFound"}
 }
+
+func (vm *VirtualMachine) GetRangeCheckBound() (lambdaworks.Felt, error) {
+	builtin, err := vm.GetBuiltinRunner("range_check")
+	if err != nil {
+		return lambdaworks.FeltZero(), err
+	}
+
+	rcBuiltin, ok := (*builtin).(*builtins.RangeCheckBuiltinRunner)
+	if !ok {
+		return lambdaworks.FeltZero(), errors.New("could not cast to RangeCheckBuiltinRunner")
+	}
+
+	return rcBuiltin.Bound(), nil
+}
