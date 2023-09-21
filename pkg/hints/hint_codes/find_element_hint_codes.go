@@ -1,4 +1,4 @@
-package hints
+package hint_codes
 
 const FIND_ELEMENT = `array_ptr = ids.array_ptr
 elm_size = ids.elm_size
