@@ -215,7 +215,7 @@ func cairoKeccakFinalize(ids IdsManager, vm *VirtualMachine, constants *map[stri
 	for i := 0; i < KECCAK_SIZE; i++ {
 		padding = append(padding, *NewMaybeRelocatableFelt(FeltFromUint64(input[i])))
 	}
-	for i := 0; i < int(blockSize); i++ {
+	for i := 0; i < int(blockSize-1); i++ {
 		padding = append(padding, padding[:50]...)
 	}
 	keccakEndPtr, err := ids.GetRelocatable("keccak_ptr_end", vm)
