@@ -37,11 +37,11 @@ func TestUint256AddCarryLow0(t *testing.T) {
 		map[string][]*MaybeRelocatable{
 			"a": {
 				NewMaybeRelocatableFelt(flag.Sub(FeltFromUint64(5))),
-				NewMaybeRelocatableFelt(FeltZero()),
+				nil,
 			},
 			"b": {
 				NewMaybeRelocatableFelt(FeltFromUint64(4)),
-				NewMaybeRelocatableFelt(FeltZero()),
+				nil,
 			},
 			"carry_low": {
 				nil,
@@ -56,7 +56,7 @@ func TestUint256AddCarryLow0(t *testing.T) {
 	)
 	hintData := any(HintData{
 		Ids:  idsManager,
-		Code: UINT256_ADD,
+		Code: UINT256_ADD_LOW,
 	})
 	scopes := NewExecutionScopes()
 	hintProcessor := CairoVmHintProcessor{}
@@ -99,11 +99,11 @@ func TestUint256AddCarryLow1(t *testing.T) {
 		map[string][]*MaybeRelocatable{
 			"a": {
 				NewMaybeRelocatableFelt(flag),
-				NewMaybeRelocatableFelt(FeltOne()),
+				nil,
 			},
 			"b": {
 				NewMaybeRelocatableFelt(FeltZero()),
-				NewMaybeRelocatableFelt(FeltOne()),
+				nil,
 			},
 			"carry_low": {
 				nil,
@@ -118,7 +118,7 @@ func TestUint256AddCarryLow1(t *testing.T) {
 	)
 	hintData := any(HintData{
 		Ids:  idsManager,
-		Code: UINT256_ADD,
+		Code: UINT256_ADD_LOW,
 	})
 	scopes := NewExecutionScopes()
 	hintProcessor := CairoVmHintProcessor{}

@@ -140,6 +140,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return splitIntAssertRange(data.Ids, vm)
 	case UINT256_ADD:
 		return uint256Add(data.Ids, execScopes, vm, false)
+	case UINT256_ADD_LOW:
+		return uint256Add(data.Ids, execScopes, vm, true)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
