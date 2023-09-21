@@ -5,6 +5,7 @@ import (
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/types"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
@@ -38,6 +39,31 @@ func TestUsortWithMaxSize(t *testing.T) {
 
 	if usort_max_size != uint64(1) {
 		t.Errorf("Error assigning usort_max_size")
+	}
+
+}
+func TestUsortOutOfRange(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("usort_max_size", uint64(1))
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"input":     {NewMaybeRelocatableRelocatable(NewRelocatable(2, 1))},
+			"input_len": {NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(5))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: USORT_BODY,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err == nil {
+		t.Errorf("USORT_BODY hint should have failed")
 	}
 
 }
