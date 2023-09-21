@@ -114,3 +114,20 @@ func ecNegateEmbeddedSecpP(virtual_machine vm.VirtualMachine, exec_scopes types.
 	secp_p.Sub(secp_p, big.NewInt(19))
 	return ecNegate(virtual_machine, exec_scopes, ids_data, *secp_p)
 }
+
+/*
+Implements hint:
+%{ memory[ap] = (ids.scalar % PRIME) % 2 %}
+*/
+func ecMulInner(virtualMachine *vm.VirtualMachine, ids hint_utils.IdsManager) error {
+	scalar, err := ids.GetFelt("scalar", virtualMachine)
+
+	if err != nil {
+		return err
+	}
+
+	result := scalar.And(lambdaworks.FeltOne())
+	virtualMachine.Segments.Memory.Insert(virtualMachine.RunContext.Ap, memory.NewMaybeRelocatableFelt(result))
+
+	return nil
+}
