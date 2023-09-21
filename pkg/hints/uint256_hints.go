@@ -29,20 +29,46 @@ Implements hints:
 
 func uint256Add(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine, lowOnly bool) error {
 	shift := FeltOne().Shl(128)
-	a, err := ids.GetStructField("a", vm)
-	b, err := ids.GetUint256("b", vm)
-	aLow := a.low
-	bLow := b.low
-	sumLow := aLow.Add(bLow)
-	carryLow := FeltFromUint64(sumLow >= shift)
-	if !lowOnly {
-		aHigh := a.high
-		bHigh := b.high
-		sumHigh := aHigh.Add(bHigh.Add(carryLow))
-		carryHigh := FeltFromUint64(sumHigh >= sumHigh)
-		ids.InsertStructField("carry_high")
+	aLow, err := ids.GetStructFieldFelt("a", 0, vm)
+	if err != nil {
+		return err
 	}
 
-	ids.InsertStructField("carry_low")
+	bLow, err := ids.GetStructFieldFelt("b", 0, vm)
+	if err != nil {
+		return err
+	}
+
+	sumLow := aLow.Add(bLow)
+	var carryLow Felt
+	switch sumLow.Cmp(shift) {
+	case -1:
+		carryLow = FeltZero()
+	default:
+		carryLow = FeltOne()
+	}
+
+	if !lowOnly {
+		aHigh, err := ids.GetStructFieldFelt("a", 1, vm)
+		if err != nil {
+			return err
+		}
+		bHigh, err := ids.GetStructFieldFelt("b", 1, vm)
+		if err != nil {
+			return err
+		}
+
+		sumHigh := aHigh.Add(bHigh.Add(carryLow))
+		var carryHigh Felt
+		switch sumHigh.Cmp(shift) {
+		case -1:
+			carryHigh = FeltZero()
+		default:
+			carryHigh = FeltOne()
+		}
+		ids.Insert("carry_high", NewMaybeRelocatableFelt(carryHigh), vm)
+	}
+
+	return ids.Insert("carry_low", NewMaybeRelocatableFelt(carryLow), vm)
 
 }
