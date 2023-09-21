@@ -45,6 +45,20 @@ func BigInt3FromBaseAddr(addr memory.Relocatable, vm VirtualMachine) (BigInt3, e
 	return BigInt3{Limbs: limbs}, nil
 }
 
+func BigInt3FromVarName(name string, ids IdsManager, vm *VirtualMachine) (BigInt3, error) {
+	bigIntAddr, err := ids.GetAddr(name, vm)
+	if err != nil {
+		return BigInt3{}, err
+	}
+
+	bigInt, err := BigInt3FromBaseAddr(bigIntAddr, *vm)
+	if err != nil {
+		return BigInt3{}, err
+	}
+
+	return bigInt, err
+}
+
 func EcPointFromVarName(name string, vm VirtualMachine, idsData IdsManager) (EcPoint, error) {
 	pointAddr, err := idsData.GetAddr(name, &vm)
 	if err != nil {
@@ -209,3 +223,95 @@ func computeSlope(vm VirtualMachine, execScopes ExecutionScopes, idsData IdsMana
 
 	return nil
 }
+
+/*
+Implements hint:
+
+	%{
+		from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
+
+		slope = pack(ids.slope, PRIME)
+		x0 = pack(ids.point0.x, PRIME)
+		x1 = pack(ids.point1.x, PRIME)
+		y0 = pack(ids.point0.y, PRIME)
+
+		value = new_x = (pow(slope, 2, SECP_P) - x0 - x1) % SECP_P"
+	%}
+*/
+func fastEcAddAssignNewX(ids IdsManager, vm *VirtualMachine, execScopes *ExecutionScopes, point0Alias string, point1Alias string, secpP big.Int) error {
+	execScopes.AssignOrUpdateVariable("SECP_P", secpP)
+
+	point0, err := EcPointFromVarName(point0Alias, *vm, ids)
+	if err != nil {
+		return err
+	}
+
+	point1, err := EcPointFromVarName(point1Alias, *vm, ids)
+	if err != nil {
+		return err
+	}
+
+	slopeUnpacked, err := BigInt3FromVarName("slope", ids, vm)
+	if err != nil {
+		return err
+	}
+
+	slope := slopeUnpacked.Pack86()
+	slope = *new(big.Int).Mod(&slope, &secpP)
+
+	x0 := point0.X.Pack86()
+	x0 = *new(big.Int).Mod(&x0, &secpP)
+
+	x1 := point1.X.Pack86()
+	x1 = *new(big.Int).Mod(&x1, &secpP)
+
+	y0 := point0.Y.Pack86()
+	y0 = *new(big.Int).Mod(&y0, &secpP)
+
+	slopeSquared := new(big.Int).Mul(&slope, &slope)
+	x0PlusX1 := new(big.Int).Add(&x0, &x1)
+
+	value := new(big.Int).Sub(slopeSquared, x0PlusX1)
+	value = new(big.Int).Mod(value, &secpP)
+
+	execScopes.AssignOrUpdateVariable("slope", slope)
+	execScopes.AssignOrUpdateVariable("x0", x0)
+	execScopes.AssignOrUpdateVariable("y0", y0)
+	execScopes.AssignOrUpdateVariable("value", value)
+	execScopes.AssignOrUpdateVariable("new_x", value)
+
+	return nil
+}
+
+// pub fn fast_ec_add_assign_new_x(
+//     vm: &mut VirtualMachine,
+//     exec_scopes: &mut ExecutionScopes,
+//     ids_data: &HashMap<String, HintReference>,
+//     ap_tracking: &ApTracking,
+//     secp_p: &BigInt,
+//     point0_alias: &str,
+//     point1_alias: &str,
+// ) -> Result<(), HintError> {
+//     exec_scopes.insert_value("SECP_P", secp_p.clone());
+//     //ids.slope
+//     let slope = BigInt3::from_var_name("slope", vm, ids_data, ap_tracking)?;
+//     //ids.point0
+//     let point0 = EcPoint::from_var_name(point0_alias, vm, ids_data, ap_tracking)?;
+//     //ids.point1.x
+//     let point1 = EcPoint::from_var_name(point1_alias, vm, ids_data, ap_tracking)?;
+
+//     let slope = slope.pack86().mod_floor(secp_p);
+//     let x0 = point0.x.pack86().mod_floor(secp_p);
+//     let x1 = point1.x.pack86().mod_floor(secp_p);
+//     let y0 = point0.y.pack86().mod_floor(secp_p);
+
+//     let value = (&slope * &slope - &x0 - &x1).mod_floor(secp_p);
+//     //Assign variables to vm scope
+//     exec_scopes.insert_value("slope", slope);
+//     exec_scopes.insert_value("x0", x0);
+//     exec_scopes.insert_value("y0", y0);
+//     exec_scopes.insert_value("value", value.clone());
+//     exec_scopes.insert_value("new_x", value);
+
+//     Ok(())
+// }
