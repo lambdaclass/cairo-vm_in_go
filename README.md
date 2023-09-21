@@ -2724,16 +2724,17 @@ while true:
     pass
 ```
 
-and grind the network down to a halt, as nodes get stuck executing an infinite loop when calling the contract. 
+and grind the network down to a halt, as nodes get stuck executing an infinite loop when calling the contract.
 
 To address this, the starknet network maintains a list of *whitelisted* hints, which are the only ones that can be used in starknet contracts. These are the ones implemented in this VM.
 
 #### Implementing Hints
 
-Hints are essentially logic that is executed in each cairo step, before the next instruction, and which may interact and modify the vm. We will first look into the broad execution loop and the dive into the different types of interaction hints can have with the vm.
+Hints are essentially logic that is executed in each cairo step, before the next instruction, and which may interact with and modify the vm. We will first look into the broad execution loop and the dive into the different types of interaction hints can have with the vm.
 While the original cairo-lang implementation executes these hints in python, we will instead be implementing their logic in go and matching each string of python code to a function in the vm's code. We will also be using an interface to abstract the hint processing part of the vm and allow greater flexibility when using the vm in other contexts.
 
-##### The HintProcessor trait
+##### The HintProcessor interface
+
 This `HintProcessor` interface will consist of two methods: `CompileHint`, which receives hint data from the compiled program and transforms it into whatever format is more convenient for hint execution, and `ExecuteHint`, which will receive this data and use it to execute the hint.
 
 ```go
