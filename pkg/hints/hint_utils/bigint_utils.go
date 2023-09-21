@@ -51,6 +51,29 @@ func limbsPack(limbs []Felt) big.Int {
 	return *sum
 }
 
+func limbsInsertFromVarName(limbs []Felt, name string, ids IdsManager, vm *VirtualMachine) error {
+	baseAddr, err := ids.GetAddr(name, vm)
+	if err != nil {
+		return err
+	}
+	for i := 0; i < len(limbs); i++ {
+		err = vm.Segments.Memory.Insert(baseAddr.AddUint(uint(i)), NewMaybeRelocatableFelt(limbs[i]))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func splitIntoLimbs(num *big.Int, numLimbs int) []Felt {
+	limbs := make([]Felt, 0, numLimbs)
+	bitmask := new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 128), big.NewInt(1))
+	for i := 0; i < numLimbs; i++ {
+		limbs[i] = FeltFromBigInt(new(big.Int).Lsh(new(big.Int).And(num, bitmask), 128))
+	}
+	return limbs
+}
+
 // Concrete type definitions
 
 // BigInt3
