@@ -55,13 +55,13 @@ func TestRunEcNegateOk(t *testing.T) {
 		Ids:  idsManager,
 		Code: EC_NEGATE,
 	})
-	exec_scopes := types.NewExecutionScopes()
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil, exec_scopes)
+	execScopes := types.NewExecutionScopes()
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, execScopes)
 	if err != nil {
 		t.Errorf("Ec Negative hint test failed with error %s", err)
 	} else {
 		// Check ids.is_positive
-		value, err := exec_scopes.Get("value")
+		value, err := execScopes.Get("value")
 		val := value.(*big.Int)
 		expected, _ := new(big.Int).SetString("115792089237316195423569751828682367333329274433232027476421668138471189901786", 10)
 
@@ -127,4 +127,110 @@ func TestRunEcEmbeddedSecpOk(t *testing.T) {
 		}
 	}
 
+}
+
+func TestComputeDoublingSlopeOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+
+	vm.RunContext.Fp = NewRelocatable(1, 1)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"point": {
+				NewMaybeRelocatableFelt(FeltFromUint64(614323)),
+				NewMaybeRelocatableFelt(FeltFromUint64(5456867)),
+				NewMaybeRelocatableFelt(FeltFromUint64(101208)),
+				NewMaybeRelocatableFelt(FeltFromUint64(773712524)),
+				NewMaybeRelocatableFelt(FeltFromUint64(77371252)),
+				NewMaybeRelocatableFelt(FeltFromUint64(5298795)),
+			},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: EC_DOUBLE_SLOPE_V1,
+	})
+
+	exec_scopes := types.NewExecutionScopes()
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, exec_scopes)
+	if err != nil {
+		t.Errorf("EC_DOUBLE_SLOPE_V1 hint test failed with error %s", err)
+	} else {
+		value, _ := exec_scopes.Get("value")
+		val := value.(big.Int)
+
+		slope_res, _ := exec_scopes.Get("slope")
+		slope := slope_res.(big.Int)
+
+		// expected values
+		expectedVal, _ := new(big.Int).SetString("40442433062102151071094722250325492738932110061897694430475034100717288403728", 10)
+
+		expectedSlope, _ := new(big.Int).SetString("40442433062102151071094722250325492738932110061897694430475034100717288403728", 10)
+
+		if expectedVal.Cmp(&val) != 0 || expectedSlope.Cmp(&slope) != 0 {
+			t.Errorf("EC_DOUBLE_SLOPE_V1 hint test incorrect value for exec_scopes.value or exec_scopes.slope")
+		}
+	}
+}
+
+func TestRunComputeSlopeOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+
+	vm.RunContext.Fp = NewRelocatable(1, 14)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"point0": {
+				NewMaybeRelocatableFelt(FeltFromUint64(134)),
+				NewMaybeRelocatableFelt(FeltFromUint64(5123)),
+				NewMaybeRelocatableFelt(FeltFromUint64(140)),
+				NewMaybeRelocatableFelt(FeltFromUint64(1232)),
+				NewMaybeRelocatableFelt(FeltFromUint64(4652)),
+				NewMaybeRelocatableFelt(FeltFromUint64(720)),
+			},
+			"point1": {
+				NewMaybeRelocatableFelt(FeltFromUint64(156)),
+				NewMaybeRelocatableFelt(FeltFromUint64(6545)),
+				NewMaybeRelocatableFelt(FeltFromUint64(100010)),
+				NewMaybeRelocatableFelt(FeltFromUint64(1123)),
+				NewMaybeRelocatableFelt(FeltFromUint64(1325)),
+				NewMaybeRelocatableFelt(FeltFromUint64(910)),
+			},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: COMPUTE_SLOPE_V1,
+	})
+
+	execScopes := types.NewExecutionScopes()
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, execScopes)
+	if err != nil {
+		t.Errorf("EC_DOUBLE_SLOPE_V1 hint test failed with error %s", err)
+	} else {
+		value, _ := execScopes.Get("value")
+		val := value.(big.Int)
+
+		slope_res, _ := execScopes.Get("slope")
+		slope := slope_res.(big.Int)
+
+		// expected values
+		expectedVal, _ := new(big.Int).SetString("41419765295989780131385135514529906223027172305400087935755859001910844026631", 10)
+
+		expectedSlope, _ := new(big.Int).SetString("41419765295989780131385135514529906223027172305400087935755859001910844026631", 10)
+
+		if expectedVal.Cmp(&val) != 0 || expectedSlope.Cmp(&slope) != 0 {
+			t.Errorf("EC_DOUBLE_SLOPE_V1 hint test incorrect value for exec_scopes.value or exec_scopes.slope")
+		}
+	}
 }
