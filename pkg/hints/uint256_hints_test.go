@@ -263,3 +263,49 @@ func TestUint256AddCarryHigh1(t *testing.T) {
 		t.Errorf("expected carry_low: 1, got: %s", carry_high.ToSignedFeltString())
 	}
 }
+
+func TestSplit64Ok(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"a": {
+				NewMaybeRelocatableFelt(FeltFromDecString("-3")),
+			},
+			"low":  {nil},
+			"high": {nil},
+		},
+		vm,
+	)
+
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SPLIT_64,
+	})
+	scopes := NewExecutionScopes()
+	hintProcessor := CairoVmHintProcessor{}
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+
+	low, err := idsManager.GetFelt("low", vm)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+	expected_low := FeltFromDecString("-3").And(FeltOne().Shl(64).Sub(FeltOne()))
+	if low != expected_low {
+		t.Errorf("expected low: %d, got: %d", expected_low, low)
+	}
+
+	high, err := idsManager.GetFelt("high", vm)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+	expected_high := FeltFromDecString("-3").Shr(64)
+	if high != expected_high {
+		t.Errorf("expected high: %d, got: %d", expected_high, high)
+	}
+
+}

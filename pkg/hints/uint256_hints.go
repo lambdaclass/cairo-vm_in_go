@@ -3,7 +3,6 @@ package hints
 import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
-	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
@@ -27,7 +26,7 @@ Implements hints:
 %}
 */
 
-func uint256Add(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine, lowOnly bool) error {
+func uint256Add(ids IdsManager, vm *VirtualMachine, lowOnly bool) error {
 	shift := FeltOne().Shl(128)
 	aLow, err := ids.GetStructFieldFelt("a", 0, vm)
 	if err != nil {
@@ -70,5 +69,34 @@ func uint256Add(ids IdsManager, scopes *ExecutionScopes, vm *VirtualMachine, low
 	}
 
 	return ids.Insert("carry_low", NewMaybeRelocatableFelt(carryLow), vm)
+
+}
+
+/*
+Implements hint:
+
+	%{
+	    ids.low = ids.a & ((1<<64) - 1)
+	    ids.high = ids.a >> 64
+
+%}
+*/
+func split64(ids IdsManager, vm *VirtualMachine) error {
+	a, err := ids.GetFelt("a", vm)
+	if err != nil {
+		return err
+	}
+	flag := (FeltOne().Shl(64)).Sub(FeltOne()) // (1 << 64) - 1
+	low := a.And(flag)
+	high := a.Shr(64) // a >> 64
+	err = ids.Insert("low", NewMaybeRelocatableFelt(low), vm)
+	if err != nil {
+		return err
+	}
+	err = ids.Insert("high", NewMaybeRelocatableFelt(high), vm)
+	if err != nil {
+		return err
+	}
+	return nil
 
 }
