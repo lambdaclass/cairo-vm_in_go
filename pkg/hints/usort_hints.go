@@ -33,11 +33,8 @@ func usort_enter_scope(executionScopes *types.ExecutionScopes) error {
 	usort_max_size, err := executionScopes.Get("usort_max_size")
 
 	if err != nil {
-		return err
-	}
-
-	if usort_max_size == nil {
 		executionScopes.EnterScope(make(map[string]interface{}))
+		return nil
 	}
 
 	usort_max_size_felt, cast_ok := usort_max_size.(lambdaworks.Felt)
@@ -54,7 +51,8 @@ func usort_enter_scope(executionScopes *types.ExecutionScopes) error {
 }
 
 func usort_body(ids IdsManager, executionScopes *types.ExecutionScopes, vm *VirtualMachine) error {
-	input_ptr, err := ids.GetAddr("input", vm)
+
+	input_ptr, err := ids.GetRelocatable("input", vm)
 	if err != nil {
 		return err
 	}
@@ -72,23 +70,22 @@ func usort_body(ids IdsManager, executionScopes *types.ExecutionScopes, vm *Virt
 
 	usort_max_size, err := executionScopes.Get("usort_max_size")
 
-	if err != nil {
-		return err
-	}
+	if err == nil {
+		usort_max_size_u64, cast_ok := usort_max_size.(uint64)
 
-	usort_max_size_u64, cast_ok := usort_max_size.(uint64)
+		if !cast_ok {
+			return errors.New("Error casting usort_max_size into a uint64")
+		}
 
-	if !cast_ok {
-		return errors.New("Error casting usort_max_size into a uint64")
-	}
-
-	if input_len_u64 > usort_max_size_u64 {
-		return errors.New(fmt.Sprintf("usort() can only be used with input_len<= %v. Got: input_len=%v.", usort_max_size_u64, input_len_u64))
+		if input_len_u64 > usort_max_size_u64 {
+			return errors.New(fmt.Sprintf("usort() can only be used with input_len<= %v. Got: input_len=%v.", usort_max_size_u64, input_len_u64))
+		}
 	}
 
 	positions_dict := make(map[lambdaworks.Felt][]uint64)
 
-	for i := uint64(0); i == input_len_u64; i++ {
+	for i := uint64(0); i < input_len_u64; i++ {
+
 		val, err := vm.Segments.Memory.GetFelt(input_ptr.AddUint(uint(i)))
 
 		if err != nil {
@@ -140,7 +137,8 @@ func usort_body(ids IdsManager, executionScopes *types.ExecutionScopes, vm *Virt
 //  %}
 
 func usort_verify(ids IdsManager, executionScopes *types.ExecutionScopes, vm *VirtualMachine) error {
-	executionScopes.AssignOrUpdateVariable("last_pos", lambdaworks.FeltZero())
+
+	executionScopes.AssignOrUpdateVariable("last_pos", uint64(0))
 
 	positions_dict_interface, err := executionScopes.Get("positions_dict")
 
@@ -177,6 +175,7 @@ func usort_verify(ids IdsManager, executionScopes *types.ExecutionScopes, vm *Vi
 // Implements hint:
 // %{ assert len(positions) == 0 %}
 func usort_verify_multiplicity_assert(executionScopes *types.ExecutionScopes) error {
+
 	positions_interface, err := executionScopes.Get("positions")
 
 	if err != nil {
