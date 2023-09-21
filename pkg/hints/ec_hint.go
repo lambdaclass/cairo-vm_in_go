@@ -46,17 +46,17 @@ func BigInt3FromBaseAddr(addr memory.Relocatable, vm VirtualMachine) (BigInt3, e
 }
 
 func EcPointFromVarName(name string, vm VirtualMachine, idsData IdsManager) (EcPoint, error) {
-	point_addr, err := idsData.GetAddr(name, &vm)
+	pointAddr, err := idsData.GetAddr(name, &vm)
 	if err != nil {
 		return EcPoint{}, err
 	}
 
-	x, err := BigInt3FromBaseAddr(point_addr, vm)
+	x, err := BigInt3FromBaseAddr(pointAddr, vm)
 	if err != nil {
 		return EcPoint{}, err
 	}
 
-	y, err := BigInt3FromBaseAddr(point_addr.AddUint(3), vm)
+	y, err := BigInt3FromBaseAddr(pointAddr.AddUint(3), vm)
 	if err != nil {
 		return EcPoint{}, err
 	}
@@ -78,12 +78,12 @@ func ecNegate(vm VirtualMachine, execScopes ExecutionScopes, idsData IdsManager,
 		return err
 	}
 
-	y_bigint3, err := BigInt3FromBaseAddr(pointY, vm)
+	yBigint3, err := BigInt3FromBaseAddr(pointY, vm)
 	if err != nil {
 		return err
 	}
 
-	y := y_bigint3.Pack86()
+	y := yBigint3.Pack86()
 	value := new(big.Int).Neg(&y)
 	value.Mod(value, &secpP)
 
@@ -93,8 +93,8 @@ func ecNegate(vm VirtualMachine, execScopes ExecutionScopes, idsData IdsManager,
 }
 
 func ecNegateImportSecpP(vm VirtualMachine, execScopes ExecutionScopes, idsData IdsManager) error {
-	secp_p, _ := new(big.Int).SetString("115792089237316195423570985008687907853269984665640564039457584007908834671663", 10)
-	return ecNegate(vm, execScopes, idsData, *secp_p)
+	secpP, _ := new(big.Int).SetString("115792089237316195423570985008687907853269984665640564039457584007908834671663", 10)
+	return ecNegate(vm, execScopes, idsData, *secpP)
 }
 
 /*
@@ -140,9 +140,9 @@ func computeDoublingSlope(vm VirtualMachine, execScopes ExecutionScopes, idsData
 
 	x := point.X.Pack86()
 	y := point.Y.Pack86()
-	double_point := builtins.DoublePointB{X: x, Y: y}
+	doublePoint := builtins.DoublePointB{X: x, Y: y}
 
-	value, err := builtins.EcDoubleSlope(double_point, alpha, SecpP)
+	value, err := builtins.EcDoubleSlope(doublePoint, alpha, SecpP)
 	if err != nil {
 		return err
 	}
@@ -168,26 +168,26 @@ Implements hint:
 %}
 */
 
-func computeSlopeAndAssingSecpP(vm VirtualMachine, execScopes ExecutionScopes, idsData IdsManager, point0Alias string, point1Alias string, secp_p big.Int) error {
-	execScopes.AssignOrUpdateVariable("SECP_P", secp_p)
+func computeSlopeAndAssingSecpP(vm VirtualMachine, execScopes ExecutionScopes, idsData IdsManager, point0Alias string, point1Alias string, secpP big.Int) error {
+	execScopes.AssignOrUpdateVariable("SECP_P", secpP)
 	return computeSlope(vm, execScopes, idsData, point0Alias, point1Alias)
 }
 
-func computeSlope(vm VirtualMachine, execScopes ExecutionScopes, idsData IdsManager, point0_alias string, point1_alias string) error {
-	point0, err := EcPointFromVarName(point0_alias, vm, idsData)
+func computeSlope(vm VirtualMachine, execScopes ExecutionScopes, idsData IdsManager, point0Alias string, point1Alias string) error {
+	point0, err := EcPointFromVarName(point0Alias, vm, idsData)
 	if err != nil {
 		return err
 	}
-	point1, err := EcPointFromVarName(point1_alias, vm, idsData)
+	point1, err := EcPointFromVarName(point1Alias, vm, idsData)
 	if err != nil {
 		return err
 	}
 
-	secp_p, err := execScopes.Get("SECP_P")
+	secpP, err := execScopes.Get("SECP_P")
 	if err != nil {
 		return err
 	}
-	secp := secp_p.(big.Int)
+	secp := secpP.(big.Int)
 
 	// build partial sum
 	x0 := point0.X.Pack86()
