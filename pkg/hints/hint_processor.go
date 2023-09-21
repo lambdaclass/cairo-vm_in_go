@@ -134,6 +134,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return assertLeFeltExcluded1(vm, execScopes)
 	case ASSERT_LE_FELT_EXCLUDED_2:
 		return assertLeFeltExcluded2(vm, execScopes)
+	case ASSERT_LT_FELT:
+		return assertLtFelt(data.Ids, vm)
 	case IS_NN:
 		return isNN(data.Ids, vm)
 	case IS_NN_OUT_OF_RANGE:
@@ -144,6 +146,10 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return Assert250Bit(data.Ids, vm, constants)
 	case SPLIT_FELT:
 		return SplitFelt(data.Ids, vm, constants)
+	case SPLIT_INT:
+		return splitInt(data.Ids, vm)
+	case SPLIT_INT_ASSERT_RANGE:
+		return splitIntAssertRange(data.Ids, vm)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
