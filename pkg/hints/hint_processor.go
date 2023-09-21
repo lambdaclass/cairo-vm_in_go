@@ -112,6 +112,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return computeDoublingSlope(*vm, *execScopes, data.Ids, "point", SECP_P(), ALPHA())
 	case UNSAFE_KECCAK:
 		return unsafeKeccak(data.Ids, vm, *execScopes)
+	case UNSAFE_KECCAK_FINALIZE:
+		return unsafeKeccakFinalize(data.Ids, vm)
 	case UNSIGNED_DIV_REM:
 		return unsignedDivRem(data.Ids, vm)
 	case SIGNED_DIV_REM:
