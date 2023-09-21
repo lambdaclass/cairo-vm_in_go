@@ -2825,7 +2825,27 @@ Before we implement the `CompileHint` method, lets look at this crucial part of 
 
 ###### Hint Interaction: Ids
 
+Ids are hint's way to interact with variables in a cairo program. For example, if I declare a variable `n` in my cairo code, I can access that `n` variable inside a hint using `ids.n`.
+
+The following cairo snippet would print the number 17
+```py
+    let n = 17
+    %{ print(ids.n) %}
+```
+
+In order to access these variables when implementing our hints in go we will implement the `IdsManager`, which will allow us to read and write cairo variables.
+But interacting with cairo variables is not as easy as it sounds, in order to access them, we must first compute their address from a `Reference`
+
+*References*
+
+As cairo variables are created during the vm's execution, we can't know their value beforehand. In order to solve this, the compiled program provides us with references for cairo variables available to hints. This references are instructions on where we can find a specific cairo variable in memory. For example, they might tell us to take the current valye of FP register, substract 1 from it, and access the value at that new address.
+To be continued...
+*Computing addresses using References*
+*Implement the IdsManager*
+
 ##### Implementing a HintProcessor: CompileHint
+
+TODO
 
 The `CompileHint` method will be in charge of converting the hint-related data from the compiled json into a format that our processor can use to execute each hint. For our `CairoVmHintProcessor` we will use the following struct:
 
