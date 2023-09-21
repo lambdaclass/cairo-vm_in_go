@@ -21,10 +21,7 @@ func (s SortFelt) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 func (s SortFelt) Less(i, j int) bool {
 	a, b := s[i], s[j]
 
-	if a.Cmp(b) == -1 {
-		return true
-	}
-	return false
+	return a.Cmp(b) == -1
 }
 
 // Implements hint:
