@@ -24,7 +24,7 @@ func TestSetAddElmInSet(t *testing.T) {
 		map[string][]*MaybeRelocatable{
 			"elm_ptr":       {NewMaybeRelocatableRelocatable(NewRelocatable(1, 0))},
 			"set_ptr":       {NewMaybeRelocatableRelocatable(NewRelocatable(1, 1))},
-			"set_end_ptr":   {NewMaybeRelocatableRelocatable(NewRelocatable(1, 3))},
+			"set_end_ptr":   {NewMaybeRelocatableRelocatable(NewRelocatable(1, 4))},
 			"elm_size":      {NewMaybeRelocatableFelt(FeltFromUint64(1))},
 			"index":         {nil},
 			"is_elm_in_set": {nil},

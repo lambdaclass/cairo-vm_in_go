@@ -151,12 +151,16 @@ func (m *Memory) GetFelt(addr Relocatable) (lambdaworks.Felt, error) {
 }
 
 // Get a range of memory from the starting relocatable to the starting relocatable + size
-func (m *Memory) GetRange(start Relocatable, size uint) []MaybeRelocatable {
+func (m *Memory) GetRange(start Relocatable, size uint) ([]MaybeRelocatable, error) {
+	_, ok := m.Data[start.AddUint(size-1)]
+	if !ok {
+		return nil, errors.Errorf("Range out of bounds, cell %v is not present in Memory", start.AddUint(size-1))
+	}
 	var res []MaybeRelocatable
 	for i := uint(0); i < size; i++ {
 		res = append(res, m.Data[start.AddUint(i)])
 	}
-	return res
+	return res, nil
 }
 
 // Adds a validation rule for a given segment

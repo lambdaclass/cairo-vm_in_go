@@ -94,11 +94,11 @@ func (felt Felt) ToU64() (uint64, error) {
 
 // turns a felt to usize
 func (felt Felt) ToUint() (uint, error) {
-	if felt.limbs[0] == 0 && felt.limbs[1] == 0 && felt.limbs[2] == 0 {
-		return uint(felt.limbs[3]), nil
-	} else {
+	felt_u64, err := felt.ToU64()
+	if err != nil {
 		return 0, ConversionError(felt, "uint")
 	}
+	return uint(felt_u64), nil
 }
 
 func (felt Felt) ToLeBytes() *[32]byte {
