@@ -2731,14 +2731,26 @@ To address this, the starknet network maintains a list of *whitelisted* hints, w
 #### Implementing Hints
 
 Hints are essentially logic that is executed in each cairo step, before the next instruction, and which may interact and modify the vm. We will first look into the broad execution loop and the dive into the different types of interaction hints can have with the vm.
-While the original cairo-lang implementation executes these hints in python, we will instead be implementing their logic in go and matching each string of python code to a function in the vm's code. We will also be using an interface to abstract the hint processing part of the vm and allow greater flexibility when using the vm in other contexts. This `HintProcessor` interface will consist of two methods: `CompileHint`, which receives hint data from the compiled program and transforms it into whatever format is more convenient for hint execution, and `ExecuteHint`, which will receive this data and use it to execute the hint.
+While the original cairo-lang implementation executes these hints in python, we will instead be implementing their logic in go and matching each string of python code to a function in the vm's code. We will also be using an interface to abstract the hint processing part of the vm and allow greater flexibility when using the vm in other contexts.
 
-We will first look at how hint processing ties into the core vm execution loop, and then look into how this vm's implementaton of the `HintProcessor` interface works:
+##### The HintProcessor trait
+This `HintProcessor` interface will consist of two methods: `CompileHint`, which receives hint data from the compiled program and transforms it into whatever format is more convenient for hint execution, and `ExecuteHint`, which will receive this data and use it to execute the hint.
+
+```go
+type HintProcessor interface {
+	// Transforms hint data outputed by the VM into whichever format will be later used by ExecuteHint
+	CompileHint(hintParams *parser.HintParams, referenceManager *parser.ReferenceManager) (any, error)
+	// Executes the hint which's data is provided by a dynamic structure previously created by CompileHint
+	ExecuteHint(vm *VirtualMachine, hintData *any, constants *map[string]lambdaworks.Felt, execScopes *types.ExecutionScopes) error
+}
+```
+
+We will first look at how hint processing ties into the core vm execution loop, and then look into how this vm's implementation of the `HintProcessor` interface works:
 
 ##### VM execution loop
 
 Before we beging executing steps, we will feed the hint-related information from the compiled program to the `HintProcessor`, and obtain what we call `HintData`, which will be later on used to execute the hint. As we can see, the compiled json stores the hint inofrmation in a map which connects pc offsets (at which pc offset the hint should be executed) to a list of hints (yes, more than one hint can be executed as a given pc), and we will use a similar structure to hold the compiled `HintData`.
-```
+```go
 func (r *CairoRunner) BuildHintDataMap(hintProcessor vm.HintProcessor) (map[uint][]any, error) {
 	hintDataMap := make(map[uint][]any, 0)
 	for pc, hintsParams := range r.Program.Hints {
@@ -2759,7 +2771,7 @@ func (r *CairoRunner) BuildHintDataMap(hintProcessor vm.HintProcessor) (map[uint
 
 Once we have our map of `HintData`s we can start executing cairo steps. Before fetching the next instruction, we will check if we have hints to run for the current pc, and if we do, the `HintProcessor` will execute each hint using the corresponding `HintData`.
 
-```
+```go
 func (v *VirtualMachine) Step(hintProcessor HintProcessor, hintDataMap *map[uint][]any)  error {
 	// Run Hint
 	hintDatas, ok := (*hintDataMap)[v.RunContext.Pc.Offset]
@@ -2775,14 +2787,74 @@ func (v *VirtualMachine) Step(hintProcessor HintProcessor, hintDataMap *map[uint
 	// Run Instruction
 	encoded_instruction, err := v.Segments.Memory.Get(v.RunContext.Pc)
 ```
-##### Implementing a HintProcessor
+##### Implementing a HintProcessor: ExecuteHint
 
+This method will receive a `HintData`, and match its `Code` field, which contains the python code as a string, to a go function that implements its logic:
 
-##### Hint Interactions
+```go
+func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any) error {
+	data, ok := (*hintData).(HintData)
+	if !ok {
+		return errors.New("Wrong Hint Data")
+	}
+	switch data.Code {
+	case ADD_SEGMENT:
+		return addSegment(vm)
+        default:
+		return errors.Errorf("Unknown Hint: %s", data.Code)
+    }
+}
+```
 
-###### Ids
-###### Constants
-###### ExecutionScopes
+Where `ADD_SEGMENT` is a constant with the python code of the hint
+```go
+const ADD_SEGMENT = "memory[ap] = segments.add()"
+```
+
+And the function `addSegment` implements its logic, which is to add a segment to the vm's memory:
+
+```go
+func addSegment(vm *VirtualMachine) error {
+	newSegmentBase := vm.Segments.AddSegment()
+	return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableRelocatable(newSegmentBase))
+}
+```
+
+Before we implement the `CompileHint` method, lets look at this crucial part of hint interaction with the vm:
+
+###### Hint Interaction: Ids
+
+##### Implementing a HintProcessor: CompileHint
+
+The `CompileHint` method will be in charge of converting the hint-related data from the compiled json into a format that our processor can use to execute each hint. For our `CairoVmHintProcessor` we will use the following struct:
+
+```go
+type HintData struct {
+	Ids  IdsManager
+	Code string
+}
+```
+
+And we will implement a `CompileHint` method:
+
+```go
+func (p *CairoVmHintProcessor) CompileHint(hintParams *parser.HintParams, referenceManager *parser.ReferenceManager) (any, error) {
+	references := make(map[string]HintReference, 0)
+	for name, n := range hintParams.FlowTrackingData.ReferenceIds {
+		if int(n) >= len(referenceManager.References) {
+			return nil, errors.New("Reference not found in ReferenceManager")
+		}
+		split := strings.Split(name, ".")
+		name = split[len(split)-1]
+		references[name] = ParseHintReference(referenceManager.References[n])
+	}
+	ids := NewIdsManager(references, hintParams.FlowTrackingData.APTracking, hintParams.AccessibleScopes)
+	return HintData{Ids: ids, Code: hintParams.Code}, nil
+}
+```
+
+###### Hint Interaction: Constants
+###### Hint Interaction: ExecutionScopes
 
 TODO: 
 - How hints are implemented in our VM. Matching python code and executing go code.
