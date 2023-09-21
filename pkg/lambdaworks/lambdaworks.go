@@ -26,6 +26,11 @@ type Felt struct {
 	limbs [N_LIMBS_IN_FELT]Limb
 }
 
+type Uint256 struct {
+	Low  Felt
+	High Felt
+}
+
 func LambdaworksError(err error) error {
 	return errors.Wrapf(err, "Lambdaworks Error")
 }
