@@ -213,3 +213,7 @@ func TestCairoKeccak(t *testing.T) {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
 }
+
+func TestKeccakAddUint256(t *testing.T) {
+	testProgram("keccak_add_uint256", t)
+}
