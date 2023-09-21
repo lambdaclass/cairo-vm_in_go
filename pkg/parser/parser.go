@@ -40,14 +40,15 @@ type DebugInfo struct {
 }
 
 type Identifier struct {
-	FullName   string         `json:"full_name"`
-	Members    map[string]any `json:"members"`
-	Size       int            `json:"size"`
-	Decorators []string       `json:"decorators"`
-	PC         int            `json:"pc"`
-	Type       string         `json:"type"`
-	CairoType  string         `json:"cairo_type"`
-	Value      big.Int        `json:"value"`
+	FullName    string         `json:"full_name"`
+	Members     map[string]any `json:"members"`
+	Size        int            `json:"size"`
+	Decorators  []string       `json:"decorators"`
+	PC          int            `json:"pc"`
+	Type        string         `json:"type"`
+	CairoType   string         `json:"cairo_type"`
+	Value       big.Int        `json:"value"`
+	Destination string         `json:"destination"`
 }
 
 type ApTrackingData struct {
