@@ -2717,7 +2717,7 @@ Because of this, most hints in Cairo 0 are wrapped around or used by functions i
 
 ### Whitelisted Hints
 
-Also, in Cairo as a language, a hint could be any Python code you like. In the context of it as just another language someone might want to use, this is fine. In the context of Cairo as a programming language used to write smart contracts deployed on a blockchain, it's not. Users could deploy contracts with hints that simply do
+In Cairo, a hint could be any Python code you like. In the context of it as just another language someone might want to use, this is fine. In the context of Cairo as a programming language used to write smart contracts deployed on a blockchain, it's not. Users could deploy contracts with hints that simply do
 
 ```python
 while true:
