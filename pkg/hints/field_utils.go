@@ -1,9 +1,10 @@
-package hint_utils
+package hints
 
 import (
 	"math/big"
 
-	"github.com/lambdaclass/cairo-vm.go/pkg/hints"
+	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
+
 	"github.com/lambdaclass/cairo-vm.go/pkg/types"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 )
@@ -30,7 +31,7 @@ func verifyZeroWithExternalConst(virtual_machine vm.VirtualMachine, exec_scopes 
 		return err
 	}
 
-	val, err := hints.BigInt3FromBaseAddr(addr, virtual_machine)
+	val, err := BigInt3FromBaseAddr(addr, virtual_machine)
 	if err != nil {
 		return err
 	}

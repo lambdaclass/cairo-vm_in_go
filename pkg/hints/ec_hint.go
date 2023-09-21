@@ -210,6 +210,7 @@ func computeSlope(virtual_machine vm.VirtualMachine, exec_scopes types.Execution
 	return nil
 }
 
+
 /*
 Implements hint:
 %{ from starkware.cairo.common.cairo_secp.secp256r1_utils import SECP256R1_ALPHA as ALPHA %}
@@ -243,16 +244,13 @@ func importSECP256R1P(exec_scopes types.ExecutionScopes) error {
 
 /*
 Implements hint:
-
 	%{
 	    from starkware.cairo.common.cairo_secp.secp_utils import pack
 	    from starkware.python.math_utils import ec_double_slope
-
 	    # Compute the slope.
 	    x = pack(ids.point.x, PRIME)
 	    y = pack(ids.point.y, PRIME)
 	    value = slope = ec_double_slope(point=(x, y), alpha=ALPHA, p=SECP_P)
-
 %}
 */
 func computeDoublingSlopeExternalConsts(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data IdsManager) error {
