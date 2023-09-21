@@ -1,11 +1,13 @@
 package hints_test
 
 import (
+	"math/big"
 	"testing"
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_codes"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
@@ -308,4 +310,44 @@ func TestSplit64Ok(t *testing.T) {
 		t.Errorf("expected high: %d, got: %d", expected_high, high)
 	}
 
+}
+
+func TestUint256SqrtOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"n": {
+				NewMaybeRelocatableFelt(FeltFromUint64(^uint64(0))),
+				NewMaybeRelocatableFelt(FeltFromUint64(^uint64(0))),
+			},
+			"root": {nil},
+		},
+		vm,
+	)
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: UINT256_SQRT,
+	})
+	scopes := NewExecutionScopes()
+	hintProcessor := CairoVmHintProcessor{}
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+
+	l := new(big.Int).SetUint64(^uint64(0))
+	h := new(big.Int).Lsh(l, 128)
+	expectedRoot := new(big.Int).Sqrt(new(big.Int).Add(l, h))
+
+	expectedResult := lambdaworks.Uint256{Low: FeltFromBigInt(expectedRoot), High: FeltZero()}
+
+	root, err := idsManager.GetUint256("root", vm)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+	if root != expectedResult {
+		t.Errorf("failed, expected root: %d, got: %d", expectedResult, root)
+	}
 }

@@ -1,6 +1,7 @@
 package hints
 
 import (
+	"fmt"
 	"math/big"
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
@@ -122,7 +123,9 @@ func uint256Sqrt(ids IdsManager, vm *VirtualMachine, onlyLow bool) error {
 	bHigh := new(big.Int).Lsh(uintN.High.ToBigInt(), 128)
 	bLow := uintN.Low.ToBigInt()
 	n := new(big.Int).Add(bHigh, bLow)
+	fmt.Printf("n value as big.Int is: %d\n", n)
 	root := new(big.Int).Sqrt(n)
+	fmt.Printf("root value as big.Int is: %d\n", root)
 
 	if root.BitLen() > 128 {
 		return errors.Errorf("assert 0 <= %d < 2**128", root)

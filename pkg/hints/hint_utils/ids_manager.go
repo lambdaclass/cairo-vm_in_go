@@ -235,11 +235,7 @@ func (ids *IdsManager) InsertUint256(name string, val lambdaworks.Uint256, vm *V
 	if err != nil {
 		return err
 	}
-	err = ids.InsertStructField(name, 1, NewMaybeRelocatableFelt(val.High), vm)
-	if err != nil {
-		return err
-	}
-	return nil
+	return ids.InsertStructField(name, 1, NewMaybeRelocatableFelt(val.High), vm)
 
 }
 
