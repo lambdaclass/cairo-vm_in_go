@@ -28,3 +28,4 @@ func main{output_ptr: felt*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
 
     return ();
 }
+
