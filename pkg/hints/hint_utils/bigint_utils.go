@@ -9,10 +9,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Uint struct {
-	limbs []Felt
-}
-
 // Generic methods for all types
 func limbsFromVarName(nLimbs int, name string, ids IdsManager, vm *VirtualMachine) ([]Felt, error) {
 	baseAddr, err := ids.GetAddr(name, vm)
@@ -53,4 +49,21 @@ func limbsPack(limbs []Felt) big.Int {
 		sum.Add(sum, shifed)
 	}
 	return *sum
+}
+
+// Concrete type definitions
+
+// BigInt3
+
+type BigInt3 struct {
+	Limbs []Felt
+}
+
+func (b *BigInt3) Pack86() big.Int {
+	return limbsPack86(b.Limbs)
+}
+
+func BigInt3FromBaseAddr(addr Relocatable, name string, vm *VirtualMachine) (BigInt3, error) {
+	limbs, err := limbsFromBaseAddress(3, name, addr, vm)
+	return BigInt3{Limbs: limbs}, err
 }

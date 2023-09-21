@@ -89,9 +89,9 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 	case ASSERT_NOT_EQUAL:
 		return assert_not_equal(data.Ids, vm)
 	case EC_NEGATE:
-		return ecNegateImportSecpP(*vm, *execScopes, data.Ids)
+		return ecNegateImportSecpP(vm, *execScopes, data.Ids)
 	case EC_NEGATE_EMBEDDED_SECP:
-		return ecNegateEmbeddedSecpP(*vm, *execScopes, data.Ids)
+		return ecNegateEmbeddedSecpP(vm, *execScopes, data.Ids)
 	case POW:
 		return pow(data.Ids, vm)
 	case SQRT:
