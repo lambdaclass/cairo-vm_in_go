@@ -43,13 +43,13 @@ func TestSetAddElmInSet(t *testing.T) {
 		t.Errorf("SET_ADD failed with error: %s", err)
 	}
 
-	is_elm_in_set, err := idsManager.GetFelt("is_elm_in_set", vm)
+	isElmInSet, err := idsManager.GetFelt("is_elm_in_set", vm)
 	if err != nil {
 		t.Errorf("SET_ADD couldn't get is_elm_in_set: %s", err)
 	}
 
-	if !is_elm_in_set.IsOne() {
-		t.Errorf("Expected is_elm_in_set to be 1, got: %s", is_elm_in_set.ToSignedFeltString())
+	if !isElmInSet.IsOne() {
+		t.Errorf("Expected is_elm_in_set to be 1, got: %s", isElmInSet.ToSignedFeltString())
 	}
 
 	index, err := idsManager.GetFelt("index", vm)
@@ -93,12 +93,12 @@ func TestSetAddElmNotInSet(t *testing.T) {
 		t.Errorf("SET_ADD failed with error: %s", err)
 	}
 
-	is_elm_in_set, err := idsManager.GetFelt("is_elm_in_set", vm)
+	isElmInSet, err := idsManager.GetFelt("is_elm_in_set", vm)
 	if err != nil {
 		t.Errorf("SET_ADD couldn't get is_elm_in_set: %s", err)
 	}
 
-	if !is_elm_in_set.IsZero() {
-		t.Errorf("Expected is_elm_in_set to be 1, got: %s", is_elm_in_set.ToSignedFeltString())
+	if !isElmInSet.IsZero() {
+		t.Errorf("Expected is_elm_in_set to be 1, got: %s", isElmInSet.ToSignedFeltString())
 	}
 }

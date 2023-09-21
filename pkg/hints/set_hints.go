@@ -26,49 +26,49 @@ else:
 
 	ids.is_elm_in_set = 0
 */
-func set_add(ids IdsManager, vm *VirtualMachine) error {
-	set_ptr, err := ids.GetRelocatable("set_ptr", vm)
+func setAdd(ids IdsManager, vm *VirtualMachine) error {
+	setPtr, err := ids.GetRelocatable("set_ptr", vm)
 	if err != nil {
 		return err
 	}
-	elm_size_felt, err := ids.GetFelt("elm_size", vm)
+	elmSizeFelt, err := ids.GetFelt("elm_size", vm)
 	if err != nil {
 		return err
 	}
-	elm_ptr, err := ids.GetRelocatable("elm_ptr", vm)
+	elmPtr, err := ids.GetRelocatable("elm_ptr", vm)
 	if err != nil {
 		return err
 	}
-	set_end_ptr, err := ids.GetRelocatable("set_end_ptr", vm)
+	setEndPtr, err := ids.GetRelocatable("set_end_ptr", vm)
 	if err != nil {
 		return err
 	}
 
-	if elm_size_felt.IsZero() {
+	if elmSizeFelt.IsZero() {
 		return errors.Errorf("assert ids.elm_size > 0")
 	}
 
-	elm_size, err := elm_size_felt.ToUint()
+	elmSize, err := elmSizeFelt.ToUint()
 
 	if err != nil {
 		return err
 	}
 
-	if set_ptr.Offset > set_end_ptr.Offset {
-		return errors.Errorf("expected set_ptr: %v <= set_end_ptr: %v", set_ptr, set_end_ptr)
+	if setPtr.Offset > setEndPtr.Offset {
+		return errors.Errorf("expected set_ptr: %v <= set_end_ptr: %v", setPtr, setEndPtr)
 	}
 
-	elem, err := vm.Segments.Memory.GetRange(elm_ptr, elm_size)
+	elem, err := vm.Segments.Memory.GetRange(elmPtr, elmSize)
 	if err != nil {
 		return err
 	}
 
-	for i := uint(0); i < set_end_ptr.Offset-set_ptr.Offset-elm_size; i++ {
-		other_elm, err := vm.Segments.Memory.GetRange(set_ptr.AddUint(i*elm_size), elm_size)
+	for i := uint(0); i < setEndPtr.Offset-setPtr.Offset-elmSize; i++ {
+		otherElm, err := vm.Segments.Memory.GetRange(setPtr.AddUint(i*elmSize), elmSize)
 		if err != nil {
 			return err
 		}
-		if reflect.DeepEqual(elem, other_elm) {
+		if reflect.DeepEqual(elem, otherElm) {
 			err := ids.Insert("index", NewMaybeRelocatableFelt(FeltFromUint(i)), vm)
 			if err != nil {
 				return err

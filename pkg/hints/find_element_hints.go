@@ -9,8 +9,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-func find_element(ids IdsManager, vm *VirtualMachine, execScopes ExecutionScopes) error {
-	array_ptr, err := ids.GetRelocatable("array_ptr", vm)
+func findElement(ids IdsManager, vm *VirtualMachine, execScopes ExecutionScopes) error {
+	arrayPtr, err := ids.GetRelocatable("array_ptr", vm)
 	if err != nil {
 		return err
 	}
@@ -20,72 +20,72 @@ func find_element(ids IdsManager, vm *VirtualMachine, execScopes ExecutionScopes
 		return err
 	}
 
-	elm_size_felt, err := ids.GetFelt("elm_size", vm)
+	elmSizeFelt, err := ids.GetFelt("elm_size", vm)
 	if err != nil {
 		return err
 	}
-	elm_size, err := elm_size_felt.ToUint()
-	if err != nil {
-		return err
-	}
-
-	n_elms, err := ids.GetFelt("n_elms", vm)
-	if err != nil {
-		return err
-	}
-	n_elms_iter, err := n_elms.ToUint()
+	elmSize, err := elmSizeFelt.ToUint()
 	if err != nil {
 		return err
 	}
 
-	find_element_index_uncast, err := execScopes.Get("find_element_index")
+	nElms, err := ids.GetFelt("n_elms", vm)
+	if err != nil {
+		return err
+	}
+	nElmsIter, err := nElms.ToUint()
+	if err != nil {
+		return err
+	}
+
+	findElementIndexUncast, err := execScopes.Get("find_element_index")
 	if err == nil {
-		find_element_index, ok := find_element_index_uncast.(Felt)
+		findElementIndex, ok := findElementIndexUncast.(Felt)
 		if !ok {
-			return ConversionError(find_element_index, "felt")
+			return ConversionError(findElementIndex, "felt")
 		}
-		position, err := array_ptr.AddFelt(find_element_index.Mul(elm_size_felt))
+		position, err := arrayPtr.AddFelt(findElementIndex.Mul(elmSizeFelt))
 		if err != nil {
 			return err
 		}
 
-		found_key, err := vm.Segments.Memory.GetFelt(position)
+		foundKey, err := vm.Segments.Memory.GetFelt(position)
 		if err != nil {
 			return err
 		}
-		if found_key != key {
+		if foundKey != key {
 			return errors.Errorf(
 				"Invalid index found in find_element_index. Index: %s.\nExpected key: %s, found_key %s",
-				find_element_index.ToSignedFeltString(),
+				findElementIndex.ToSignedFeltString(),
 				key.ToSignedFeltString(),
-				found_key.ToSignedFeltString(),
+				foundKey.ToSignedFeltString(),
 			)
 		}
 		execScopes.DeleteVariable("find_element_index")
-		return ids.Insert("index", NewMaybeRelocatableFelt(find_element_index), vm)
+		return ids.Insert("index", NewMaybeRelocatableFelt(findElementIndex), vm)
 	}
 
-	find_element_max_size_uncast, err := execScopes.Get("find_element_max_size")
+	findElementMaxSizeUncast, err := execScopes.Get("find_element_max_size")
 	if err == nil {
-		find_element_max_size, ok := find_element_max_size_uncast.(Felt)
+		findElementMaxSize, ok := findElementMaxSizeUncast.(Felt)
 		if !ok {
-			return ConversionError(find_element_max_size, "felt")
+			return ConversionError(findElementMaxSize, "felt")
 		}
-		if n_elms.Cmp(find_element_max_size) == 1 {
+		if nElms.Cmp(findElementMaxSize) == 1 {
 			return errors.Errorf(
 				"find_element() can only be used with n_elms <= %s.\nGot: n_elms = %s",
-				find_element_max_size.ToSignedFeltString(),
-				n_elms.ToSignedFeltString(),
+				findElementMaxSize.ToSignedFeltString(),
+				nElms.ToSignedFeltString(),
 			)
 		}
 	}
 
-	for i := uint(0); i < n_elms_iter; i++ {
-		iter_key, err := vm.Segments.Memory.GetFelt(array_ptr.AddUint(i * elm_size))
+	for i := uint(0); i < nElmsIter; i++ {
+		iterKey, err := vm.Segments.Memory.GetFelt(arrayPtr.AddUint(i * elmSize))
 		if err != nil {
 			return err
 		}
-		if iter_key == key {
+		if iterKey == key {
 			return ids.Insert("index", NewMaybeRelocatableFelt(FeltFromUint(i)), vm)
 		}
 	}
@@ -93,8 +93,8 @@ func find_element(ids IdsManager, vm *VirtualMachine, execScopes ExecutionScopes
 	return errors.Errorf("Key: %v was not found", key)
 }
 
-func search_sorted_lower(ids IdsManager, vm *VirtualMachine, execScopes ExecutionScopes) error {
-	array_ptr, err := ids.GetRelocatable("array_ptr", vm)
+func searchSortedLower(ids IdsManager, vm *VirtualMachine, execScopes ExecutionScopes) error {
+	arrayPtr, err := ids.GetRelocatable("array_ptr", vm)
 	if err != nil {
 		return err
 	}
@@ -104,45 +104,45 @@ func search_sorted_lower(ids IdsManager, vm *VirtualMachine, execScopes Executio
 		return err
 	}
 
-	elm_size_felt, err := ids.GetFelt("elm_size", vm)
+	elmSizeFelt, err := ids.GetFelt("elm_size", vm)
 	if err != nil {
 		return err
 	}
-	elm_size, err := elm_size_felt.ToUint()
-	if err != nil {
-		return err
-	}
-
-	n_elms, err := ids.GetFelt("n_elms", vm)
-	if err != nil {
-		return err
-	}
-	n_elms_iter, err := n_elms.ToUint()
+	elmSize, err := elmSizeFelt.ToUint()
 	if err != nil {
 		return err
 	}
 
-	find_element_max_size_uncast, err := execScopes.Get("find_element_max_size")
+	nElms, err := ids.GetFelt("n_elms", vm)
+	if err != nil {
+		return err
+	}
+	nElmsIter, err := nElms.ToUint()
+	if err != nil {
+		return err
+	}
+
+	findElementMaxSizeUncast, err := execScopes.Get("find_element_max_size")
 	if err == nil {
-		find_element_max_size, ok := find_element_max_size_uncast.(Felt)
+		findElementMaxSize, ok := findElementMaxSizeUncast.(Felt)
 		if !ok {
-			return ConversionError(find_element_max_size, "felt")
+			return ConversionError(findElementMaxSize, "felt")
 		}
-		if n_elms.Cmp(find_element_max_size) == 1 {
+		if nElms.Cmp(findElementMaxSize) == 1 {
 			return errors.Errorf(
 				"find_element() can only be used with n_elms <= %s.\nGot: n_elms = %s",
-				find_element_max_size.ToSignedFeltString(),
-				n_elms.ToSignedFeltString(),
+				findElementMaxSize.ToSignedFeltString(),
+				nElms.ToSignedFeltString(),
 			)
 		}
 	}
 
-	for i := uint(0); i < n_elms_iter; i++ {
-		iter_key, err := vm.Segments.Memory.GetFelt(array_ptr.AddUint(i * elm_size))
+	for i := uint(0); i < nElmsIter; i++ {
+		iterKey, err := vm.Segments.Memory.GetFelt(arrayPtr.AddUint(i * elmSize))
 		if err != nil {
 			return err
 		}
-		if iter_key == key || iter_key.Cmp(key) == 1 {
+		if iterKey == key || iterKey.Cmp(key) == 1 {
 			return ids.Insert("index", NewMaybeRelocatableFelt(FeltFromUint(i)), vm)
 		}
 	}

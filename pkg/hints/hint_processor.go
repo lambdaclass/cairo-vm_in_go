@@ -107,11 +107,11 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 	case VM_ENTER_SCOPE:
 		return vm_enter_scope(execScopes)
 	case SET_ADD:
-		return set_add(data.Ids, vm)
+		return setAdd(data.Ids, vm)
 	case FIND_ELEMENT:
-		return find_element(data.Ids, vm, *execScopes)
+		return findElement(data.Ids, vm, *execScopes)
 	case SEARCH_SORTED_LOWER:
-		return search_sorted_lower(data.Ids, vm, *execScopes)
+		return searchSortedLower(data.Ids, vm, *execScopes)
 	case UNSAFE_KECCAK:
 		return unsafeKeccak(data.Ids, vm, *execScopes)
 	case UNSAFE_KECCAK_FINALIZE:
