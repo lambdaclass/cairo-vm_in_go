@@ -148,7 +148,7 @@ func TestUnsignedDivRemHint(t *testing.T) {
 }
 
 func TestSetAddHint(t *testing.T) {
-    testProgram("set_add", t)
+	testProgram("set_add", t)
 }
 
 func TestMemcpyHint(t *testing.T) {
@@ -175,15 +175,15 @@ func TestSquashDict(t *testing.T) {
 }
 
 func TestSignedDivRemHint(t *testing.T) {
-    testProgram("signed_div_rem", t)
+	testProgram("signed_div_rem", t)
 }
 
 func TestFindElementHint(t *testing.T) {
-    testProgram("find_element", t)
+	testProgram("find_element", t)
 }
 
 func TestSearchSortedLowerHint(t *testing.T) {
-    testProgram("search_sorted_lower", t)
+	testProgram("search_sorted_lower", t)
 }
 
 func TestAssert250BitHint(t *testing.T) {
