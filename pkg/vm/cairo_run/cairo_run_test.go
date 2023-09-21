@@ -205,6 +205,14 @@ func TestUnsafeKeccakProofMode(t *testing.T) {
 	testProgramProof("unsafe_keccak", t)
 }
 
+func TestUnsafeKeccakFinalize(t *testing.T) {
+	testProgram("unsafe_keccak_finalize", t)
+}
+
+func TestUnsafeKeccakFinalizeProofMode(t *testing.T) {
+	testProgramProof("unsafe_keccak_finalize", t)
+}
+
 func TestUnsignedDivRemHint(t *testing.T) {
 	testProgram("unsigned_div_rem", t)
 }
