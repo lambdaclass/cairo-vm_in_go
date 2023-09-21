@@ -1,16 +1,15 @@
 package hints
 
 import (
+	"math/big"
+
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+	"github.com/pkg/errors"
 )
-
-type Uint256 struct {
-	low  Felt
-	high Felt
-}
 
 /*
 Implements hints:
@@ -99,4 +98,41 @@ func split64(ids IdsManager, vm *VirtualMachine) error {
 	}
 	return nil
 
+}
+
+/*
+Implements hint:
+
+	%{
+	    from starkware.python.math_utils import isqrt
+	    n = (ids.n.high << 128) + ids.n.low
+	    root = isqrt(n)
+	    assert 0 <= root < 2 ** 128
+	    ids.root.low = root
+	    ids.root.high = 0
+
+%}
+*/
+func uint256Sqrt(ids IdsManager, vm *VirtualMachine, onlyLow bool) error {
+	uintN, err := ids.GetUint256("n", vm)
+	if err != nil {
+		return err
+	}
+
+	bHigh := new(big.Int).Lsh(uintN.High.ToBigInt(), 128)
+	bLow := uintN.Low.ToBigInt()
+	n := new(big.Int).Add(bHigh, bLow)
+	root := new(big.Int).Sqrt(n)
+
+	if root.BitLen() > 128 {
+		return errors.Errorf("assert 0 <= %d < 2**128", root)
+	}
+
+	feltRoot := FeltFromBigInt(root)
+
+	if onlyLow {
+		return ids.Insert("root", NewMaybeRelocatableFelt(feltRoot), vm)
+	} else {
+		return ids.InsertUint256("root", lambdaworks.Uint256{Low: feltRoot, High: FeltZero()}, vm)
+	}
 }
