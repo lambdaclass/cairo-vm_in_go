@@ -39,12 +39,24 @@ func TestPoseidonBuiltin(t *testing.T) {
 	testProgram("poseidon_builtin", t)
 }
 
+func TestPoseidonBuiltinProofMode(t *testing.T) {
+	testProgramProof("poseidon_builtin", t)
+}
+
 func TestPoseidonHash(t *testing.T) {
 	testProgram("poseidon_hash", t)
 }
 
+func TestPoseidonHashProofMode(t *testing.T) {
+	testProgramProof("poseidon_hash", t)
+}
+
 func TestSimplePrint(t *testing.T) {
 	testProgram("simple_print", t)
+}
+
+func TestSimplePrintProofMode(t *testing.T) {
+	testProgramProof("simple_print", t)
 }
 
 func TestWriteOutputProgram(t *testing.T) {
@@ -69,30 +81,64 @@ func TestPedersenBuiltin(t *testing.T) {
 	testProgram("pedersen_test", t)
 }
 
+func TestPedersenBuiltinProofMode(t *testing.T) {
+	testProgramProof("pedersen_test", t)
+}
+
 func TestPedersenAndBitwiseBuiltins(t *testing.T) {
 	testProgram("pedersen_and_bitwise_builtins", t)
+}
+
+func TestPedersenAndBitwiseBuiltinsProofMode(t *testing.T) {
+	testProgramProof("pedersen_and_bitwise_builtins", t)
 }
 
 func TestPedersenAndBitwiseBuiltinsWithAllocLocals(t *testing.T) {
 	testProgram("pedersen_and_bitwise_builtins_with_alloc_locals", t)
 }
 
+func TestPedersenAndBitwiseBuiltinsWithAllocLocalsProofMode(t *testing.T) {
+	testProgramProof("pedersen_and_bitwise_builtins_with_alloc_locals", t)
+}
+
 func TestAllocAddSegmentHint(t *testing.T) {
 	testProgram("if_reloc_equal", t)
+}
+
+func TestAllocAddSegmentHintProofMode(t *testing.T) {
+	testProgramProof("if_reloc_equal", t)
 }
 
 func TestAssertNNHint(t *testing.T) {
 	testProgram("assert_nn", t)
 }
 
+func TestAssertNNHintProofMode(t *testing.T) {
+	testProgramProof("assert_nn", t)
+}
+
 func TestAbsValue(t *testing.T) {
 	testProgram("abs_value", t)
 }
+
+func TestAbsValueProofMode(t *testing.T) {
+	testProgramProof("abs_value", t)
+}
+
 func TestCommonSignature(t *testing.T) {
 	testProgram("common_signature", t)
 }
+
+func TestCommonSignatureProofMode(t *testing.T) {
+	testProgramProof("common_signature", t)
+}
+
 func TestAssertNotZeroHint(t *testing.T) {
 	testProgram("assert_not_zero", t)
+}
+
+func TestAssertNotZeroHintProofMode(t *testing.T) {
+	testProgramProof("assert_not_zero", t)
 }
 
 func TestBitwiseRecursion(t *testing.T) {
@@ -115,12 +161,24 @@ func TestDict(t *testing.T) {
 	testProgram("dict", t)
 }
 
+func TestDictProofMode(t *testing.T) {
+	testProgramProof("dict", t)
+}
+
 func TestDictUpdate(t *testing.T) {
 	testProgram("dict_update", t)
 }
 
+func TestDictUpdateProofMode(t *testing.T) {
+	testProgramProof("dict_update", t)
+}
+
 func TestAssertNotEqualHint(t *testing.T) {
 	testProgram("assert_not_equal", t)
+}
+
+func TestAssertNotEqualHintProofMode(t *testing.T) {
+	testProgramProof("assert_not_equal", t)
 }
 
 func TestPowHint(t *testing.T) {
