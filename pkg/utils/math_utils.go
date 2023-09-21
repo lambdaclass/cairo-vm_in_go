@@ -45,7 +45,7 @@ func MaxInt(x int, y int) int {
 
 func DivCeil(x uint, y uint) uint {
 	q := x / y
-	if q*y < x {
+	if x%y != 0 {
 		q++
 	}
 	return q
