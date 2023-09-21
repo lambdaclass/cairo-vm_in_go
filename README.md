@@ -1540,7 +1540,7 @@ func (vm *VirtualMachine) UpdateAp(instruction *Instruction, operands *Operands)
 }
 ```
 
-### CairoRunner
+#### CairoRunner
 
 Now that can can execute cairo steps, lets look at the VM's initialization step.
 We will begin by creating our `CairoRunner`:
@@ -1581,7 +1581,7 @@ func (r *CairoRunner) Initialize() (memory.Relocatable, error) {
 }
 ```
 
-#### InitializeSegments
+##### InitializeSegments
 
 This method will create our program and execution segments
 
@@ -1594,7 +1594,7 @@ func (r *CairoRunner) initializeSegments() {
 }
 ```
 
-#### initializeMainEntrypoint
+##### initializeMainEntrypoint
 
 This method will initialize the memory and initial register values to begin execution from the main entrypoint, and return the final pc
 
@@ -1606,7 +1606,7 @@ func (r *CairoRunner) initializeMainEntrypoint() (memory.Relocatable, error) {
 }
 ```
 
-#### initializeFunctionEntrypoint
+##### initializeFunctionEntrypoint
 
 This method will initialize the memory and initial register values to execute a cairo function given its offset within the program segment (aka entrypoint) and return the final pc. In our case, this function will be the main entrypoint, but later on we will be able to use this method to run starknet contract entrypoints.
 The stack will then be loaded into the execution segment in the next method. For now, the stack will be empty, but later on it will contain the builtin bases (which are the arguments for the main function), and the function arguments when running a function from a starknet contract.
@@ -1623,7 +1623,7 @@ func (r *CairoRunner) initializeFunctionEntrypoint(entrypoint uint, stack *[]mem
 }
 ```
 
-#### InitializeState
+##### InitializeState
 
 This method will be in charge of loading the program data into the program segment and the stack into the execution segment
 
@@ -1640,7 +1640,7 @@ func (r *CairoRunner) initializeState(entrypoint uint, stack *[]memory.MaybeRelo
 }
 ```
 
-#### initializeVm
+##### initializeVm
 
 This method will set the values of the VM's `RunContext` with our `CairoRunner`'s initial values
 
@@ -1654,7 +1654,7 @@ func (r *CairoRunner) initializeVM() {
 
 With `CairoRunner.Initialize()` now complete we can move on to the execution step:
 
-#### RunUntilPc
+##### RunUntilPc
 
 This method will continuously execute cairo steps until the end pc, returned by 'CairoRunner.Initialize()' is reached
 
@@ -2062,7 +2062,7 @@ func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, er
 
 With all of our builtin logic integrated into the codebase, we can implement any builtin and use it in our cairo programs while worrying only about implementing the `BuiltinRunner` interface and creating the builtin in the `NewCairoRunner` function.
 
-##### RangeCheck
+#### RangeCheck
 
 The `RangeCheck` builtin does a very simple thing: it asserts that a given number is in the range $[0, 2^{128})$, i.e., that it's greater than zero and less than $2^{128}$. This might seem superficial but it is used for a lot of different things in Cairo, including comparing numbers. Whenever a program asserts that some number is less than other, the range check builtin is being called underneath. 
 
@@ -2141,7 +2141,7 @@ func (r *RangeCheckBuiltinRunner) AddValidationRule(mem *memory.Memory) {
 }
 ``````
 
-##### Output
+#### Output
 
 TODO
 
@@ -2590,7 +2590,7 @@ TODO
 
 TODO
 
-## Hints
+#### Hints
 
 So far we have been thinking about the VM mostly abstracted from the prover and verifier it's meant to feed its results to. The last main feature we need to talk about, however, requires keeping this proving/verifying logic in mind.
 
@@ -2631,13 +2631,13 @@ is a hint called `ADD_SEGMENT`. All it does is create a new memory segment, then
 
 At this point you might be wondering: why run code that's not being proven? Isn't the whole point of Cairo to prove correct execution? There are (at least) two reasons for hints to exist.
 
-### Nothing to prove
+##### Nothing to prove
 
 For some operations there's simply nothing to prove, as they are just convenient things one wants to do during execution. The `ADD_SEGMENT` hint shown above is a good example of that. When proving execution, the program's memory is presented as one relocated continuous segment, it does not matter at all which segment a cell was in, or when that segment was added. The verifier doesn't care.
 
 Because of this, there's no reason to make `ADD_SEGMENT` a part of the cairo language and have an instruction for it.
 
-### Optimization
+##### Optimization
 
 Certain operations can be very expensive, in the sense that they might involve a huge amount of instructions or memory usage, and therefore contribute heavily to the proving time. For certain calculations, there are two ways to convince the verifier that it was done correctly:
 
@@ -2646,7 +2646,7 @@ Certain operations can be very expensive, in the sense that they might involve a
 
 To make this less abstract, let's show two examples.
 
-#### Square root
+##### Square root
 
 Let's say the calculation in question is to compute the square root of a number `x`. The two ways to do it then become:
 
@@ -2690,7 +2690,7 @@ This is done this way because it is much cheaper, in terms of the generated trac
 
 Notice that the last assert is absolutely mandatory to make this safe. If you forget to write it, the square root calculation does not get proven, and anyone could convince the verifier that the result of `sqrt(x)` is any number they like.
 
-#### Linear search turned into an O(1) lookup
+##### Linear search turned into an O(1) lookup
 
 This example is taken from the [Cairo documentation](https://docs.cairo-lang.org/0.12.0/hello_cairo/program_input.html).
 
@@ -2703,19 +2703,19 @@ Again, the second approach makes the resulting trace and proving much faster, be
 
 Also note that, as in the square root example, when writing this logic you need to remember to show the hint's result is the correct one in Cairo. If you don't, your code is not being proven.
 
-### Non-determinism
+##### Non-determinism
 
 The Cairo paper and documentation refers to this second approach to calculating things through hints as *non-determinism*. The reason for this is that sometimes there is more than one result that satisfies a certain condition. This means that cairo execution becomes non deterministic; a hint could output multiple values, and in principle there is no way to know which one it's going to be. Running the same code multiple times could give different results.
 
 The square root is an easy example of this. The condition `(sqrt(x))^2 = x` is not unique, there are two solutions to it. Without the hint, this is non-deterministic, `x` could have multiple values; the hint resolves that by choosing a specific value when being run.
 
-### Common Library and Hints
+##### Common Library and Hints
 
 As explained above, using hints in your code is highly unsafe. Forgetting to add a check after calling them can make your code vulnerable to any sorts of attacks, as your program will not prove what you think it proves.
 
 Because of this, most hints in Cairo 0 are wrapped around or used by functions in the Cairo common library that do the checks for you, thus making them safe to use. Ideally, Cairo developers should not be using hints on their own; only transparently through Cairo library functions they call.
 
-### Whitelisted Hints
+##### Whitelisted Hints
 
 Also, in Cairo as a language, a hint could be any Python code you like. In the context of it as just another language someone might want to use, this is fine. In the context of Cairo as a programming language used to write smart contracts deployed on a blockchain, it's not. Users could deploy contracts with hints that simply do
 
@@ -2728,7 +2728,7 @@ and grind the network down to a halt, as nodes get stuck executing an infinite l
 
 To address this, the starknet network maintains a list of *whitelisted* hints, which are the only ones that can be used in starknet contracts. These are the ones implemented in this VM.
 
-## Implementing Hints
+#### Implementing Hints
 
 Hints are essentially logic that is executed in each cairo step, before the next instruction, and which may interact and modify the vm. We will first look into the broad execution loop and the dive into the different types of interaction hints can have with the vm.
 While the original cairo-lang implementation executes these hints in python, we will instead be implementing their logic in go and matching each string of python code to a function in the vm's code. We will also be using an interface to abstract the hint processing part of the vm and allow greater flexibility when using the vm in other contexts. This `HintProcessor` interface will consist of two methods: `CompileHint`, which receives hint data from the compiled program and transforms it into whatever format is more convenient for hint execution, and `ExecuteHint`, which will receive this data and use it to execute the hint.
