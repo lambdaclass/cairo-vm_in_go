@@ -199,19 +199,11 @@ func TestSplitIntHint(t *testing.T) {
 }
 
 func TestKeccakIntegrationTests(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
-	_, err := cairo_run.CairoRun("../../../cairo_programs/keccak_integration_tests.json", cairoRunConfig)
-	if err != nil {
-		t.Errorf("Program execution failed with error: %s", err)
-	}
+	testProgram("keccak_integration_tests", t)
 }
 
 func TestCairoKeccak(t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
-	_, err := cairo_run.CairoRun("../../../cairo_programs/cairo_keccak.json", cairoRunConfig)
-	if err != nil {
-		t.Errorf("Program execution failed with error: %s", err)
-	}
+	testProgram("cairo_keccak", t)
 }
 
 func TestKeccakAddUint256(t *testing.T) {
