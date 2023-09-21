@@ -8,7 +8,7 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/types"
-	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
+	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -32,10 +32,10 @@ func (val *BigInt3) Pack86() big.Int {
 	return *sum
 }
 
-func BigInt3FromBaseAddr(addr memory.Relocatable, virtual_machine vm.VirtualMachine) (BigInt3, error) {
+func BigInt3FromBaseAddr(addr memory.Relocatable, vm VirtualMachine) (BigInt3, error) {
 	limbs := make([]lambdaworks.Felt, 0)
 	for i := 0; i < 3; i++ {
-		felt, err := virtual_machine.Segments.Memory.GetFelt(addr.AddUint(uint(i)))
+		felt, err := vm.Segments.Memory.GetFelt(addr.AddUint(uint(i)))
 		if err == nil {
 			limbs = append(limbs, felt)
 		} else {
@@ -45,18 +45,18 @@ func BigInt3FromBaseAddr(addr memory.Relocatable, virtual_machine vm.VirtualMach
 	return BigInt3{Limbs: limbs}, nil
 }
 
-func EcPointFromVarName(name string, virtual_machine vm.VirtualMachine, ids_data hint_utils.IdsManager) (EcPoint, error) {
-	point_addr, err := ids_data.GetAddr(name, &virtual_machine)
+func EcPointFromVarName(name string, vm VirtualMachine, ids_data hint_utils.IdsManager) (EcPoint, error) {
+	point_addr, err := ids_data.GetAddr(name, &vm)
 	if err != nil {
 		return EcPoint{}, err
 	}
 
-	x, err := BigInt3FromBaseAddr(point_addr, virtual_machine)
+	x, err := BigInt3FromBaseAddr(point_addr, vm)
 	if err != nil {
 		return EcPoint{}, err
 	}
 
-	y, err := BigInt3FromBaseAddr(point_addr.AddUint(3), virtual_machine)
+	y, err := BigInt3FromBaseAddr(point_addr.AddUint(3), vm)
 	if err != nil {
 		return EcPoint{}, err
 	}
@@ -67,8 +67,8 @@ func EcPointFromVarName(name string, virtual_machine vm.VirtualMachine, ids_data
 /*
 Implements main logic for `EC_NEGATE` and `EC_NEGATE_EMBEDDED_SECP` hints
 */
-func ecNegate(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager, secp_p big.Int) error {
-	point, err := ids_data.GetRelocatable("point", &virtual_machine)
+func ecNegate(vm VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager, secp_p big.Int) error {
+	point, err := ids_data.GetRelocatable("point", &vm)
 	if err != nil {
 		return err
 	}
@@ -78,7 +78,7 @@ func ecNegate(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScop
 		return err
 	}
 
-	y_bigint3, err := BigInt3FromBaseAddr(point_y, virtual_machine)
+	y_bigint3, err := BigInt3FromBaseAddr(point_y, vm)
 	if err != nil {
 		return err
 	}
@@ -92,9 +92,9 @@ func ecNegate(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScop
 	return nil
 }
 
-func ecNegateImportSecpP(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager) error {
+func ecNegateImportSecpP(vm VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager) error {
 	secp_p, _ := new(big.Int).SetString("115792089237316195423570985008687907853269984665640564039457584007908834671663", 10)
-	return ecNegate(virtual_machine, exec_scopes, ids_data, *secp_p)
+	return ecNegate(vm, exec_scopes, ids_data, *secp_p)
 }
 
 /*
@@ -109,11 +109,11 @@ Implements hint:
 %}
 */
 
-func ecNegateEmbeddedSecpP(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager) error {
+func ecNegateEmbeddedSecpP(vm VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager) error {
 	secp_p := big.NewInt(1)
 	secp_p.Lsh(secp_p, 255)
 	secp_p.Sub(secp_p, big.NewInt(19))
-	return ecNegate(virtual_machine, exec_scopes, ids_data, *secp_p)
+	return ecNegate(vm, exec_scopes, ids_data, *secp_p)
 }
 
 /*
@@ -130,10 +130,10 @@ Implements hint:
 
 %}
 */
-func computeDoublingSlope(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager, point_alias string, secp_p big.Int, alpha big.Int) error {
+func computeDoublingSlope(vm VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager, pointAlias string, secp_p big.Int, alpha big.Int) error {
 	exec_scopes.AssignOrUpdateVariable("SECP_P", secp_p)
 
-	point, err := EcPointFromVarName(point_alias, virtual_machine, ids_data)
+	point, err := EcPointFromVarName(pointAlias, vm, ids_data)
 	if err != nil {
 		return err
 	}
@@ -168,17 +168,17 @@ Implements hint:
 %}
 */
 
-func computeSlopeAndAssingSecpP(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager, point0_alias string, point1_alias string, secp_p big.Int) error {
+func computeSlopeAndAssingSecpP(vm VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager, point0_alias string, point1_alias string, secp_p big.Int) error {
 	exec_scopes.AssignOrUpdateVariable("SECP_P", secp_p)
-	return computeSlope(virtual_machine, exec_scopes, ids_data, point0_alias, point1_alias)
+	return computeSlope(vm, exec_scopes, ids_data, point0_alias, point1_alias)
 }
 
-func computeSlope(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager, point0_alias string, point1_alias string) error {
-	point0, err := EcPointFromVarName(point0_alias, virtual_machine, ids_data)
+func computeSlope(vm VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager, point0_alias string, point1_alias string) error {
+	point0, err := EcPointFromVarName(point0_alias, vm, ids_data)
 	if err != nil {
 		return err
 	}
-	point1, err := EcPointFromVarName(point1_alias, virtual_machine, ids_data)
+	point1, err := EcPointFromVarName(point1_alias, vm, ids_data)
 	if err != nil {
 		return err
 	}
