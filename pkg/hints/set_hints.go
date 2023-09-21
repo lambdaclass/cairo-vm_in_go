@@ -58,16 +58,10 @@ func set_add(ids IdsManager, vm *VirtualMachine) error {
 		return errors.Errorf("expected set_ptr: %v <= set_end_ptr: %v", set_ptr, set_end_ptr)
 	}
 
-	elem, err := vm.Segments.Memory.GetRange(elm_ptr, elm_size)
-	if err != nil {
-		return err
-	}
+	elem := vm.Segments.Memory.GetRange(elm_ptr, elm_size)
 
 	for i := uint(0); i < set_end_ptr.Offset-set_ptr.Offset; i++ {
-		other_elm, err := vm.Segments.Memory.GetRange(set_ptr.AddUint(i*elm_size), elm_size)
-		if err != nil {
-			return err
-		}
+		other_elm := vm.Segments.Memory.GetRange(set_ptr.AddUint(i*elm_size), elm_size)
 		if reflect.DeepEqual(elem, other_elm) {
 			err := ids.Insert("index", NewMaybeRelocatableFelt(FeltFromUint(i)), vm)
 			if err != nil {
