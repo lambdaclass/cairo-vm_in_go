@@ -71,3 +71,49 @@ func unsafeKeccak(ids IdsManager, vm *VirtualMachine, scopes ExecutionScopes) er
 	}
 	return ids.Insert("low", NewMaybeRelocatableFelt(low), vm)
 }
+
+func unsafeKeccakFinalize(ids IdsManager, vm *VirtualMachine) error {
+	// Fetch ids variables
+	startPtr, err := ids.GetStructFieldRelocatable("keccak_state", 0, vm)
+	if err != nil {
+		return err
+	}
+	endPtr, err := ids.GetStructFieldRelocatable("keccak_state", 1, vm)
+	if err != nil {
+		return err
+	}
+
+	// Hint Logic
+	nElemsFelt, err := endPtr.Sub(startPtr)
+	if err != nil {
+		return err
+	}
+	nElems, err := nElemsFelt.ToU64()
+	if err != nil {
+		return err
+	}
+	inputFelts, err := vm.Segments.GetFeltRange(startPtr, uint(nElems))
+	if err != nil {
+		return err
+	}
+	inputBytes := make([]byte, 0, 16*nElems)
+	for i := 0; i < int(nElems); i++ {
+		inputBytes = append(inputBytes, inputFelts[i].ToBeBytes()[16:]...)
+	}
+
+	hasher := keccak.New256()
+	hasher.Write(inputBytes)
+	resBytes := hasher.Sum(nil)
+
+	highBytes := append([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, resBytes[:16]...)
+	lowBytes := append([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, resBytes[16:32]...)
+
+	high := FeltFromBeBytes((*[32]byte)(highBytes))
+	low := FeltFromBeBytes((*[32]byte)(lowBytes))
+
+	err = ids.Insert("high", NewMaybeRelocatableFelt(high), vm)
+	if err != nil {
+		return err
+	}
+	return ids.Insert("low", NewMaybeRelocatableFelt(low), vm)
+}
