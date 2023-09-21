@@ -2735,6 +2735,7 @@ TODO:
 - Communication between the Cairo execution environment and hints. References, Id Manager, Execution Scopes.
 - Example of how to implement one, ideally one that uses a few of the important features like Id management, etc.
 - Explain Dicts and dict squashing.
+- Explain temporary segments
 
 #### Proof mode
 
