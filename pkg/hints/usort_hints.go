@@ -27,21 +27,21 @@ func (s SortFelt) Less(i, j int) bool {
 // Implements hint:
 // %{ vm_enter_scope(dict(__usort_max_size = globals().get('__usort_max_size'))) %}
 func usort_enter_scope(executionScopes *types.ExecutionScopes) error {
-	usort_max_size, err := executionScopes.Get("usort_max_size")
+	usort_max_size_interface, err := executionScopes.Get("usort_max_size")
 
 	if err != nil {
 		executionScopes.EnterScope(make(map[string]interface{}))
 		return nil
 	}
 
-	usort_max_size_felt, cast_ok := usort_max_size.(lambdaworks.Felt)
+	usort_max_size, cast_ok := usort_max_size_interface.(uint64)
 
 	if !cast_ok {
-		return errors.New("Error casting usort_max_size into a Felt")
+		return errors.New("Error casting usort_max_size into a uint64")
 	}
 
 	scope := make(map[string]interface{})
-	scope["usort_max_size"] = usort_max_size_felt
+	scope["usort_max_size"] = usort_max_size
 	executionScopes.EnterScope(scope)
 
 	return nil
@@ -128,11 +128,11 @@ func usort_body(ids IdsManager, executionScopes *types.ExecutionScopes, vm *Virt
 }
 
 // Implements hint:
-// %{
-//		last_pos = 0
-// 		positions = positions_dict[ids.value][::-1]
-//  %}
-
+//
+//	%{
+//			last_pos = 0
+//			positions = positions_dict[ids.value][::-1]
+//	 %}
 func usort_verify(ids IdsManager, executionScopes *types.ExecutionScopes, vm *VirtualMachine) error {
 
 	executionScopes.AssignOrUpdateVariable("last_pos", uint64(0))
@@ -194,12 +194,12 @@ func usort_verify_multiplicity_assert(executionScopes *types.ExecutionScopes) er
 }
 
 // Implements hint:
-// %{
-//	 current_pos = positions.pop()
-//	 ids.next_item_index = current_pos - last_pos
-//	 last_pos = current_pos + 1
-//  %}
-
+//
+//	%{
+//		 current_pos = positions.pop()
+//		 ids.next_item_index = current_pos - last_pos
+//		 last_pos = current_pos + 1
+//	 %}
 func usort_verify_multiplicity_body(ids IdsManager, executionScopes *types.ExecutionScopes, vm *VirtualMachine) error {
 
 	positions_interface, err := executionScopes.Get("positions")
