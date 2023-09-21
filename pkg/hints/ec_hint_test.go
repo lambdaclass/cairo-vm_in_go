@@ -56,13 +56,13 @@ func TestRunEcNegateOk(t *testing.T) {
 		Ids:  idsManager,
 		Code: EC_NEGATE,
 	})
-	exec_scopes := types.NewExecutionScopes()
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil, exec_scopes)
+	execScopes := types.NewExecutionScopes()
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, execScopes)
 	if err != nil {
 		t.Errorf("Ec Negative hint test failed with error %s", err)
 	} else {
 		// Check ids.is_positive
-		value, err := exec_scopes.Get("value")
+		value, err := execScopes.Get("value")
 		val := value.(*big.Int)
 		expected, _ := new(big.Int).SetString("115792089237316195423569751828682367333329274433232027476421668138471189901786", 10)
 
@@ -169,11 +169,11 @@ func TestComputeDoublingSlopeOk(t *testing.T) {
 		slope := slope_res.(big.Int)
 
 		// expected values
-		expected_val, _ := new(big.Int).SetString("40442433062102151071094722250325492738932110061897694430475034100717288403728", 10)
+		expectedVal, _ := new(big.Int).SetString("40442433062102151071094722250325492738932110061897694430475034100717288403728", 10)
 
-		expected_slope, _ := new(big.Int).SetString("40442433062102151071094722250325492738932110061897694430475034100717288403728", 10)
+		expectedSlope, _ := new(big.Int).SetString("40442433062102151071094722250325492738932110061897694430475034100717288403728", 10)
 
-		if expected_val.Cmp(&val) != 0 || expected_slope.Cmp(&slope) != 0 {
+		if expectedVal.Cmp(&val) != 0 || expectedSlope.Cmp(&slope) != 0 {
 			t.Errorf("EC_DOUBLE_SLOPE_V1 hint test incorrect value for exec_scopes.value or exec_scopes.slope")
 		}
 	}
@@ -214,23 +214,23 @@ func TestRunComputeSlopeOk(t *testing.T) {
 		Code: COMPUTE_SLOPE_V1,
 	})
 
-	exec_scopes := types.NewExecutionScopes()
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil, exec_scopes)
+	execScopes := types.NewExecutionScopes()
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, execScopes)
 	if err != nil {
 		t.Errorf("EC_DOUBLE_SLOPE_V1 hint test failed with error %s", err)
 	} else {
-		value, _ := exec_scopes.Get("value")
+		value, _ := execScopes.Get("value")
 		val := value.(big.Int)
 
-		slope_res, _ := exec_scopes.Get("slope")
+		slope_res, _ := execScopes.Get("slope")
 		slope := slope_res.(big.Int)
 
 		// expected values
-		expected_val, _ := new(big.Int).SetString("41419765295989780131385135514529906223027172305400087935755859001910844026631", 10)
+		expectedVal, _ := new(big.Int).SetString("41419765295989780131385135514529906223027172305400087935755859001910844026631", 10)
 
-		expected_slope, _ := new(big.Int).SetString("41419765295989780131385135514529906223027172305400087935755859001910844026631", 10)
+		expectedSlope, _ := new(big.Int).SetString("41419765295989780131385135514529906223027172305400087935755859001910844026631", 10)
 
-		if expected_val.Cmp(&val) != 0 || expected_slope.Cmp(&slope) != 0 {
+		if expectedVal.Cmp(&val) != 0 || expectedSlope.Cmp(&slope) != 0 {
 			t.Errorf("EC_DOUBLE_SLOPE_V1 hint test incorrect value for exec_scopes.value or exec_scopes.slope")
 		}
 	}
