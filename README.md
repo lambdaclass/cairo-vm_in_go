@@ -2730,6 +2730,51 @@ To address this, the starknet network maintains a list of *whitelisted* hints, w
 
 ## Implementing Hints
 
+Hints are essentially logic that is executed in each cairo step, before the next instruction, and which may interact and modify the vm. We will first look into the broad execution loop and the dive into the different types of interaction hints can have with the vm.
+While the original cairo-lang implementation executes these hints in python, we will instead be implementing their logic in go and matching each string of python code to a function in the vm's code. We will also be using an interface to abstract the hint processing part of the vm and allow greater flexibility when using the vm in other contexts. This `HintProcessor` interface will consist of two methods: `CompileHint`, which receives hint data from the compiled program and transforms it into whatever format is more convenient for hint execution, and `ExecuteHint`, which will receive this data and use it to execute the hint.
+
+We will first look at how hint processing ties into the core vm execution loop, and then look into how this vm's implementaton of the `HintProcessor` interface works:
+
+Before we beging executing steps, we will feed the hint-related information from the compiled program to the `HintProcessor`, and obtain what we call `HintData`, which will be later on used to execute the hint. As we can see, the compiled json stores the hint inofrmation in a map which connects pc offsets (at which pc offset the hint should be executed) to a list of hints (yes, more than one hint can be executed as a given pc), and we will use a similar structure to hold the compiled `HintData`.
+```
+func (r *CairoRunner) BuildHintDataMap(hintProcessor vm.HintProcessor) (map[uint][]any, error) {
+	hintDataMap := make(map[uint][]any, 0)
+	for pc, hintsParams := range r.Program.Hints {
+		hintDatas := make([]any, 0, len(hintsParams))
+		for _, hintParam := range hintsParams {
+			data, err := hintProcessor.CompileHint(&hintParam)
+			if err != nil {
+				return nil, err
+			}
+			hintDatas = append(hintDatas, data)
+		}
+		hintDataMap[pc] = hintDatas
+	}
+
+	return hintDataMap, nil
+}
+```
+
+Once we have our map of `HintData`s we can start executing cairo steps. Before fetching the next instruction, we will check if we have hints to run for the current pc, and if we do, the `HintProcessor` will execute each hint using the corresponding `HintData`.
+
+```
+func (v *VirtualMachine) Step(hintProcessor HintProcessor, hintDataMap *map[uint][]any)  error {
+	// Run Hint
+	hintDatas, ok := (*hintDataMap)[v.RunContext.Pc.Offset]
+	if ok {
+		for i := 0; i < len(hintDatas); i++ {
+			err := hintProcessor.ExecuteHint(v, &hintDatas[i])
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	// Run Instruction
+	encoded_instruction, err := v.Segments.Memory.Get(v.RunContext.Pc)
+```
+
+
 TODO: 
 - How hints are implemented in our VM. Matching python code and executing go code.
 - Communication between the Cairo execution environment and hints. References, Id Manager, Execution Scopes.
