@@ -253,6 +253,10 @@ func TestAssertLtFeltProofMode(t *testing.T) {
 	testProgramProof("assert_lt_felt", t)
 }
 
+func TestMemsetHint(t *testing.T) {
+	testProgram("memset", t)
+}
+
 func TestMemsetHintProofMode(t *testing.T) {
 	testProgramProof("memset", t)
 }
