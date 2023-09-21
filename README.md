@@ -2611,7 +2611,7 @@ the verifier won't *run* this, but they will reject any incorrect execution of t
 
 A `Hint` is a piece of code that is not proven, and therefore not seen by the verifier. If `fib` above were a hint, then the prover could convince the verifier that `result` is $144$, $0$, $1000$ or any other number.
 
-In cairo 0, hints are code written in `Python` and are sorrounded by curly brackets. Here's an example from the `alloc` function, provided by the Cairo common library
+In cairo 0, hints are code written in `Python` and are surrounded by curly brackets. Here's an example from the `alloc` function, provided by the Cairo common library
 
 ```
 func alloc() -> (ptr: felt*) {
