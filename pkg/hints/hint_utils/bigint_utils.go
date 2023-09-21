@@ -9,6 +9,9 @@ import (
 	"github.com/pkg/errors"
 )
 
+// In cairo, various structs are used to represent big integers, all of them have numbered fields of Felt type (d0, d1,...) and share the same behaviours
+// This file contains an implementation of each behaviour at the limbs level, and the wrappers for each specific type
+
 // Generic methods for all types
 func limbsFromVarName(nLimbs int, name string, ids IdsManager, vm *VirtualMachine) ([]Felt, error) {
 	baseAddr, err := ids.GetAddr(name, vm)
