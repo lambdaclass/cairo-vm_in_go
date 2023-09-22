@@ -2750,7 +2750,7 @@ We will first look at how hint processing ties into the core vm execution loop, 
 
 ##### VM execution loop
 
-Before we beging executing steps, we will feed the hint-related information from the compiled program to the `HintProcessor`, and obtain what we call `HintData`, which will be later on used to execute the hint. As we can see, the compiled json stores the hint inofrmation in a map which connects pc offsets (at which pc offset the hint should be executed) to a list of hints (yes, more than one hint can be executed as a given pc), and we will use a similar structure to hold the compiled `HintData`.
+Before we beging executing steps, we will feed the hint-related information from the compiled program to the `HintProcessor`, and obtain what we call `HintData`, which will be later on used to execute the hint. As we can see, the compiled json stores the hint information in a map which connects pc offsets (at which pc offset the hint should be executed) to a list of hints (yes, more than one hint can be executed as a given pc), and we will use a similar structure to hold the compiled `HintData`.
 ```go
 func (r *CairoRunner) BuildHintDataMap(hintProcessor vm.HintProcessor) (map[uint][]any, error) {
 	hintDataMap := make(map[uint][]any, 0)
