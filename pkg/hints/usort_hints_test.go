@@ -1,6 +1,7 @@
 package hints_test
 
 import (
+	"reflect"
 	"testing"
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints"
@@ -64,6 +65,61 @@ func TestUsortOutOfRange(t *testing.T) {
 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
 	if err == nil {
 		t.Errorf("USORT_BODY hint should have failed")
+	}
+
+}
+
+func TestUsortVerify(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+	positions_dict := make(map[lambdaworks.Felt][]uint64)
+	positions_dict[lambdaworks.FeltFromUint64(0)] = []uint64{2}
+	positions_dict[lambdaworks.FeltFromUint64(1)] = []uint64{1}
+	positions_dict[lambdaworks.FeltFromUint64(2)] = []uint64{0}
+
+	scopes.AssignOrUpdateVariable("positions_dict", positions_dict)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"value": {NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: USORT_VERIFY,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("USORT_VERIFY failed")
+	}
+
+	positions_interface, err := scopes.Get("positions")
+
+	if err != nil {
+		t.Errorf("Error assigning positions_interface")
+	}
+
+	positions := positions_interface.([]uint64)
+
+	if !reflect.DeepEqual(positions, []uint64{2}) {
+		t.Errorf("Error assigning positions")
+	}
+
+	last_pos_interface, err := scopes.Get("last_pos")
+
+	if err != nil {
+		t.Errorf("Error assigning last_pos")
+	}
+
+	last_pos := last_pos_interface.(uint64)
+
+	if last_pos != uint64(0) {
+		t.Errorf("Error assigning last_pos")
 	}
 
 }
