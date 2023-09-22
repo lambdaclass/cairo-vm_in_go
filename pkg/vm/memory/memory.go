@@ -154,11 +154,11 @@ func (m *Memory) GetFelt(addr Relocatable) (lambdaworks.Felt, error) {
 func (m *Memory) GetRange(start Relocatable, size uint) ([]MaybeRelocatable, error) {
 	var res []MaybeRelocatable
 	for i := uint(0); i < size; i++ {
-		val, ok := m.Data[start.AddUint(i)]
-		if !ok {
-			return nil, errors.Errorf("GetRange: cell %v is not present in Memory", start.AddUint(i))
+		val, err := m.Get(start.AddUint(i))
+		if err != nil {
+			return nil, err
 		}
-		res = append(res, val)
+		res = append(res, *val)
 	}
 	return res, nil
 }
