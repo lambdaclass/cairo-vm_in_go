@@ -7,7 +7,6 @@ import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_codes"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
-	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
@@ -319,8 +318,8 @@ func TestUint256SqrtOk(t *testing.T) {
 	idsManager := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
 			"n": {
-				NewMaybeRelocatableFelt(FeltFromUint64(^uint64(0))),
-				NewMaybeRelocatableFelt(FeltFromUint64(^uint64(0))),
+				NewMaybeRelocatableFelt(FeltFromUint64(17)),
+				NewMaybeRelocatableFelt(FeltFromUint64(7)),
 			},
 			"root": {nil},
 		},
@@ -337,18 +336,13 @@ func TestUint256SqrtOk(t *testing.T) {
 		t.Errorf("failed with error: %s", err)
 	}
 
-	l := new(big.Int).SetUint64(^uint64(0))
-	h := new(big.Int).Lsh(l, 128)
-	expectedRoot := new(big.Int).Sqrt(new(big.Int).Add(l, h))
-
-	expectedResult := lambdaworks.Uint256{Low: FeltFromBigInt(expectedRoot), High: FeltZero()}
-
-	root, err := idsManager.GetUint256("root", vm)
+	expected_root, _ := new(big.Int).SetString("48805497317890012913", 10)
+	root, err := idsManager.GetFelt("root", vm)
 	if err != nil {
 		t.Errorf("failed with error: %s", err)
 	}
-	if root != expectedResult {
-		t.Errorf("failed, expected root: %d, got: %d", expectedResult, root)
+	if root != FeltFromBigInt(expected_root) {
+		t.Errorf("failed, expected root: %d, got: %d", FeltFromBigInt(expected_root), root)
 	}
 }
 
@@ -370,5 +364,39 @@ func TestUint256SqrtKo(t *testing.T) {
 	expectedRoot := FeltFromDecString("340282366920938463463374607431768211456")
 	if err.Error() != ErrRootOOR(expectedRoot.ToBigInt()).Error() {
 		t.Errorf("failed with error: %s", err)
+	}
+}
+
+func TestUint256SqrtFeltOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"n": {
+				NewMaybeRelocatableFelt(FeltFromUint64(879232)),
+				NewMaybeRelocatableFelt(FeltFromUint64(135906)),
+			},
+			"root": {nil},
+		},
+		vm,
+	)
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: UINT256_SQRT_FELT,
+	})
+	scopes := NewExecutionScopes()
+	hintProcessor := CairoVmHintProcessor{}
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+	expected_root, _ := new(big.Int).SetString("6800471701195223914689", 10)
+	expectedResult := FeltFromBigInt(expected_root)
+	root, err := idsManager.GetFelt("root", vm)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+	if root != expectedResult {
+		t.Errorf("failed, expected root: %d, got: %d", expectedResult, root)
 	}
 }

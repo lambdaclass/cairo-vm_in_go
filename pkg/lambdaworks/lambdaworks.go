@@ -355,3 +355,7 @@ func (a Felt) Cmp(b Felt) int {
 	var b_c C.felt_t = b.toC()
 	return int(C.cmp(&a_c[0], &b_c[0]))
 }
+
+func (ui256 *Uint256) ToString() string {
+	return "Uint256 {low: " + ui256.Low.ToSignedFeltString() + ", high: " + ui256.High.ToSignedFeltString() + "}"
+}
