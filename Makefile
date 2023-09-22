@@ -104,6 +104,7 @@ clean:
 
 clean_files:
 	rm -f $(TEST_DIR)/*.json
+	rm -f $(TEST_DIR)/proof_programs/*.json
 	rm -f $(TEST_DIR)/*.memory
 	rm -f $(TEST_DIR)/*.trace
 

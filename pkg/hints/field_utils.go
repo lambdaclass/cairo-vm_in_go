@@ -37,7 +37,7 @@ func verifyZeroWithExternalConst(vm VirtualMachine, execScopes ExecutionScopes, 
 	}
 
 	fmt.Println("addr ", addr)
-	val, err := BigInt3FromBaseAddr(addr, vm)
+	val, err := BigInt3FromBaseAddr(addr, "val", &vm)
 	if err != nil {
 		return err
 	}
