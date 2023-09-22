@@ -271,8 +271,8 @@ func fastEcAddAssignNewX(ids IdsManager, vm *VirtualMachine, execScopes *Executi
 	slopeSquared := new(big.Int).Mul(&slope, &slope)
 	x0PlusX1 := new(big.Int).Add(&x0, &x1)
 
-	value := new(big.Int).Sub(slopeSquared, x0PlusX1)
-	value = new(big.Int).Mod(value, &secpP)
+	value := *new(big.Int).Sub(slopeSquared, x0PlusX1)
+	value = *new(big.Int).Mod(&value, &secpP)
 
 	execScopes.AssignOrUpdateVariable("slope", slope)
 	execScopes.AssignOrUpdateVariable("x0", x0)

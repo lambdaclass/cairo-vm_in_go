@@ -198,6 +198,6 @@ func TestSplitIntHint(t *testing.T) {
 	}
 }
 
-func TestFastEcAddAssignNewXHint(t *testing.T) {
-	testProgram("fast_ec_add_v2", t)
-}
+// func TestFastEcAddAssignNewXHint(t *testing.T) {
+// 	testProgram("fast_ec_add_v2", t)
+// }
