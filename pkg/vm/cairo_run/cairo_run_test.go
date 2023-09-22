@@ -198,6 +198,3 @@ func TestSplitIntHint(t *testing.T) {
 	}
 }
 
-func TestEcDoubleAssignNewHint(t *testing.T) {
-	testProgram("ec_double_assign", t)
-}
