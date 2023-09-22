@@ -1061,122 +1061,124 @@ func (v *VirtualMachine) RunInstruction(instruction *Instruction) error {
 
 Once the instruction has been decoded, it is executed by `RunInstruction` whose first function is to compute operands. This function is in charge of
 calculating the addresses of the operands and fetching them from memory. If the function could not fetch the operands then they are deduced from the other operands,
-taking in consideration what kind of opcode is being executed. 
+taking in consideration what kind of opcode is being executed.
 
 ```go
 func (vm *VirtualMachine) ComputeOperands(instruction Instruction) (Operands, error) {
-	var res *memory.MaybeRelocatable
+    var res *memory.MaybeRelocatable
 
-	dst_addr, err := vm.RunContext.ComputeDstAddr(instruction)
-	if err != nil {
-		return Operands{}, errors.New("FailedToComputeDstAddr")
-	}
-	dst, _ := vm.Segments.Memory.Get(dst_addr)
+    dst_addr, err := vm.RunContext.ComputeDstAddr(instruction)
+    if err != nil {
+        return Operands{}, errors.New("FailedToComputeDstAddr")
+    }
+    dst, _ := vm.Segments.Memory.Get(dst_addr)
 
-	op0_addr, err := vm.RunContext.ComputeOp0Addr(instruction)
-	if err != nil {
-		return Operands{}, fmt.Errorf("FailedToComputeOp0Addr: %s", err)
-	}
-	op0, _ := vm.Segments.Memory.Get(op0_addr)
+    op0_addr, err := vm.RunContext.ComputeOp0Addr(instruction)
+    if err != nil {
+        return Operands{}, fmt.Errorf("FailedToComputeOp0Addr: %s", err)
+    }
+    op0, _ := vm.Segments.Memory.Get(op0_addr)
 
-	op1_addr, err := vm.RunContext.ComputeOp1Addr(instruction, op0)
-	if err != nil {
-		return Operands{}, fmt.Errorf("FailedToComputeOp1Addr: %s", err)
-	}
-	op1, _ := vm.Segments.Memory.Get(op1_addr)
+    op1_addr, err := vm.RunContext.ComputeOp1Addr(instruction, op0)
+    if err != nil {
+        return Operands{}, fmt.Errorf("FailedToComputeOp1Addr: %s", err)
+    }
+    op1, _ := vm.Segments.Memory.Get(op1_addr)
 
-	if op0 == nil {
-		deducedOp0, deducedRes, err := vm.DeduceOp0(&instruction, dst, op1)
-		if err != nil {
-			return Operands{}, err
-		}
-		op0 = deducedOp0
-		if op0 != nil {
-			vm.Segments.Memory.Insert(op0_addr, op0)
-		}
-		res = deducedRes
-	}
+    if op0 == nil {
+        deducedOp0, deducedRes, err := vm.DeduceOp0(&instruction, dst, op1)
+        if err != nil {
+            return Operands{}, err
+        }
+        op0 = deducedOp0
+        if op0 != nil {
+            vm.Segments.Memory.Insert(op0_addr, op0)
+        }
+        res = deducedRes
+    }
 
-	if op1 == nil {
-		deducedOp1, deducedRes, err := vm.DeduceOp1(instruction, dst, op0)
-		if err != nil {
-			return Operands{}, err
-		}
-		op1 = deducedOp1
-		if op1 != nil {
-			vm.Segments.Memory.Insert(op1_addr, op1)
-		}
-		if res == nil {
-			res = deducedRes
-		}
-	}
+    if op1 == nil {
+        deducedOp1, deducedRes, err := vm.DeduceOp1(instruction, dst, op0)
+        if err != nil {
+            return Operands{}, err
+        }
+        op1 = deducedOp1
+        if op1 != nil {
+            vm.Segments.Memory.Insert(op1_addr, op1)
+        }
+        if res == nil {
+            res = deducedRes
+        }
+    }
 
-	if res == nil {
-		res, err = vm.ComputeRes(instruction, *op0, *op1)
+    if res == nil {
+        res, err = vm.ComputeRes(instruction, *op0, *op1)
 
-		if err != nil {
-			return Operands{}, err
-		}
-	}
+        if err != nil {
+            return Operands{}, err
+        }
+    }
 
-	if dst == nil {
-		deducedDst := vm.DeduceDst(instruction, res)
-		dst = deducedDst
-		if dst != nil {
-			vm.Segments.Memory.Insert(dst_addr, dst)
-		}
-	}
+    if dst == nil {
+        deducedDst := vm.DeduceDst(instruction, res)
+        dst = deducedDst
+        if dst != nil {
+            vm.Segments.Memory.Insert(dst_addr, dst)
+        }
+    }
 
-	operands := Operands{
-		Dst: *dst,
-		Op0: *op0,
-		Op1: *op1,
-		Res: res,
-	}
-	return operands, nil
+    operands := Operands{
+        Dst: *dst,
+        Op0: *op0,
+        Op1: *op1,
+        Res: res,
+    }
+    return operands, nil
 }
 ```
 
 ##### ComputeDstAddr
+
 The method `ComputeDstAddr` computes the address of the value that will be stored in the Destination (dst) operand. It checks which register its is relative to (wether ap or fp) and gets the direction by adding the instruction's first offset(off0) to the corresponding register.
 
 ```go
 func (run_context RunContext) ComputeDstAddr(instruction Instruction) (memory.Relocatable, error) {
-	var base_addr memory.Relocatable
-	switch instruction.DstReg {
-	case AP:
-		base_addr = run_context.Ap
-	case FP:
-		base_addr = run_context.Fp
-	}
+    var base_addr memory.Relocatable
+    switch instruction.DstReg {
+    case AP:
+        base_addr = run_context.Ap
+    case FP:
+        base_addr = run_context.Fp
+    }
 
-	if instruction.Off0 < 0 {
-		return base_addr.SubUint(uint(math.Abs(float64(instruction.Off0))))
-	} else {
-		return base_addr.AddUint(uint(instruction.Off0))
-	}
+    if instruction.Off0 < 0 {
+        return base_addr.SubUint(uint(math.Abs(float64(instruction.Off0))))
+    } else {
+        return base_addr.AddUint(uint(instruction.Off0))
+    }
 
 }
 ```
+
 ##### ComputeOp0Addr
 
 This method is similar to `ComputeDstAddr` but it uses the instruction second offset (off1) to add to the selected register (ap or fp)
 
 ```go
 func (run_context RunContext) ComputeOp0Addr(instruction Instruction) (memory.Relocatable, error) {
-	var base_addr memory.Relocatable
-	switch instruction.Op0Reg {
-	case AP:
-		base_addr = run_context.Ap
-	case FP:
-		base_addr = run_context.Fp
-	}
+    var base_addr memory.Relocatable
+    switch instruction.Op0Reg {
+    case AP:
+        base_addr = run_context.Ap
+    case FP:
+        base_addr = run_context.Fp
+    }
 
-	if instruction.Off1 < 0 {
-		return base_addr.SubUint(uint(math.Abs(float64(instruction.Off1))))
-	} else {
-		return base_addr.AddUint(uint(instruction.Off1))
-	}
+    if instruction.Off1 < 0 {
+        return base_addr.SubUint(uint(math.Abs(float64(instruction.Off1))))
+    } else {
+        return base_addr.AddUint(uint(instruction.Off1))
+    }
 }
 
 ```
@@ -1184,46 +1186,47 @@ func (run_context RunContext) ComputeOp0Addr(instruction Instruction) (memory.Re
 ##### ComputeOp1Addr
 
 It computes the address of `Op1` based on the `Op0` operand and the kind of Address the instruction has for `Op1`.
+
 - If its address is `Op1SrcFp` it calculates the direction from Fp register.
-- if it is `Op1SrcAp` then if calculates it if from Ap register. 
-- If it is an immediate then checks if the offset 2 is 1 and calculates it from the `Pc`. 
+- if it is `Op1SrcAp` then if calculates it if from Ap register.
+- If it is an immediate then checks if the offset 2 is 1 and calculates it from the `Pc`.
 - If it is an `Op1SrcOp0` it checks the `Op0` and calculates the direction from it.
 
 Then it performs and addition or a substraction if the `Off2` is negative or positive.
 
 ```go
 func (run_context RunContext) ComputeOp1Addr(instruction Instruction, op0 *memory.MaybeRelocatable) (memory.Relocatable, error) {
-	var base_addr memory.Relocatable
+    var base_addr memory.Relocatable
 
-	switch instruction.Op1Addr {
-	case Op1SrcFP:
-		base_addr = run_context.Fp
-	case Op1SrcAP:
-		base_addr = run_context.Ap
-	case Op1SrcImm:
-		if instruction.Off2 == 1 {
-			base_addr = run_context.Pc
-		} else {
-			base_addr = memory.NewRelocatable(0, 0)
-			return memory.Relocatable{}, &VirtualMachineError{Msg: "UnknownOp0"}
-		}
-	case Op1SrcOp0:
-		if op0 == nil {
-			return memory.Relocatable{}, errors.New("Unknown Op0")
-		}
-		rel, is_rel := op0.GetRelocatable()
-		if is_rel {
-			base_addr = rel
-		} else {
-			return memory.Relocatable{}, errors.New("AddressNotRelocatable")
-		}
-	}
+    switch instruction.Op1Addr {
+    case Op1SrcFP:
+        base_addr = run_context.Fp
+    case Op1SrcAP:
+        base_addr = run_context.Ap
+    case Op1SrcImm:
+        if instruction.Off2 == 1 {
+            base_addr = run_context.Pc
+        } else {
+            base_addr = memory.NewRelocatable(0, 0)
+            return memory.Relocatable{}, &VirtualMachineError{Msg: "UnknownOp0"}
+        }
+    case Op1SrcOp0:
+        if op0 == nil {
+            return memory.Relocatable{}, errors.New("Unknown Op0")
+        }
+        rel, is_rel := op0.GetRelocatable()
+        if is_rel {
+            base_addr = rel
+        } else {
+            return memory.Relocatable{}, errors.New("AddressNotRelocatable")
+        }
+    }
 
-	if instruction.Off2 < 0 {
-		return base_addr.SubUint(uint(math.Abs(float64(instruction.Off2))))
-	} else {
-		return base_addr.AddUint(uint(instruction.Off2))
-	}
+    if instruction.Off2 < 0 {
+        return base_addr.SubUint(uint(math.Abs(float64(instruction.Off2))))
+    } else {
+        return base_addr.AddUint(uint(instruction.Off2))
+    }
 }
 ```
 
@@ -1231,136 +1234,141 @@ func (run_context RunContext) ComputeOp1Addr(instruction Instruction, op0 *memor
 
 The method deduces the value of `Op0` if possible (based on `dst` and `Op1`).
 If Instruction's opcode is a `Call` `Op0` is deduced by adding the instruction size to the program counter.
+
 - If it is an `AssertEq` then a second switch case is used to check what `ResLogic` is.
-- If it is `ResAdd` `Op0` is deduced from the substraction of `Op1` from `Dst`,  if is is `Resmul` the `Op0` is deduced from the division of `Dst` and `Op1` (both felt values). 
+- If it is `ResAdd` `Op0` is deduced from the substraction of `Op1` from `Dst`,  if is is `Resmul` the `Op0` is deduced from the division of `Dst` and `Op1` (both felt values).
 - Otherwise op0 is nil.  
 
 The method also deduces `res` by using the value of `dst`
 
 ```go
 func (vm *VirtualMachine) DeduceOp0(instruction *Instruction, dst *memory.MaybeRelocatable, op1 *memory.MaybeRelocatable) (deduced_op0 *memory.MaybeRelocatable, deduced_res *memory.MaybeRelocatable, error error) {
-	switch instruction.Opcode {
-	case Call:
-		deduced_op0 := vm.RunContext.Pc
-		deduced_op0.Offset += instruction.Size()
-		return memory.NewMaybeRelocatableRelocatable(deduced_op0), nil, nil
-	case AssertEq:
-		switch instruction.ResLogic {
-		case ResAdd:
-			if dst != nil && op1 != nil {
-				deduced_op0, err := dst.Sub(*op1)
-				if err != nil {
-					return nil, nil, err
-				}
-				return &deduced_op0, dst, nil
-			}
-		case ResMul:
-			if dst != nil && op1 != nil {
-				dst_felt, dst_is_felt := dst.GetFelt()
-				op1_felt, op1_is_felt := op1.GetFelt()
-				if dst_is_felt && op1_is_felt && !op1_felt.IsZero() {
-					return memory.NewMaybeRelocatableFelt(dst_felt.Div(op1_felt)), dst, nil
+    switch instruction.Opcode {
+    case Call:
+        deduced_op0 := vm.RunContext.Pc
+        deduced_op0.Offset += instruction.Size()
+        return memory.NewMaybeRelocatableRelocatable(deduced_op0), nil, nil
+    case AssertEq:
+        switch instruction.ResLogic {
+        case ResAdd:
+            if dst != nil && op1 != nil {
+                deduced_op0, err := dst.Sub(*op1)
+                if err != nil {
+                    return nil, nil, err
+                }
+                return &deduced_op0, dst, nil
+            }
+        case ResMul:
+            if dst != nil && op1 != nil {
+                dst_felt, dst_is_felt := dst.GetFelt()
+                op1_felt, op1_is_felt := op1.GetFelt()
+                if dst_is_felt && op1_is_felt && !op1_felt.IsZero() {
+                    return memory.NewMaybeRelocatableFelt(dst_felt.Div(op1_felt)), dst, nil
 
-				}
-			}
-		}
-	}
-	return nil, nil, nil
+                }
+            }
+        }
+    }
+    return nil, nil, nil
 }
 ```
 
 ##### DeduceOp1
 
 The method deduces the value of `Op1` if possible (based on `dst` and `Op0`) it also deduces `res` if possible.
+
 - If the instruction opcode is `AssertEq` a switch case is used to check what the `ResLogic` is.
 - If it is a `ResOp1` then the value of op1 is equal to the dst operand.
 - If `ResLogic` is `ResAdd` op1 is deduced from the substraction of `op0` from `dst`.
-- If it is `ResMul` `op1` is deduced from the division of `dst` by `op0`, 
+- If it is `ResMul` `op1` is deduced from the division of `dst` by `op0`,
 
 In all the cases `res` is equal to `dst`. if none of the former cases apply then nil is returned.
 
 ```go
 func (vm *VirtualMachine) DeduceOp1(instruction Instruction, dst *memory.MaybeRelocatable, op0 *memory.MaybeRelocatable) (*memory.MaybeRelocatable, *memory.MaybeRelocatable, error) {
-	if instruction.Opcode == AssertEq {
-		switch instruction.ResLogic {
-		case ResOp1:
-			return dst, dst, nil
-		case ResAdd:
-			if op0 != nil && dst != nil {
-				dst_rel, err := dst.Sub(*op0)
-				if err != nil {
-					return nil, nil, err
-				}
-				return &dst_rel, dst, nil
-			}
-		case ResMul:
-			dst_felt, dst_is_felt := dst.GetFelt()
-			op0_felt, op0_is_felt := op0.GetFelt()
-			if dst_is_felt && op0_is_felt && !op0_felt.IsZero() {
-				res := memory.NewMaybeRelocatableFelt(dst_felt.Div(op0_felt))
-				return res, dst, nil
-			}
-		}
-	}
-	return nil, nil, nil
+    if instruction.Opcode == AssertEq {
+        switch instruction.ResLogic {
+        case ResOp1:
+            return dst, dst, nil
+        case ResAdd:
+            if op0 != nil && dst != nil {
+                dst_rel, err := dst.Sub(*op0)
+                if err != nil {
+                    return nil, nil, err
+                }
+                return &dst_rel, dst, nil
+            }
+        case ResMul:
+            dst_felt, dst_is_felt := dst.GetFelt()
+            op0_felt, op0_is_felt := op0.GetFelt()
+            if dst_is_felt && op0_is_felt && !op0_felt.IsZero() {
+                res := memory.NewMaybeRelocatableFelt(dst_felt.Div(op0_felt))
+                return res, dst, nil
+            }
+        }
+    }
+    return nil, nil, nil
 }
 
 ```
+
 ##### ComputeRes
 
 If the Res value has not been deduced in the previous steps then it is computed based on the `Op0` and `Op1` values.
-- If `ResLogic` is `ResOp1` then `res` is equal to `op1`. 
-- If it is `ResAdd` then `res` is deduced from the addition of `op0` and `op1`. 
+
+- If `ResLogic` is `ResOp1` then `res` is equal to `op1`.
+- If it is `ResAdd` then `res` is deduced from the addition of `op0` and `op1`.
 - If it is `ResMul` `res` is deduced from the multiplication of `op0` and `op1`.
 - Otherwise `res` is nil.
 
 ```go
 func (vm *VirtualMachine) ComputeRes(instruction Instruction, op0 memory.MaybeRelocatable, op1 memory.MaybeRelocatable) (*memory.MaybeRelocatable, error) {
-	switch instruction.ResLogic {
-	case ResOp1:
-		return &op1, nil
+    switch instruction.ResLogic {
+    case ResOp1:
+        return &op1, nil
 
-	case ResAdd:
-		maybe_rel, err := op0.Add(op1)
-		if err != nil {
-			return nil, err
-		}
-		return &maybe_rel, nil
+    case ResAdd:
+        maybe_rel, err := op0.Add(op1)
+        if err != nil {
+            return nil, err
+        }
+        return &maybe_rel, nil
 
-	case ResMul:
-		num_op0, m_type := op0.GetFelt()
-		num_op1, other_type := op1.GetFelt()
-		if m_type && other_type {
-			result := memory.NewMaybeRelocatableFelt(num_op0.Mul(num_op1))
-			return result, nil
-		} else {
-			return nil, errors.New("ComputeResRelocatableMul")
-		}
+    case ResMul:
+        num_op0, m_type := op0.GetFelt()
+        num_op1, other_type := op1.GetFelt()
+        if m_type && other_type {
+            result := memory.NewMaybeRelocatableFelt(num_op0.Mul(num_op1))
+            return result, nil
+        } else {
+            return nil, errors.New("ComputeResRelocatableMul")
+        }
 
-	case ResUnconstrained:
-		return nil, nil
-	}
-	return nil, nil
+    case ResUnconstrained:
+        return nil, nil
+    }
+    return nil, nil
 }
 ```
 
 ##### DeduceDst
 
 If the destination value has not been calculated before then it is deduced based on the Res operand. If the opcode is an `AssertEq` then dst is equal res.
-If it is a `Call` then its value is taken from the `Fp` register 
+If it is a `Call` then its value is taken from the `Fp` register
 
 ```go
 func (vm *VirtualMachine) DeduceDst(instruction Instruction, res *memory.MaybeRelocatable) *memory.MaybeRelocatable {
-	switch instruction.Opcode {
-	case AssertEq:
-		return res
-	case Call:
-		return memory.NewMaybeRelocatableRelocatable(vm.RunContext.Fp)
+    switch instruction.Opcode {
+    case AssertEq:
+        return res
+    case Call:
+        return memory.NewMaybeRelocatableRelocatable(vm.RunContext.Fp)
 
-	}
-	return nil
+    }
+    return nil
 }
 ```
+
 #### Opcode assertions
 
 Once we have the instruction's operands to work with, we have to ensure the correctness of them. The first thing we need to differentiate is which type of instruction are we running, we do this by looking at the instruction's opcode.
@@ -1669,9 +1677,374 @@ func (r *CairoRunner) RunUntilPC(end memory.Relocatable) error {
  return nil
 ```
 
-#### Memory Relocation - function
+Once we are done executing, we can relocate our memory and trace and output them into files.
 
-TODO
+#### Relocate
+
+This method will relocate the memory and trace generated by the program execution. Relocating means that our VM transforms a two-dimensional memory (aka a memory divided by segments) to a continuous, one-dimensional memory.
+In this section, we will refer to the two-dimensional memory as the original memory and the one-dimensional memory as the relocated memory.
+The memory relocation process is explained at a high level [here](#memory-relocation).
+
+The original memory is accessed using `Relocatable`s while the relocated memory is accessed using uints. Also, the original memory values can be either `Felt`s of `Relocatable`s while the relocated memory values are all `Felt`s.
+
+The relocation process is divided into 4 steps:
+
+1. Compute the sizes of each memory segment.
+2. Build an array that contains the first relocated address of each segment.
+3. Creates the relocated memory transforming the original memory by using the array built in 2.
+4. Creates the relocated trace transforming the original trace by using the array built in 2.
+
+The function that does the relocation process is shown below:
+
+```go
+func (v *VirtualMachine) Relocate() error {
+    v.Segments.ComputeEffectiveSizes()
+    if len(v.Trace) == 0 {
+        return nil
+    }
+
+    relocationTable, ok := v.Segments.RelocateSegments()
+    // This should be unreachable
+    if !ok {
+        return errors.New("ComputeEffectiveSizes called but RelocateSegments still returned error")
+    }
+
+    relocatedMemory, err := v.Segments.RelocateMemory(&relocationTable)
+    if err != nil {
+        return err
+    }
+
+    v.RelocateTrace(&relocationTable)
+    v.RelocatedMemory = relocatedMemory
+    return nil
+}
+```
+
+Notice that each step is encapsulated into a function.
+We need to add the relocated trace and relocated memory fields to the `VirtualMachine` struct:
+
+```go
+type VirtualMachine struct {
+    RunContext     RunContext
+    currentStep    uint
+    Segments       memory.MemorySegmentManager
+    Trace           []TraceEntry
+    RelocatedTrace  []RelocatedTraceEntry
+    RelocatedMemory map[uint]lambdaworks.Felt
+}
+```
+
+Also we need to add some methods to `MemorySegmentManager` and to `VirtualMachine`.
+We will look into each one in the following subsections.
+
+#### ComputeEffectiveSizes
+
+To relocate the memory segments, we first need to know the size of each segment of the memory.
+This method computes those sizes by returning a map whose keys are segment indexes and its values are the segment sizes:
+
+```go
+func (m *MemorySegmentManager) ComputeEffectiveSizes() map[uint]uint {
+    if len(m.SegmentSizes) == 0 {
+
+        for ptr := range m.Memory.data {
+            segmentIndex := uint(ptr.SegmentIndex)
+            segmentMaxSize := m.SegmentSizes[segmentIndex]
+            segmentSize := ptr.Offset + 1
+            if segmentSize > segmentMaxSize {
+                m.SegmentSizes[segmentIndex] = segmentSize
+            }
+        }
+    }
+
+    return m.SegmentSizes
+}
+```
+
+Notice that this method will only do something once: consecutive calls won't do anything.
+This is because the relocation process will happen only after the program execution and never again.
+The `Relocate` function shouldn't be called more than once.
+
+#### RelocateSegments
+
+Once we have the segment sizes, we need to know where to relocate the segments.
+Because we want the relocated memory to be continuous, the segments should be placed one after the other.
+This means that the last address of the segment `i` is followed by the first address of the segment `i + 1`.
+To know where to relocate the segments, we need to know the first address of each segment as if they were already relocated.
+We also need to enforce that `RelocateSegments` is called after `ComputeEffectiveSizes`:
+
+```go
+func (m *MemorySegmentManager) RelocateSegments() ([]uint, bool) {
+    if m.SegmentSizes == nil {
+        return nil, false
+    }
+
+    first_addr := uint(1)
+    relocation_table := []uint{first_addr}
+
+    for i := uint(0); i < m.Memory.NumSegments(); i++ {
+        new_addr := relocation_table[i] + m.SegmentSizes[i]
+        relocation_table = append(relocation_table, new_addr)
+    }
+    relocation_table = relocation_table[:len(relocation_table)-1]
+
+    return relocation_table, true
+}
+```
+
+#### RelocateMemory
+
+Once we have where each segment should go in the relocated memory, we can relocate the memory segments.
+
+```go
+func (s *MemorySegmentManager) RelocateMemory(relocationTable *[]uint) (map[uint]lambdaworks.Felt, error) {
+    relocatedMemory := make(map[uint]lambdaworks.Felt, 0)
+
+    for i := uint(0); i < s.Memory.NumSegments(); i++ {
+        for j := uint(0); j < s.SegmentSizes[i]; j++ {
+            ptr := NewRelocatable(int(i), j)
+            cell, err := s.Memory.Get(ptr)
+            if err == nil {
+                relocatedAddr := ptr.RelocateAddress(relocationTable)
+                value, err := cell.RelocateValue(relocationTable)
+                if err != nil {
+                    return nil, err
+                }
+                relocatedMemory[relocatedAddr] = value
+            }
+        }
+    }
+
+    return relocatedMemory, nil
+}
+```
+
+This method calls two new methods: `RelocateAddress` from `Relocatable` and `RelocateValue` from `MaybeRelocatable`.
+Let's implement them.
+
+##### RelocateAddress
+
+This `Relocatable`'s method transforms an address of the original memory into an address of the relocated memory.
+Because the relocated memory is one-dimensional and not divided into segments, the memory addresses are not of type `Relocatable` but
+`uint`.
+
+```go
+func (r *Relocatable) RelocateAddress(relocationTable *[]uint) uint {
+    return (*relocationTable)[r.SegmentIndex] + r.Offset
+}
+```
+
+##### RelocateValue
+
+This `MaybeRelocatable`'s method transforms a value of the original memory into a value of the relocated memory.
+
+- If the value is a `Felt`, the method doesn't transform it and returns the value as is.
+- If the value is a `Relocatable`, the method transforms it to an address of the relocated memory.
+- If the value is any other type, the method returns an error.
+
+```go
+func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (lambdaworks.Felt, error) {
+    inner_felt, ok := m.GetFelt()
+    if ok {
+        return inner_felt, nil
+    }
+
+    inner_relocatable, ok := m.GetRelocatable()
+    if ok {
+        return lambdaworks.FeltFromUint64(uint64(inner_relocatable.RelocateAddress(relocationTable))), nil
+    }
+
+    return lambdaworks.FeltZero(), errors.New(fmt.Sprintf("Unexpected type %T", m.inner))
+}
+```
+
+#### RelocateTrace
+
+After running `RelocateMemory` and returning the relocated memory without errors, the `Relocate` function calls `RelocateTrace`.
+This method transforms the fields of each trace entry from `Relocatable`s to `Felt`s.
+The fields of each entry are pc, ap and fp.
+Because those fields are address, the trace relocation process involves relocating addresses.
+That's why, this method also calls `RelocateAddress`:
+
+```go
+func (v *VirtualMachine) RelocateTrace(relocationTable *[]uint) error {
+    if len(*relocationTable) < 2 {
+        return errors.New("no relocation found for execution segment")
+    }
+
+    for _, entry := range v.Trace {
+        v.RelocatedTrace = append(v.RelocatedTrace, RelocatedTraceEntry{
+            Pc: lambdaworks.FeltFromUint64(uint64(entry.Pc.RelocateAddress(relocationTable))),
+            Ap: lambdaworks.FeltFromUint64(uint64(entry.Ap.RelocateAddress(relocationTable))),
+            Fp: lambdaworks.FeltFromUint64(uint64(entry.Fp.RelocateAddress(relocationTable))),
+        })
+    }
+
+    return nil
+}
+```
+
+Like in `RelocateMemory`, we need to check that the `RelocateSegments` function was called before.
+
+Once the program was executed, the `VirtualMachine` will have generated a relocated trace and a relocated memory for that execution.
+Both trace and memory should be outputs of the execution, so we will write two functions that respectively write the trace and memory
+into a file.
+We will create a package called `cairo_run` and create those functions there.
+
+#### Writing the trace into a file
+
+First, we will add a function in our new `cairo_run` package to write the relocated trace into a buffer.
+This method converts the pc, fp and ap fields of each trace entry into a `uint64` and writes each integer into the buffer in little endian:
+
+```go
+func WriteEncodedTrace(relocatedTrace []vm.RelocatedTraceEntry, dest io.Writer) error {
+    for i, entry := range relocatedTrace {
+        ap_buffer := make([]byte, 8)
+        ap, err := entry.Ap.ToU64()
+        if err != nil {
+            return err
+        }
+        binary.LittleEndian.PutUint64(ap_buffer, ap)
+        _, err = dest.Write(ap_buffer)
+        if err != nil {
+            return encodeTraceError(i, err)
+        }
+
+        fp_buffer := make([]byte, 8)
+        fp, err := entry.Fp.ToU64()
+        if err != nil {
+            return err
+        }
+        binary.LittleEndian.PutUint64(fp_buffer, fp)
+        _, err = dest.Write(fp_buffer)
+        if err != nil {
+            return encodeTraceError(i, err)
+        }
+
+        pc_buffer := make([]byte, 8)
+        pc, err := entry.Pc.ToU64()
+        if err != nil {
+            return err
+        }
+        binary.LittleEndian.PutUint64(pc_buffer, pc)
+        _, err = dest.Write(pc_buffer)
+        if err != nil {
+            return encodeTraceError(i, err)
+        }
+    }
+
+    return nil
+}
+```
+
+#### Writing the memory into a file
+
+Second, we will add a function in the `cairo_run` package to write the relocated memory into another buffer.
+We want to write into the buffer the pairs of addresses and values by following a specific order.
+In this case, we want those pairs to be incrementally ordered by address.
+Because we implemented the relocated memory as a map and we store the addresses as keys, if we iterate over the relocated memory using
+`range`, we will end up storing the pairs of addresses and values without following any specific order.
+So, first we sort the relocated memory addresses and then we iterate those addresses to write each pair into the buffer.
+Before writing the relocated memory values into the buffer, we have to convert them to bytes in little endian by using the lambdaworks
+method `ToLeBytes`.
+That method returns an array and `io.Writer.Write` expects a slice, so we convert the array that `ToLeBytes` returns to a slice.
+
+```go
+func WriteEncodedMemory(relocatedMemory map[uint]lambdaworks.Felt, dest io.Writer) error {
+    // create a slice to store keys of the relocatedMemory map
+    keysMap := make([]uint, 0, len(relocatedMemory))
+    for k := range relocatedMemory {
+        keysMap = append(keysMap, k)
+    }
+
+    // sort the keys
+    sort.Slice(keysMap, func(i, j int) bool { return keysMap[i] < keysMap[j] })
+
+    // iterate over the `relocatedMemory` map in sorted key order
+    for _, k := range keysMap {
+        // write the key
+        keyArray := make([]byte, 8)
+        binary.LittleEndian.PutUint64(keyArray, uint64(k))
+        _, err := dest.Write(keyArray)
+        if err != nil {
+            return encodeMemoryError(k, err)
+        }
+
+        // write the value
+        valueArray := relocatedMemory[k].ToLeBytes()
+
+        _, err = dest.Write(valueArray[:])
+        if err != nil {
+            return encodeMemoryError(k, err)
+        }
+    }
+
+    return nil
+}
+```
+
+#### Putting it all together
+
+Now it's time to finally add our `main` function to the project!
+The CLI will receive one argument: the program path.
+This path will be passed as argument to a new function called `CairoRun`.
+This new function will return the cairo runner and an error, if it exists one during the program execution.
+If the program execution ends successfully, we write the relocated trace and memory in files respectively and print that the execution was ended with no errors.
+If the program execution ends with an error, we don't write any file and print the corresponding error.
+
+```go
+func main() {
+    if len(os.Args) < 2 {
+        fmt.Println("Wrong argument count: Use go run cmd/cli/main.go COMPILED_JSON")
+        return
+    }
+    cli_args := os.Args[1:]
+    programPath := cli_args[0]
+    cairoRunner, err := cairo_run.CairoRun(programPath)
+    if err != nil {
+        fmt.Printf("Failed with error: %s", err)
+        return
+    }
+    traceFilePath := strings.Replace(programPath, ".json", ".go.trace", 1)
+    traceFile, err := os.OpenFile(traceFilePath, os.O_RDWR|os.O_CREATE, 0644)
+    defer traceFile.Close()
+
+    memoryFilePath := strings.Replace(programPath, ".json", ".go.memory", 1)
+    memoryFile, err := os.OpenFile(memoryFilePath, os.O_RDWR|os.O_CREATE, 0644)
+    defer memoryFile.Close()
+
+    cairo_run.WriteEncodedTrace(cairoRunner.Vm.RelocatedTrace, traceFile)
+    cairo_run.WriteEncodedMemory(cairoRunner.Vm.RelocatedMemory, memoryFile)
+
+    println("Done!")
+}
+```
+
+To make our `main` function work, we still need to add another function to the `cairo_run` package.
+The `CairoRun` function will be responsible of integrating the initialization, execution and relocation.
+
+```go
+func CairoRun(programPath string) (*runners.CairoRunner, error) {
+    compiledProgram := parser.Parse(programPath)
+    programJson := vm.DeserializeProgramJson(compiledProgram)
+
+    cairoRunner, err := runners.NewCairoRunner(programJson)
+    if err != nil {
+        return nil, err
+    }
+    end, err := cairoRunner.Initialize()
+    if err != nil {
+        return nil, err
+    }
+    err = cairoRunner.RunUntilPC(end)
+    if err != nil {
+        return nil, err
+    }
+    err = cairoRunner.Vm.Relocate()
+    return cairoRunner, err
+}
+```
+
+TODO: add parsing and deserializing
 
 #### Builtins
 
@@ -1709,6 +2082,9 @@ type VirtualMachine struct {
     RunContext     RunContext
     currentStep    uint
     Segments       memory.MemorySegmentManager
+    Trace           []TraceEntry
+    RelocatedTrace  []RelocatedTraceEntry
+    RelocatedMemory map[uint]lambdaworks.Felt
     BuiltinRunners []builtins.BuiltinRunner
 }
 ```

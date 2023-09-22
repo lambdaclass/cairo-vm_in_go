@@ -520,6 +520,14 @@ func TestDeduceMemoryCellNoBuiltins(t *testing.T) {
 	}
 }
 
+func TestRelocateTraceWithoutRelocatingTrace(t *testing.T) {
+	virtualMachine := vm.NewVirtualMachine()
+	_, err := virtualMachine.GetRelocatedTrace()
+	if err == nil {
+		t.Fatalf("GetRelocatedTrace should have failed")
+	}
+}
+
 func TestRelocateTraceOneEntry(t *testing.T) {
 	virtualMachine := vm.NewVirtualMachine()
 	buildTestProgramMemory(virtualMachine)
