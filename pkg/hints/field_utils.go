@@ -45,7 +45,7 @@ func verifyZeroWithExternalConst(vm VirtualMachine, execScopes ExecutionScopes, 
 	v := val.Pack86()
 	fmt.Println("val in zero with external: ", v.Text(10))
 	q, r := v.DivMod(&v, &secpP, new(big.Int))
-	//fmt.Println(r)
+	fmt.Println(r)
 	if r.Cmp(big.NewInt(0)) != 0 {
 		return errors.New("verify remainder is not zero: Invalid input")
 	}

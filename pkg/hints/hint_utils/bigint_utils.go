@@ -70,6 +70,7 @@ func limbsFromBaseAddress(nLimbs int, name string, addr Relocatable, vm *Virtual
 	limbs := make([]Felt, 0)
 	for i := 0; i < nLimbs; i++ {
 		felt, err := vm.Segments.Memory.GetFelt(addr.AddUint(uint(i)))
+		fmt.Println("value in memory: ", felt.ToBigInt().Text(10), addr.AddUint(uint(i)))
 		if err == nil {
 			limbs = append(limbs, felt)
 		} else {
