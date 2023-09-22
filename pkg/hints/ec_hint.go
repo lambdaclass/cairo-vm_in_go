@@ -283,35 +283,48 @@ func fastEcAddAssignNewX(ids IdsManager, vm *VirtualMachine, execScopes *Executi
 	return nil
 }
 
-// pub fn fast_ec_add_assign_new_x(
-//     vm: &mut VirtualMachine,
-//     exec_scopes: &mut ExecutionScopes,
-//     ids_data: &HashMap<String, HintReference>,
-//     ap_tracking: &ApTracking,
-//     secp_p: &BigInt,
-//     point0_alias: &str,
-//     point1_alias: &str,
-// ) -> Result<(), HintError> {
-//     exec_scopes.insert_value("SECP_P", secp_p.clone());
-//     //ids.slope
-//     let slope = BigInt3::from_var_name("slope", vm, ids_data, ap_tracking)?;
-//     //ids.point0
-//     let point0 = EcPoint::from_var_name(point0_alias, vm, ids_data, ap_tracking)?;
-//     //ids.point1.x
-//     let point1 = EcPoint::from_var_name(point1_alias, vm, ids_data, ap_tracking)?;
+/*
+Implements hint:
 
-//     let slope = slope.pack86().mod_floor(secp_p);
-//     let x0 = point0.x.pack86().mod_floor(secp_p);
-//     let x1 = point1.x.pack86().mod_floor(secp_p);
-//     let y0 = point0.y.pack86().mod_floor(secp_p);
+	%{ value = new_y = (slope * (x0 - new_x) - y0) % SECP_P %}
+*/
+func fastEcAddAssignNewY(execScopes *ExecutionScopes) error {
+	slope, err := execScopes.Get("slope")
+	if err != nil {
+		return err
+	}
+	slopeBigInt := slope.(big.Int)
+	x0, err := execScopes.Get("x0")
+	if err != nil {
+		return err
+	}
+	x0BigInt := x0.(big.Int)
 
-//     let value = (&slope * &slope - &x0 - &x1).mod_floor(secp_p);
-//     //Assign variables to vm scope
-//     exec_scopes.insert_value("slope", slope);
-//     exec_scopes.insert_value("x0", x0);
-//     exec_scopes.insert_value("y0", y0);
-//     exec_scopes.insert_value("value", value.clone());
-//     exec_scopes.insert_value("new_x", value);
+	newX, err := execScopes.Get("new_x")
+	if err != nil {
+		return err
+	}
+	newXBigInt := newX.(big.Int)
 
-//     Ok(())
-// }
+	y0, err := execScopes.Get("y0")
+	if err != nil {
+		return err
+	}
+	y0BigInt := y0.(big.Int)
+
+	secpP, err := execScopes.Get("SECP_P")
+	if err != nil {
+		return err
+	}
+	secpBigInt := secpP.(big.Int)
+
+	x0MinusNewX := *new(big.Int).Sub(&x0BigInt, &newXBigInt)
+	x0MinusNewXMinusY0 := *new(big.Int).Sub(&x0MinusNewX, &y0BigInt)
+	valueBeforeMod := *new(big.Int).Mul(&slopeBigInt, &x0MinusNewXMinusY0)
+	value := *new(big.Int).Mod(&valueBeforeMod, &secpBigInt)
+
+	execScopes.AssignOrUpdateVariable("value", value)
+	execScopes.AssignOrUpdateVariable("new_y", value)
+
+	return nil
+}
