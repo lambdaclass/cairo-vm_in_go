@@ -142,6 +142,10 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return splitInt(data.Ids, vm)
 	case SPLIT_INT_ASSERT_RANGE:
 		return splitIntAssertRange(data.Ids, vm)
+	// case FAST_EC_ADD_ASSIGN_NEW_X:
+	// 	return fastEcAddAssignNewX(data.Ids, vm, execScopes, "point0", "point1", SECP_P())
+	case FAST_EC_ADD_ASSIGN_NEW_X_V2:
+		return fastEcAddAssignNewX(data.Ids, vm, execScopes, "point0", "point1", SECP_P_V2())
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}

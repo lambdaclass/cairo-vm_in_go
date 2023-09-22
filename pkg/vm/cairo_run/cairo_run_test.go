@@ -197,3 +197,7 @@ func TestSplitIntHint(t *testing.T) {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
 }
+
+func TestFastEcAddAssignNewXHint(t *testing.T) {
+	testProgram("fast_ec_add_v2", t)
+}
