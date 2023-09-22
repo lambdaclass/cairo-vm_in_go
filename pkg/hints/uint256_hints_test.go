@@ -351,3 +351,24 @@ func TestUint256SqrtOk(t *testing.T) {
 		t.Errorf("failed, expected root: %d, got: %d", expectedResult, root)
 	}
 }
+
+func TestUint256SqrtKo(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+
+	idsManager := SetupIdsForTest(map[string][]*MaybeRelocatable{
+		"n": {
+			NewMaybeRelocatableFelt(FeltZero()),
+			NewMaybeRelocatableFelt(FeltFromDecString("340282366920938463463374607431768211458")),
+		},
+		"root": {nil},
+	}, vm)
+
+	hintData := any(HintData{Ids: idsManager, Code: UINT256_SQRT})
+	hintProcessor := CairoVmHintProcessor{}
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, NewExecutionScopes())
+	expectedRoot := FeltFromDecString("340282366920938463463374607431768211456")
+	if err.Error() != ErrRootOOR(expectedRoot.ToBigInt()).Error() {
+		t.Errorf("failed with error: %s", err)
+	}
+}
