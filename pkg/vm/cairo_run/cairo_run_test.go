@@ -229,6 +229,10 @@ func TestSignedDivRemHintProofMode(t *testing.T) {
 	testProgramProof("signed_div_rem", t)
 }
 
+func TestSetAddHint(t *testing.T) {
+	testProgram("set_add", t)
+}
+
 func TestMemcpyHint(t *testing.T) {
 	testProgram("memcpy_test", t)
 }
@@ -275,6 +279,14 @@ func TestSquashDict(t *testing.T) {
 
 func TestSquashDictProofMode(t *testing.T) {
 	testProgramProof("squash_dict", t)
+}
+
+func TestFindElementHint(t *testing.T) {
+	testProgram("find_element", t)
+}
+
+func TestSearchSortedLowerHint(t *testing.T) {
+	testProgram("search_sorted_lower", t)
 }
 
 func TestAssert250BitHint(t *testing.T) {

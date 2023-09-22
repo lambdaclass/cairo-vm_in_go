@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 typedef uint64_t limb_t;
+typedef unsigned int uint_t;
 
 /* A 256 bit prime field element (felt), represented as four limbs (integers).
  */
@@ -10,6 +11,9 @@ typedef limb_t felt_t[4];
 
 /* Gets a felt_t representing the "value" number, in montgomery format. */
 void from(felt_t result, uint64_t value);
+
+/* Gets a felt_t representing the "value" number, in montgomery format. */
+void from_uint(felt_t result, uint_t value);
 
 /*Gets a felt_t representing the "value" hexadecimal string, in montgomery
  * format. */
