@@ -106,6 +106,12 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return memset_step_loop(data.Ids, vm, execScopes, "continue_loop")
 	case VM_ENTER_SCOPE:
 		return vm_enter_scope(execScopes)
+	case SET_ADD:
+		return setAdd(data.Ids, vm)
+	case FIND_ELEMENT:
+		return findElement(data.Ids, vm, *execScopes)
+	case SEARCH_SORTED_LOWER:
+		return searchSortedLower(data.Ids, vm, *execScopes)
 	case COMPUTE_SLOPE_V1:
 		return computeSlopeAndAssingSecpP(vm, *execScopes, data.Ids, "point0", "point1", SECP_P())
 	case EC_DOUBLE_SLOPE_V1:
