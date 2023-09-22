@@ -214,10 +214,10 @@ func ecDoubleAssignNewX(vm *VirtualMachine, execScopes ExecutionScopes, ids IdsM
 	value = value.Sub(value, x)
 	value = value.Mod(value, &secpP)
 
-	execScopes.AssignOrUpdateVariable("slope", slope)
-	execScopes.AssignOrUpdateVariable("x", x)
-	execScopes.AssignOrUpdateVariable("y", y)
-	execScopes.AssignOrUpdateVariable("value", value)
-	execScopes.AssignOrUpdateVariable("new_x", value)
+	execScopes.AssignOrUpdateVariable("slope", *slope)
+	execScopes.AssignOrUpdateVariable("x", *x)
+	execScopes.AssignOrUpdateVariable("y", *y)
+	execScopes.AssignOrUpdateVariable("value", *value)
+	execScopes.AssignOrUpdateVariable("new_x", *value)
 	return nil
 }

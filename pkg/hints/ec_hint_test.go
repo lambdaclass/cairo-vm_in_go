@@ -234,3 +234,72 @@ func TestRunComputeSlopeOk(t *testing.T) {
 		}
 	}
 }
+
+func TestEcDoubleAssignNewXOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"slope": {
+				NewMaybeRelocatableFelt(FeltFromUint64(3)),
+				NewMaybeRelocatableFelt(FeltFromUint64(0)),
+				NewMaybeRelocatableFelt(FeltFromUint64(0)),
+			},
+			"point": {
+				// X
+				NewMaybeRelocatableFelt(FeltFromUint64(2)),
+				NewMaybeRelocatableFelt(FeltFromUint64(0)),
+				NewMaybeRelocatableFelt(FeltFromUint64(0)),
+				// Y
+				NewMaybeRelocatableFelt(FeltFromUint64(4)),
+				NewMaybeRelocatableFelt(FeltFromUint64(0)),
+				NewMaybeRelocatableFelt(FeltFromUint64(0)),
+			},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: EC_DOUBLE_ASSIGN_NEW_X_V1,
+	})
+
+	execScopes := types.NewExecutionScopes()
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, execScopes)
+
+	if err != nil {
+		t.Errorf("EC_DOUBLE_ASSIGN_NEW_X hint failed with error: %s", err)
+	}
+
+	slopeUncast, _ := execScopes.Get("slope")
+	slope := slopeUncast.(big.Int)
+	xUncast, _ := execScopes.Get("x")
+	x := xUncast.(big.Int)
+	yUncast, _ := execScopes.Get("y")
+	y := yUncast.(big.Int)
+	valueUncast, _ := execScopes.Get("value")
+	value := valueUncast.(big.Int)
+	new_xUncast, _ := execScopes.Get("new_x")
+	new_x := new_xUncast.(big.Int)
+
+	if value.Cmp(&new_x) != 0 {
+		t.Errorf("EC_DOUBLE_ASSIGN_NEW_X hint failed: new_x != value. %v != %v", new_x, value)
+	}
+	expectedRes := big.NewInt(5)
+	if value.Cmp(expectedRes) != 0 {
+		t.Errorf("EC_DOUBLE_ASSIGN_NEW_X hint failed: expected value (%v) to be 6", value)
+	}
+	expectedSlope := big.NewInt(3)
+	if slope.Cmp(expectedSlope) != 0 {
+		t.Errorf("EC_DOUBLE_ASSIGN_NEW_X hint failed: expected slope (%v) to be 3", slope)
+	}
+	expectedX := big.NewInt(2)
+	if x.Cmp(expectedX) != 0 {
+		t.Errorf("EC_DOUBLE_ASSIGN_NEW_X hint failed: expected x (%v) to be 2", x)
+	}
+	expectedY := big.NewInt(4)
+	if y.Cmp(expectedY) != 0 {
+		t.Errorf("EC_DOUBLE_ASSIGN_NEW_X hint failed: expected y (%v) to be 4", y)
+	}
+}

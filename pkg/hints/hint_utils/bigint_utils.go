@@ -98,4 +98,3 @@ func BigInt3FromVarName(name string, vm *VirtualMachine, ids IdsManager) (BigInt
 	limbs, err := limbsFromVarName(3, name, ids, vm)
 	return BigInt3{Limbs: limbs}, err
 }
-

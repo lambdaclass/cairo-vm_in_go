@@ -197,4 +197,3 @@ func TestSplitIntHint(t *testing.T) {
 		t.Errorf("Program execution failed with error: %s", err)
 	}
 }
-
