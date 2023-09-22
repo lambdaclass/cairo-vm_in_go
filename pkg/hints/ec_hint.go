@@ -2,6 +2,7 @@ package hints
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
@@ -37,6 +38,7 @@ func BigInt3FromBaseAddr(addr memory.Relocatable, vm VirtualMachine) (BigInt3, e
 	for i := 0; i < 3; i++ {
 		felt, err := vm.Segments.Memory.GetFelt(addr.AddUint(uint(i)))
 		if err == nil {
+			fmt.Println("value from memory:  from address ", felt.ToBigInt().Text(10), addr.AddUint(uint(i)))
 			limbs = append(limbs, felt)
 		} else {
 			return BigInt3{}, errors.New("Identifier has no member")
@@ -257,6 +259,7 @@ Implements hint:
 */
 func computeDoublingSlopeExternalConsts(vm VirtualMachine, execScopes ExecutionScopes, ids_data IdsManager) error {
 	// ids.point
+	fmt.Println("compute doubling slope extenral ")
 	point, err := EcPointFromVarName("point", vm, ids_data)
 	if err != nil {
 		return err
@@ -277,6 +280,7 @@ func computeDoublingSlopeExternalConsts(vm VirtualMachine, execScopes ExecutionS
 	double_point_b := builtins.DoublePointB{X: point.X.Pack86(), Y: point.Y.Pack86()}
 
 	value, err := builtins.EcDoubleSlope(double_point_b, alpha, secp_p)
+	fmt.Println("value of ec double slope", value.Text(10))
 	if err != nil {
 		return err
 	}

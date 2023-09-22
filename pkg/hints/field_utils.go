@@ -2,6 +2,7 @@ package hints
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
@@ -28,20 +29,23 @@ func verifyZeroWithExternalConst(vm VirtualMachine, execScopes ExecutionScopes, 
 	if err != nil {
 		return err
 	}
-	SecpP := secpPuncast.(big.Int)
-	addr, err := idsData.GetRelocatable("val", &vm)
+	secpP := secpPuncast.(big.Int)
+	fmt.Println("secp: ", secpP.Text(10))
+	addr, err := idsData.GetAddr("val", &vm)
 	if err != nil {
 		return err
 	}
 
+	fmt.Println("addr ", addr)
 	val, err := BigInt3FromBaseAddr(addr, vm)
 	if err != nil {
 		return err
 	}
 
 	v := val.Pack86()
-	q, r := v.DivMod(&v, &SecpP, new(big.Int))
-
+	fmt.Println("val in zero with external: ", v.Text(10))
+	q, r := v.DivMod(&v, &secpP, new(big.Int))
+	//fmt.Println(r)
 	if r.Cmp(big.NewInt(0)) != 0 {
 		return errors.New("verify remainder is not zero: Invalid input")
 	}

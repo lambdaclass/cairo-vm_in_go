@@ -1,6 +1,7 @@
 package hint_utils
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
@@ -24,11 +25,14 @@ func NondetBigInt3(virtual_machine vm.VirtualMachine, exec_scopes types.Executio
 		return err
 	}
 
+	fmt.Println("res alloc: ", res_relloc)
+
 	value_uncast, err := exec_scopes.Get("value")
 	if err != nil {
 		return err
 	}
 	value := value_uncast.(big.Int)
+	fmt.Println("value in nond int: \n", value.Text(10))
 
 	bigint3_split, err := Bigint3Split(value)
 	if err != nil {
@@ -36,8 +40,10 @@ func NondetBigInt3(virtual_machine vm.VirtualMachine, exec_scopes types.Executio
 	}
 	arg := make([]memory.MaybeRelocatable, 0)
 
+	fmt.Println("args: ")
 	for i := 0; i < 3; i++ {
 		m := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromBigInt(&bigint3_split[i]))
+		fmt.Println(bigint3_split[i].Text(10))
 		arg = append(arg, *m)
 	}
 
