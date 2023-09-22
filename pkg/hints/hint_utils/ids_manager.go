@@ -93,7 +93,6 @@ func (ids *IdsManager) GetRelocatable(name string, vm *VirtualMachine) (Relocata
 
 // Returns the value of an identifier as a MaybeRelocatable
 func (ids *IdsManager) Get(name string, vm *VirtualMachine) (*MaybeRelocatable, error) {
-	fmt.Println("name ", name)
 	reference, ok := ids.References[name]
 	if ok {
 		val, ok := getValueFromReference(&reference, ids.HintApTracking, vm)
@@ -129,6 +128,7 @@ func (ids *IdsManager) GetAddr(name string, vm *VirtualMachine) (Relocatable, er
 		ids_lives := ids.GetStructField("cat", 0, vm) or ids_lives := ids.Get("cat", vm)
 		ids_paws := ids.GetStructField("cat", 1, vm)
 */
+
 func (ids *IdsManager) GetStructField(name string, field_off uint, vm *VirtualMachine) (*MaybeRelocatable, error) {
 	reference, ok := ids.References[name]
 	if ok {
@@ -234,15 +234,10 @@ func getValueFromReference(reference *HintReference, apTracking parser.ApTrackin
 	if reference.Offset1.ValueType == Immediate {
 		return NewMaybeRelocatableFelt(reference.Offset1.Immediate), true
 	}
-	fmt.Println("after first if ")
 	addr, ok := getAddressFromReference(reference, apTracking, vm)
-	fmt.Println("after fetching address ok? ", ok)
-	fmt.Println("addr", addr)
 	if ok {
 		if reference.Dereference {
-			fmt.Println("enter dereference with: ", reference.Dereference)
 			val, err := vm.Segments.Memory.Get(addr)
-			fmt.Println("err?: ", err)
 			if err == nil {
 				return val, true
 			}

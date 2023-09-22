@@ -2,12 +2,13 @@ package hint_utils
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 )
 
 func SECP_P() big.Int {
-	secp_p, _ := new(big.Int).SetString("115792089237316195423570985008687907853269984665640564039457584007908834671663", 10)
-	return *secp_p
+	secpP, _ := new(big.Int).SetString("115792089237316195423570985008687907853269984665640564039457584007908834671663", 10)
+	return *secpP
 }
 
 func ALPHA() big.Int {
@@ -16,8 +17,8 @@ func ALPHA() big.Int {
 }
 
 func SECP256R1_ALPHA() big.Int {
-	secp_p_alpha, _ := new(big.Int).SetString("115792089210356248762697446949407573530086143415290314195533631308867097853948", 10)
-	return *secp_p_alpha
+	secpPalpha, _ := new(big.Int).SetString("115792089210356248762697446949407573530086143415290314195533631308867097853948", 10)
+	return *secpPalpha
 }
 
 func SECP256R1_N() big.Int {
@@ -36,15 +37,18 @@ func BASE_MINUS_ONE() *big.Int {
 }
 
 func Bigint3Split(integer big.Int) ([]big.Int, error) {
-	canonical_repr := make([]big.Int, 3)
+	canonicalRepr := make([]big.Int, 3)
 	num := integer
+	fmt.Println("canonical repr: ")
+
 	for i := 0; i < 3; i++ {
-		canonical_repr[i] = *new(big.Int).And(&num, BASE_MINUS_ONE())
+		canonicalRepr[i] = *new(big.Int).And(&num, BASE_MINUS_ONE())
+		fmt.Println(canonicalRepr[i].Text(10))
 		num.Rsh(&num, 86)
 	}
 	if num.Cmp(big.NewInt(0)) != 0 {
 		return nil, errors.New("HintError SecpSplitOutOfRange")
 	}
 
-	return canonical_repr, nil
+	return canonicalRepr, nil
 }

@@ -1,12 +1,16 @@
 package hints
 
 import (
+	"errors"
+	"fmt"
 	"math/big"
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 
-	"github.com/lambdaclass/cairo-vm.go/pkg/types"
-	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
+	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
+	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 )
 
 /*
@@ -20,21 +24,33 @@ Implements hint:
 %}
 */
 
-func verifyZeroWithExternalConst(virtual_machine vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data IdsManager) error {
-	secp_p_uncast, err := exec_scopes.Get("SECP_P")
+func verifyZeroWithExternalConst(vm VirtualMachine, execScopes ExecutionScopes, idsData IdsManager) error {
+	secpPuncast, err := execScopes.Get("SECP_P")
 	if err != nil {
 		return err
 	}
-	secp_p := secp_p_uncast.(big.Int)
-	addr, err := ids_data.GetRelocatable("val", &virtual_machine)
-	if err != nil {
-		return err
-	}
-
-	val, err := BigInt3FromBaseAddr(addr, virtual_machine)
+	secpP := secpPuncast.(big.Int)
+	fmt.Println("secp: ", secpP.Text(10))
+	addr, err := idsData.GetAddr("val", &vm)
 	if err != nil {
 		return err
 	}
 
+	fmt.Println("addr ", addr)
+	val, err := BigInt3FromBaseAddr(addr, "val", &vm)
+	if err != nil {
+		return err
+	}
+
+	v := val.Pack86()
+	fmt.Println("val in zero with external: ", v.Text(10))
+	q, r := v.DivMod(&v, &secpP, new(big.Int))
+	//fmt.Println(r)
+	if r.Cmp(big.NewInt(0)) != 0 {
+		return errors.New("verify remainder is not zero: Invalid input")
+	}
+
+	quotient := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromBigInt(q))
+	idsData.Insert("q", quotient, &vm)
 	return nil
 }
