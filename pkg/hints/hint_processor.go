@@ -89,11 +89,11 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 	case ASSERT_NOT_EQUAL:
 		return assert_not_equal(data.Ids, vm)
 	case EC_NEGATE:
-		return ecNegateImportSecpP(*vm, *execScopes, data.Ids)
+		return ecNegateImportSecpP(vm, *execScopes, data.Ids)
 	case EC_NEGATE_EMBEDDED_SECP:
-		return ecNegateEmbeddedSecpP(*vm, *execScopes, data.Ids)
+		return ecNegateEmbeddedSecpP(vm, *execScopes, data.Ids)
 	case EC_DOUBLE_ASSIGN_NEW_X_V1, EC_DOUBLE_ASSIGN_NEW_X_V2, EC_DOUBLE_ASSIGN_NEW_X_V3, EC_DOUBLE_ASSIGN_NEW_X_V4:
-		return ecDoubleAssignNewX(*vm, *execScopes, data.Ids, SECP_P())
+		return ecDoubleAssignNewX(vm, *execScopes, data.Ids, SECP_P())
 	case POW:
 		return pow(data.Ids, vm)
 	case SQRT:
@@ -109,9 +109,9 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 	case VM_ENTER_SCOPE:
 		return vm_enter_scope(execScopes)
 	case COMPUTE_SLOPE_V1:
-		return computeSlopeAndAssingSecpP(*vm, *execScopes, data.Ids, "point0", "point1", SECP_P())
+		return computeSlopeAndAssingSecpP(vm, *execScopes, data.Ids, "point0", "point1", SECP_P())
 	case EC_DOUBLE_SLOPE_V1:
-		return computeDoublingSlope(*vm, *execScopes, data.Ids, "point", SECP_P(), ALPHA())
+		return computeDoublingSlope(vm, *execScopes, data.Ids, "point", SECP_P(), ALPHA())
 	case UNSAFE_KECCAK:
 		return unsafeKeccak(data.Ids, vm, *execScopes)
 	case UNSAFE_KECCAK_FINALIZE:
