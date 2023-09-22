@@ -2838,8 +2838,79 @@ But interacting with cairo variables is not as easy as it sounds, in order to ac
 
 *References*
 
-As cairo variables are created during the vm's execution, we can't know their value beforehand. In order to solve this, the compiled program provides us with references for cairo variables available to hints. This references are instructions on where we can find a specific cairo variable in memory. For example, they might tell us to take the current valye of FP register, substract 1 from it, and access the value at that new address.
-To be continued...
+As cairo variables are created during the vm's execution, we can't know their value beforehand. In order to solve this, the compiled program provides us with references for cairo variables available to hints. This references are instructions on where we can find a specific cairo variable in memory. For example, they might tell us to take the current value of FP register, substract 1 from it, and access the value at that new address.
+
+As these references come in string format, we need to parse them into a struct that we can efficiently use to compute addresses:
+
+```go
+type HintReference struct {
+	Offset1        OffsetValue
+	Offset2        OffsetValue
+	Dereference    bool
+	ApTrackingData parser.ApTrackingData
+	ValueType      string
+}
+```
+
+This struct matches the canonical string format for references: `"cast(Offset1 + Offset2, ValueType)"` (or `"[cast(Offset1 + Offset2, ValueType)]"`, in this case Dereference will be true ).
+The first two fields: Offset1 and Offset2 will lead us to a particular memory value, the Dereference field will tell us if the value of the ids is that memory value we found (in case of false), or if we should use that value as an address to fetch the ids value from memory (in case of true), and the ValueType tells us what type the variable has (be it a felt, felt*, struct, etc). As we already know the context of the hints, we can ignore the ValueType.
+
+Now lets look at what an `OffsetValue` is:
+
+```go
+type OffsetValue struct {
+	ValueType   offsetValueType
+	Immediate   Felt
+	Value       int
+	Register    vm.Register
+	Dereference bool
+}
+
+type offsetValueType uint
+
+const (
+	Value     offsetValueType = 0
+	Immediate offsetValueType = 1
+	Reference offsetValueType = 2
+)
+```
+
+There are three types of `OffsetValue`:
+    * Inmediate: Contains the value of the ids as a literal, for example `"cast(17, felt)"` is a reference to a felt with literal value 17. Only Offset1 can be of Immediate type, and the reference can't have Defererence = true
+    * Reference: It is made up of a Register (AP or FP) and a Value, it will tell us the location of an ids in memory by pointing to a memory cell relative to a register. For example `"cast(fp + (-1), felt*)"` is a reference with Offset1 of type Reference, with register FP and Value -1, and it leads us to an felt* value obtained from subtracting 1 from the current fp value. OffsetValues of type Reference can also have Dereference, for example: `"cast([fp + (-1)], felt)"` will lead us to a felt value located one cell before the one at the current register value. Both OffsetValues can be of type Reference in the same Reference
+    * Value: Only Offset2 can be of type value, it consists of a single field value and acts as a modifier to the first OffsetValue (which will always be of type Reference for this case). For example, we can add second OffsetValue of Value type with Value = 1 to the first Reference type example: `"cast(fp + (-1) + 2), felt*)"`, this will tell us to subtract 1 from fp, and then add 2 to it, and that will be our ids value.
+
+When an offset doesn't exist in the reference, we use an OffsetValue of type Value with Value 0, which essentially does nothing, to represent it. This allows us to use go's zero value by default to make our code (and life) a bit simpler.
+
+This can be a bit hard to grasp at first so lets look at some examples:
+
+* Immediate Reference
+    String Reference: `cast(17, felt)`
+    Struct Reference: {Offset1: {ValueType: Immediate, Immedate: 17}, ValueType: "felt"}
+    Reference in words: The value of the ids is 17
+
+* Dereference with one offset of Type Reference
+    String Reference: `[cast(ap + 1, felt)]`
+    Struct Reference: {Offset1: {ValueType: Reference, Register: AP, Value: 1}, Dereference: true, ValueType: "felt"}
+    Reference in words: Take the current value of ap, add 1 to it and then fetch the memory value at that address
+
+* Two offsets of type Reference, Value
+    String Reference: `"cast(ap + 1 + (-2), felt*)"`
+    Struct Reference: {Offset1: {ValueType: Reference, Register: AP, Value: 1}, Offset2: {ValueType: Value, Value: -2}, ValueType: "felt*"}
+    Reference in words: Take the current value of ap, add 1 to it and then subtract 2 from it
+
+* Two offsets of type Reference (with Dereference), Value
+    String Reference: `"cast([ap + (-1)] + (-2), felt*)"`
+    Struct Reference: {Offset1: {ValueType: Reference, Register: AP, Value: 1, Dereference: true}, Offset2: {ValueType: Value, Value: -2}, ValueType: "felt*"}
+    Reference in words: Take the current value of ap, add 1 to it, fetch the memory value at that address and then subtract 2 from it
+
+* Two offsets of type Reference (with Dereference)
+    String Reference: `"cast([ap + (-1)] + [ap], felt)"`
+    Struct Reference: {Offset1: {ValueType: Reference, Register: AP, Value: 1, Dereference: true}, Offset2: {ValueType: Reference, Register: AP, Value: 0, Dereference: true}, ValueType: "felt*"}
+    Reference in words: Take the current value of ap, subtract 1 to it, fetch the memory value at that address. Take the current value of ap, fetch the memory value at that address. Add the two values we obtained.
+
+
+
 *Computing addresses using References*
 *Implement the IdsManager*
 
