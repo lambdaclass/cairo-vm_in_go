@@ -59,6 +59,7 @@ func (ids *IdsManager) GetConst(name string, constants *map[string]lambdaworks.F
 func (ids *IdsManager) Insert(name string, value *MaybeRelocatable, vm *VirtualMachine) error {
 
 	addr, err := ids.GetAddr(name, vm)
+	fmt.Println("insert in addres", addr)
 	if err != nil {
 		return err
 	}
