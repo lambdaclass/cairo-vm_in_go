@@ -138,8 +138,6 @@ func TestUsortVerify(t *testing.T) {
 
 }
 
-// const USORT_VERIFY_MULTIPLICITY_ASSERT = "assert len(positions) == 0"
-
 func TestUsortVerifyMultiplicityAssert(t *testing.T) {
 	vm := NewVirtualMachine()
 	scopes := types.NewExecutionScopes()
@@ -174,6 +172,68 @@ func TestUsortVerifyMultiplicityAssert(t *testing.T) {
 	err = hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
 	if err != nil {
 		t.Errorf("USORT_VERIFY_MULTIPLICITY_ASSERT  failed")
+	}
+
+}
+
+func TestUsortVerifyMultiplicityBody(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	scopes := types.NewExecutionScopes()
+
+	scopes.AssignOrUpdateVariable("positions", []uint64{1, 0, 4, 7, 10})
+	scopes.AssignOrUpdateVariable("last_pos", uint64(3))
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"next_item_index": {nil},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: USORT_VERIFY_MULTIPLICITY_BODY,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("USORT_VERIFY_MULTIPLICITY_BODY failed")
+	}
+
+	// Check scopes variables
+	positions_interface, err := scopes.Get("positions")
+
+	if err != nil {
+		t.Errorf("Error assigning positions_interface")
+	}
+
+	positions := positions_interface.([]uint64)
+
+	if !reflect.DeepEqual(positions, []uint64{1, 0, 4, 7}) {
+		t.Errorf("Error assigning positions")
+	}
+
+	last_pos_interface, err := scopes.Get("last_pos")
+
+	if err != nil {
+		t.Errorf("Error assigning last_pos")
+	}
+
+	last_pos := last_pos_interface.(uint64)
+
+	if last_pos != uint64(11) {
+		t.Errorf("Error assigning last_pos")
+	}
+
+	// Check VM inserts
+	next_item_index, err := idsManager.GetFelt("next_item_index", vm)
+
+	if err != nil {
+		t.Errorf("Error assigning next_item_index")
+	}
+
+	if next_item_index != lambdaworks.FeltFromUint(7) {
+		t.Errorf("Error assigning next_item_index")
 	}
 
 }
