@@ -3434,13 +3434,10 @@ func isLeFelt(ids IdsManager, vm *VirtualMachine) error {
 }
 ```
 
-TODO: 
-- How hints are implemented in our VM. Matching python code and executing go code. tick
-- Communication between the Cairo execution environment and hints. References, Id Manager, Execution Scopes. tick
-- Example of how to implement one, ideally one that uses a few of the important features like Id management, etc.
-- Explain Dicts and dict squashing.
-- Explain temporary segments (not here, no code yet to explain)
-
 #### Proof mode
+
+TODO
+
+#### Temporary Segments
 
 TODO
