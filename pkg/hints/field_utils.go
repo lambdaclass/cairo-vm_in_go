@@ -33,6 +33,7 @@ func verifyZeroWithExternalConst(vm VirtualMachine, execScopes ExecutionScopes, 
 	secpP := secpPuncast.(big.Int)
 	fmt.Println("secp: ", secpP.Text(10))
 	addr, err := idsData.GetAddr("val", &vm)
+	fmt.Println("addr or err:", addr, err)
 	if err != nil {
 		return err
 	}
@@ -46,7 +47,7 @@ func verifyZeroWithExternalConst(vm VirtualMachine, execScopes ExecutionScopes, 
 	v := val.Pack86()
 	fmt.Println("val in zero with external: ", v.Text(10))
 	q, r := v.DivMod(&v, &secpP, new(big.Int))
-	fmt.Println(r)
+	fmt.Println("r: ", r)
 	if r.Cmp(big.NewInt(0)) != 0 {
 		return errors.New("verify remainder is not zero: Invalid input")
 	}

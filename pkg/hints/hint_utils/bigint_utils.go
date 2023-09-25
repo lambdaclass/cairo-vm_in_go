@@ -67,7 +67,7 @@ func limbsFromVarName(nLimbs int, name string, ids IdsManager, vm *VirtualMachin
 }
 
 func limbsFromBaseAddress(nLimbs int, name string, addr Relocatable, vm *VirtualMachine) ([]Felt, error) {
-	fmt.Println(name)
+	fmt.Println("addr in libms base addr: ", addr)
 	limbs := make([]Felt, 0)
 	for i := 0; i < nLimbs; i++ {
 		felt, err := vm.Segments.Memory.GetFelt(addr.AddUint(uint(i)))

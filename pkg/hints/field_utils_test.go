@@ -25,7 +25,7 @@ func TestVerifyZeroWithExternalConst(t *testing.T) {
 
 	vm.RunContext.Pc = NewRelocatable(0, 0)
 	vm.RunContext.Ap = NewRelocatable(1, 9)
-	vm.RunContext.Fp = NewRelocatable(1, 9)
+	vm.RunContext.Fp = NewRelocatable(1, 4)
 
 	idsManager := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
@@ -35,10 +35,13 @@ func TestVerifyZeroWithExternalConst(t *testing.T) {
 		vm,
 	)
 
+	fmt.Println("ids manager: ", idsManager)
+
 	newScepP := big.NewInt(55)
 	execScopes := NewExecutionScopes()
 
 	execScopes.AssignOrUpdateVariable("SECP_P", *newScepP)
+	fmt.Println("after exec")
 
 	hintProcessor := CairoVmHintProcessor{}
 	hintData := any(HintData{
