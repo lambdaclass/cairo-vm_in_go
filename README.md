@@ -3224,7 +3224,155 @@ func searchConstFromAlias(destination string, identifiers *map[string]Identifier
 ```
 
 *How does the IdsManager handle constants*
+
+Before looking into how the IdsManager handles constants, we'll have to add a new field to it:
+
+```go
+type IdsManager struct {
+	References       map[string]HintReference
+	HintApTracking   parser.ApTrackingData
+	AccessibleScopes []string
+}
+```
+AccessibleScopes is a list of paths that a hint has access to, for example, if we were to write a hint in a function `foo` of a cairo program called `program`, that hint's accessible scopes will look something along the likes of `["program", "program.foo"]`. This list is taken directly from the `HintParams`' `AccessibleScopes` field in the compiled json.
+We can use this accessible scopes to determine the correct path for a cairo constant when implementing a hint. To do so, we will be searching for a constant in the map of constants provided by the vm, using the name of the constant in the hint, and the possible paths in the accessible scopes, going from innermost (in the example, "program.foo"), to outermost (in the example, "program").
+We will be adding this behaviour to the `IdsManager`, by adding a function that will return the value of a constant given its name (without its full path) and the map of constants, following these steps:
+1. Iterate over the list of accessible scopes in reverse order
+2. For each path in accessible scopes, append the name of the constant
+3. Using the full-path constant names, try to fetch from the constants map
+4. Once a match is found, return the value from the constant map
+
+```go
+func (ids *IdsManager) GetConst(name string, constants *map[string]lambdaworks.Felt) (lambdaworks.Felt, error) {
+	// Hints should always have accessible scopes
+	if len(ids.AccessibleScopes) != 0 {
+		// Accessible scopes are listed from outer to inner
+		for i := len(ids.AccessibleScopes) - 1; i >= 0; i-- {
+			constant, ok := (*constants)[ids.AccessibleScopes[i]+"."+name]
+			if ok {
+				return constant, nil
+			}
+		}
+	}
+	return lambdaworks.FeltZero(), errors.Errorf("Missing constant %s", name)
+}
+```
+
 ###### Hint Interaction: ExecutionScopes
+
+Up until now we saw how hints can interact with the vm and the cairo variables, but what about the interaction between hints themselves?
+To answer this question, we will introduce the concept of `Execution Scopes`, they consist of a stack of dictionaries that can hold any kind of variables. These scopes are accessible to all hints, allowing data to be shared between hints without the cairo program being aware of them. As it consists of a stack of dictionaries (from now on referred to as scopes), hints will only be able to interact with the last (or top level) scope. Hints can also remove and create new scopes, we will call these operations `ExitScope` and `EnterScope`. To better illustrate this behaviour, lets make a generic example:
+* HINT A: Adds variable n = 3 (Scopes = [{n: 3}])
+* HINT B: Fetches variable n and updates its value to 5 (Scopes = [{n: 5}])
+* HINT C: Uses the EnterScope operation (Scopes = [{n: 5}, {}])
+* HINT D: Adds variable n = 3 (Scopes = [{n: 5}, {n: 3}])
+* HINT E: Prints the value of n (3), then used the ExitScope operation (Scopes = [{n: 5}])
+* HINT F: Prints the value of n (5)
+
+Now that we know how execution scopes work, lets implement them:
+
+We have a stack (represented as a slice), of maps that connect a varaible's name, to its value, accepting any kind of variables as value
+```go
+type ExecutionScopes struct {
+	data []map[string]interface{}
+}
+```
+
+We should also note that when creating an `ExecutionScopes`, it comes with one initial scope (called main scope), which can't be exited
+
+```go
+func NewExecutionScopes() *ExecutionScopes {
+	data := make([]map[string]interface{}, 1)
+	data[0] = make(map[string]interface{})
+	return &ExecutionScopes{data}
+}
+```
+
+With this struct we can implement the basic operations:
+
+*EnterScope*
+Adds a new scope to the stack, which is received by the method
+```go
+func (es *ExecutionScopes) EnterScope(newScopeLocals map[string]interface{}) {
+	es.data = append(es.data, newScopeLocals)
+
+}
+```
+
+*ExitScope*
+Removes the last scope from the stack, guards that the main scope is not removed by the operation.
+
+```go
+func (es *ExecutionScopes) ExitScope() error {
+	if len(es.data) < 2 {
+		return ErrCannotExitMainScop
+	}
+	es.data = es.data[len(es.data) - 1]
+
+	return nil
+}
+```
+
+*AssignOrUpdateVariable*
+Inserts a variable to the current scope (aka the top one in the stack), overwitting the previous value if it exists
+
+```go
+func (es *ExecutionScopes) AssignOrUpdateVariable(varName string, varValue interface{}) {
+	locals, err := es.getLocalVariablesMut()
+	if err != nil {
+		return
+	}
+	(*locals)[varName] = varValue
+}
+```
+
+*Get*
+Fetches a variable from the current scope
+```go
+func (es *ExecutionScopes) Get(varName string) (interface{}, error) {
+	locals, err := es.GetLocalVariables()
+	if err != nil {
+		return nil, err
+	}
+	val, prs := locals[varName]
+	if !prs {
+		return nil, ErrVariableNotInScope(varName)
+	}
+	return val, nil
+}
+```
+
+*DeleteVariable*
+Removes a variable from the current scope
+
+```go
+func (es *ExecutionScopes) DeleteVariable(varName string) {
+	locals, err := es.getLocalVariablesMut()
+	if err != nil {
+		return
+	}
+	delete(*locals, varName)
+}
+```
+
+And the helper methods for these methods:
+
+```go
+func (es *ExecutionScopes) getLocalVariablesMut() (*map[string]interface{}, error) {
+	locals, err := es.GetLocalVariables()
+	if err != nil {
+		return nil, err
+	}
+	return &locals, nil
+}
+
+func (es *ExecutionScopes) GetLocalVariables() (map[string]interface{}, error) {
+	if len(es.data) > 0 {
+		return es.data[len(es.data)-1], nil
+	}
+	return nil, ExecutionScopesError(errors.Errorf("Every enter_scope() requires a corresponding exit_scope()."))
+}
+```
 
 TODO: 
 - How hints are implemented in our VM. Matching python code and executing go code.
