@@ -25,6 +25,7 @@ Implements hint:
 */
 
 func verifyZeroWithExternalConst(vm VirtualMachine, execScopes ExecutionScopes, idsData IdsManager) error {
+	fmt.Println("inside verify")
 	secpPuncast, err := execScopes.Get("SECP_P")
 	if err != nil {
 		return err

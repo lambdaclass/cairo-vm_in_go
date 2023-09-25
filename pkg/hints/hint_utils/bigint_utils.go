@@ -67,6 +67,7 @@ func limbsFromVarName(nLimbs int, name string, ids IdsManager, vm *VirtualMachin
 }
 
 func limbsFromBaseAddress(nLimbs int, name string, addr Relocatable, vm *VirtualMachine) ([]Felt, error) {
+	fmt.Println(name)
 	limbs := make([]Felt, 0)
 	for i := 0; i < nLimbs; i++ {
 		felt, err := vm.Segments.Memory.GetFelt(addr.AddUint(uint(i)))
@@ -74,6 +75,7 @@ func limbsFromBaseAddress(nLimbs int, name string, addr Relocatable, vm *Virtual
 		if err == nil {
 			limbs = append(limbs, felt)
 		} else {
+			fmt.Println("error name: ", name)
 			return nil, errors.Errorf("Identifier %s has no member d%d", name, i)
 		}
 	}
