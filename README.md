@@ -2823,7 +2823,7 @@ func addSegment(vm *VirtualMachine) error {
 
 Before we implement the `CompileHint` method, lets look at this crucial part of hint interaction with the vm:
 
-###### Hint Interaction: Ids
+##### Hint Interaction: Ids
 
 Ids are hint's way to interact with variables in a cairo program. For example, if I declare a variable `n` in my cairo code, I can access that `n` variable inside a hint using `ids.n`.
 
@@ -2836,7 +2836,7 @@ The following cairo snippet would print the number 17
 In order to access these variables when implementing our hints in go we will implement the `IdsManager`, which will allow us to read and write cairo variables.
 But interacting with cairo variables is not as easy as it sounds, in order to access them, we must first compute their address from a `Reference`
 
-*References*
+###### References
 
 As cairo variables are created during the vm's execution, we can't know their value beforehand. In order to solve this, the compiled program provides us with references for cairo variables available to hints. This references are instructions on where we can find a specific cairo variable in memory. For example, they might tell us to take the current value of FP register, substract 1 from it, and access the value at that new address.
 
@@ -2920,7 +2920,7 @@ type ApTrackingData struct {
 
 As the value of AP is constantly changing with each instruction executed, its not that simple to track variables who's references are based on ap. ApTracking is used to calculate the difference between the value of ap at the moment the variable was created/ enterted the scope of the function (and hence, the hint) and the value of ap at the moment the hint is executed. Each hint  and each reference has its own ApTracking.
 
-*Computing addresses using References*
+###### Computing addresses using References
 
 The function used to fetch the value from an ids variable using a reference works as follows:
 1- Check if the refeference has type Immediate, if this is true, return the Immediate field
@@ -3034,7 +3034,7 @@ func applyApTrackingCorrection(addr Relocatable, refApTracking parser.ApTracking
 }
 ```
 
-*Implement the IdsManager*
+###### Implement the IdsManager
 
 Now that we have tackled reference management, we can implement the `IdsManager`, which will allow us to "forget" what references are when implementing hints.
 
@@ -3161,7 +3161,7 @@ func (p *CairoVmHintProcessor) CompileHint(hintParams *parser.HintParams, refere
 }
 ```
 
-###### Hint Interaction: Constants
+##### Hint Interaction: Constants
 
 *How are Constants handled by hints and the cairo compiler*
 Hints can also access constant variables using the ids syntax, for example, a hint can access the `MAX_SIZE` constant from a cairo program using `ids.MAX_SIZE`. While the behaviour from the hint's standpoint is identical to regular ids variables, they are handled differently by the compiler and the vm.
@@ -3180,7 +3180,7 @@ They are part of the compiled program's `Idenfifiers` field, and can be identifi
 
 This is an extract from a compiled cairo program, we can see that there is a constant `BLOCK_SIZE`, with value 3, declared in packed_keccak.cairo file, that was then imported by the keccak.cairo file.
 
-*How does the vm extract the constants for hint execution*
+###### How does the vm extract the constants for hint execution
 
 As constants are not unique to any specific hint, they are not provided to the HintProcessor's `CompileHint` method, but are instead provided directly to the `ExecuteHint` method. Before providing these constants, we need to first extract them from the Identifiers field of the compiled program. This works as follows:
 1. Create a map to store the constants, maping full path constant names to their Felt value
@@ -3223,7 +3223,7 @@ func searchConstFromAlias(destination string, identifiers *map[string]Identifier
 }
 ```
 
-*How does the IdsManager handle constants*
+###### How does the IdsManager handle constants
 
 Before looking into how the IdsManager handles constants, we'll have to add a new field to it:
 
@@ -3258,7 +3258,7 @@ func (ids *IdsManager) GetConst(name string, constants *map[string]lambdaworks.F
 }
 ```
 
-###### Hint Interaction: ExecutionScopes
+##### Hint Interaction: ExecutionScopes
 
 Up until now we saw how hints can interact with the vm and the cairo variables, but what about the interaction between hints themselves?
 To answer this question, we will introduce the concept of `Execution Scopes`, they consist of a stack of dictionaries that can hold any kind of variables. These scopes are accessible to all hints, allowing data to be shared between hints without the cairo program being aware of them. As it consists of a stack of dictionaries (from now on referred to as scopes), hints will only be able to interact with the last (or top level) scope. Hints can also remove and create new scopes, we will call these operations `ExitScope` and `EnterScope`. To better illustrate this behaviour, lets make a generic example:
@@ -3375,11 +3375,11 @@ func (es *ExecutionScopes) GetLocalVariables() (map[string]interface{}, error) {
 ```
 
 TODO: 
-- How hints are implemented in our VM. Matching python code and executing go code.
-- Communication between the Cairo execution environment and hints. References, Id Manager, Execution Scopes.
+- How hints are implemented in our VM. Matching python code and executing go code. tick
+- Communication between the Cairo execution environment and hints. References, Id Manager, Execution Scopes. tick
 - Example of how to implement one, ideally one that uses a few of the important features like Id management, etc.
 - Explain Dicts and dict squashing.
-- Explain temporary segments
+- Explain temporary segments (not here, no code yet to explain)
 
 #### Proof mode
 
