@@ -33,3 +33,21 @@ func divModNPacked(ids IdsManager, vm *VirtualMachine, scopes *ExecutionScopes, 
 
 	return nil
 }
+
+func divModNPackedDivMod(ids IdsManager, vm *VirtualMachine, scopes *ExecutionScopes) error {
+	n, _ := new(big.Int).SetString("115792089237316195423570985008687907852837564279074904382605163141518161494337", 10)
+	scopes.AssignOrUpdateVariable("N", n)
+	return divModNPacked(ids, vm, scopes, n)
+}
+
+func divModNPackedDivModExternalN(ids IdsManager, vm *VirtualMachine, scopes *ExecutionScopes) error {
+	nAny, err := scopes.Get("N")
+	if err != nil {
+		return err
+	}
+	n, ok := nAny.(*big.Int)
+	if !ok {
+		return errors.New("N not in scope")
+	}
+	return divModNPacked(ids, vm, scopes, n)
+}
