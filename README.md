@@ -3162,6 +3162,68 @@ func (p *CairoVmHintProcessor) CompileHint(hintParams *parser.HintParams, refere
 ```
 
 ###### Hint Interaction: Constants
+
+*How are Constants handled by hints and the cairo compiler*
+Hints can also access constant variables using the ids syntax, for example, a hint can access the `MAX_SIZE` constant from a cairo program using `ids.MAX_SIZE`. While the behaviour from the hint's standpoint is identical to regular ids variables, they are handled differently by the compiler and the vm.
+They are part of the compiled program's `Idenfifiers` field, and can be identified by the `const` type. We may also find aliases for them in the `Identifiers` section, aliases happen when a cairo file imports constants from another cairo file, therefore we will have an identifier of type `const` under the file where the constant was declared's path, and an identifier of type `alias` under the file where the constant was imported's path, pointing to the original constant's identifier. For example:
+
+```
+"starkware.cairo.common.cairo_keccak.keccak.BLOCK_SIZE": {
+            "destination": "starkware.cairo.common.cairo_keccak.packed_keccak.BLOCK_SIZE",
+            "type": "alias"
+        },
+"starkware.cairo.common.cairo_keccak.packed_keccak.BLOCK_SIZE": {
+            "type": "const",
+            "value": 3
+        },
+```
+
+This is an extract from a compiled cairo program, we can see that there is a constant `BLOCK_SIZE`, with value 3, declared in packed_keccak.cairo file, that was then imported by the keccak.cairo file.
+
+*How does the vm extract the constants for hint execution*
+
+As constants are not unique to any specific hint, they are not provided to the HintProcessor's `CompileHint` method, but are instead provided directly to the `ExecuteHint` method. Before providing these constants, we need to first extract them from the Identifiers field of the compiled program. This works as follows:
+1. Create a map to store the constants, maping full path constant names to their Felt value
+2. Iterate over the program's `Identifiers` field, and check the type of each identifier. If the identifier is of type `const`, add its value to the map created in 1. If the identifier is of type `alias` search for the identifier at its destination (we will see how to do this next), and if its of type `const`, add it to the map created in 1 under the alias' name.
+3. Return the map created in 1
+
+```go
+func (p *Program) ExtractConstants() map[string]lambdaworks.Felt {
+	constants := make(map[string]lambdaworks.Felt)
+	for name, identifier := range p.Identifiers {
+		switch identifier.Type {
+		case "const":
+			constants[name] = identifier.Value
+		case "alias":
+			val, ok := searchConstFromAlias(identifier.Destination, &p.Identifiers)
+			if ok {
+				constants[name] = val
+			}
+		}
+	}
+	return constants
+}
+```
+
+In order to search for the aliased identifier, we need to do so recursively, as a constants can be imported form file A into file B, then from file B into file C and so on.
+To do so we use a recursive function which receives the destination field of an alias type identifier and a reference to the identifiers map. It will then look for the identifier using the destination of the alias identifier. If the new identifier is a constant, it wil return its value, if it is an alias it will call itself again with the new alias' destintation, and if its none, it will return false, indicating that the alias was not pointing to a constant.
+
+```go
+func searchConstFromAlias(destination string, identifiers *map[string]Identifier) (lambdaworks.Felt, bool) {
+	identifier, ok := (*identifiers)[destination]
+	if ok {
+		switch identifier.Type {
+		case "const":
+			return identifier.Value, true
+		case "alias":
+			return searchConstFromAlias(identifier.Destination, identifiers)
+		}
+	}
+	return lambdaworks.Felt{}, false
+}
+```
+
+*How does the IdsManager handle constants*
 ###### Hint Interaction: ExecutionScopes
 
 TODO: 
