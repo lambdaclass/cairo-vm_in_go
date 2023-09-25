@@ -3388,6 +3388,33 @@ We can divide the hint into the following steps:
 3. Compare the values of a & b (we don't need to perform % PRIME, as our Felt type already takes care of it)
 4. Insert either 0 or 1 at the current value of ap depending on the comparison in 3
 
+###### ASSERT_LE_FELT_EXCLUDED_0
+The python code we have to implement is the following:
+"memory[ap] = 1 if excluded != 0 else 0"
+This hint is quite similar to the previous example, except that instead of comparing ids variables it uses this "excluded" variable. As this variable is neither an ids, nor is it created during the hint, we can tell that it is a variable created by a previous hint, shared through the current execution scope. With this knowledge, we can divide the hint into the following set of steps:
+1. Fetch excluded from the execution scopes
+2. Cast the excluded variable to a concrete type. In this case, as we have previously implemented the hint that creates this variable, we know its type is 'int'
+3. Compare the values of excluded vs 0
+4. Insert either 0 or 1 at the current value of ap depending on the comparison in 3
+
+```go
+func assertLeFeltExcluded0(vm *VirtualMachine, scopes *ExecutionScopes) error {
+	// Fetch scope var
+	excludedAny, err := scopes.Get("excluded")
+	if err != nil {
+		return err
+	}
+	excluded, ok := excludedAny.(int)
+	if !ok {
+		return errors.New("excluded not in scope")
+	}
+	if excluded == 0 {
+		return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltZero()))
+	}
+	return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltOne()))
+}
+```
+
 And implement the hint:
 
 ```go
