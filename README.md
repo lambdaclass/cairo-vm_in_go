@@ -3284,7 +3284,7 @@ To answer this question, we will introduce the concept of `Execution Scopes`, th
 * HINT E: Prints the value of n (3), then used the ExitScope operation (Scopes = [{n: 5}])
 * HINT F: Prints the value of n (5)
 
-Now that we know how execution scopes work, implementig them s quite simple:
+Now that we know how execution scopes work, implementig them is quite simple:
 
 ```go
 type ExecutionScopes struct {
