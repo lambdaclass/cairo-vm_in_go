@@ -137,3 +137,43 @@ func TestUsortVerify(t *testing.T) {
 	}
 
 }
+
+// const USORT_VERIFY_MULTIPLICITY_ASSERT = "assert len(positions) == 0"
+
+func TestUsortVerifyMultiplicityAssert(t *testing.T) {
+	vm := NewVirtualMachine()
+	scopes := types.NewExecutionScopes()
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: USORT_VERIFY_MULTIPLICITY_ASSERT,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err == nil {
+		t.Errorf("USORT_VERIFY_MULTIPLICITY_ASSERT should have failed")
+	}
+
+	positions := []uint64{0}
+
+	scopes.AssignOrUpdateVariable("positions", positions)
+
+	err = hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err == nil {
+		t.Errorf("USORT_VERIFY_MULTIPLICITY_ASSERT should have failed")
+	}
+
+	positions = []uint64{}
+
+	scopes.AssignOrUpdateVariable("positions", positions)
+
+	err = hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("USORT_VERIFY_MULTIPLICITY_ASSERT  failed")
+	}
+
+}
