@@ -4,11 +4,14 @@ import (
 	"math/big"
 	"testing"
 
+	. "github.com/lambdaclass/cairo-vm.go/pkg/hints"
+	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_codes"
+	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
+	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
-
 
 func TestNonDetBigInt3Ok(t *testing.T) {
 	vm := NewVirtualMachine()
@@ -25,4 +28,48 @@ func TestNonDetBigInt3Ok(t *testing.T) {
 	execScopes := NewExecutionScopes()
 
 	execScopes.AssignOrUpdateVariable("value", *value)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"res": {nil},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: NONDET_BIGINT3_V1,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, execScopes)
+	if err != nil {
+		t.Errorf("Non Det Big Int 3 hint test failed with error: %s", err)
+	} else {
+		valueInStruct0, err := idsManager.GetStructFieldFelt("res", 0, vm)
+		expected0 := lambdaworks.FeltFromUint(773712524553362)
+		if err != nil {
+			t.Errorf("error fetching from ids manager : %s", err)
+		}
+		if valueInStruct0 != expected0 {
+			t.Errorf(" Incorrect field value %s, expected %s", valueInStruct0.ToHexString(), expected0.ToHexString())
+		}
+
+		valueInStruct1, err := idsManager.GetStructFieldFelt("res", 1, vm)
+		expected1 := lambdaworks.FeltFromDecString("57408430697461422066401280")
+		if err != nil {
+			t.Errorf("error fetching from ids manager : %s", err)
+		}
+		if valueInStruct1 != expected1 {
+			t.Errorf(" Incorrect field value %s, expected %s", valueInStruct1.ToHexString(), expected1.ToHexString())
+		}
+
+		valueInStruct2, err := idsManager.GetStructFieldFelt("res", 2, vm)
+		expected2 := lambdaworks.FeltFromDecString("1292469707114105")
+		if err != nil {
+			t.Errorf("error fetching from ids manager : %s", err)
+		}
+		if valueInStruct2 != expected2 {
+			t.Errorf(" Incorrect field value %s, expected %s", valueInStruct2.ToHexString(), expected2.ToHexString())
+		}
+	}
 }

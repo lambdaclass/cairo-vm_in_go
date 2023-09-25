@@ -1,7 +1,6 @@
 package hints_test
 
 import (
-	"fmt"
 	"math/big"
 	"testing"
 
@@ -27,18 +26,15 @@ func TestVerifyZeroWithExternalConst(t *testing.T) {
 	idsManager := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
 			"val": {NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(55)), NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0)), NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(0))},
-			"q":   {NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(1))},
+			"q":   {nil},
 		},
 		vm,
 	)
-
-	fmt.Println("ids manager: ", idsManager)
 
 	newScepP := big.NewInt(55)
 	execScopes := NewExecutionScopes()
 
 	execScopes.AssignOrUpdateVariable("SECP_P", *newScepP)
-	fmt.Println("after exec")
 
 	hintProcessor := CairoVmHintProcessor{}
 	hintData := any(HintData{
@@ -49,8 +45,7 @@ func TestVerifyZeroWithExternalConst(t *testing.T) {
 	if err != nil {
 		t.Errorf("verifyZeroWithExternalConst hint test failed with error: %s", err)
 	} else {
-		valueInMemory, err := vm.Segments.Memory.GetFelt(NewRelocatable(1, 12))
-		fmt.Println("fetching from memory:", valueInMemory)
+		valueInMemory, err := idsManager.GetFelt("q", vm)
 		if err != nil {
 			t.Errorf("could not fetch value with error: %s", err)
 		}
