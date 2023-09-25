@@ -1,4 +1,4 @@
-package hints
+package hint_codes
 
 const USORT_ENTER_SCOPE = "vm_enter_scope(dict(__usort_max_size = globals().get('__usort_max_size')))"
 
