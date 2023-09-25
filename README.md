@@ -3374,6 +3374,39 @@ func (es *ExecutionScopes) GetLocalVariables() (map[string]interface{}, error) {
 }
 ```
 
+##### Hint Implementation Examples
+Now that we have all the necessary tools to beging implementing hints, lets look at some examples:
+
+###### IS_LE_FELT
+The python code we have to implement is the following:
+"memory[ap] = 0 if (ids.a % PRIME) <= (ids.b % PRIME) else 1"
+The first thing we notice is that its uses the ids variables "a" & "b" so this gives as an opportunity to use our `IdsManager`. We can also look at the scope of this hint, in this case the common library function is_le_felt (in the math_cmp module) to see that ids.a & ids.b are both felt values.
+
+We can divide the hint into the following steps:
+1. Fetch ids.a as a Felt
+2. Fetch ids.b as a Felt
+3. Compare the values of a & b (we don't need to perform % PRIME, as our Felt type already takes care of it)
+4. Insert either 0 or 1 at the current value of ap depending on the comparison in 3
+
+And implement the hint:
+
+```go
+func isLeFelt(ids IdsManager, vm *VirtualMachine) error {
+	a, err := ids.GetFelt("a", vm)
+	if err != nil {
+		return err
+	}
+	b, err := ids.GetFelt("b", vm)
+	if err != nil {
+		return err
+	}
+	if a.Cmp(b) != 1 {
+		return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltZero()))
+	}
+	return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltOne()))
+}
+```
+
 TODO: 
 - How hints are implemented in our VM. Matching python code and executing go code. tick
 - Communication between the Cairo execution environment and hints. References, Id Manager, Execution Scopes. tick
