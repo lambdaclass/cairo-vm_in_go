@@ -2836,7 +2836,7 @@ The following cairo snippet would print the number 17
     %{ print(ids.n) %}
 ```
 
-In order to access these variables when implementing our hints in go we will implement the `IdsManager`, which will allow us to read and write cairo variables.
+To access these variables when implementing our hints in go we will implement the `IdsManager`, which will allow us to read and write cairo variables.
 But interacting with cairo variables is not as easy as it sounds. In order to access them, we must first compute their address from a `Reference`
 
 ###### References
@@ -2990,7 +2990,7 @@ func getAddressFromReference(reference *HintReference, apTracking parser.ApTrack
 }
 ```
 
-Now lets see how computing the value of a an OffsetValue of type Reference works:
+Now lets see how computing the value of an OffsetValue of type Reference works:
 1. Determine a base address by checking the Register field of the OffsetValue. If the register is FP, use the current value of fp. If the register is AP, apply the necessary ap tracking corrections to ap and use it as base address.
 2. Add the field Value of the OffsetValue to the base address
 3. Check the Dereference field of the OffsetValue. If its false, return the address we obtained in 2. If is true, fetch the memory value at that address and return it
@@ -3114,7 +3114,7 @@ func (ids *IdsManager) GetRelocatable(name string, vm *VirtualMachine) (Relocata
 }
 ```
 
-And lastly, we can also implement a method to insert a value into an ids variable (as we already know how to calculate their address)
+Lastly, we can also implement a method to insert a value into an ids variable (as we already know how to calculate their address)
 
 ```go
 // Inserts value into memory given its identifier name
@@ -3196,7 +3196,7 @@ This is an extract from a compiled cairo program, where we can see that there is
 As constants are not unique to any specific hint, they are not provided to the HintProcessor's `CompileHint` method, but are instead provided directly to the `ExecuteHint` method. Before providing these constants, we need to first extract them from the Identifiers field of the compiled program. This works as follows:
 
 1. Create a map to store the constants, maping full path constant names to their Felt value
-2. Iterate over the program's `Identifiers` field, and check the type of each identifier. If the identifier is of type `const`, add its value to the map created in 1. If the identifier is of type `alias` search for the identifier at its destination (we will see how to do this next), and if its of type `const`, add it to the map created in 1 under the alias' name.
+2. Iterate over the program's `Identifiers` field, and check the type of each identifier. If the identifier is of type `const`, add its value to the map created in 1. If the identifier is of type `alias`, search for the identifier at its destination (we will see how to do this next), and if its of type `const`, add it to the map created in 1 under the alias' name.
 3. Return the map created in 1
 
 ```go
@@ -3284,7 +3284,7 @@ To answer this question, we will introduce the concept of `Execution Scopes`, th
 * HINT E: Prints the value of n (3), then used the ExitScope operation (Scopes = [{n: 5}])
 * HINT F: Prints the value of n (5)
 
-Now that we know how execution scopes work, implementig them is quite simple:
+Now that we know how execution scopes work, implementing them is quite simple:
 
 ```go
 type ExecutionScopes struct {
@@ -3396,7 +3396,7 @@ func (es *ExecutionScopes) GetLocalVariables() (map[string]interface{}, error) {
 
 ##### Hint Implementation Examples
 
-Now that we have all the necessary tools to beging implementing hints, lets look at some examples:
+Now that we have all the necessary tools to begin implementing hints, lets look at some examples:
 
 ###### IS_LE_FELT
 
