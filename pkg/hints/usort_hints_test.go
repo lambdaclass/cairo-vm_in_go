@@ -2,6 +2,7 @@ package hints_test
 
 import (
 	"reflect"
+	"sort"
 	"testing"
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints"
@@ -11,6 +12,19 @@ import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
+
+func TestReverseFeltArray(t *testing.T) {
+	array := []lambdaworks.Felt{lambdaworks.FeltFromUint(6), lambdaworks.FeltFromUint(0), lambdaworks.FeltFromUint(100), lambdaworks.FeltFromUint(1), lambdaworks.FeltFromUint(50)}
+
+	sort.Sort(SortFelt(array))
+
+	sortedarray := []lambdaworks.Felt{lambdaworks.FeltFromUint(0), lambdaworks.FeltFromUint(1), lambdaworks.FeltFromUint(6), lambdaworks.FeltFromUint(50), lambdaworks.FeltFromUint(100)}
+
+	if !reflect.DeepEqual(array, sortedarray) {
+		t.Errorf("Error sorting felt array")
+	}
+
+}
 
 func TestUsortWithMaxSize(t *testing.T) {
 	vm := NewVirtualMachine()
