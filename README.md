@@ -3036,6 +3036,91 @@ func applyApTrackingCorrection(addr Relocatable, refApTracking parser.ApTracking
 
 *Implement the IdsManager*
 
+Now that we have tackled reference management, we can implement the `IdsManager`, which will allow us to "forget" what references are when implementing hints.
+
+The IdsManager has the following structure:
+References: A map of all the ids variables the hint has access to, it maps the name of the cairo varaible to a HintReference (the parsed version of the compiled program's Reference)
+HintAptracking: The ap tracking data unique to the hint
+
+```go
+type IdsManager struct {
+	References       map[string]HintReference
+	HintApTracking   parser.ApTrackingData
+}
+```
+
+And we can also implement fiendlier versions of the functions we implemented in the previous section, that take the name of the ids variable, instead of the reference and hint ap tracking data:
+
+```go
+// Returns the value of an identifier as a MaybeRelocatable
+func (ids *IdsManager) Get(name string, vm *VirtualMachine) (*MaybeRelocatable, error) {
+	reference, ok := ids.References[name]
+	if ok {
+		val, ok := getValueFromReference(&reference, ids.HintApTracking, vm)
+		if ok {
+			return val, nil
+		}
+	}
+	return nil, ErrUnknownIdentifier(name)
+}
+
+// Returns the address of an identifier given its name
+func (ids *IdsManager) GetAddr(name string, vm *VirtualMachine) (Relocatable, error) {
+	reference, ok := ids.References[name]
+	if ok {
+		addr, ok := getAddressFromReference(&reference, ids.HintApTracking, vm)
+		if ok {
+			return addr, nil
+		}
+	}
+	return Relocatable{}, ErrUnknownIdentifier(name)
+}
+```
+
+We can also make more specialized versions of the Get method, that will also handle conversions to Felt or Relocatable, as we will almost always know which type of value we are expecting when implementing hints:
+
+```go
+// Returns the value of an identifier as a Felt
+func (ids *IdsManager) GetFelt(name string, vm *VirtualMachine) (lambdaworks.Felt, error) {
+	val, err := ids.Get(name, vm)
+	if err != nil {
+		return lambdaworks.Felt{}, err
+	}
+	felt, is_felt := val.GetFelt()
+	if !is_felt {
+		return lambdaworks.Felt{}, ErrIdentifierNotFelt(name)
+	}
+	return felt, nil
+}
+
+// Returns the value of an identifier as a Relocatable
+func (ids *IdsManager) GetRelocatable(name string, vm *VirtualMachine) (Relocatable, error) {
+	val, err := ids.Get(name, vm)
+	if err != nil {
+		return Relocatable{}, err
+	}
+	relocatable, is_relocatable := val.GetRelocatable()
+	if !is_relocatable {
+		return Relocatable{}, errors.Errorf("Identifier %s is not a Relocatable", name)
+	}
+	return relocatable, nil
+}
+```
+
+And lastly, we can also implement a method to insert a value into an ids variable (as we already know how to calculate their address)
+
+```go
+// Inserts value into memory given its identifier name
+func (ids *IdsManager) Insert(name string, value *MaybeRelocatable, vm *VirtualMachine) error {
+
+	addr, err := ids.GetAddr(name, vm)
+	if err != nil {
+		return err
+	}
+	return vm.Segments.Memory.Insert(addr, value)
+}
+```
+
 ##### Implementing a HintProcessor: CompileHint
 
 TODO
