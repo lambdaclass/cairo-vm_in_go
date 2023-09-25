@@ -1,7 +1,6 @@
 package hints_test
 
 import (
-	"fmt"
 	"math/big"
 	"testing"
 
@@ -224,7 +223,6 @@ func TestRunComputeSlopeOk(t *testing.T) {
 
 		slope_res, _ := execScopes.Get("slope")
 		slope := slope_res.(big.Int)
-		fmt.Println("SLOPE: ", slope)
 
 		// expected values
 		expectedVal, _ := new(big.Int).SetString("41419765295989780131385135514529906223027172305400087935755859001910844026631", 10)
