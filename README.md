@@ -3306,6 +3306,7 @@ func NewExecutionScopes() *ExecutionScopes {
 With this struct we can implement the basic operations:
 
 *EnterScope*
+
 Adds a new scope to the stack, which is received by the method
 ```go
 func (es *ExecutionScopes) EnterScope(newScopeLocals map[string]interface{}) {
@@ -3315,6 +3316,7 @@ func (es *ExecutionScopes) EnterScope(newScopeLocals map[string]interface{}) {
 ```
 
 *ExitScope*
+
 Removes the last scope from the stack, guards that the main scope is not removed by the operation.
 
 ```go
@@ -3329,6 +3331,7 @@ func (es *ExecutionScopes) ExitScope() error {
 ```
 
 *AssignOrUpdateVariable*
+
 Inserts a variable to the current scope (aka the top one in the stack), overwitting the previous value if it exists
 
 ```go
@@ -3342,6 +3345,7 @@ func (es *ExecutionScopes) AssignOrUpdateVariable(varName string, varValue inter
 ```
 
 *Get*
+
 Fetches a variable from the current scope
 ```go
 func (es *ExecutionScopes) Get(varName string) (interface{}, error) {
@@ -3358,6 +3362,7 @@ func (es *ExecutionScopes) Get(varName string) (interface{}, error) {
 ```
 
 *DeleteVariable*
+
 Removes a variable from the current scope
 
 ```go
