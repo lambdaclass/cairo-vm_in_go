@@ -7,14 +7,15 @@ import (
 )
 
 type Identifier struct {
-	FullName   string
-	Members    map[string]any
-	Size       int
-	Decorators []string
-	PC         int
-	Type       string
-	CairoType  string
-	Value      lambdaworks.Felt
+	FullName    string
+	Members     map[string]any
+	Size        int
+	Decorators  []string
+	PC          int
+	Type        string
+	CairoType   string
+	Value       lambdaworks.Felt
+	Destination string
 }
 
 type Program struct {
@@ -53,6 +54,7 @@ func DeserializeProgramJson(compiledProgram parser.CompiledJson) Program {
 		programIdentifier.Type = identifier.Type
 		programIdentifier.CairoType = identifier.CairoType
 		programIdentifier.Value = lambdaworks.FeltFromDecString(identifier.Value.String())
+		programIdentifier.Destination = identifier.Destination
 		program.Identifiers[key] = programIdentifier
 	}
 	program.Hints = compiledProgram.Hints
@@ -64,9 +66,28 @@ func DeserializeProgramJson(compiledProgram parser.CompiledJson) Program {
 func (p *Program) ExtractConstants() map[string]lambdaworks.Felt {
 	constants := make(map[string]lambdaworks.Felt)
 	for name, identifier := range p.Identifiers {
-		if identifier.Type == "const" {
+		switch identifier.Type {
+		case "const":
 			constants[name] = identifier.Value
+		case "alias":
+			val, ok := searchConstFromAlias(identifier.Destination, &p.Identifiers)
+			if ok {
+				constants[name] = val
+			}
 		}
 	}
 	return constants
+}
+
+func searchConstFromAlias(destination string, identifiers *map[string]Identifier) (lambdaworks.Felt, bool) {
+	identifier, ok := (*identifiers)[destination]
+	if ok {
+		switch identifier.Type {
+		case "const":
+			return identifier.Value, true
+		case "alias":
+			return searchConstFromAlias(identifier.Destination, identifiers)
+		}
+	}
+	return lambdaworks.Felt{}, false
 }
