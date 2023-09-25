@@ -2739,7 +2739,7 @@ This `HintProcessor` interface will consist of two methods: `CompileHint`, which
 
 ```go
 type HintProcessor interface {
-	// Transforms hint data outputed by the VM into whichever format will be later used by ExecuteHint
+	// Transforms hint data outputted by the VM into whichever format will be later used by ExecuteHint
 	CompileHint(hintParams *parser.HintParams, referenceManager *parser.ReferenceManager) (any, error)
 	// Executes the hint which's data is provided by a dynamic structure previously created by CompileHint
 	ExecuteHint(vm *VirtualMachine, hintData *any, constants *map[string]lambdaworks.Felt, execScopes *types.ExecutionScopes) error
@@ -2750,10 +2750,10 @@ We will first look at how hint processing ties into the core vm execution loop, 
 
 ##### VM execution loop
 
-Before we beging executing steps, we will feed the hint-related information from the compiled program to the `HintProcessor`, and obtain what we call `HintData`, which will be later on used to execute the hint. As we can see, the compiled json stores the hint information in a map which connects pc offsets (at which pc offset the hint should be executed) to a list of hints (yes, more than one hint can be executed as a given pc), and we will use a similar structure to hold the compiled `HintData`.
+Before we begin executing steps, we will feed the hint-related information from the compiled program to the `HintProcessor`, and obtain what we call `HintData`, which will be later on used to execute the hint. As we can see, the compiled json stores the hint information in a map which connects pc offsets (at which pc offset the hint should be executed) to a list of hints (yes, more than one hint can be executed as a given pc), and we will use a similar structure to hold the compiled `HintData`.
 ```go
 func (r *CairoRunner) BuildHintDataMap(hintProcessor vm.HintProcessor) (map[uint][]any, error) {
-	hintDataMap := make(map[uint][]any, 0)
+	hintDataMap := make(map[uint][]any)
 	for pc, hintsParams := range r.Program.Hints {
 		hintDatas := make([]any, 0, len(hintsParams))
 		for _, hintParam := range hintsParams {
@@ -2827,7 +2827,7 @@ Before we implement the `CompileHint` method, lets look at this crucial part of 
 
 ##### Hint Interaction: Ids
 
-Ids are hint's way to interact with variables in a cairo program. For example, if I declare a variable `n` in my cairo code, I can access that `n` variable inside a hint using `ids.n`.
+Ids are hints' way to interact with variables in a cairo program. For example, if I declare a variable `n` in my cairo code, I can access that `n` variable inside a hint using `ids.n`.
 
 The following cairo snippet would print the number 17
 
@@ -2837,7 +2837,7 @@ The following cairo snippet would print the number 17
 ```
 
 In order to access these variables when implementing our hints in go we will implement the `IdsManager`, which will allow us to read and write cairo variables.
-But interacting with cairo variables is not as easy as it sounds, in order to access them, we must first compute their address from a `Reference`
+But interacting with cairo variables is not as easy as it sounds. In order to access them, we must first compute their address from a `Reference`
 
 ###### References
 
