@@ -3123,7 +3123,6 @@ func (ids *IdsManager) Insert(name string, value *MaybeRelocatable, vm *VirtualM
 
 ##### Implementing a HintProcessor: CompileHint
 
-TODO
 
 The `CompileHint` method will be in charge of converting the hint-related data from the compiled json into a format that our processor can use to execute each hint. For our `CairoVmHintProcessor` we will use the following struct:
 
@@ -3133,8 +3132,18 @@ type HintData struct {
 	Code string
 }
 ```
+Where IdsManager is the struct we just saw in the previous section, a struct which manages all kinds of interaction between the hint implemented in go and the cairo variables available to it, and Code is the python code of the hint.
 
-And we will implement a `CompileHint` method:
+And we will implement a `CompileHint` method which receives the hint's data from the compiled program in the form of `HintParams`, and a reference to the compiled json's `ReferenceManager`, a list of references to all ids variables in the program. And performs the following steps:
+
+1 - Create a map from variable name to HintReference
+2 - Iterate over the hintParams's `ReferenceIds` field (a map from an ids name to an index in the ReferenceManager). For each iteration:
+    I. Remove the path from the reference's name (shortening full paths such a "__main__.a" to just the variable name "a"),
+    II. Fetch the reference from the ReferenceManager (using the index from the ReferenceIds)
+    III. Parse the Reference into a `HintReference`
+    IV. Insert the parsed reference into the map we created in 1, using the shortened name (from 2.I) as a key
+3 - Create an IdsManager using the map from 1, and the hintParam's ap tracking data
+4 - Create a `HintData` struct with the IdsManager and the hintParam's Code
 
 ```go
 func (p *CairoVmHintProcessor) CompileHint(hintParams *parser.HintParams, referenceManager *parser.ReferenceManager) (any, error) {
@@ -3147,7 +3156,7 @@ func (p *CairoVmHintProcessor) CompileHint(hintParams *parser.HintParams, refere
 		name = split[len(split)-1]
 		references[name] = ParseHintReference(referenceManager.References[n])
 	}
-	ids := NewIdsManager(references, hintParams.FlowTrackingData.APTracking, hintParams.AccessibleScopes)
+	ids := NewIdsManager(references, hintParams.FlowTrackingData.APTracking)
 	return HintData{Ids: ids, Code: hintParams.Code}, nil
 }
 ```
