@@ -2909,9 +2909,131 @@ This can be a bit hard to grasp at first so lets look at some examples:
     Struct Reference: {Offset1: {ValueType: Reference, Register: AP, Value: 1, Dereference: true}, Offset2: {ValueType: Reference, Register: AP, Value: 0, Dereference: true}, ValueType: "felt*"}
     Reference in words: Take the current value of ap, subtract 1 to it, fetch the memory value at that address. Take the current value of ap, fetch the memory value at that address. Add the two values we obtained.
 
+Now all thats left to analyze is in the reference is the `ApTracking`:
 
+```go
+type ApTrackingData struct {
+	Group  int `json:"group"`
+	Offset int `json:"offset"`
+}
+```
+
+As the value of AP is constantly changing with each instruction executed, its not that simple to track variables who's references are based on ap. ApTracking is used to calculate the difference between the value of ap at the moment the variable was created/ enterted the scope of the function (and hence, the hint) and the value of ap at the moment the hint is executed. Each hint  and each reference has its own ApTracking.
 
 *Computing addresses using References*
+
+The function used to fetch the value from an ids variable using a reference works as follows:
+1- Check if the refeference has type Immediate, if this is true, return the Immediate field
+2- Calculate the address of the ids variable using the reference (we will see how this works soon)
+3- Check the Dereference field of the reference, if false, return the address we obtained in 2, if true, fetch the memory value at that address and return it.
+
+```go
+func getValueFromReference(reference *HintReference, apTracking parser.ApTrackingData, vm *VirtualMachine) (*MaybeRelocatable, bool) {
+	// Handle the case of  immediate
+	if reference.Offset1.ValueType == Immediate {
+		return NewMaybeRelocatableFelt(reference.Offset1.Immediate), true
+	}
+	addr, ok := getAddressFromReference(reference, apTracking, vm)
+	if ok {
+		if reference.Dereference {
+			val, err := vm.Segments.Memory.Get(addr)
+			if err == nil {
+				return val, true
+			}
+		} else {
+			return NewMaybeRelocatableRelocatable(addr), true
+		}
+	}
+	return nil, false
+}
+```
+
+In order to extract the value of an ids variable, we will first compute its address, this works as follows:
+1- Check that the Offset1 is a Reference
+2- Compute the value of Offset1 
+3- Add the value of Offet2. By either calculating it i the case of a Reference ype, or just using the Value field in the case of a Value type.
+4- Return the result obtained in step 3.
+```go
+func getAddressFromReference(reference *HintReference, apTracking parser.ApTrackingData, vm *VirtualMachine) (Relocatable, bool) {
+	if reference.Offset1.ValueType != Reference {
+		return Relocatable{}, false
+	}
+	offset1 := getOffsetValueReference(reference.Offset1, reference.ApTrackingData, apTracking, vm)
+	if offset1 != nil {
+		offset1_rel, is_rel := offset1.GetRelocatable()
+		if is_rel {
+			switch reference.Offset2.ValueType {
+			case Reference:
+				offset2 := getOffsetValueReference(reference.Offset2, reference.ApTrackingData, apTracking, vm)
+				if offset2 != nil {
+					res, err := offset1_rel.AddMaybeRelocatable(*offset2)
+					if err == nil {
+						return res, true
+					}
+				}
+			case Value:
+				res, err := offset1_rel.AddInt(reference.Offset2.Value)
+				if err == nil {
+					return res, true
+				}
+			}
+		}
+	}
+	return Relocatable{}, false
+
+}
+```
+
+Now lets see how computing the value of a an OffsetValue of type Reference works:
+1- Determine a base address by checking the Register field of the OffsetValue. If the register is FP, use the current value of fp. If the register is AP, apply the necessary ap tracking corrections to ap and use it as base address.
+2- Add the field Value of the OffsetValue to the base address
+3- Check the Dereference field of the OffsetValue. If its false, return the address we obtained in 2. If is true, fetch the memory value at that address and return it
+
+```go
+func getOffsetValueReference(offsetValue OffsetValue, refApTracking parser.ApTrackingData, hintApTracking parser.ApTrackingData, vm *VirtualMachine) *MaybeRelocatable {
+	var baseAddr Relocatable
+	ok := true
+	switch offsetValue.Register {
+	case FP:
+		baseAddr = vm.RunContext.Fp
+	case AP:
+		baseAddr, ok = applyApTrackingCorrection(vm.RunContext.Ap, refApTracking, hintApTracking)
+	}
+	if ok {
+		baseAddr, err := baseAddr.AddInt(offsetValue.Value)
+		if err == nil {
+			if offsetValue.Dereference {
+				// val will be nil if err is not nil, so we can ignore it
+				val, _ := vm.Segments.Memory.Get(baseAddr)
+				return val
+			} else {
+				return NewMaybeRelocatableRelocatable(baseAddr)
+			}
+		}
+	}
+	return nil
+}
+```
+
+Finally, the last thing we need is to know how ap tracking corrections work.
+This function will receive an address (the current value of ap), the ap tracking data of the reference (unique to each reference) and the hint's ap tracking data (unique to each hint) and perform the following steps:
+1 - Assert that both ap tracking datas belong to the same group (aka their Group fields match)
+2 - Subtract the difference between the hint's ap tracking data's Offset field and the reference's ap tracking data's Offset field from the address (ap)
+3 - Return the value obtained in 2
+
+```go
+func applyApTrackingCorrection(addr Relocatable, refApTracking parser.ApTrackingData, hintApTracking parser.ApTrackingData) (Relocatable, bool) {
+	// Reference & Hint ApTracking must belong to the same group
+	if refApTracking.Group == hintApTracking.Group {
+		addr, err := addr.SubUint(uint(hintApTracking.Offset - refApTracking.Offset))
+		if err == nil {
+			return addr, true
+		}
+	}
+	return Relocatable{}, false
+}
+```
+
 *Implement the IdsManager*
 
 ##### Implementing a HintProcessor: CompileHint
