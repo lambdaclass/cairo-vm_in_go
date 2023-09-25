@@ -1,76 +1,34 @@
 package hints
 
 import (
-	"errors"
 	"math/big"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
+	"github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
-	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/types"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
-	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
-
-type BigInt3 struct {
-	Limbs []lambdaworks.Felt
-}
 
 type EcPoint struct {
 	X BigInt3
 	Y BigInt3
 }
 
-func (val *BigInt3) Pack86() big.Int {
-	sum := big.NewInt(0)
-	for i := 0; i < 3; i++ {
-		felt := val.Limbs[i]
-		signed := felt.ToSigned()
-		shifed := new(big.Int).Lsh(signed, uint(i*86))
-		sum.Add(sum, shifed)
-	}
-	return *sum
-}
-
-func BigInt3FromBaseAddr(addr memory.Relocatable, vm VirtualMachine) (BigInt3, error) {
-	limbs := make([]lambdaworks.Felt, 0)
-	for i := 0; i < 3; i++ {
-		felt, err := vm.Segments.Memory.GetFelt(addr.AddUint(uint(i)))
-		if err == nil {
-			limbs = append(limbs, felt)
-		} else {
-			return BigInt3{}, errors.New("Identifier has no member")
-		}
-	}
-	return BigInt3{Limbs: limbs}, nil
-}
-
-func BigInt3FromVarName(name string, ids IdsManager, vm *VirtualMachine) (BigInt3, error) {
-	bigIntAddr, err := ids.GetAddr(name, vm)
-	if err != nil {
-		return BigInt3{}, err
-	}
-
-	bigInt, err := BigInt3FromBaseAddr(bigIntAddr, *vm)
-	if err != nil {
-		return BigInt3{}, err
-	}
-
-	return bigInt, err
-}
-
-func EcPointFromVarName(name string, vm VirtualMachine, idsData IdsManager) (EcPoint, error) {
-	pointAddr, err := idsData.GetAddr(name, &vm)
+func EcPointFromVarName(name string, vm *VirtualMachine, idsData IdsManager) (EcPoint, error) {
+	pointAddr, err := idsData.GetAddr(name, vm)
 	if err != nil {
 		return EcPoint{}, err
 	}
 
-	x, err := BigInt3FromBaseAddr(pointAddr, vm)
+	x, err := BigInt3FromBaseAddr(pointAddr, name+".x", vm)
 	if err != nil {
 		return EcPoint{}, err
 	}
 
-	y, err := BigInt3FromBaseAddr(pointAddr.AddUint(3), vm)
+	y, err := BigInt3FromBaseAddr(pointAddr.AddUint(3), name+".y", vm)
 	if err != nil {
 		return EcPoint{}, err
 	}
@@ -81,8 +39,8 @@ func EcPointFromVarName(name string, vm VirtualMachine, idsData IdsManager) (EcP
 /*
 Implements main logic for `EC_NEGATE` and `EC_NEGATE_EMBEDDED_SECP` hints
 */
-func ecNegate(vm VirtualMachine, execScopes ExecutionScopes, idsData IdsManager, secpP big.Int) error {
-	point, err := idsData.GetRelocatable("point", &vm)
+func ecNegate(vm *vm.VirtualMachine, execScopes types.ExecutionScopes, ids hint_utils.IdsManager, secpP big.Int) error {
+	point, err := ids.GetRelocatable("point", vm)
 	if err != nil {
 		return err
 	}
@@ -92,7 +50,7 @@ func ecNegate(vm VirtualMachine, execScopes ExecutionScopes, idsData IdsManager,
 		return err
 	}
 
-	yBigint3, err := BigInt3FromBaseAddr(pointY, vm)
+	yBigint3, err := BigInt3FromBaseAddr(pointY, "point.y", vm)
 	if err != nil {
 		return err
 	}
@@ -106,9 +64,9 @@ func ecNegate(vm VirtualMachine, execScopes ExecutionScopes, idsData IdsManager,
 	return nil
 }
 
-func ecNegateImportSecpP(vm VirtualMachine, execScopes ExecutionScopes, idsData IdsManager) error {
-	secpP, _ := new(big.Int).SetString("115792089237316195423570985008687907853269984665640564039457584007908834671663", 10)
-	return ecNegate(vm, execScopes, idsData, *secpP)
+func ecNegateImportSecpP(virtual_machine *vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager) error {
+	secp_p, _ := new(big.Int).SetString("115792089237316195423570985008687907853269984665640564039457584007908834671663", 10)
+	return ecNegate(virtual_machine, exec_scopes, ids_data, *secp_p)
 }
 
 /*
@@ -123,11 +81,11 @@ Implements hint:
 %}
 */
 
-func ecNegateEmbeddedSecpP(vm VirtualMachine, execScopes ExecutionScopes, idsData IdsManager) error {
-	SecpP := big.NewInt(1)
-	SecpP.Lsh(SecpP, 255)
-	SecpP.Sub(SecpP, big.NewInt(19))
-	return ecNegate(vm, execScopes, idsData, *SecpP)
+func ecNegateEmbeddedSecpP(virtual_machine *vm.VirtualMachine, exec_scopes types.ExecutionScopes, ids_data hint_utils.IdsManager) error {
+	secp_p := big.NewInt(1)
+	secp_p.Lsh(secp_p, 255)
+	secp_p.Sub(secp_p, big.NewInt(19))
+	return ecNegate(virtual_machine, exec_scopes, ids_data, *secp_p)
 }
 
 /*
@@ -144,7 +102,7 @@ Implements hint:
 
 %}
 */
-func computeDoublingSlope(vm VirtualMachine, execScopes ExecutionScopes, idsData IdsManager, pointAlias string, SecpP big.Int, alpha big.Int) error {
+func computeDoublingSlope(vm *VirtualMachine, execScopes ExecutionScopes, idsData IdsManager, pointAlias string, SecpP big.Int, alpha big.Int) error {
 	execScopes.AssignOrUpdateVariable("SECP_P", SecpP)
 
 	point, err := EcPointFromVarName(pointAlias, vm, idsData)
@@ -182,12 +140,12 @@ Implements hint:
 %}
 */
 
-func computeSlopeAndAssingSecpP(vm VirtualMachine, execScopes ExecutionScopes, idsData IdsManager, point0Alias string, point1Alias string, secpP big.Int) error {
+func computeSlopeAndAssingSecpP(vm *VirtualMachine, execScopes ExecutionScopes, idsData IdsManager, point0Alias string, point1Alias string, secpP big.Int) error {
 	execScopes.AssignOrUpdateVariable("SECP_P", secpP)
 	return computeSlope(vm, execScopes, idsData, point0Alias, point1Alias)
 }
 
-func computeSlope(vm VirtualMachine, execScopes ExecutionScopes, idsData IdsManager, point0Alias string, point1Alias string) error {
+func computeSlope(vm *VirtualMachine, execScopes ExecutionScopes, idsData IdsManager, point0Alias string, point1Alias string) error {
 	point0, err := EcPointFromVarName(point0Alias, vm, idsData)
 	if err != nil {
 		return err
@@ -241,12 +199,12 @@ Implements hint:
 func fastEcAddAssignNewX(ids IdsManager, vm *VirtualMachine, execScopes *ExecutionScopes, point0Alias string, point1Alias string, secpP big.Int) error {
 	execScopes.AssignOrUpdateVariable("SECP_P", secpP)
 
-	point0, err := EcPointFromVarName(point0Alias, *vm, ids)
+	point0, err := EcPointFromVarName(point0Alias, vm, ids)
 	if err != nil {
 		return err
 	}
 
-	point1, err := EcPointFromVarName(point1Alias, *vm, ids)
+	point1, err := EcPointFromVarName(point1Alias, vm, ids)
 	if err != nil {
 		return err
 	}

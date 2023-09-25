@@ -1,0 +1,1 @@
+../assert_250_bit_element_array.cairo
