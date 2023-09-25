@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// SortMaybeRelocatables implements sort.Interface for []MaybeRelocatables
+// SortFelt implements sort.Interface for []lambdaworks.Felt
 type SortFelt []lambdaworks.Felt
 
 func (s SortFelt) Len() int      { return len(s) }
