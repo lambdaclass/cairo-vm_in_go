@@ -120,6 +120,18 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return unsafeKeccak(data.Ids, vm, *execScopes)
 	case UNSAFE_KECCAK_FINALIZE:
 		return unsafeKeccakFinalize(data.Ids, vm)
+	case COMPARE_BYTES_IN_WORD_NONDET:
+		return compareBytesInWordNondet(data.Ids, vm, constants)
+	case COMPARE_KECCAK_FULL_RATE_IN_BYTES_NONDET:
+		return compareKeccakFullRateInBytesNondet(data.Ids, vm, constants)
+	case BLOCK_PERMUTATION:
+		return blockPermutation(data.Ids, vm, constants)
+	case CAIRO_KECCAK_FINALIZE_V1:
+		return cairoKeccakFinalize(data.Ids, vm, constants, 10)
+	case CAIRO_KECCAK_FINALIZE_V2:
+		return cairoKeccakFinalize(data.Ids, vm, constants, 1000)
+	case KECCAK_WRITE_ARGS:
+		return keccakWriteArgs(data.Ids, vm)
 	case UNSIGNED_DIV_REM:
 		return unsignedDivRem(data.Ids, vm)
 	case SIGNED_DIV_REM:
@@ -160,6 +172,14 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return splitIntAssertRange(data.Ids, vm)
 	case VERIFY_ZERO_EXTERNAL_SECP:
 		return verifyZeroWithExternalConst(*vm, *execScopes, data.Ids)
+	case FAST_EC_ADD_ASSIGN_NEW_X:
+		return fastEcAddAssignNewX(data.Ids, vm, execScopes, "point0", "point1", SECP_P())
+	case FAST_EC_ADD_ASSIGN_NEW_X_V2:
+		return fastEcAddAssignNewX(data.Ids, vm, execScopes, "point0", "point1", SECP_P_V2())
+	case FAST_EC_ADD_ASSIGN_NEW_X_V3:
+		return fastEcAddAssignNewX(data.Ids, vm, execScopes, "pt0", "pt1", SECP_P())
+	case FAST_EC_ADD_ASSIGN_NEW_Y:
+		return fastEcAddAssignNewY(execScopes)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
