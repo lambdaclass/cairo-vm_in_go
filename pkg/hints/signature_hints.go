@@ -55,41 +55,26 @@ func divModNPackedDivModExternalN(ids IdsManager, vm *VirtualMachine, scopes *Ex
 
 func divModNSafeDiv(ids IdsManager, scopes *ExecutionScopes, aAlias string, bAlias string, toAdd int64) error {
 	// Fetch scope variables
-	aAny, err := scopes.Get(aAlias)
+	a, err := FetchScopeVar[*big.Int](aAlias, scopes)
 	if err != nil {
 		return err
-	}
-	a, ok := aAny.(*big.Int)
-	if !ok {
-		return errors.Errorf("%s not in scope", aAlias)
 	}
 
-	bAny, err := scopes.Get(bAlias)
+	b, err := FetchScopeVar[*big.Int](bAlias, scopes)
 	if err != nil {
 		return err
-	}
-	b, ok := bAny.(*big.Int)
-	if !ok {
-		return errors.Errorf("%s not in scope", bAlias)
 	}
 
-	resAny, err := scopes.Get("res")
+	res, err := FetchScopeVar[*big.Int]("res", scopes)
 	if err != nil {
 		return err
-	}
-	res, ok := resAny.(*big.Int)
-	if !ok {
-		return errors.New("res not in scope")
 	}
 
-	nAny, err := scopes.Get("N")
+	n, err := FetchScopeVar[*big.Int]("N", scopes)
 	if err != nil {
 		return err
 	}
-	n, ok := nAny.(*big.Int)
-	if !ok {
-		return errors.New("N not in scope")
-	}
+
 	// Hint logic
 	value, err := utils.SafeDivBig(new(big.Int).Mul(res, new(big.Int).Sub(a, b)), n)
 	if err != nil {
