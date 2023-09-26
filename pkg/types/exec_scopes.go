@@ -82,3 +82,20 @@ func (es *ExecutionScopes) Get(varName string) (interface{}, error) {
 	}
 	return val, nil
 }
+
+// Generic version of ExecutionScopes.Get which also handles casting
+func FetchScopeVar[T interface{}](varName string, scopes *ExecutionScopes) (T, error) {
+	locals, err := scopes.GetLocalVariables()
+	if err != nil {
+		return *new(T), err
+	}
+	valAny, prs := locals[varName]
+	if !prs {
+		return *new(T), ErrVariableNotInScope(varName)
+	}
+	val, ok := valAny.(T)
+	if !ok {
+		return *new(T), ErrVariableNotInScope(varName)
+	}
+	return val, nil
+}
