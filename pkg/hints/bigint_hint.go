@@ -47,9 +47,9 @@ func NondetBigInt3(virtual_machine VirtualMachine, execScopes ExecutionScopes, i
 		arg = append(arg, *m)
 	}
 
-	_, load_err := virtual_machine.Segments.LoadData(resRelloc, &arg)
-	if load_err != nil {
-		return load_err
+	_, loadErr := virtual_machine.Segments.LoadData(resRelloc, &arg)
+	if loadErr != nil {
+		return loadErr
 	}
 
 	return nil
