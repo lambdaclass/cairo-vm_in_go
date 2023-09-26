@@ -186,7 +186,6 @@ func computeSlope(vm *VirtualMachine, execScopes ExecutionScopes, idsData IdsMan
 
 /*
 Implements hint:
-<<<<<<< HEAD
 %{ from starkware.cairo.common.cairo_secp.secp256r1_utils import SECP256R1_ALPHA as ALPHA %}
 */
 
