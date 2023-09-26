@@ -7,6 +7,11 @@ func SECP_P() big.Int {
 	return *secpP
 }
 
+func SECP_P_V2() big.Int {
+	secpP, _ := new(big.Int).SetString("57896044618658097711785492504343953926634992332820282019728792003956564819949", 10)
+	return *secpP
+}
+
 func ALPHA() big.Int {
 	alpha := big.NewInt(0)
 	return *alpha
