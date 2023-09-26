@@ -173,6 +173,25 @@ func uint256UnsignedDivRem(ids IdsManager, vm *VirtualMachine) error {
 	return uint256OfssetedUnisgnedDivRem(ids, vm, 0, 1)
 }
 
+/*
+Implements hint:
+
+	%{
+	    a = (ids.a.high << 128) + ids.a.low
+	    div = (ids.div.b23 << 128) + ids.div.b01
+	    quotient, remainder = divmod(a, div)
+
+	    ids.quotient.low = quotient & ((1 << 128) - 1)
+	    ids.quotient.high = quotient >> 128
+	    ids.remainder.low = remainder & ((1 << 128) - 1)
+	    ids.remainder.high = remainder >> 128
+
+%}
+*/
+func uint256ExpandedUnsignedDivRem(ids IdsManager, vm *VirtualMachine) error {
+	return uint256OfssetedUnisgnedDivRem(ids, vm, 1, 3)
+}
+
 func uint256OfssetedUnisgnedDivRem(ids IdsManager, vm *VirtualMachine, divOffsetLow uint, divOffsetHigh uint) error {
 	a, err := ids.GetUint256("a", vm)
 	if err != nil {

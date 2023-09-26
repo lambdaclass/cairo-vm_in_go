@@ -162,6 +162,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return uint256SignedNN(data.Ids, vm)
 	case UINT256_UNSIGNED_DIV_REM:
 		return uint256UnsignedDivRem(data.Ids, vm)
+	case UINT256_EXPANDED_UNSIGNED_DIV_REM:
+		return uint256ExpandedUnsignedDivRem(data.Ids, vm)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}

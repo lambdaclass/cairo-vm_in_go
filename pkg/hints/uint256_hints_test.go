@@ -590,3 +590,60 @@ func TestUint256UnsignedDivRemInvalidMemoryInsert(t *testing.T) {
 		t.Errorf("failed with error: %s", err)
 	}
 }
+
+func TestUint256ExpandedUnsignedDivRemOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+
+	// add div low
+	err := vm.Segments.Memory.Insert(NewRelocatable(1, 7), NewMaybeRelocatableFelt(FeltFromUint64(3)))
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+	// add div high
+	err = vm.Segments.Memory.Insert(NewRelocatable(1, 9), NewMaybeRelocatableFeltFromUint64(7))
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+	ids := map[string][]*MaybeRelocatable{
+		"a": {
+			NewMaybeRelocatableFeltFromUint64(89),
+			NewMaybeRelocatableFeltFromUint64(72),
+		},
+		"div":       {NewMaybeRelocatableRelocatable(NewRelocatable(1, 6))},
+		"quotient":  {nil, nil},
+		"remainder": {nil, nil},
+	}
+	idsManager := SetupIdsForTest(ids, vm)
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: UINT256_EXPANDED_UNSIGNED_DIV_REM,
+	})
+	hintProcessor := CairoVmHintProcessor{}
+	err = hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+
+	quotient, err := idsManager.GetUint256("quotient", vm)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+
+	expectedQuotient := Uint256{Low: FeltFromUint(10), High: FeltFromUint(0)}
+	if quotient != expectedQuotient {
+		t.Errorf("expected quotient: %s, got: %s", expectedQuotient.ToString(), quotient.ToString())
+	}
+
+	remainder, err := idsManager.GetUint256("remainder", vm)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+
+	expectedRemainder := Uint256{Low: FeltFromUint(59), High: FeltFromUint(2)}
+	if remainder != expectedRemainder {
+		t.Errorf("expected remainder: %s, got: %s", expectedRemainder.ToString(), remainder.ToString())
+	}
+
+}
