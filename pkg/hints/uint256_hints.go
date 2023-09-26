@@ -191,10 +191,8 @@ func uint256OfssetedUnisgnedDivRem(ids IdsManager, vm *VirtualMachine, divOffset
 	if err != nil {
 		return err
 	}
-
 	div := Uint256{Low: divLow, High: divHigh}
-
-	q, r := new(big.Int).DivMod(a.ToBigInt(), div.ToBigInt(), nil)
+	q, r := new(big.Int).DivMod(a.ToBigInt(), div.ToBigInt(), new(big.Int))
 
 	err = ids.InsertUint256("quotient", ToUint256(q), vm)
 	if err != nil {

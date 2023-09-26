@@ -391,7 +391,8 @@ func (ui256 *Uint256) ToBigInt() *big.Int {
 Returns a big.Int as Uint256
 */
 func ToUint256(a *big.Int) Uint256 {
-	low := new(big.Int).And(Prime(), a)
+	maxU128, _ := new(big.Int).SetString("340282366920938463463374607431768211455", 10)
+	low := new(big.Int).And(a, maxU128)
 	high := new(big.Int).Rsh(a, 128)
 	return Uint256{Low: FeltFromBigInt(low), High: FeltFromBigInt(high)}
 }
