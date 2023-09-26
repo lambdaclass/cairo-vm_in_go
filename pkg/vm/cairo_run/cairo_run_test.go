@@ -320,3 +320,8 @@ func TestSplitIntHint(t *testing.T) {
 func TestSplitIntHintProofMode(t *testing.T) {
 	testProgramProof("split_int", t)
 }
+
+func TestEcDoubleAssign(t *testing.T) {
+	testProgram("ec_double_assign", t)
+}
+
