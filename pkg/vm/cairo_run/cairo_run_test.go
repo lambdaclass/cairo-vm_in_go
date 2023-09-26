@@ -320,3 +320,7 @@ func TestSplitIntHint(t *testing.T) {
 func TestSplitIntHintProofMode(t *testing.T) {
 	testProgramProof("split_int", t)
 }
+
+func TestIntegrationEcDoubleSlope(t *testing.T) {
+	testProgram("ec_double_slope", t)
+}
