@@ -1,8 +1,6 @@
 package memory
 
 import (
-	"fmt"
-
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 )
 
@@ -99,7 +97,7 @@ func (s *MemorySegmentManager) RelocateMemory(relocationTable *[]uint) (map[uint
 // If any insertion fails, returns (0,0) and the memory insertion error
 func (m *MemorySegmentManager) LoadData(ptr Relocatable, data *[]MaybeRelocatable) (Relocatable, error) {
 	for _, val := range *data {
-		fmt.Println("value being inserted: at possition", val, ptr)
+		//fmt.Println("value being inserted: at possition", val, ptr)
 		err := m.Memory.Insert(ptr, &val)
 		if err != nil {
 			return Relocatable{0, 0}, err

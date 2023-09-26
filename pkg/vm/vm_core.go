@@ -247,6 +247,8 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 			return &VirtualMachineError{"UnconstrainedResAssertEq"}
 		}
 		if !operands.Res.IsEqual(&operands.Dst) {
+			fmt.Println("operands Res: ", operands.Res)
+			fmt.Println("Operands des: ", operands.Dst)
 			return &VirtualMachineError{"DiffAssertValues"}
 		}
 	case Call:

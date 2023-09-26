@@ -1,7 +1,6 @@
 package hint_utils
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
@@ -28,14 +27,11 @@ func NondetBigInt3(virtual_machine VirtualMachine, exec_scopes ExecutionScopes, 
 		return err
 	}
 
-	fmt.Println("res alloc: ", res_relloc)
-
 	value_uncast, err := exec_scopes.Get("value")
 	if err != nil {
 		return err
 	}
 	value := value_uncast.(big.Int)
-	fmt.Println("value in nond int: \n", value.Text(10))
 
 	bigint3_split, err := Bigint3Split(value)
 	if err != nil {
@@ -43,14 +39,9 @@ func NondetBigInt3(virtual_machine VirtualMachine, exec_scopes ExecutionScopes, 
 	}
 	arg := make([]memory.MaybeRelocatable, 0)
 
-	fmt.Println("args: ")
 	for i := 0; i < 3; i++ {
 		m := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromBigInt(&bigint3_split[i]))
 		arg = append(arg, *m)
-	}
-
-	for j := 0; j<3 ; j++{
-		fmt.Println(arg[j])
 	}
 
 	virtual_machine.Segments.LoadData(res_relloc, &arg)
@@ -70,15 +61,15 @@ func limbsFromVarName(nLimbs int, name string, ids IdsManager, vm *VirtualMachin
 }
 
 func limbsFromBaseAddress(nLimbs int, name string, addr Relocatable, vm *VirtualMachine) ([]Felt, error) {
-	fmt.Println("addr in libms base addr: ", addr)
+	//fmt.Println("addr in libms base addr: ", addr)
 	limbs := make([]Felt, 0)
 	for i := 0; i < nLimbs; i++ {
 		felt, err := vm.Segments.Memory.GetFelt(addr.AddUint(uint(i)))
-		fmt.Println("value in memory: ", felt.ToBigInt().Text(10), addr.AddUint(uint(i)))
+		//fmt.Println("value in memory: ", felt.ToBigInt().Text(10), addr.AddUint(uint(i)))
 		if err == nil {
 			limbs = append(limbs, felt)
 		} else {
-			fmt.Println("error name: ", name)
+			//fmt.Println("error name: ", name)
 			return nil, errors.Errorf("Identifier %s has no member d%d", name, i)
 		}
 	}

@@ -46,7 +46,7 @@ func TestNonDetBigInt3Ok(t *testing.T) {
 		t.Errorf("Non Det Big Int 3 hint test failed with error: %s", err)
 	} else {
 		valueInStruct0, err := idsManager.GetStructFieldFelt("res", 0, vm)
-		expected0 := lambdaworks.FeltFromUint(773712524553362)
+		expected0 := lambdaworks.FeltFromDecString("773712524553362")
 		if err != nil {
 			t.Errorf("error fetching from ids manager : %s", err)
 		}

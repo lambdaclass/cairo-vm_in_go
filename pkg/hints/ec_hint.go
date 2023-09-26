@@ -1,7 +1,6 @@
 package hints
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
@@ -230,7 +229,6 @@ Implements hint:
 */
 func computeDoublingSlopeExternalConsts(vm VirtualMachine, execScopes ExecutionScopes, ids_data IdsManager) error {
 	// ids.point
-	fmt.Println("compute doubling slope extenral ")
 	point, err := EcPointFromVarName("point", &vm, ids_data)
 	if err != nil {
 		return err
@@ -251,7 +249,6 @@ func computeDoublingSlopeExternalConsts(vm VirtualMachine, execScopes ExecutionS
 	double_point_b := builtins.DoublePointB{X: point.X.Pack86(), Y: point.Y.Pack86()}
 
 	value, err := builtins.EcDoubleSlope(double_point_b, alpha, secp_p)
-	fmt.Println("value of ec double slope", value.Text(10))
 	if err != nil {
 		return err
 	}

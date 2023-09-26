@@ -2,7 +2,6 @@ package hint_utils
 
 import (
 	"errors"
-	"fmt"
 	"math/big"
 )
 
@@ -39,11 +38,11 @@ func BASE_MINUS_ONE() *big.Int {
 func Bigint3Split(integer big.Int) ([]big.Int, error) {
 	canonicalRepr := make([]big.Int, 3)
 	num := integer
-	fmt.Println("canonical repr: ")
+	//fmt.Println("canonical repr: ")
 
 	for i := 0; i < 3; i++ {
 		canonicalRepr[i] = *new(big.Int).And(&num, BASE_MINUS_ONE())
-		fmt.Println(canonicalRepr[i].Text(10))
+		//fmt.Println(canonicalRepr[i].Text(10))
 		num.Rsh(&num, 86)
 	}
 	if num.Cmp(big.NewInt(0)) != 0 {
