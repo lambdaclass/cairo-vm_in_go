@@ -41,7 +41,7 @@ func Bigint3Split(integer big.Int) ([]big.Int, error) {
 
 	for i := 0; i < 3; i++ {
 		canonicalRepr[i] = *new(big.Int).And(&num, BASE_MINUS_ONE())
-		num.Rsh(&num, 86)
+		num = *new(big.Int).Rsh(&num, 86)
 	}
 	if num.Cmp(big.NewInt(0)) != 0 {
 		return nil, errors.New("HintError SecpSplitOutOfRange")
