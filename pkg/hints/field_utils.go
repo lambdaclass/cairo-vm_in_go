@@ -51,6 +51,5 @@ func verifyZeroWithExternalConst(vm VirtualMachine, execScopes ExecutionScopes, 
 	}
 
 	quotient := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromBigInt(q))
-	idsData.Insert("q", quotient, &vm)
-	return nil
+	return idsData.Insert("q", quotient, &vm)
 }
