@@ -88,6 +88,7 @@ func (es *ExecutionScopes) Get(varName string) (interface{}, error) {
 }
 
 // Generic version of ExecutionScopes.Get which also handles casting
+// Also works if the scope variable has type *T instead of T
 func FetchScopeVar[T interface{}](varName string, scopes *ExecutionScopes) (T, error) {
 	locals, err := scopes.GetLocalVariables()
 	if err != nil {
@@ -99,6 +100,10 @@ func FetchScopeVar[T interface{}](varName string, scopes *ExecutionScopes) (T, e
 	}
 	val, ok := valAny.(T)
 	if !ok {
+		val, ok := valAny.(*T)
+		if ok {
+			return *val, nil
+		}
 		return *new(T), ErrVariableHasWrongType(varName)
 	}
 	return val, nil

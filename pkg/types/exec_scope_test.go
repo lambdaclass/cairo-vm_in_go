@@ -276,3 +276,22 @@ func TestFetchScopeVar(t *testing.T) {
 		t.Errorf("TestGetLocalVariables failed, expected: %s, got: %s", expected.ToSignedFeltString(), result.ToSignedFeltString())
 	}
 }
+
+func TestFetchScopeVarReference(t *testing.T) {
+	scope := make(map[string]interface{})
+	k := lambdaworks.FeltOne()
+	scope["k"] = &k
+
+	scopes := types.NewExecutionScopes()
+	scopes.EnterScope(scope)
+
+	result, err := types.FetchScopeVar[lambdaworks.Felt]("k", scopes)
+	if err != nil {
+		t.Errorf("TestGetLocalVariables failed with error: %s", err)
+
+	}
+	expected := lambdaworks.FeltOne()
+	if expected != result {
+		t.Errorf("TestGetLocalVariables failed, expected: %s, got: %s", expected.ToSignedFeltString(), result.ToSignedFeltString())
+	}
+}
