@@ -252,9 +252,11 @@ func getValueFromReference(reference *HintReference, apTracking parser.ApTrackin
 
 func getStructFieldFromReference(reference *HintReference, field_off uint, apTracking parser.ApTrackingData, vm *VirtualMachine) (*MaybeRelocatable, bool) {
 	addr, ok := getAddressFromReference(reference, apTracking, vm)
+	fmt.Println("addr", addr.AddUint(field_off))
 	if ok {
 		if reference.Dereference {
 			val, err := vm.Segments.Memory.Get(addr.AddUint(field_off))
+			fmt.Println("value fetched", val)
 			if err == nil {
 				return val, true
 			}

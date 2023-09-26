@@ -46,8 +46,11 @@ func NondetBigInt3(virtual_machine VirtualMachine, exec_scopes ExecutionScopes, 
 	fmt.Println("args: ")
 	for i := 0; i < 3; i++ {
 		m := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromBigInt(&bigint3_split[i]))
-		fmt.Println(bigint3_split[i].Text(10))
 		arg = append(arg, *m)
+	}
+
+	for j := 0; j<3 ; j++{
+		fmt.Println(arg[j])
 	}
 
 	virtual_machine.Segments.LoadData(res_relloc, &arg)

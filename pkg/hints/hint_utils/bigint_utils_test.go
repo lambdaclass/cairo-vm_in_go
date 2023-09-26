@@ -51,7 +51,7 @@ func TestNonDetBigInt3Ok(t *testing.T) {
 			t.Errorf("error fetching from ids manager : %s", err)
 		}
 		if valueInStruct0 != expected0 {
-			t.Errorf(" Incorrect field value %s, expected %s", valueInStruct0.ToHexString(), expected0.ToHexString())
+			t.Errorf(" Incorrect field value %s, expected %s", valueInStruct0.ToBigInt().Text(10), expected0.ToBigInt().Text(10))
 		}
 
 		valueInStruct1, err := idsManager.GetStructFieldFelt("res", 1, vm)
@@ -60,7 +60,7 @@ func TestNonDetBigInt3Ok(t *testing.T) {
 			t.Errorf("error fetching from ids manager : %s", err)
 		}
 		if valueInStruct1 != expected1 {
-			t.Errorf(" Incorrect field value %s, expected %s", valueInStruct1.ToHexString(), expected1.ToHexString())
+			t.Errorf(" Incorrect field value %s, expected %s", valueInStruct1.ToBigInt().Text(10), expected1.ToBigInt().Text(10))
 		}
 
 		valueInStruct2, err := idsManager.GetStructFieldFelt("res", 2, vm)
@@ -69,7 +69,7 @@ func TestNonDetBigInt3Ok(t *testing.T) {
 			t.Errorf("error fetching from ids manager : %s", err)
 		}
 		if valueInStruct2 != expected2 {
-			t.Errorf(" Incorrect field value %s, expected %s", valueInStruct2.ToHexString(), expected2.ToHexString())
+			t.Errorf(" Incorrect field value %s, expected %s", valueInStruct2.ToBigInt().Text(10), expected2.ToBigInt().Text(10))
 		}
 	}
 }
