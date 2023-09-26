@@ -49,13 +49,8 @@ func TestDivModNPackedDivMod(t *testing.T) {
 		t.Error("Wrong/No scope value res")
 	}
 
-<<<<<<< Updated upstream
-	val, err := scopes.Get("value")
-	if err != nil || val.(*big.Int).Cmp(expectedRes) != 0 {
-=======
 	val, err := FetchScopeVar[big.Int]("val", scopes)
 	if err != nil || val.Cmp(expectedRes) != 0 {
->>>>>>> Stashed changes
 		t.Error("Wrong/No scope value val")
 	}
 }
@@ -97,13 +92,8 @@ func TestDivModNPackedDivModExternalN(t *testing.T) {
 		t.Error("Wrong/No scope value res")
 	}
 
-<<<<<<< Updated upstream
-	val, err := scopes.Get("value")
-	if err != nil || val.(*big.Int).Cmp(expectedRes) != 0 {
-=======
 	val, err := FetchScopeVar[big.Int]("val", scopes)
 	if err != nil || val.Cmp(expectedRes) != 0 {
->>>>>>> Stashed changes
 		t.Error("Wrong/No scope value val")
 	}
 }
