@@ -1,4 +1,4 @@
-package hint_utils_test
+package hints_test
 
 import (
 	"math/big"
