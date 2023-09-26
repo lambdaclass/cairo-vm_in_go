@@ -10,7 +10,6 @@ import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/types"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
-	"github.com/lambdaclass/cairo-vm.go/pkg/vm/cairo_run"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -233,14 +232,5 @@ func TestRunComputeSlopeOk(t *testing.T) {
 		if expectedVal.Cmp(&val) != 0 || expectedSlope.Cmp(&slope) != 0 {
 			t.Errorf("EC_DOUBLE_SLOPE_V1 hint test incorrect value for exec_scopes.value or exec_scopes.slope")
 		}
-	}
-}
-
-func TestIntegrationEcDoubleSlope(t *testing.T) {
-	t.Helper()
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
-	_, err := cairo_run.CairoRun("../../cairo_programs/ec_double_slope.json", cairoRunConfig)
-	if err != nil {
-		t.Errorf("TestIntegrationEcSlope failed with error:\n %v", err)
 	}
 }

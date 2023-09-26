@@ -1,6 +1,7 @@
 package hints
 
 import (
+	"errors"
 	"math/big"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
@@ -234,21 +235,28 @@ func computeDoublingSlopeExternalConsts(vm VirtualMachine, execScopes ExecutionS
 		return err
 	}
 
-	secp_p_uncast, err := execScopes.Get("SECP_P")
+	secpPuncast, err := execScopes.Get("SECP_P")
 	if err != nil {
 		return err
 	}
-	secp_p := secp_p_uncast.(big.Int)
+	secpP, ok := secpPuncast.(big.Int)
+	if !ok {
+		return errors.New("Could not cast secp into big int")
+	}
 
-	alpha_uncast, err := execScopes.Get("ALPHA")
+	alphaUncast, err := execScopes.Get("ALPHA")
 	if err != nil {
 		return nil
 	}
 
-	alpha := alpha_uncast.(big.Int)
-	double_point_b := builtins.DoublePointB{X: point.X.Pack86(), Y: point.Y.Pack86()}
+	alpha, ok := alphaUncast.(big.Int)
+	if !ok {
+		return errors.New("Could not cast alpha into big int")
+	}
 
-	value, err := builtins.EcDoubleSlope(double_point_b, alpha, secp_p)
+	doublePoint_b := builtins.DoublePointB{X: point.X.Pack86(), Y: point.Y.Pack86()}
+
+	value, err := builtins.EcDoubleSlope(doublePoint_b, alpha, secpP)
 	if err != nil {
 		return err
 	}

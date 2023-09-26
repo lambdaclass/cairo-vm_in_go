@@ -28,7 +28,11 @@ func verifyZeroWithExternalConst(vm VirtualMachine, execScopes ExecutionScopes, 
 	if err != nil {
 		return err
 	}
-	secpP := secpPuncast.(big.Int)
+	secpP, ok := secpPuncast.(big.Int)
+	if !ok {
+		return errors.New("Could not cast secpP into big int")
+	}
+
 	addr, err := idsData.GetAddr("val", &vm)
 	if err != nil {
 		return err
@@ -47,6 +51,5 @@ func verifyZeroWithExternalConst(vm VirtualMachine, execScopes ExecutionScopes, 
 	}
 
 	quotient := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromBigInt(q))
-	idsData.Insert("q", quotient, &vm)
-	return nil
+	return idsData.Insert("q", quotient, &vm)
 }

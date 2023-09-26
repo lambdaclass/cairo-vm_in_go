@@ -324,3 +324,7 @@ func TestSplitIntHintProofMode(t *testing.T) {
 func TestDivModN(t *testing.T) {
 	testProgram("div_mod_n", t)
 }
+
+func TestIntegrationEcDoubleSlope(t *testing.T) {
+	testProgram("ec_double_slope", t)
+}
