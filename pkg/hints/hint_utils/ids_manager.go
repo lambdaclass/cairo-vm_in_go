@@ -126,6 +126,7 @@ func (ids *IdsManager) GetAddr(name string, vm *VirtualMachine) (Relocatable, er
 		ids_lives := ids.GetStructField("cat", 0, vm) or ids_lives := ids.Get("cat", vm)
 		ids_paws := ids.GetStructField("cat", 1, vm)
 */
+
 func (ids *IdsManager) GetStructField(name string, field_off uint, vm *VirtualMachine) (*MaybeRelocatable, error) {
 	reference, ok := ids.References[name]
 	if ok {
