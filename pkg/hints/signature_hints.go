@@ -25,7 +25,10 @@ func divModNPacked(ids IdsManager, vm *VirtualMachine, scopes *ExecutionScopes, 
 	if packedB.Cmp(big.NewInt(0)) == 0 {
 		return errors.New("Attempted to divide by zero")
 	}
-	val := new(big.Int).Mod(new(big.Int).Div(&packedA, &packedB), n)
+	val, err := utils.DivMod(&packedA, &packedB, n)
+	if err != nil {
+		return err
+	}
 
 	scopes.AssignOrUpdateVariable("a", packedA)
 	scopes.AssignOrUpdateVariable("b", packedB)
