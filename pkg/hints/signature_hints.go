@@ -28,7 +28,7 @@ func divModNPacked(ids IdsManager, vm *VirtualMachine, scopes *ExecutionScopes, 
 
 	scopes.AssignOrUpdateVariable("a", packedA)
 	scopes.AssignOrUpdateVariable("b", packedB)
-	scopes.AssignOrUpdateVariable("val", val)
+	scopes.AssignOrUpdateVariable("value", val)
 	scopes.AssignOrUpdateVariable("res", val)
 
 	return nil
