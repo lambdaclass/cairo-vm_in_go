@@ -49,7 +49,7 @@ func TestDivModNPackedDivMod(t *testing.T) {
 		t.Error("Wrong/No scope value res")
 	}
 
-	val, err := scopes.Get("val")
+	val, err := scopes.Get("value")
 	if err != nil || val.(*big.Int).Cmp(expectedRes) != 0 {
 		t.Error("Wrong/No scope value val")
 	}
@@ -92,7 +92,7 @@ func TestDivModNPackedDivModExternalN(t *testing.T) {
 		t.Error("Wrong/No scope value res")
 	}
 
-	val, err := scopes.Get("val")
+	val, err := scopes.Get("value")
 	if err != nil || val.(*big.Int).Cmp(expectedRes) != 0 {
 		t.Error("Wrong/No scope value val")
 	}
