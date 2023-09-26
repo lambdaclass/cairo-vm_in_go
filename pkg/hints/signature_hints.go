@@ -5,6 +5,7 @@ import (
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
+	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/pkg/errors"
 )
@@ -50,4 +51,54 @@ func divModNPackedDivModExternalN(ids IdsManager, vm *VirtualMachine, scopes *Ex
 		return errors.New("N not in scope")
 	}
 	return divModNPacked(ids, vm, scopes, n)
+}
+
+func divModNSafeDiv(ids IdsManager, scopes *ExecutionScopes, aAlias string, bAlias string, toAdd int64) error {
+	// Fetch scope variables
+	aAny, err := scopes.Get(aAlias)
+	if err != nil {
+		return err
+	}
+	a, ok := aAny.(*big.Int)
+	if !ok {
+		return errors.Errorf("%s not in scope", aAlias)
+	}
+
+	bAny, err := scopes.Get(bAlias)
+	if err != nil {
+		return err
+	}
+	b, ok := bAny.(*big.Int)
+	if !ok {
+		return errors.Errorf("%s not in scope", bAlias)
+	}
+
+	resAny, err := scopes.Get("res")
+	if err != nil {
+		return err
+	}
+	res, ok := resAny.(*big.Int)
+	if !ok {
+		return errors.New("res not in scope")
+	}
+
+	nAny, err := scopes.Get("N")
+	if err != nil {
+		return err
+	}
+	n, ok := nAny.(*big.Int)
+	if !ok {
+		return errors.New("N not in scope")
+	}
+	// Hint logic
+	value, err := utils.SafeDivBig(new(big.Int).Mul(res, new(big.Int).Sub(a, b)), n)
+	if err != nil {
+		return err
+	}
+	if toAdd != 0 {
+		value = new(big.Int).Add(value, big.NewInt(toAdd))
+	}
+	// Update scope
+	scopes.AssignOrUpdateVariable("value", value)
+	return nil
 }
