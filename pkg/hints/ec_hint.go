@@ -1,6 +1,7 @@
 package hints
 
 import (
+	"errors"
 	"math/big"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
@@ -39,6 +40,7 @@ func EcPointFromVarName(name string, vm *VirtualMachine, idsData IdsManager) (Ec
 /*
 Implements main logic for `EC_NEGATE` and `EC_NEGATE_EMBEDDED_SECP` hints
 */
+
 func ecNegate(vm *vm.VirtualMachine, execScopes types.ExecutionScopes, ids hint_utils.IdsManager, secpP big.Int) error {
 	point, err := ids.GetRelocatable("point", vm)
 	if err != nil {
@@ -184,7 +186,83 @@ func computeSlope(vm *VirtualMachine, execScopes ExecutionScopes, idsData IdsMan
 
 /*
 Implements hint:
+%{ from starkware.cairo.common.cairo_secp.secp256r1_utils import SECP256R1_ALPHA as ALPHA %}
+*/
 
+func importSecp256r1Alpha(execScopes ExecutionScopes) error {
+	execScopes.AssignOrUpdateVariable("ALPHA", SECP256R1_ALPHA())
+	return nil
+}
+
+/*
+Implements hint:
+%{ from starkware.cairo.common.cairo_secp.secp256r1_utils import SECP256R1_N as N %}
+*/
+func importSECP256R1N(execScopes ExecutionScopes) error {
+	execScopes.AssignOrUpdateVariable("N", SECP256R1_N())
+	return nil
+}
+
+/*
+Implements hint:
+%{
+from starkware.cairo.common.cairo_secp.secp256r1_utils import SECP256R1_P as SECP_P
+%}
+*/
+
+func importSECP256R1P(execScopes ExecutionScopes) error {
+	execScopes.AssignOrUpdateVariable("SECP_P", SECP256R1_P())
+	return nil
+}
+
+/*
+Implements hint:
+
+	%{
+	    from starkware.cairo.common.cairo_secp.secp_utils import pack
+	    from starkware.python.math_utils import ec_double_slope
+	    # Compute the slope.
+	    x = pack(ids.point.x, PRIME)
+	    y = pack(ids.point.y, PRIME)
+	    value = slope = ec_double_slope(point=(x, y), alpha=ALPHA, p=SECP_P)
+
+%}
+*/
+func computeDoublingSlopeExternalConsts(vm VirtualMachine, execScopes ExecutionScopes, ids_data IdsManager) error {
+	// ids.point
+	point, err := EcPointFromVarName("point", &vm, ids_data)
+	if err != nil {
+		return err
+	}
+
+	secpPuncast, err := execScopes.Get("SECP_P")
+	if err != nil {
+		return err
+	}
+	secpP, ok := secpPuncast.(big.Int)
+	if !ok {
+		return errors.New("Could not cast secp into big int")
+	}
+
+	alphaUncast, err := execScopes.Get("ALPHA")
+	if err != nil {
+		return nil
+	}
+
+	alpha, ok := alphaUncast.(big.Int)
+	if !ok {
+		return errors.New("Could not cast alpha into big int")
+	}
+
+	doublePoint_b := builtins.DoublePointB{X: point.X.Pack86(), Y: point.Y.Pack86()}
+
+	value, err := builtins.EcDoubleSlope(doublePoint_b, alpha, secpP)
+	execScopes.AssignOrUpdateVariable("value", value)
+	execScopes.AssignOrUpdateVariable("slope", value)
+	return nil
+}
+
+/*
 	%{
 		from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
 
@@ -194,21 +272,17 @@ Implements hint:
 		y0 = pack(ids.point0.y, PRIME)
 
 		value = new_x = (pow(slope, 2, SECP_P) - x0 - x1) % SECP_P"
-	%}
+
+%}
 */
 func fastEcAddAssignNewX(ids IdsManager, vm *VirtualMachine, execScopes *ExecutionScopes, point0Alias string, point1Alias string, secpP big.Int) error {
 	execScopes.AssignOrUpdateVariable("SECP_P", secpP)
 
 	point0, err := EcPointFromVarName(point0Alias, vm, ids)
-	if err != nil {
-		return err
-	}
-
 	point1, err := EcPointFromVarName(point1Alias, vm, ids)
 	if err != nil {
 		return err
 	}
-
 	slopeUnpacked, err := BigInt3FromVarName("slope", ids, vm)
 	if err != nil {
 		return err

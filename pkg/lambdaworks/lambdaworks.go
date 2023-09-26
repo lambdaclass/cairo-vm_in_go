@@ -309,10 +309,9 @@ func FeltFromBigInt(n *big.Int) Felt {
 	if n.Cmp(prime) != -1 {
 		n = new(big.Int).Mod(n, prime)
 	}
-	bytes := n.Bytes()
-	var bytes32 [32]byte
-	copy(bytes32[:], bytes)
-	return FeltFromLeBytes(&bytes32)
+
+	value := n.Text(10)
+	return FeltFromDecString(value)
 }
 
 const CAIRO_PRIME_HEX = "0x800000000000011000000000000000000000000000000000000000000000001"

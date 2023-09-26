@@ -156,10 +156,22 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return Assert250Bit(data.Ids, vm, constants)
 	case SPLIT_FELT:
 		return SplitFelt(data.Ids, vm, constants)
+	case IMPORT_SECP256R1_ALPHA:
+		return importSecp256r1Alpha(*execScopes)
+	case IMPORT_SECP256R1_N:
+		return importSECP256R1N(*execScopes)
+	case IMPORT_SECP256R1_P:
+		return importSECP256R1P(*execScopes)
+	case EC_DOUBLE_SLOPE_EXTERNAL_CONSTS:
+		return computeDoublingSlopeExternalConsts(*vm, *execScopes, data.Ids)
+	case NONDET_BIGINT3_V1:
+		return NondetBigInt3(*vm, *execScopes, data.Ids)
 	case SPLIT_INT:
 		return splitInt(data.Ids, vm)
 	case SPLIT_INT_ASSERT_RANGE:
 		return splitIntAssertRange(data.Ids, vm)
+	case VERIFY_ZERO_EXTERNAL_SECP:
+		return verifyZeroWithExternalConst(*vm, *execScopes, data.Ids)
 	case FAST_EC_ADD_ASSIGN_NEW_X:
 		return fastEcAddAssignNewX(data.Ids, vm, execScopes, "point0", "point1", SECP_P())
 	case FAST_EC_ADD_ASSIGN_NEW_X_V2:
