@@ -57,7 +57,6 @@ func (ids *IdsManager) GetConst(name string, constants *map[string]lambdaworks.F
 func (ids *IdsManager) Insert(name string, value *MaybeRelocatable, vm *VirtualMachine) error {
 
 	addr, err := ids.GetAddr(name, vm)
-	//fmt.Println("insert in addres", addr)
 	if err != nil {
 		return err
 	}
@@ -241,7 +240,6 @@ func getValueFromReference(reference *HintReference, apTracking parser.ApTrackin
 				return val, true
 			}
 		} else {
-			//fmt.Println("enter else case")
 			return NewMaybeRelocatableRelocatable(addr), true
 		}
 	}
@@ -250,11 +248,9 @@ func getValueFromReference(reference *HintReference, apTracking parser.ApTrackin
 
 func getStructFieldFromReference(reference *HintReference, field_off uint, apTracking parser.ApTrackingData, vm *VirtualMachine) (*MaybeRelocatable, bool) {
 	addr, ok := getAddressFromReference(reference, apTracking, vm)
-	//fmt.Println("addr", addr.AddUint(field_off))
 	if ok {
 		if reference.Dereference {
 			val, err := vm.Segments.Memory.Get(addr.AddUint(field_off))
-			//fmt.Println("value fetched", val)
 			if err == nil {
 				return val, true
 			}
