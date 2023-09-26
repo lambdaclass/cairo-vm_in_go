@@ -158,6 +158,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return uint256Sqrt(data.Ids, vm, false)
 	case UINT256_SQRT_FELT:
 		return uint256Sqrt(data.Ids, vm, true)
+	case UINT256_SIGNED_NN:
+		return uint246SignedNN(data.Ids, vm)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}

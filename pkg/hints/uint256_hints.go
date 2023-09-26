@@ -137,3 +137,19 @@ func uint256Sqrt(ids IdsManager, vm *VirtualMachine, onlyLow bool) error {
 		return ids.InsertUint256("root", lambdaworks.Uint256{Low: feltRoot, High: FeltZero()}, vm)
 	}
 }
+
+/*
+Implements hint:
+%{ memory[ap] = 1 if 0 <= (ids.a.high % PRIME) < 2 ** 127 else 0 %}
+*/
+func uint246SignedNN(ids IdsManager, vm *VirtualMachine) error {
+	a, err := ids.GetUint256("a", vm)
+	if err != nil {
+		return err
+	}
+	if a.High.Cmp(SignedFeltMaxValue()) != 1 {
+		return ids.InsertValueIntoAP(vm, *NewMaybeRelocatableFelt(FeltOne()))
+	} else {
+		return ids.InsertValueIntoAP(vm, *NewMaybeRelocatableFelt(FeltZero()))
+	}
+}
