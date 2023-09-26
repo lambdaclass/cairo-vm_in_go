@@ -18,6 +18,10 @@ func ErrVariableNotInScope(varName string) error {
 	return ExecutionScopesError(errors.Errorf("Variable %s not in scope", varName))
 }
 
+func ErrVariableHasWrongType(varName string) error {
+	return ExecutionScopesError(errors.Errorf("Scope variable %s has wrong type", varName))
+}
+
 func NewExecutionScopes() *ExecutionScopes {
 	data := make([]map[string]interface{}, 1)
 	data[0] = make(map[string]interface{})
@@ -95,7 +99,7 @@ func FetchScopeVar[T interface{}](varName string, scopes *ExecutionScopes) (T, e
 	}
 	val, ok := valAny.(T)
 	if !ok {
-		return *new(T), ErrVariableNotInScope(varName)
+		return *new(T), ErrVariableHasWrongType(varName)
 	}
 	return val, nil
 }
