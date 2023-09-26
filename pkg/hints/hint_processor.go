@@ -153,11 +153,11 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 	case DIV_MOD_N_PACKED_DIVMOD_EXTERNAL_N:
 		return divModNPackedDivModExternalN(data.Ids, vm, execScopes)
 	case XS_SAFE_DIV:
-		return divModNSafeDiv(data.Ids, execScopes, "x", "s", 0)
+		return divModNSafeDiv(data.Ids, execScopes, "x", "s", false)
 	case DIV_MOD_N_SAFE_DIV:
-		return divModNSafeDiv(data.Ids, execScopes, "a", "b", 0)
+		return divModNSafeDiv(data.Ids, execScopes, "a", "b", false)
 	case DIV_MOD_N_SAFE_DIV_PLUS_ONE:
-		return divModNSafeDiv(data.Ids, execScopes, "a", "b", 1)
+		return divModNSafeDiv(data.Ids, execScopes, "a", "b", true)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}

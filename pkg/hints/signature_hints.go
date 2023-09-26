@@ -53,7 +53,7 @@ func divModNPackedDivModExternalN(ids IdsManager, vm *VirtualMachine, scopes *Ex
 	return divModNPacked(ids, vm, scopes, n)
 }
 
-func divModNSafeDiv(ids IdsManager, scopes *ExecutionScopes, aAlias string, bAlias string, toAdd int64) error {
+func divModNSafeDiv(ids IdsManager, scopes *ExecutionScopes, aAlias string, bAlias string, addOne bool) error {
 	// Fetch scope variables
 	a, err := FetchScopeVar[*big.Int](aAlias, scopes)
 	if err != nil {
@@ -80,8 +80,8 @@ func divModNSafeDiv(ids IdsManager, scopes *ExecutionScopes, aAlias string, bAli
 	if err != nil {
 		return err
 	}
-	if toAdd != 0 {
-		value = new(big.Int).Add(value, big.NewInt(toAdd))
+	if addOne {
+		value = new(big.Int).Add(value, big.NewInt(1))
 	}
 	// Update scope
 	scopes.AssignOrUpdateVariable("value", value)
