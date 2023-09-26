@@ -142,7 +142,7 @@ func uint256Sqrt(ids IdsManager, vm *VirtualMachine, onlyLow bool) error {
 Implements hint:
 %{ memory[ap] = 1 if 0 <= (ids.a.high % PRIME) < 2 ** 127 else 0 %}
 */
-func uint246SignedNN(ids IdsManager, vm *VirtualMachine) error {
+func uint256SignedNN(ids IdsManager, vm *VirtualMachine) error {
 	a, err := ids.GetUint256("a", vm)
 	if err != nil {
 		return err
@@ -152,4 +152,54 @@ func uint246SignedNN(ids IdsManager, vm *VirtualMachine) error {
 	} else {
 		return ids.InsertValueIntoAP(vm, *NewMaybeRelocatableFelt(FeltZero()))
 	}
+}
+
+/*
+Implements hint:
+
+	%{
+	    a = (ids.a.high << 128) + ids.a.low
+	    div = (ids.div.high << 128) + ids.div.low
+	    quotient, remainder = divmod(a, div)
+
+	    ids.quotient.low = quotient & ((1 << 128) - 1)
+	    ids.quotient.high = quotient >> 128
+	    ids.remainder.low = remainder & ((1 << 128) - 1)
+	    ids.remainder.high = remainder >> 128
+
+%}
+*/
+func uint256UnsignedDivRem(ids IdsManager, vm *VirtualMachine) error {
+	return uint256OfssetedUnisgnedDivRem(ids, vm, 0, 1)
+}
+
+func uint256OfssetedUnisgnedDivRem(ids IdsManager, vm *VirtualMachine, divOffsetLow uint, divOffsetHigh uint) error {
+	a, err := ids.GetUint256("a", vm)
+	if err != nil {
+		return err
+	}
+
+	baseDiv, err := ids.GetRelocatable("div", vm)
+	if err != nil {
+		return err
+	}
+	divLow, err := vm.Segments.Memory.GetFelt(baseDiv.AddUint(divOffsetLow))
+	if err != nil {
+		return err
+	}
+	divHigh, err := vm.Segments.Memory.GetFelt(baseDiv.AddUint(divOffsetHigh))
+	if err != nil {
+		return err
+	}
+
+	div := Uint256{Low: divLow, High: divHigh}
+
+	q, r := new(big.Int).DivMod(a.ToBigInt(), div.ToBigInt(), nil)
+
+	err = ids.InsertUint256("quotient", ToUint256(q), vm)
+	if err != nil {
+		return err
+	}
+	return ids.InsertUint256("remainder", ToUint256(r), vm)
+
 }

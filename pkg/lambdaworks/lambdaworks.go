@@ -374,3 +374,24 @@ func (a Felt) Cmp(b Felt) int {
 func (ui256 *Uint256) ToString() string {
 	return "Uint256 {low: " + ui256.Low.ToSignedFeltString() + ", high: " + ui256.High.ToSignedFeltString() + "}"
 }
+
+/*
+Returns a Uint256 as a big.Int
+
+	res = high << 128 + low
+*/
+func (ui256 *Uint256) ToBigInt() *big.Int {
+	high := new(big.Int).Lsh(ui256.High.ToBigInt(), 128)
+	low := ui256.Low.ToBigInt()
+	res := new(big.Int).Add(high, low)
+	return res
+}
+
+/*
+Returns a big.Int as Uint256
+*/
+func ToUint256(a *big.Int) Uint256 {
+	low := new(big.Int).And(Prime(), a)
+	high := new(big.Int).Rsh(a, 128)
+	return Uint256{Low: FeltFromBigInt(low), High: FeltFromBigInt(high)}
+}

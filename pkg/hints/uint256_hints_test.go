@@ -491,4 +491,3 @@ func TestUint256SignedNNInvalidMemoryInser(t *testing.T) {
 		t.Errorf("should fail with error: %s", err)
 	}
 }
-
