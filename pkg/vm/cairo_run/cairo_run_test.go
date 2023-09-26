@@ -320,3 +320,7 @@ func TestSplitIntHint(t *testing.T) {
 func TestSplitIntHintProofMode(t *testing.T) {
 	testProgramProof("split_int", t)
 }
+
+func TestDivModN(t *testing.T) {
+	testProgram("div_mod_n", t)
+}
