@@ -8,7 +8,9 @@ import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_codes"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
+	. "github.com/lambdaclass/cairo-vm.go/pkg/utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
@@ -400,3 +402,93 @@ func TestUint256SqrtFeltOk(t *testing.T) {
 		t.Errorf("failed, expected root: %d, got: %d", expectedResult, root)
 	}
 }
+
+func TestUint256SignedNNOkResultOne(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments = AddNSegments(vm.Segments, 5)
+	ids := map[string][]*MaybeRelocatable{
+		"a": {
+			NewMaybeRelocatableFelt(FeltFromUint64(1)),
+			NewMaybeRelocatableFelt(FeltFromUint64(1)),
+		},
+	}
+	idsManager := SetupIdsForTest(ids, vm)
+	idsManager.HintApTracking = parser.ApTrackingData{Group: 4, Offset: 5}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: UINT256_SIGNED_NN,
+	})
+	hintProcessor := CairoVmHintProcessor{}
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+
+	result, err := vm.Segments.Memory.GetFelt(NewRelocatable(4, 5))
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+
+	if result != FeltOne() {
+		t.Errorf("failed, expected result: %d, got: %d", FeltOne(), result)
+	}
+}
+
+func TestUint256SignedNNOkResultZero(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments = AddNSegments(vm.Segments, 5)
+	ids := map[string][]*MaybeRelocatable{
+		"a": {
+			NewMaybeRelocatableFelt(FeltFromUint64(1)),
+			NewMaybeRelocatableFelt(FeltFromDecString("-4")),
+		},
+	}
+	idsManager := SetupIdsForTest(ids, vm)
+	idsManager.HintApTracking = parser.ApTrackingData{Group: 4, Offset: 5}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: UINT256_SIGNED_NN,
+	})
+	hintProcessor := CairoVmHintProcessor{}
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+
+	result, err := vm.Segments.Memory.GetFelt(NewRelocatable(4, 5))
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+
+	if result != FeltZero() {
+		t.Errorf("failed, expected result: %d, got: %d", FeltOne(), result)
+	}
+}
+
+func TestUint256SignedNNInvalidMemoryInser(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments = AddNSegments(vm.Segments, 5)
+	err := vm.Segments.Memory.Insert(NewRelocatable(4, 5), NewMaybeRelocatableFeltFromUint64(10))
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+	ids := map[string][]*MaybeRelocatable{
+		"a": {
+			NewMaybeRelocatableFelt(FeltFromUint64(1)),
+			NewMaybeRelocatableFelt(FeltFromUint64(1)),
+		},
+	}
+	idsManager := SetupIdsForTest(ids, vm)
+	idsManager.HintApTracking = parser.ApTrackingData{Group: 4, Offset: 5}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: UINT256_SIGNED_NN,
+	})
+	hintProcessor := CairoVmHintProcessor{}
+	err = hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	expectedErr := ErrMemoryWriteOnce(NewRelocatable(4, 5), *NewMaybeRelocatableFeltFromUint64(10), *NewMaybeRelocatableFelt(FeltOne()))
+	if err.Error() != expectedErr.Error() {
+		t.Errorf("should fail with error: %s", err)
+	}
+}
+
