@@ -76,7 +76,7 @@ func divModNSafeDiv(ids IdsManager, scopes *ExecutionScopes, aAlias string, bAli
 	}
 
 	// Hint logic
-	value, err := utils.SafeDivBig(new(big.Int).Mul(res, new(big.Int).Sub(a, b)), n)
+	value, err := utils.SafeDivBig(new(big.Int).Sub(new(big.Int).Mul(res, b), a), n)
 	if err != nil {
 		return err
 	}
