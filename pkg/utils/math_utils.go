@@ -64,6 +64,15 @@ func SafeDivBig(x *big.Int, y *big.Int) (*big.Int, error) {
 	return q, nil
 }
 
+// Finds a nonnegative integer x < p such that (m * x) % p == n.
+func DivMod(n *big.Int, m *big.Int, p *big.Int) (*big.Int, error) {
+	a, _, c := Igcdex(m, p)
+	if c.Cmp(big.NewInt(1)) != 0 {
+		return nil, errors.Errorf("Operation failed: divmod(%s, %s, %s), igcdex(%s, %s) != 1 ", n.Text(10), m.Text(10), p.Text(10), m.Text(10), p.Text(10))
+	}
+	return new(big.Int).Mod(new(big.Int).Mul(n, a), p), nil
+}
+
 func Igcdex(a *big.Int, b *big.Int) (*big.Int, *big.Int, *big.Int) {
 	zero := big.NewInt(0)
 	one := big.NewInt(1)
