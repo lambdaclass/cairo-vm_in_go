@@ -114,6 +114,12 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return searchSortedLower(data.Ids, vm, *execScopes)
 	case COMPUTE_SLOPE_V1:
 		return computeSlopeAndAssingSecpP(vm, *execScopes, data.Ids, "point0", "point1", SECP_P())
+	case COMPUTE_SLOPE_V2:
+		return computeSlopeAndAssingSecpP(vm, *execScopes, data.Ids, "point0", "point1", SECP_P_V2())
+	case COMPUTE_SLOPE_WHITELIST:
+		return 	computeSlopeAndAssingSecpP(vm, *execScopes, data.Ids, "pt0", "pt1", SECP_P())
+	case COMPUTE_SLOPE_SECP256R1:
+		return computeSlope(vm, *execScopes, data.Ids, "point0", "point1")
 	case EC_DOUBLE_SLOPE_V1:
 		return computeDoublingSlope(vm, *execScopes, data.Ids, "point", SECP_P(), ALPHA())
 	case UNSAFE_KECCAK:
