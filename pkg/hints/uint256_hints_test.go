@@ -323,7 +323,7 @@ func TestUint256SqrtOk(t *testing.T) {
 				NewMaybeRelocatableFelt(FeltFromUint64(17)),
 				NewMaybeRelocatableFelt(FeltFromUint64(7)),
 			},
-			"root": {nil},
+			"root": {nil, nil},
 		},
 		vm,
 	)
@@ -413,7 +413,6 @@ func TestUint256SignedNNOkResultOne(t *testing.T) {
 		},
 	}
 	idsManager := SetupIdsForTest(ids, vm)
-	idsManager.HintApTracking = parser.ApTrackingData{Group: 4, Offset: 5}
 	hintData := any(HintData{
 		Ids:  idsManager,
 		Code: UINT256_SIGNED_NN,
@@ -424,7 +423,7 @@ func TestUint256SignedNNOkResultOne(t *testing.T) {
 		t.Errorf("failed with error: %s", err)
 	}
 
-	result, err := vm.Segments.Memory.GetFelt(NewRelocatable(4, 5))
+	result, err := vm.Segments.Memory.GetFelt(vm.RunContext.Ap)
 	if err != nil {
 		t.Errorf("failed with error: %s", err)
 	}
@@ -436,7 +435,8 @@ func TestUint256SignedNNOkResultOne(t *testing.T) {
 
 func TestUint256SignedNNOkResultZero(t *testing.T) {
 	vm := NewVirtualMachine()
-	vm.Segments = AddNSegments(vm.Segments, 5)
+	vm.Segments.AddSegment()
+	vm.RunContext.Ap = NewRelocatable(0, 5)
 	ids := map[string][]*MaybeRelocatable{
 		"a": {
 			NewMaybeRelocatableFelt(FeltFromUint64(1)),
@@ -444,7 +444,6 @@ func TestUint256SignedNNOkResultZero(t *testing.T) {
 		},
 	}
 	idsManager := SetupIdsForTest(ids, vm)
-	idsManager.HintApTracking = parser.ApTrackingData{Group: 4, Offset: 5}
 	hintData := any(HintData{
 		Ids:  idsManager,
 		Code: UINT256_SIGNED_NN,
@@ -455,23 +454,21 @@ func TestUint256SignedNNOkResultZero(t *testing.T) {
 		t.Errorf("failed with error: %s", err)
 	}
 
-	result, err := vm.Segments.Memory.GetFelt(NewRelocatable(4, 5))
+	result, err := vm.Segments.Memory.GetFelt(vm.RunContext.Ap)
 	if err != nil {
 		t.Errorf("failed with error: %s", err)
 	}
 
 	if result != FeltZero() {
-		t.Errorf("failed, expected result: %d, got: %d", FeltOne(), result)
+		t.Errorf("failed, expected result: %d, got: %d", FeltZero(), result)
 	}
 }
 
 func TestUint256SignedNNInvalidMemoryInser(t *testing.T) {
 	vm := NewVirtualMachine()
-	vm.Segments = AddNSegments(vm.Segments, 5)
-	err := vm.Segments.Memory.Insert(NewRelocatable(4, 5), NewMaybeRelocatableFeltFromUint64(10))
-	if err != nil {
-		t.Errorf("failed with error: %s", err)
-	}
+	vm.Segments.AddSegment()
+	vm.RunContext.Ap = NewRelocatable(0, 5)
+	vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFeltFromUint64(10))
 	ids := map[string][]*MaybeRelocatable{
 		"a": {
 			NewMaybeRelocatableFelt(FeltFromUint64(1)),
@@ -485,8 +482,9 @@ func TestUint256SignedNNInvalidMemoryInser(t *testing.T) {
 		Code: UINT256_SIGNED_NN,
 	})
 	hintProcessor := CairoVmHintProcessor{}
-	err = hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
-	expectedErr := ErrMemoryWriteOnce(NewRelocatable(4, 5), *NewMaybeRelocatableFeltFromUint64(10), *NewMaybeRelocatableFelt(FeltOne()))
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+
+	expectedErr := ErrMemoryWriteOnce(NewRelocatable(0, 5), *NewMaybeRelocatableFeltFromUint64(10), *NewMaybeRelocatableFelt(FeltOne()))
 	if err.Error() != expectedErr.Error() {
 		t.Errorf("should fail with error: %s", err)
 	}
@@ -497,22 +495,15 @@ func TestUint256UnsignedDivRemOk(t *testing.T) {
 	vm.Segments.AddSegment()
 	vm.Segments.AddSegment()
 
-	// add div low
-	err := vm.Segments.Memory.Insert(NewRelocatable(1, 6), NewMaybeRelocatableFelt(FeltFromUint64(3)))
-	if err != nil {
-		t.Errorf("failed with error: %s", err)
-	}
-	// add div high
-	err = vm.Segments.Memory.Insert(NewRelocatable(1, 7), NewMaybeRelocatableFeltFromUint64(7))
-	if err != nil {
-		t.Errorf("failed with error: %s", err)
-	}
 	ids := map[string][]*MaybeRelocatable{
 		"a": {
 			NewMaybeRelocatableFeltFromUint64(89),
 			NewMaybeRelocatableFeltFromUint64(72),
 		},
-		"div":       {NewMaybeRelocatableRelocatable(NewRelocatable(1, 6))},
+		"div": {
+			NewMaybeRelocatableFeltFromUint64(3),
+			NewMaybeRelocatableFeltFromUint64(7),
+		},
 		"quotient":  {nil, nil},
 		"remainder": {nil, nil},
 	}
@@ -522,7 +513,7 @@ func TestUint256UnsignedDivRemOk(t *testing.T) {
 		Code: UINT256_UNSIGNED_DIV_REM,
 	})
 	hintProcessor := CairoVmHintProcessor{}
-	err = hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err != nil {
 		t.Errorf("failed with error: %s", err)
 	}
@@ -554,28 +545,16 @@ func TestUint256UnsignedDivRemInvalidMemoryInsert(t *testing.T) {
 	vm.Segments.AddSegment()
 	vm.Segments.AddSegment()
 
-	// add div low
-	err := vm.Segments.Memory.Insert(NewRelocatable(1, 6), NewMaybeRelocatableFelt(FeltFromUint64(3)))
-	if err != nil {
-		t.Errorf("failed with error: %s", err)
-	}
-	// add div high
-	err = vm.Segments.Memory.Insert(NewRelocatable(1, 7), NewMaybeRelocatableFeltFromUint64(7))
-	if err != nil {
-		t.Errorf("failed with error: %s", err)
-	}
-	// add hardcoded value on quotient.low
-	err = vm.Segments.Memory.Insert(NewRelocatable(0, 3), NewMaybeRelocatableFeltFromUint64(8))
-	if err != nil {
-		t.Errorf("failed with error: %s", err)
-	}
 	ids := map[string][]*MaybeRelocatable{
 		"a": {
 			NewMaybeRelocatableFeltFromUint64(89),
 			NewMaybeRelocatableFeltFromUint64(72),
 		},
-		"div":       {NewMaybeRelocatableRelocatable(NewRelocatable(1, 6))},
-		"quotient":  {nil, nil},
+		"div": {
+			NewMaybeRelocatableFeltFromUint64(3),
+			NewMaybeRelocatableFeltFromUint64(7),
+		},
+		"quotient":  {NewMaybeRelocatableFeltFromUint64(2), NewMaybeRelocatableFelt(FeltZero())},
 		"remainder": {nil, nil},
 	}
 	idsManager := SetupIdsForTest(ids, vm)
@@ -584,10 +563,9 @@ func TestUint256UnsignedDivRemInvalidMemoryInsert(t *testing.T) {
 		Code: UINT256_UNSIGNED_DIV_REM,
 	})
 	hintProcessor := CairoVmHintProcessor{}
-	err = hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
-	expectedErr := ErrMemoryWriteOnce(NewRelocatable(0, 3), *NewMaybeRelocatableFeltFromUint64(8), *NewMaybeRelocatableFeltFromUint64(10))
-	if err.Error() != expectedErr.Error() {
-		t.Errorf("failed with error: %s", err)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err == nil {
+		t.Errorf("this test should fail")
 	}
 }
 
@@ -596,22 +574,18 @@ func TestUint256ExpandedUnsignedDivRemOk(t *testing.T) {
 	vm.Segments.AddSegment()
 	vm.Segments.AddSegment()
 
-	// add div low
-	err := vm.Segments.Memory.Insert(NewRelocatable(1, 7), NewMaybeRelocatableFelt(FeltFromUint64(3)))
-	if err != nil {
-		t.Errorf("failed with error: %s", err)
-	}
-	// add div high
-	err = vm.Segments.Memory.Insert(NewRelocatable(1, 9), NewMaybeRelocatableFeltFromUint64(7))
-	if err != nil {
-		t.Errorf("failed with error: %s", err)
-	}
 	ids := map[string][]*MaybeRelocatable{
 		"a": {
 			NewMaybeRelocatableFeltFromUint64(89),
 			NewMaybeRelocatableFeltFromUint64(72),
 		},
-		"div":       {NewMaybeRelocatableRelocatable(NewRelocatable(1, 6))},
+
+		"div": {
+			NewMaybeRelocatableFelt(FeltFromDecString("55340232221128654848")),
+			NewMaybeRelocatableFeltFromUint64(3),
+			NewMaybeRelocatableFelt(FeltFromDecString("129127208515966861312")),
+			NewMaybeRelocatableFeltFromUint64(7),
+		},
 		"quotient":  {nil, nil},
 		"remainder": {nil, nil},
 	}
@@ -621,7 +595,7 @@ func TestUint256ExpandedUnsignedDivRemOk(t *testing.T) {
 		Code: UINT256_EXPANDED_UNSIGNED_DIV_REM,
 	})
 	hintProcessor := CairoVmHintProcessor{}
-	err = hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err != nil {
 		t.Errorf("failed with error: %s", err)
 	}

@@ -241,8 +241,7 @@ func (ids *IdsManager) InsertUint256(name string, val lambdaworks.Uint256, vm *V
 
 // Inserts value into ap address
 func (ids *IdsManager) InsertValueIntoAP(vm *VirtualMachine, value MaybeRelocatable) error {
-	apAddr := NewRelocatable(ids.HintApTracking.Group, uint(ids.HintApTracking.Offset))
-	return vm.Segments.Memory.Insert(apAddr, &value)
+	return vm.Segments.Memory.Insert(vm.RunContext.Ap, &value)
 }
 
 // Inserts value into the address of the given identifier

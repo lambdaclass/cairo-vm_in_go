@@ -1,6 +1,7 @@
 package hints
 
 import (
+	"fmt"
 	"math/big"
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
@@ -30,6 +31,7 @@ Implements hints:
 */
 
 func uint256Add(ids IdsManager, vm *VirtualMachine, lowOnly bool) error {
+	fmt.Println("uint256Add")
 	shift := FeltOne().Shl(128)
 	aLow, err := ids.GetStructFieldFelt("a", 0, vm)
 	if err != nil {
@@ -70,7 +72,7 @@ func uint256Add(ids IdsManager, vm *VirtualMachine, lowOnly bool) error {
 		}
 		ids.Insert("carry_high", NewMaybeRelocatableFelt(carryHigh), vm)
 	}
-
+	fmt.Println("uint256Add")
 	return ids.Insert("carry_low", NewMaybeRelocatableFelt(carryLow), vm)
 
 }
@@ -85,6 +87,7 @@ Implements hint:
 %}
 */
 func split64(ids IdsManager, vm *VirtualMachine) error {
+	fmt.Println("split64")
 	a, err := ids.GetFelt("a", vm)
 	if err != nil {
 		return err
@@ -100,6 +103,7 @@ func split64(ids IdsManager, vm *VirtualMachine) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("split64")
 	return nil
 
 }
@@ -118,6 +122,7 @@ Implements hint:
 %}
 */
 func uint256Sqrt(ids IdsManager, vm *VirtualMachine, onlyLow bool) error {
+	fmt.Println("uint256Sqrt")
 	uintN, err := ids.GetUint256("n", vm)
 	if err != nil {
 		return err
@@ -132,8 +137,12 @@ func uint256Sqrt(ids IdsManager, vm *VirtualMachine, onlyLow bool) error {
 
 	feltRoot := FeltFromBigInt(root)
 	if onlyLow {
+		fmt.Println("1.uint256Sqrt")
+
 		return ids.Insert("root", NewMaybeRelocatableFelt(feltRoot), vm)
 	} else {
+		fmt.Println("2.uint256Sqrt")
+
 		return ids.InsertUint256("root", lambdaworks.Uint256{Low: feltRoot, High: FeltZero()}, vm)
 	}
 }
@@ -143,13 +152,18 @@ Implements hint:
 %{ memory[ap] = 1 if 0 <= (ids.a.high % PRIME) < 2 ** 127 else 0 %}
 */
 func uint256SignedNN(ids IdsManager, vm *VirtualMachine) error {
+	fmt.Println("uint256SignedNN")
 	a, err := ids.GetUint256("a", vm)
 	if err != nil {
 		return err
 	}
-	if a.High.Cmp(SignedFeltMaxValue()) != 1 {
+	i128Max := FeltFromDecString("170141183460469231731687303715884105727")
+	if a.High.Cmp(FeltZero()) != -1 && a.High.Cmp(i128Max) != 1 {
+		fmt.Println("1.uint256SignedNN")
 		return ids.InsertValueIntoAP(vm, *NewMaybeRelocatableFelt(FeltOne()))
 	} else {
+		fmt.Println("2.uint256SignedNN")
+
 		return ids.InsertValueIntoAP(vm, *NewMaybeRelocatableFelt(FeltZero()))
 	}
 }
@@ -170,7 +184,9 @@ Implements hint:
 %}
 */
 func uint256UnsignedDivRem(ids IdsManager, vm *VirtualMachine) error {
+	fmt.Println("uint256UnsignedDivRem")
 	return uint256OfssetedUnisgnedDivRem(ids, vm, 0, 1)
+
 }
 
 /*
@@ -189,24 +205,21 @@ Implements hint:
 %}
 */
 func uint256ExpandedUnsignedDivRem(ids IdsManager, vm *VirtualMachine) error {
+	fmt.Println("uint256ExpandedUnsignedDivRem")
 	return uint256OfssetedUnisgnedDivRem(ids, vm, 1, 3)
 }
 
 func uint256OfssetedUnisgnedDivRem(ids IdsManager, vm *VirtualMachine, divOffsetLow uint, divOffsetHigh uint) error {
+	fmt.Println("uint256OfssetedUnisgnedDivRem")
 	a, err := ids.GetUint256("a", vm)
 	if err != nil {
 		return err
 	}
-
-	baseDiv, err := ids.GetRelocatable("div", vm)
+	divLow, err := ids.GetStructFieldFelt("div", divOffsetLow, vm)
 	if err != nil {
 		return err
 	}
-	divLow, err := vm.Segments.Memory.GetFelt(baseDiv.AddUint(divOffsetLow))
-	if err != nil {
-		return err
-	}
-	divHigh, err := vm.Segments.Memory.GetFelt(baseDiv.AddUint(divOffsetHigh))
+	divHigh, err := ids.GetStructFieldFelt("div", divOffsetHigh, vm)
 	if err != nil {
 		return err
 	}
@@ -215,8 +228,11 @@ func uint256OfssetedUnisgnedDivRem(ids IdsManager, vm *VirtualMachine, divOffset
 
 	err = ids.InsertUint256("quotient", ToUint256(q), vm)
 	if err != nil {
+		fmt.Println("error: uint256OfssetedUnisgnedDivRem")
 		return err
 	}
+	fmt.Println("uint256OfssetedUnisgnedDivRem")
+
 	return ids.InsertUint256("remainder", ToUint256(r), vm)
 
 }
@@ -237,6 +253,7 @@ Implements hint:
 %}
 */
 func uint256MulDivMod(ids IdsManager, vm *VirtualMachine) error {
+	fmt.Println("uint256MulDivMod")
 	a, err := ids.GetUint256("a", vm)
 	if err != nil {
 		return err
@@ -277,6 +294,8 @@ func uint256MulDivMod(ids IdsManager, vm *VirtualMachine) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("uint256MulDivMod")
+
 	return ids.InsertUint256("remainder", remainder, vm)
 
 }

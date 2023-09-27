@@ -397,5 +397,5 @@ func ToUint256(a *big.Int) Uint256 {
 }
 
 func (u *Uint256) IsEqual(other Uint256) bool {
-	return u.Low == other.High && u.High == other.High
+	return u.Low.Cmp(other.Low) == 0 && u.High.Cmp(other.High) == 0
 }
