@@ -235,8 +235,8 @@ func TestRunComputeSlopeOk(t *testing.T) {
 	}
 }
 
-
 func TestRunComputeSlopeV2Ok(t *testing.T) {
+
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()
 	vm.Segments.AddSegment()
@@ -246,13 +246,13 @@ func TestRunComputeSlopeV2Ok(t *testing.T) {
 	idsManager := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
 			"point0": {
+
 				NewMaybeRelocatableFelt(FeltFromUint64(512)),
 				NewMaybeRelocatableFelt(FeltFromUint64(2412)),
 				NewMaybeRelocatableFelt(FeltFromUint64(133)),
 				NewMaybeRelocatableFelt(FeltFromUint64(64)),
 				NewMaybeRelocatableFelt(FeltFromUint64(0)),
-				NewMaybeRelocatableFelt(FeltFromUint64(6546)),
-			},
+				NewMaybeRelocatableFelt(FeltFromUint64(6546))},
 			"point1": {
 				NewMaybeRelocatableFelt(FeltFromUint64(7)),
 				NewMaybeRelocatableFelt(FeltFromUint64(8)),
@@ -260,10 +260,7 @@ func TestRunComputeSlopeV2Ok(t *testing.T) {
 				NewMaybeRelocatableFelt(FeltFromUint64(1)),
 				NewMaybeRelocatableFelt(FeltFromUint64(7)),
 				NewMaybeRelocatableFelt(FeltFromUint64(465)),
-			},
-		},
-		vm,
-	)
+			}})
 
 	hintProcessor := CairoVmHintProcessor{}
 	hintData := any(HintData{
@@ -290,5 +287,300 @@ func TestRunComputeSlopeV2Ok(t *testing.T) {
 		if expectedVal.Cmp(&val) != 0 || expectedSlope.Cmp(&slope) != 0 {
 			t.Errorf("EC_DOUBLE_SLOPE_V2 hint test incorrect value for exec_scopes.value or exec_scopes.slope")
 		}
+	}
+}
+
+func TestFastEcAddAssignNewXHint(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+
+	vm.RunContext.Fp = NewRelocatable(1, 14)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"point0": {
+				NewMaybeRelocatableFelt(FeltFromUint64(1)),
+				NewMaybeRelocatableFelt(FeltFromUint64(2)),
+				NewMaybeRelocatableFelt(FeltFromUint64(3)),
+				NewMaybeRelocatableFelt(FeltFromUint64(4)),
+				NewMaybeRelocatableFelt(FeltFromUint64(5)),
+				NewMaybeRelocatableFelt(FeltFromUint64(6)),
+			},
+			"point1": {
+				NewMaybeRelocatableFelt(FeltFromUint64(7)),
+				NewMaybeRelocatableFelt(FeltFromUint64(8)),
+				NewMaybeRelocatableFelt(FeltFromUint64(9)),
+				NewMaybeRelocatableFelt(FeltFromUint64(10)),
+				NewMaybeRelocatableFelt(FeltFromUint64(11)),
+				NewMaybeRelocatableFelt(FeltFromUint64(12)),
+			},
+			"slope": {
+				NewMaybeRelocatableFelt(FeltFromUint64(1)),
+				NewMaybeRelocatableFelt(FeltFromUint64(0)),
+				NewMaybeRelocatableFelt(FeltFromUint64(0)),
+			},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: FAST_EC_ADD_ASSIGN_NEW_X,
+	})
+
+	execScopes := types.NewExecutionScopes()
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, execScopes)
+	if err != nil {
+		t.Errorf("FAST_EC_ADD_ASSIGN_NEW_X hint test failed with error %s", err)
+	}
+
+	slope, _ := execScopes.Get("slope")
+	slopeRes := slope.(big.Int)
+
+	x0, _ := execScopes.Get("x0")
+	x0Res := x0.(big.Int)
+
+	y0, _ := execScopes.Get("y0")
+	y0Res := y0.(big.Int)
+
+	value, _ := execScopes.Get("value")
+	valueRes := value.(big.Int)
+
+	// expected values
+	expectedSlope, _ := new(big.Int).SetString("1", 10)
+	expectedX0, _ := new(big.Int).SetString("17958932119522135058886879379160190656204633450479617", 10)
+	expectedY0, _ := new(big.Int).SetString("35917864239044270117773758835691633767745534082154500", 10)
+	expectedValue, _ := new(big.Int).SetString("115792089237316195423570913172959429764729749118122892656190048516840670362664", 10)
+
+	if expectedValue.Cmp(&valueRes) != 0 {
+		t.Errorf("expected value=%v, got: value=%v", expectedValue, valueRes)
+	}
+
+	if expectedSlope.Cmp(&slopeRes) != 0 {
+		t.Errorf("expected slope=%v, got: slope=%v", expectedSlope, slopeRes)
+	}
+
+	if expectedX0.Cmp(&x0Res) != 0 {
+		t.Errorf("expected x0=%v, got: x0=%v", expectedX0, x0Res)
+	}
+
+	if expectedY0.Cmp(&y0Res) != 0 {
+		t.Errorf("expected y0=%v, got: y0=%v", expectedY0, y0Res)
+	}
+}
+
+func TestFastEcAddAssignNewXV2Hint(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+
+	vm.RunContext.Fp = NewRelocatable(1, 14)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"point0": {
+				NewMaybeRelocatableFelt(FeltFromUint64(1)),
+				NewMaybeRelocatableFelt(FeltFromUint64(2)),
+				NewMaybeRelocatableFelt(FeltFromUint64(3)),
+				NewMaybeRelocatableFelt(FeltFromUint64(4)),
+				NewMaybeRelocatableFelt(FeltFromUint64(5)),
+				NewMaybeRelocatableFelt(FeltFromUint64(6)),
+			},
+			"point1": {
+				NewMaybeRelocatableFelt(FeltFromUint64(7)),
+				NewMaybeRelocatableFelt(FeltFromUint64(8)),
+				NewMaybeRelocatableFelt(FeltFromUint64(9)),
+				NewMaybeRelocatableFelt(FeltFromUint64(10)),
+				NewMaybeRelocatableFelt(FeltFromUint64(11)),
+				NewMaybeRelocatableFelt(FeltFromUint64(12)),
+			},
+			"slope": {
+				NewMaybeRelocatableFelt(FeltFromUint64(1)),
+				NewMaybeRelocatableFelt(FeltFromUint64(0)),
+				NewMaybeRelocatableFelt(FeltFromUint64(0)),
+			},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: FAST_EC_ADD_ASSIGN_NEW_X_V2,
+	})
+
+	execScopes := types.NewExecutionScopes()
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, execScopes)
+	if err != nil {
+		t.Errorf("FAST_EC_ADD_ASSIGN_NEW_X_V2 hint test failed with error %s", err)
+	}
+
+	slope, _ := execScopes.Get("slope")
+	slopeRes := slope.(big.Int)
+
+	x0, _ := execScopes.Get("x0")
+	x0Res := x0.(big.Int)
+
+	y0, _ := execScopes.Get("y0")
+	y0Res := y0.(big.Int)
+
+	value, _ := execScopes.Get("value")
+	valueRes := value.(big.Int)
+
+	// expected values
+	expectedSlope, _ := new(big.Int).SetString("1", 10)
+	expectedX0, _ := new(big.Int).SetString("17958932119522135058886879379160190656204633450479617", 10)
+	expectedY0, _ := new(big.Int).SetString("35917864239044270117773758835691633767745534082154500", 10)
+	expectedValue, _ := new(big.Int).SetString("57896044618658097711785420668615475838094756785302610636461256512888400510950", 10)
+
+	if expectedValue.Cmp(&valueRes) != 0 {
+		t.Errorf("expected value=%v, got: value=%v", expectedValue, valueRes)
+	}
+
+	if expectedSlope.Cmp(&slopeRes) != 0 {
+		t.Errorf("expected slope=%v, got: slope=%v", expectedValue, valueRes)
+	}
+
+	if expectedX0.Cmp(&x0Res) != 0 {
+		t.Errorf("expected x0=%v, got: x0=%v", expectedX0, x0Res)
+	}
+
+	if expectedY0.Cmp(&y0Res) != 0 {
+		t.Errorf("expected y0 to be %v, got: y0=%v", expectedY0, y0Res)
+	}
+}
+
+func TestFastEcAddAssignNewXV3Hint(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+
+	vm.RunContext.Fp = NewRelocatable(1, 14)
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"pt0": {
+				NewMaybeRelocatableFelt(FeltFromUint64(1)),
+				NewMaybeRelocatableFelt(FeltFromUint64(2)),
+				NewMaybeRelocatableFelt(FeltFromUint64(3)),
+				NewMaybeRelocatableFelt(FeltFromUint64(4)),
+				NewMaybeRelocatableFelt(FeltFromUint64(5)),
+				NewMaybeRelocatableFelt(FeltFromUint64(6)),
+			},
+			"pt1": {
+				NewMaybeRelocatableFelt(FeltFromUint64(7)),
+				NewMaybeRelocatableFelt(FeltFromUint64(8)),
+				NewMaybeRelocatableFelt(FeltFromUint64(9)),
+				NewMaybeRelocatableFelt(FeltFromUint64(10)),
+				NewMaybeRelocatableFelt(FeltFromUint64(11)),
+				NewMaybeRelocatableFelt(FeltFromUint64(12)),
+			},
+			"slope": {
+				NewMaybeRelocatableFelt(FeltFromUint64(1)),
+				NewMaybeRelocatableFelt(FeltFromUint64(0)),
+				NewMaybeRelocatableFelt(FeltFromUint64(0)),
+			},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: FAST_EC_ADD_ASSIGN_NEW_X_V3,
+	})
+
+	execScopes := types.NewExecutionScopes()
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, execScopes)
+	if err != nil {
+		t.Errorf("FAST_EC_ADD_ASSIGN_NEW_X_V3 hint test failed with error %s", err)
+	}
+
+	slope, _ := execScopes.Get("slope")
+	slopeRes := slope.(big.Int)
+
+	x0, _ := execScopes.Get("x0")
+	x0Res := x0.(big.Int)
+
+	y0, _ := execScopes.Get("y0")
+	y0Res := y0.(big.Int)
+
+	value, _ := execScopes.Get("value")
+	valueRes := value.(big.Int)
+
+	// expected values
+	expectedSlope, _ := new(big.Int).SetString("1", 10)
+	expectedX0, _ := new(big.Int).SetString("17958932119522135058886879379160190656204633450479617", 10)
+	expectedY0, _ := new(big.Int).SetString("35917864239044270117773758835691633767745534082154500", 10)
+	expectedValue, _ := new(big.Int).SetString("115792089237316195423570913172959429764729749118122892656190048516840670362664", 10)
+
+	if expectedValue.Cmp(&valueRes) != 0 {
+		t.Errorf("expected value=%v, got: value=%v", expectedValue, valueRes)
+	}
+
+	if expectedSlope.Cmp(&slopeRes) != 0 {
+		t.Errorf("expected slope=%v, got: slope=%v", expectedValue, valueRes)
+	}
+
+	if expectedX0.Cmp(&x0Res) != 0 {
+		t.Errorf("expected x0=%v, got: x0=%v", expectedX0, x0Res)
+	}
+
+	if expectedY0.Cmp(&y0Res) != 0 {
+		t.Errorf("expected y0 to be %v, got: y0=%v", expectedY0, y0Res)
+	}
+}
+
+func TestFastEcAddAssignNewY(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+
+	vm.RunContext.Fp = NewRelocatable(1, 14)
+
+	idsManager := IdsManager{}
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: FAST_EC_ADD_ASSIGN_NEW_Y,
+	})
+
+	x0, _ := new(big.Int).SetString("17958932119522135058886879379160190656204633450479617", 10)
+	y0, _ := new(big.Int).SetString("35917864239044270117773758835691633767745534082154500", 10)
+	slope, _ := new(big.Int).SetString("1", 10)
+	newX, _ := new(big.Int).SetString("115792089237316195423570913172959429764729749118122892656190048516840670362664", 10)
+	secpP, _ := new(big.Int).SetString("115792089237316195423570985008687907853269984665640564039457584007908834671663", 10)
+
+	execScopes := types.NewExecutionScopes()
+	execScopes.AssignOrUpdateVariable("x0", *x0)
+	execScopes.AssignOrUpdateVariable("y0", *y0)
+	execScopes.AssignOrUpdateVariable("slope", *slope)
+	execScopes.AssignOrUpdateVariable("new_x", *newX)
+	execScopes.AssignOrUpdateVariable("SECP_P", *secpP)
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, execScopes)
+	if err != nil {
+		t.Errorf("FAST_EC_ADD_ASSIGN_NEW_Y hint test failed with error %s", err)
+	}
+
+	// Result values
+	newY, _ := execScopes.Get("new_y")
+	newYRes := newY.(big.Int)
+
+	value, _ := execScopes.Get("value")
+	valueRes := value.(big.Int)
+
+	// Expected values
+	expectedNewY, _ := new(big.Int).SetString("53876796358566405176660638214851824423950167532634116", 10)
+	expectedValue, _ := new(big.Int).SetString("53876796358566405176660638214851824423950167532634116", 10)
+
+	if expectedValue.Cmp(&valueRes) != 0 {
+		t.Errorf("expected value=%v, got: value=%v", expectedValue, valueRes)
+	}
+
+	if expectedNewY.Cmp(&newYRes) != 0 {
+		t.Errorf("expected new_y=%v, got: new_y=%v", expectedValue, valueRes)
 	}
 }

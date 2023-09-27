@@ -326,3 +326,17 @@ func TestParseHintDereferenceReferenceDoubleDerefBothOffOmitted(t *testing.T) {
 		t.Errorf("Wrong parsed reference, %+v", ParseHintReference(reference))
 	}
 }
+
+func TestParseHintDereferenceValueMinusValPlusVal(t *testing.T) {
+	reference := parser.Reference{Value: "[cast(ap - 0 + (-1), felt*)]"}
+	expected := HintReference{
+		Offset1:     OffsetValue{ValueType: Reference, Value: 0, Dereference: false},
+		Offset2:     OffsetValue{ValueType: Value, Value: -1, Dereference: false},
+		ValueType:   "felt*",
+		Dereference: true,
+	}
+
+	if ParseHintReference(reference) != expected {
+		t.Errorf("Wrong parsed reference, %+v", ParseHintReference(reference))
+	}
+}
