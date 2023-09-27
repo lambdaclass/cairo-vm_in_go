@@ -328,3 +328,19 @@ func TestSplitIntHint(t *testing.T) {
 func TestSplitIntHintProofMode(t *testing.T) {
 	testProgramProof("split_int", t)
 }
+
+func TestIntegrationEcDoubleSlope(t *testing.T) {
+	testProgram("ec_double_slope", t)
+}
+
+func TestKeccakIntegrationTests(t *testing.T) {
+	testProgram("keccak_integration_tests", t)
+}
+
+func TestCairoKeccak(t *testing.T) {
+	testProgram("cairo_keccak", t)
+}
+
+func TestKeccakAddUint256(t *testing.T) {
+	testProgram("keccak_add_uint256", t)
+}
