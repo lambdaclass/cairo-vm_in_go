@@ -17,16 +17,16 @@ func ec_double{range_check_ptr}(point: EcPoint, slope: BigInt3) -> (res: BigInt3
         value = new_x = (pow(slope, 2, SECP_P) - 2 * x) % SECP_P
     %}
 
-    //let (new_x: BigInt3) = nondet_bigint3();
-    return (res=slope);
+    let (new_x: BigInt3) = nondet_bigint3();
+    return (res=new_x);
 }
 
 func main{range_check_ptr}() {
-    let p = EcPoint(BigInt3(0,0,2), BigInt3(4,5,6));
-    let s = BigInt3(0,0,3);
+    let p = EcPoint(BigInt3(1,2,3), BigInt3(4,5,6));
+    let s = BigInt3(7,8,9);
     let (res) = ec_double(p, s);
-    assert res.d0 = 5;
-    assert res.d1 = 0;
-    assert res.d2 = 0;
+    assert res.d0 = 21935;
+    assert res.d1 = 12420;
+    assert res.d2 = 184;
     return ();
 }

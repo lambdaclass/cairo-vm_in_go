@@ -33,3 +33,5 @@ x = pack(ids.pt.x, PRIME)
 y = pack(ids.pt.y, PRIME)
 
 value = new_x = (pow(slope, 2, SECP_P) - 2 * x) % SECP_P`
+const EC_DOUBLE_SLOPE_EXTERNAL_CONSTS = "from starkware.cairo.common.cairo_secp.secp_utils import pack\nfrom starkware.python.math_utils import ec_double_slope\n\n# Compute the slope.\nx = pack(ids.point.x, PRIME)\ny = pack(ids.point.y, PRIME)\nvalue = slope = ec_double_slope(point=(x, y), alpha=ALPHA, p=SECP_P)"
+const NONDET_BIGINT3_V1 = "from starkware.cairo.common.cairo_secp.secp_utils import split\n\nsegments.write_arg(ids.res.address_, split(value))"
