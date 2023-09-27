@@ -530,7 +530,6 @@ func (runner *CairoRunner) CheckRangeCheckUsage() error {
 	return nil
 }
 
-// TODO: Add hint processor when it's done
 func (runner *CairoRunner) RunForSteps(steps uint, hintProcessor vm.HintProcessor) error {
 	hintDataMap, err := runner.BuildHintDataMap(hintProcessor)
 	if err != nil {
@@ -552,12 +551,10 @@ func (runner *CairoRunner) RunForSteps(steps uint, hintProcessor vm.HintProcesso
 	return nil
 }
 
-// TODO: Add hint processor when it's done
 func (runner *CairoRunner) RunUntilSteps(steps uint, hintProcessor vm.HintProcessor) error {
 	return runner.RunForSteps(steps-runner.Vm.CurrentStep, hintProcessor)
 }
 
-// TODO: Add hint processor when it's done
 func (runner *CairoRunner) RunUntilNextPowerOfTwo(hintProcessor vm.HintProcessor) error {
 	return runner.RunUntilSteps(utils.NextPowOf2(runner.Vm.CurrentStep), hintProcessor)
 }
@@ -571,8 +568,16 @@ func (runner *CairoRunner) GetExecutionResources() (ExecutionResources, error) {
 	if err != nil {
 		return ExecutionResources{}, err
 	}
+	builtinInstaceCounter := make(map[string]uint)
+	for i := 0; i < len(runner.Vm.BuiltinRunners); i++ {
+		builtinInstaceCounter[runner.Vm.BuiltinRunners[i].Name()], err = runner.Vm.BuiltinRunners[i].GetUsedInstances(&runner.Vm.Segments)
+		if err != nil {
+			return ExecutionResources{}, err
+		}
+	}
 	return ExecutionResources{
-		NSteps:       nSteps,
-		NMemoryHoles: nMemoryHoles,
+		NSteps:                  nSteps,
+		NMemoryHoles:            nMemoryHoles,
+		BuiltinsInstanceCounter: builtinInstaceCounter,
 	}, nil
 }
