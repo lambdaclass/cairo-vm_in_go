@@ -104,7 +104,7 @@ func getPointFromX(ids IdsManager, vm *VirtualMachine, scopes *ExecutionScopes, 
 		return err
 	}
 	// Hint logic
-	yCube := new(big.Int).Mod(new(big.Int).Mul(&xCube, beta), &secpP)
+	yCube := new(big.Int).Mod(new(big.Int).Add(&xCube, beta), &secpP)
 	// y = (yCube ** ((SECP_P + 1) << 2)) % SECP_P
 	y := new(big.Int).Exp(yCube, new(big.Int).Rsh(new(big.Int).Add(&secpP, big.NewInt(1)), 2), &secpP)
 	if utils.IsEven(v) != utils.IsEven(y) {
