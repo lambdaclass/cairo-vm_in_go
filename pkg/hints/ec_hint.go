@@ -257,6 +257,10 @@ func computeDoublingSlopeExternalConsts(vm VirtualMachine, execScopes ExecutionS
 	doublePoint_b := builtins.DoublePointB{X: point.X.Pack86(), Y: point.Y.Pack86()}
 
 	value, err := builtins.EcDoubleSlope(doublePoint_b, alpha, secpP)
+	if err != nil {
+		return err
+	}
+
 	execScopes.AssignOrUpdateVariable("value", value)
 	execScopes.AssignOrUpdateVariable("slope", value)
 	return nil
