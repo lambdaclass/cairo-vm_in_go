@@ -192,7 +192,7 @@ func (m *MemorySegmentManager) GetFeltRange(start Relocatable, size uint) ([]lam
 /*
 Converts a generic argument into a MaybeRelocatable
 If the argument is a slice, it loads it into memory in a new segment and returns its base
-Accepts MaybeRelocatable, []MaybeRelocatable, [][]MaybeRelocatable, etc
+Accepts MaybeRelocatable, []MaybeRelocatable, [][]MaybeRelocatable
 */
 func (m *MemorySegmentManager) GenArg(arg any) (MaybeRelocatable, error) {
 	// Attempt to cast to MaybeRelocatable
@@ -207,10 +207,20 @@ func (m *MemorySegmentManager) GenArg(arg any) (MaybeRelocatable, error) {
 		_, err := m.LoadData(base, &data)
 		return *NewMaybeRelocatableRelocatable(base), err
 	}
-	// Attempt to cast to []any
-	arg, ok = arg.([]any)
+	// Attempt to cast to [][]MaybeRelocatable
+	datas, ok := arg.([][]MaybeRelocatable)
 	if ok {
-		return m.GenArg(arg)
+		args := make([]MaybeRelocatable, 0)
+		for _, data = range datas {
+			dataBase, err := m.GenArg(data)
+			if err != nil {
+				return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), err
+			}
+			args = append(args, dataBase)
+		}
+		base := m.AddSegment()
+		_, err := m.LoadData(base, &args)
+		return *NewMaybeRelocatableRelocatable(base), err
 	}
 	return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), errors.New("GenArg: found argument of invalid type.")
 }
