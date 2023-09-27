@@ -237,7 +237,7 @@ func (r *CairoRunner) RunUntilPC(end memory.Relocatable, hintProcessor vm.HintPr
 	return nil
 }
 
-func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll bool, vm *vm.VirtualMachine, hintProcessor vm.HintProcessor) error {
+func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll bool, hintProcessor vm.HintProcessor) error {
 	if runner.RunEnded {
 		return ErrRunnerCalledTwice
 	}
@@ -245,7 +245,7 @@ func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll b
 	// TODO: This seems to have to do with temporary segments
 	// vm.Segments.Memory.RelocateMemory()
 
-	err := vm.EndRun()
+	err := runner.Vm.EndRun()
 	if err != nil {
 		return err
 	}
@@ -254,15 +254,15 @@ func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll b
 		return nil
 	}
 
-	vm.Segments.ComputeEffectiveSizes()
+	runner.Vm.Segments.ComputeEffectiveSizes()
 	if runner.ProofMode && !disableTracePadding {
-		err := runner.RunUntilNextPowerOfTwo(vm, hintProcessor)
+		err := runner.RunUntilNextPowerOfTwo(hintProcessor)
 		if err != nil {
 			return err
 		}
 
 		for true {
-			err := runner.CheckUsedCells(vm)
+			err := runner.CheckUsedCells()
 			if errors.Unwrap(err) == memory.ErrInsufficientAllocatedCells {
 			} else if err != nil {
 				return err
@@ -270,12 +270,12 @@ func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll b
 				break
 			}
 
-			err = runner.RunForSteps(1, vm, hintProcessor)
+			err = runner.RunForSteps(1, hintProcessor)
 			if err != nil {
 				return err
 			}
 
-			err = runner.RunUntilNextPowerOfTwo(vm, hintProcessor)
+			err = runner.RunUntilNextPowerOfTwo(hintProcessor)
 			if err != nil {
 				return err
 			}
@@ -286,7 +286,7 @@ func (runner *CairoRunner) EndRun(disableTracePadding bool, disableFinalizeAll b
 	return nil
 }
 
-func (r *CairoRunner) FinalizeSegments(virtualMachine vm.VirtualMachine) error {
+func (r *CairoRunner) FinalizeSegments() error {
 	if r.SegmentsFinalized {
 		return nil
 	}
@@ -304,7 +304,7 @@ func (r *CairoRunner) FinalizeSegments(virtualMachine vm.VirtualMachine) error {
 		publicMemory = append(publicMemory, i)
 	}
 
-	virtualMachine.Segments.Finalize(size, uint(r.ProgramBase.SegmentIndex), &publicMemory)
+	r.Vm.Segments.Finalize(size, uint(r.ProgramBase.SegmentIndex), &publicMemory)
 
 	publicMemory = make([]uint, 0)
 	execBase := r.executionBase
@@ -316,9 +316,9 @@ func (r *CairoRunner) FinalizeSegments(virtualMachine vm.VirtualMachine) error {
 		publicMemory = append(publicMemory, elem+execBase.Offset)
 	}
 
-	virtualMachine.Segments.Finalize(nil, uint(execBase.SegmentIndex), &publicMemory)
-	for _, builtin := range virtualMachine.BuiltinRunners {
-		_, size, err := builtin.GetUsedCellsAndAllocatedSizes(&virtualMachine.Segments, virtualMachine.CurrentStep)
+	r.Vm.Segments.Finalize(nil, uint(execBase.SegmentIndex), &publicMemory)
+	for _, builtin := range r.Vm.BuiltinRunners {
+		_, size, err := builtin.GetUsedCellsAndAllocatedSizes(&r.Vm.Segments, r.Vm.CurrentStep)
 		if err != nil {
 			return err
 		}
@@ -329,9 +329,9 @@ func (r *CairoRunner) FinalizeSegments(virtualMachine vm.VirtualMachine) error {
 			for i = 0; i < size; i++ {
 				publicMemory = append(publicMemory, i)
 			}
-			virtualMachine.Segments.Finalize(&size, uint(builtin.Base().SegmentIndex), &publicMemory)
+			r.Vm.Segments.Finalize(&size, uint(builtin.Base().SegmentIndex), &publicMemory)
 		} else {
-			virtualMachine.Segments.Finalize(&size, uint(builtin.Base().SegmentIndex), nil)
+			r.Vm.Segments.Finalize(&size, uint(builtin.Base().SegmentIndex), nil)
 		}
 	}
 
@@ -339,15 +339,15 @@ func (r *CairoRunner) FinalizeSegments(virtualMachine vm.VirtualMachine) error {
 	return nil
 }
 
-func (r *CairoRunner) ReadReturnValues(virtualMachine *vm.VirtualMachine) error {
+func (r *CairoRunner) ReadReturnValues() error {
 	if !r.RunEnded {
 		return errors.New("Tried to read return values before run ended")
 	}
 
-	pointer := virtualMachine.RunContext.Ap
+	pointer := r.Vm.RunContext.Ap
 
-	for i := len(virtualMachine.BuiltinRunners) - 1; i >= 0; i-- {
-		newPointer, err := virtualMachine.BuiltinRunners[i].FinalStack(&virtualMachine.Segments, pointer)
+	for i := len(r.Vm.BuiltinRunners) - 1; i >= 0; i-- {
+		newPointer, err := r.Vm.BuiltinRunners[i].FinalStack(&r.Vm.Segments, pointer)
 		if err != nil {
 			return err
 		}
@@ -363,7 +363,7 @@ func (r *CairoRunner) ReadReturnValues(virtualMachine *vm.VirtualMachine) error 
 		execBase := r.executionBase
 		begin := pointer.Offset - execBase.Offset
 
-		ap := virtualMachine.RunContext.Ap
+		ap := r.Vm.RunContext.Ap
 		end := ap.Offset - execBase.Offset
 
 		var publicMemoryExtension []uint
@@ -379,26 +379,26 @@ func (r *CairoRunner) ReadReturnValues(virtualMachine *vm.VirtualMachine) error 
 
 }
 
-func (runner *CairoRunner) CheckUsedCells(virtualMachine *vm.VirtualMachine) error {
-	for _, builtin := range virtualMachine.BuiltinRunners {
+func (runner *CairoRunner) CheckUsedCells() error {
+	for _, builtin := range runner.Vm.BuiltinRunners {
 		// I guess we call this just in case it errors out, even though later on we also call it?
-		_, _, err := builtin.GetUsedCellsAndAllocatedSizes(&virtualMachine.Segments, virtualMachine.CurrentStep)
+		_, _, err := builtin.GetUsedCellsAndAllocatedSizes(&runner.Vm.Segments, runner.Vm.CurrentStep)
 		if err != nil {
 			return err
 		}
 	}
 
-	err := runner.CheckRangeCheckUsage(virtualMachine)
+	err := runner.CheckRangeCheckUsage()
 	if err != nil {
 		return err
 	}
 
-	err = runner.CheckMemoryUsage(virtualMachine)
+	err = runner.CheckMemoryUsage()
 	if err != nil {
 		return err
 	}
 
-	err = runner.CheckDilutedCheckUsage(virtualMachine)
+	err = runner.CheckDilutedCheckUsage()
 	if err != nil {
 		return err
 	}
@@ -406,13 +406,13 @@ func (runner *CairoRunner) CheckUsedCells(virtualMachine *vm.VirtualMachine) err
 	return nil
 }
 
-func (runner *CairoRunner) CheckMemoryUsage(virtualMachine *vm.VirtualMachine) error {
+func (runner *CairoRunner) CheckMemoryUsage() error {
 	instance := runner.Layout
 
 	var builtinsMemoryUnits uint = 0
 
-	for _, builtin := range virtualMachine.BuiltinRunners {
-		result, err := builtin.GetAllocatedMemoryUnits(&virtualMachine.Segments, virtualMachine.CurrentStep)
+	for _, builtin := range runner.Vm.BuiltinRunners {
+		result, err := builtin.GetAllocatedMemoryUnits(&runner.Vm.Segments, runner.Vm.CurrentStep)
 		if err != nil {
 			return err
 		}
@@ -420,7 +420,7 @@ func (runner *CairoRunner) CheckMemoryUsage(virtualMachine *vm.VirtualMachine) e
 		builtinsMemoryUnits += result
 	}
 
-	totalMemoryUnits := instance.MemoryUnitsPerStep * virtualMachine.CurrentStep
+	totalMemoryUnits := instance.MemoryUnitsPerStep * runner.Vm.CurrentStep
 	publicMemoryUnits := totalMemoryUnits / instance.PublicMemoryFraction
 	remainder := totalMemoryUnits % instance.PublicMemoryFraction
 
@@ -428,10 +428,10 @@ func (runner *CairoRunner) CheckMemoryUsage(virtualMachine *vm.VirtualMachine) e
 		return errors.Errorf("Total Memory units was not divisible by the Public Memory Fraction. TotalMemoryUnits: %d PublicMemoryFraction: %d", totalMemoryUnits, instance.PublicMemoryFraction)
 	}
 
-	instructionMemoryUnits := 4 * virtualMachine.CurrentStep
+	instructionMemoryUnits := 4 * runner.Vm.CurrentStep
 	unusedMemoryUnits := totalMemoryUnits - (publicMemoryUnits + instructionMemoryUnits + builtinsMemoryUnits)
 
-	memoryAddressHoles, err := runner.GetMemoryHoles(virtualMachine)
+	memoryAddressHoles, err := runner.GetMemoryHoles()
 	if err != nil {
 		return err
 	}
@@ -443,11 +443,11 @@ func (runner *CairoRunner) CheckMemoryUsage(virtualMachine *vm.VirtualMachine) e
 	return nil
 }
 
-func (runner *CairoRunner) GetMemoryHoles(virtualMachine *vm.VirtualMachine) (uint, error) {
-	return virtualMachine.Segments.GetMemoryHoles(uint(len(virtualMachine.BuiltinRunners)))
+func (runner *CairoRunner) GetMemoryHoles() (uint, error) {
+	return runner.Vm.Segments.GetMemoryHoles(uint(len(runner.Vm.BuiltinRunners)))
 }
 
-func (runner *CairoRunner) CheckDilutedCheckUsage(virtualMachine *vm.VirtualMachine) error {
+func (runner *CairoRunner) CheckDilutedCheckUsage() error {
 	dilutedPoolInstance := runner.Layout.DilutedPoolInstance
 	if dilutedPoolInstance == nil {
 		return nil
@@ -455,14 +455,14 @@ func (runner *CairoRunner) CheckDilutedCheckUsage(virtualMachine *vm.VirtualMach
 
 	var usedUnitsByBuiltins uint = 0
 
-	for _, builtin := range virtualMachine.BuiltinRunners {
+	for _, builtin := range runner.Vm.BuiltinRunners {
 		usedUnits := builtin.GetUsedDilutedCheckUnits(dilutedPoolInstance.Spacing, dilutedPoolInstance.NBits)
 
 		ratio := builtin.Ratio()
 		if ratio == 0 {
 			ratio = 1
 		}
-		multiplier, err := utils.SafeDiv(virtualMachine.CurrentStep, ratio)
+		multiplier, err := utils.SafeDiv(runner.Vm.CurrentStep, ratio)
 
 		if err != nil {
 			return err
@@ -471,7 +471,7 @@ func (runner *CairoRunner) CheckDilutedCheckUsage(virtualMachine *vm.VirtualMach
 		usedUnitsByBuiltins += usedUnits * multiplier
 	}
 
-	var dilutedUnits uint = dilutedPoolInstance.UnitsPerStep * virtualMachine.CurrentStep
+	var dilutedUnits uint = dilutedPoolInstance.UnitsPerStep * runner.Vm.CurrentStep
 	var unusedDilutedUnits uint = dilutedUnits - usedUnitsByBuiltins
 
 	var dilutedUsageUpperBound uint = 1 << dilutedPoolInstance.NBits
@@ -483,7 +483,7 @@ func (runner *CairoRunner) CheckDilutedCheckUsage(virtualMachine *vm.VirtualMach
 	return nil
 }
 
-func (runner *CairoRunner) CheckRangeCheckUsage(virtualMachine *vm.VirtualMachine) error {
+func (runner *CairoRunner) CheckRangeCheckUsage() error {
 	var rcMin, rcMax *uint
 
 	for _, builtin := range runner.Vm.BuiltinRunners {
@@ -513,7 +513,7 @@ func (runner *CairoRunner) CheckRangeCheckUsage(virtualMachine *vm.VirtualMachin
 	var rcUnitsUsedByBuiltins uint = 0
 
 	for _, builtin := range runner.Vm.BuiltinRunners {
-		usedUnits, err := builtin.GetUsedPermRangeCheckLimits(&virtualMachine.Segments, virtualMachine.CurrentStep)
+		usedUnits, err := builtin.GetUsedPermRangeCheckLimits(&runner.Vm.Segments, runner.Vm.CurrentStep)
 		if err != nil {
 			return err
 		}
@@ -521,7 +521,7 @@ func (runner *CairoRunner) CheckRangeCheckUsage(virtualMachine *vm.VirtualMachin
 		rcUnitsUsedByBuiltins += usedUnits
 	}
 
-	unusedRcUnits := (runner.Layout.RcUnits-3)*virtualMachine.CurrentStep - uint(rcUnitsUsedByBuiltins)
+	unusedRcUnits := (runner.Layout.RcUnits-3)*runner.Vm.CurrentStep - uint(rcUnitsUsedByBuiltins)
 
 	if unusedRcUnits < (*rcMax - *rcMin) {
 		return memory.InsufficientAllocatedCellsError(unusedRcUnits, *rcMax-*rcMin)
@@ -531,7 +531,7 @@ func (runner *CairoRunner) CheckRangeCheckUsage(virtualMachine *vm.VirtualMachin
 }
 
 // TODO: Add hint processor when it's done
-func (runner *CairoRunner) RunForSteps(steps uint, virtualMachine *vm.VirtualMachine, hintProcessor vm.HintProcessor) error {
+func (runner *CairoRunner) RunForSteps(steps uint, hintProcessor vm.HintProcessor) error {
 	hintDataMap, err := runner.BuildHintDataMap(hintProcessor)
 	if err != nil {
 		return err
@@ -539,11 +539,11 @@ func (runner *CairoRunner) RunForSteps(steps uint, virtualMachine *vm.VirtualMac
 	constants := runner.Program.ExtractConstants()
 	var remainingSteps int
 	for remainingSteps = int(steps); remainingSteps > 0; remainingSteps-- {
-		if runner.finalPc != nil && *runner.finalPc == virtualMachine.RunContext.Pc {
+		if runner.finalPc != nil && *runner.finalPc == runner.Vm.RunContext.Pc {
 			return &vm.VirtualMachineError{Msg: fmt.Sprintf("EndOfProgram: %d", remainingSteps)}
 		}
 
-		err := virtualMachine.Step(hintProcessor, &hintDataMap, &constants, &runner.execScopes)
+		err := runner.Vm.Step(hintProcessor, &hintDataMap, &constants, &runner.execScopes)
 		if err != nil {
 			return err
 		}
@@ -553,11 +553,26 @@ func (runner *CairoRunner) RunForSteps(steps uint, virtualMachine *vm.VirtualMac
 }
 
 // TODO: Add hint processor when it's done
-func (runner *CairoRunner) RunUntilSteps(steps uint, virtualMachine *vm.VirtualMachine, hintProcessor vm.HintProcessor) error {
-	return runner.RunForSteps(steps-virtualMachine.CurrentStep, virtualMachine, hintProcessor)
+func (runner *CairoRunner) RunUntilSteps(steps uint, hintProcessor vm.HintProcessor) error {
+	return runner.RunForSteps(steps-runner.Vm.CurrentStep, hintProcessor)
 }
 
 // TODO: Add hint processor when it's done
-func (runner *CairoRunner) RunUntilNextPowerOfTwo(virtualMachine *vm.VirtualMachine, hintProcessor vm.HintProcessor) error {
-	return runner.RunUntilSteps(utils.NextPowOf2(virtualMachine.CurrentStep), virtualMachine, hintProcessor)
+func (runner *CairoRunner) RunUntilNextPowerOfTwo(hintProcessor vm.HintProcessor) error {
+	return runner.RunUntilSteps(utils.NextPowOf2(runner.Vm.CurrentStep), hintProcessor)
+}
+
+func (runner *CairoRunner) GetExecutionResources() (ExecutionResources, error) {
+	nSteps := uint(len(runner.Vm.Trace))
+	if nSteps == 0 {
+		nSteps = runner.Vm.CurrentStep
+	}
+	nMemoryHoles, err := runner.GetMemoryHoles()
+	if err != nil {
+		return ExecutionResources{}, err
+	}
+	return ExecutionResources{
+		NSteps:       nSteps,
+		NMemoryHoles: nMemoryHoles,
+	}, nil
 }
