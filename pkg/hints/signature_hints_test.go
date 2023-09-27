@@ -158,6 +158,44 @@ func TestDivModSafeDivPlusOneOk(t *testing.T) {
 	}
 }
 
+func TestGetPointFromXOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"v": {
+				NewMaybeRelocatableFelt(FeltFromUint(18)),
+			},
+			"x_cube": {
+				NewMaybeRelocatableFelt(FeltFromUint64(2147483647)),
+				NewMaybeRelocatableFelt(FeltFromUint64(2147483647)),
+				NewMaybeRelocatableFelt(FeltFromUint64(2147483647)),
+			},
+		},
+		vm,
+	)
+	constants := SetupConstantsForTest(map[string]Felt{
+		"BETA": FeltFromUint(7),
+	}, &idsManager)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: GET_POINT_FROM_X,
+	})
+	scopes := NewExecutionScopes()
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, scopes)
+	if err != nil {
+		t.Errorf("GET_POINT_FROM_X hint test failed with error %s", err)
+	}
+	// Check result in scope
+	expectedValue, _ := new(big.Int).SetString("21517397797248348844406833268402983856262903417026833897388175962266357959124", 10)
+
+	value, err := FetchScopeVar[big.Int]("value", scopes)
+	if err != nil || value.Cmp(expectedValue) != 0 {
+		t.Errorf("Wrong/No scope var value.\n Expected %v, got: %v", expectedValue, &value)
+	}
+}
+
 func TestGetPointFromXNegativeY(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()
