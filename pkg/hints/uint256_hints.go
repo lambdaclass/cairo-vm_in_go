@@ -220,3 +220,73 @@ func uint256OfssetedUnisgnedDivRem(ids IdsManager, vm *VirtualMachine, divOffset
 	return ids.InsertUint256("remainder", ToUint256(r), vm)
 
 }
+
+/*
+Implements hint:
+
+	%{
+	    a = (ids.a.high << 128) + ids.a.low
+	    div = (ids.div.b23 << 128) + ids.div.b01
+	    quotient, remainder = divmod(a, div)
+
+	    ids.quotient.low = quotient & ((1 << 128) - 1)
+	    ids.quotient.high = quotient >> 128
+	    ids.remainder.low = remainder & ((1 << 128) - 1)
+	    ids.remainder.high = remainder >> 128
+
+%}
+*/
+func uint256MulDivMod(ids IdsManager, vm *VirtualMachine) error {
+	a, err := ids.GetUint256("a", vm)
+	if err != nil {
+		return err
+	}
+	b, err := ids.GetUint256("b", vm)
+	if err != nil {
+		return err
+	}
+	div, err := ids.GetUint256("div", vm)
+	if err != nil {
+		return err
+	}
+	quotientLow, err := ids.GetUint256("quotient_low", vm)
+	if err != nil {
+		fmt.Pri
+		return err
+	}
+	quotientHigh, err := ids.GetUint256("quotient_high", vm)
+	if err != nil {
+		return err
+	}
+	remainder, err := ids.GetUint256("remainder", vm)
+	if err != nil {
+		return err
+	}
+
+	if div.ToBigInt().Cmp(big.NewInt(0)) == 0 {
+		return errors.Errorf("Attempted to divide by zero")
+	}
+
+	mul := new(big.Int).Mul(a.ToBigInt(), b.ToBigInt())
+	quotient, rem := new(big.Int).DivMod(mul, div.ToBigInt(), new(big.Int))
+
+	maxU128, _ := new(big.Int).SetString("340282366920938463463374607431768211455", 10)
+
+	quotientLow.Low = FeltFromBigInt(new(big.Int).And(quotient, maxU128))                         // q & maxU128
+	quotientLow.High = FeltFromBigInt(new(big.Int).And(new(big.Int).Rsh(quotient, 128), maxU128)) // q >> 128 & maxU128
+	quotientHigh.Low = FeltFromBigInt(new(big.Int).And(new(big.Int).Rsh(quotient, 256), maxU128)) // q >> 256 & maxU128
+	quotientHigh.High = FeltFromBigInt(new(big.Int).Rsh(quotient, 384))                           // q >> 384
+	remainder.Low = FeltFromBigInt(new(big.Int).And(rem, maxU128))                                // rem & maxU128
+	remainder.High = FeltFromBigInt(new(big.Int).And(new(big.Int).Rsh(rem, 128), maxU128))        // rem >> 128 & maxU128
+
+	err = ids.InsertUint256("quotient_low", quotientLow, vm)
+	if err != nil {
+		return err
+	}
+	err = ids.InsertUint256("quotient_high", quotientHigh, vm)
+	if err != nil {
+		return err
+	}
+	return ids.InsertUint256("remainder", remainder, vm)
+
+}

@@ -647,3 +647,57 @@ func TestUint256ExpandedUnsignedDivRemOk(t *testing.T) {
 	}
 
 }
+
+func TestUint256MulDivOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+
+	ids := map[string][]*MaybeRelocatable{
+		"a": {
+			NewMaybeRelocatableFeltFromUint64(89),
+			NewMaybeRelocatableFeltFromUint64(72),
+		},
+		"b": {
+			NewMaybeRelocatableFeltFromUint64(3),
+			NewMaybeRelocatableFeltFromUint64(7),
+		},
+		"div": {
+			NewMaybeRelocatableFeltFromUint64(107),
+			NewMaybeRelocatableFeltFromUint64(114),
+		},
+		"quotient_low":  {nil, nil},
+		"quotient_high": {nil, nil},
+		"remainder":     {nil, nil},
+	}
+	idsManager := SetupIdsForTest(ids, vm)
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: UINT256_MUL_DIV_MOD,
+	})
+	hintProcessor := CairoVmHintProcessor{}
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+
+	// quotient, err := idsManager.GetUint256("quotient", vm)
+	// if err != nil {
+	// 	t.Errorf("failed with error: %s", err)
+	// }
+
+	// expectedQuotient := Uint256{Low: FeltFromUint(10), High: FeltFromUint(0)}
+	// if quotient != expectedQuotient {
+	// 	t.Errorf("expected quotient: %s, got: %s", expectedQuotient.ToString(), quotient.ToString())
+	// }
+
+	// remainder, err := idsManager.GetUint256("remainder", vm)
+	// if err != nil {
+	// 	t.Errorf("failed with error: %s", err)
+	// }
+
+	// expectedRemainder := Uint256{Low: FeltFromUint(59), High: FeltFromUint(2)}
+	// if remainder != expectedRemainder {
+	// 	t.Errorf("expected remainder: %s, got: %s", expectedRemainder.ToString(), remainder.ToString())
+	// }
+}
