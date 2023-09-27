@@ -186,6 +186,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return fastEcAddAssignNewX(data.Ids, vm, execScopes, "pt0", "pt1", SECP_P())
 	case FAST_EC_ADD_ASSIGN_NEW_Y:
 		return fastEcAddAssignNewY(execScopes)
+	case BIGINT_SAFE_DIV:
+		return SafeDivBigint(*vm, *execScopes, data.Ids)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}

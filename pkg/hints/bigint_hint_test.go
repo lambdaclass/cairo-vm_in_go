@@ -73,3 +73,67 @@ func TestNonDetBigInt3Ok(t *testing.T) {
 		}
 	}
 }
+
+func TestSafeDivBigInt(t *testing.T) {
+	vm := NewVirtualMachine()
+
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+
+	execScopes := NewExecutionScopes()
+
+	res, _ := new(big.Int).SetString("109567829260688255124154626727441144629993228404337546799996747905569082729709", 10)
+	x, _ := new(big.Int).SetString("91414600319290532004473480113251693728834511388719905794310982800988866814583", 10)
+	y, _ := new(big.Int).SetString("38047400353360331012910998489219098987968251547384484838080352663220422975266", 10)
+	p, _ := new(big.Int).SetString("115792089237316195423570985008687907852837564279074904382605163141518161494337", 10)
+
+	execScopes.AssignOrUpdateVariable("res", *res)
+	execScopes.AssignOrUpdateVariable("x", *x)
+	execScopes.AssignOrUpdateVariable("y", *y)
+	execScopes.AssignOrUpdateVariable("p", *p)
+
+	vm.RunContext.Fp = NewRelocatable(1, 0)
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"flag": {nil},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: BIGINT_SAFE_DIV,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, execScopes)
+
+	if err != nil {
+		t.Errorf("Safe Big int div hint test failed with error: %s", err)
+	} else {
+		expectedK, _ := new(big.Int).SetString("36002209591245282109880156842267569109802494162594623391338581162816748840003", 10)
+		expectedVal, _ := new(big.Int).SetString("36002209591245282109880156842267569109802494162594623391338581162816748840003", 10)
+
+		kUncast, err := execScopes.Get("k")
+		if err != nil {
+			t.Errorf("%s", err)
+		}
+		k, _ := kUncast.(big.Int)
+
+		valUncast, err := execScopes.Get("value")
+		if err != nil {
+			t.Errorf("%s", err)
+		}
+
+		value, _ := valUncast.(big.Int)
+
+		if expectedK.Cmp(&k) != 0 {
+			t.Errorf("incorrect K value expected: %s, got: %s", expectedK.Text(10), k.Text(10))
+		}
+
+		if expectedVal.Cmp(&value) != 0 {
+			t.Errorf("incorrect value expected: %s, got: %s", expectedVal.Text(10), value.Text(10))
+		}
+	}
+}
