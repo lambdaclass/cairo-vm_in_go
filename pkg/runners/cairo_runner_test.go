@@ -726,3 +726,36 @@ func TestRunFibonacciGetExecutionResources(t *testing.T) {
 		t.Errorf("Wong ExecutionResources.\n Expected : %+v, got: %+v", expectedExecutionResources, executionResources)
 	}
 }
+
+// This test will run the `fib` function in the fibonacci.json program
+func TestRunFromEntryPointFibonacci(t *testing.T) {
+	compiledProgram, _ := parser.Parse("../../cairo_programs/fibonacci.json")
+	programJson := vm.DeserializeProgramJson(compiledProgram)
+
+	entrypoint := programJson.Identifiers["__main__.fib"].PC
+	args := []any{
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltOne()),
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltOne()),
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint(10)),
+	}
+	runner, _ := runners.NewCairoRunner(programJson, "all_cairo", false)
+	hintProcessor := hints.CairoVmHintProcessor{}
+
+	runner.InitializeBuiltins()
+	runner.InitializeSegments()
+	err := runner.RunFromEntrypoint(uint(entrypoint), args, &hintProcessor)
+
+	if err != nil {
+		t.Errorf("Running fib entrypoint failed with error %s", err.Error())
+	}
+
+	// Check result
+	res, err := runner.Vm.GetReturnValues(1)
+	if err != nil {
+		t.Errorf("Failed to fetch return values from fib with error %s", err.Error())
+	}
+	if len(res) != 1 || !reflect.DeepEqual(res[0], *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint(144))) {
+		t.Errorf("Wrong value returned by fib entrypoint.\n Expected [144], got: %+v", res)
+	}
+
+}

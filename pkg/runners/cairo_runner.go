@@ -70,11 +70,11 @@ func NewCairoRunner(program vm.Program, layoutName string, proofMode bool) (*Cai
 
 // Performs the initialization step, returns the end pointer (pc upon which execution should stop)
 func (r *CairoRunner) Initialize() (memory.Relocatable, error) {
-	err := r.initializeBuiltins()
+	err := r.InitializeBuiltins()
 	if err != nil {
 		return memory.Relocatable{}, errors.New(err.Error())
 	}
-	r.initializeSegments()
+	r.InitializeSegments()
 	end, err := r.initializeMainEntrypoint()
 	if err == nil {
 		err = r.initializeVM()
@@ -84,7 +84,7 @@ func (r *CairoRunner) Initialize() (memory.Relocatable, error) {
 
 // Initializes builtin runners in accordance to the specified layout and
 // the builtins present in the running program.
-func (r *CairoRunner) initializeBuiltins() error {
+func (r *CairoRunner) InitializeBuiltins() error {
 	var builtinRunners []builtins.BuiltinRunner
 	programBuiltins := map[string]struct{}{}
 	for _, builtin := range r.Program.Builtins {
@@ -113,7 +113,7 @@ func (r *CairoRunner) initializeBuiltins() error {
 }
 
 // Creates program, execution and builtin segments
-func (r *CairoRunner) initializeSegments() {
+func (r *CairoRunner) InitializeSegments() {
 	// Program Segment
 	r.ProgramBase = r.Vm.Segments.AddSegment()
 	// Execution Segment
