@@ -1,7 +1,7 @@
 package lambdaworks
 
 /*
-#cgo LDFLAGS: pkg/lambdaworks/lib/liblambdaworks.a -ldl
+#cgo LDFLAGS: pkg/lambdaworks/lib/liblambdaworks.a
 #include "lib/lambdaworks.h"
 #include <stdlib.h>
 */
