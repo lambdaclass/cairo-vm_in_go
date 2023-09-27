@@ -1,6 +1,8 @@
 package memory
 
 import (
+	"errors"
+
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 )
 
@@ -185,4 +187,30 @@ func (m *MemorySegmentManager) GetFeltRange(start Relocatable, size uint) ([]lam
 		feltRange = append(feltRange, val)
 	}
 	return feltRange, nil
+}
+
+/*
+Converts a generic argument into a MaybeRelocatable
+If the argument is a slice, it loads it into memory in a new segment and returns its base
+Accepts MaybeRelocatable, []MaybeRelocatable, [][]MaybeRelocatable, etc
+*/
+func (m *MemorySegmentManager) GenArg(arg any) (MaybeRelocatable, error) {
+	// Attempt to cast to MaybeRelocatable
+	a, ok := arg.(MaybeRelocatable)
+	if ok {
+		return a, nil
+	}
+	// Attempt to cast to []MaybeRelocatable
+	data, ok := arg.([]MaybeRelocatable)
+	if ok {
+		base := m.AddSegment()
+		_, err := m.LoadData(base, &data)
+		return *NewMaybeRelocatableRelocatable(base), err
+	}
+	// Attempt to cast to []any
+	arg, ok = arg.([]any)
+	if ok {
+		return m.GenArg(arg)
+	}
+	return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), errors.New("GenArg: found argument of invalid type.")
 }
