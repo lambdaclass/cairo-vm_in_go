@@ -101,7 +101,7 @@ func (k *KeccakBuiltinRunner) DeduceMemoryCell(address Relocatable, mem *Memory)
 	for i := 0; i < 25; i++ {
 		output_message_u64[i] = binary.LittleEndian.Uint64(output_message_bytes[8*i : 8*i+8])
 	}
-	keccakF1600(&output_message_u64)
+	KeccakF1600(&output_message_u64)
 
 	// Convert back to bytes
 	output_message := make([]byte, 0, 200)
@@ -152,7 +152,7 @@ var rc = [24]uint64{
 
 // keccakF1600 applies the Keccak permutation to a 1600b-wide
 // state represented as a slice of 25 uint64s.
-func keccakF1600(a *[25]uint64) {
+func KeccakF1600(a *[25]uint64) {
 	// Implementation translated from Keccak-inplace.c
 	// in the keccak reference code.
 	var t, bc0, bc1, bc2, bc3, bc4, d0, d1, d2, d3, d4 uint64

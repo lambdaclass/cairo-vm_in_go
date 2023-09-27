@@ -7,6 +7,7 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
+	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/types"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
@@ -195,24 +196,25 @@ func computeSlope(vm *VirtualMachine, execScopes ExecutionScopes, idsData IdsMan
 func ecDoubleAssignNewX(vm *VirtualMachine, execScopes ExecutionScopes, ids IdsManager, secpP big.Int) error {
 	execScopes.AssignOrUpdateVariable("SECP_P", secpP)
 
-	slope3, err := BigInt3FromVarName("slope", vm, ids)
+	slope3, err := BigInt3FromVarName("slope", ids, vm)
 	if err != nil {
 		return err
 	}
 	packedSlope := slope3.Pack86()
-	slope := new(big.Int).Mod(&packedSlope, &secpP)
-
+	slope := new(big.Int).Mod(&packedSlope, Prime())
 	point, err := EcPointFromVarName("point", vm, ids)
 	if err != nil {
 		return err
 	}
 
 	xPacked := point.X.Pack86()
-	x := new(big.Int).Mod(&xPacked, &secpP)
+	x := new(big.Int).Mod(&xPacked, Prime())
 	yPacked := point.Y.Pack86()
-	y := new(big.Int).Mod(&yPacked, &secpP)
+	y := new(big.Int).Mod(&yPacked, Prime())
 
 	value := new(big.Int).Mul(slope, slope)
+	value = value.Mod(value, &secpP)
+
 	value = value.Sub(value, x)
 	value = value.Sub(value, x)
 	value = value.Mod(value, &secpP)
@@ -222,8 +224,9 @@ func ecDoubleAssignNewX(vm *VirtualMachine, execScopes ExecutionScopes, ids IdsM
 	execScopes.AssignOrUpdateVariable("y", y)
 	execScopes.AssignOrUpdateVariable("value", *value)
 	execScopes.AssignOrUpdateVariable("new_x", *value)
-    return nil
+	return nil
 }
+
 /*
 Implements hint:
 %{ from starkware.cairo.common.cairo_secp.secp256r1_utils import SECP256R1_ALPHA as ALPHA %}
@@ -303,5 +306,104 @@ func computeDoublingSlopeExternalConsts(vm VirtualMachine, execScopes ExecutionS
 
 	execScopes.AssignOrUpdateVariable("value", value)
 	execScopes.AssignOrUpdateVariable("slope", value)
+	return nil
+}
+
+/*
+	%{
+		from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
+
+		slope = pack(ids.slope, PRIME)
+		x0 = pack(ids.point0.x, PRIME)
+		x1 = pack(ids.point1.x, PRIME)
+		y0 = pack(ids.point0.y, PRIME)
+
+		value = new_x = (pow(slope, 2, SECP_P) - x0 - x1) % SECP_P"
+
+%}
+*/
+func fastEcAddAssignNewX(ids IdsManager, vm *VirtualMachine, execScopes *ExecutionScopes, point0Alias string, point1Alias string, secpP big.Int) error {
+	execScopes.AssignOrUpdateVariable("SECP_P", secpP)
+
+	point0, err := EcPointFromVarName(point0Alias, vm, ids)
+	point1, err := EcPointFromVarName(point1Alias, vm, ids)
+	if err != nil {
+		return err
+	}
+	slopeUnpacked, err := BigInt3FromVarName("slope", ids, vm)
+	if err != nil {
+		return err
+	}
+
+	slope := slopeUnpacked.Pack86()
+	slope = *new(big.Int).Mod(&slope, &secpP)
+
+	x0 := point0.X.Pack86()
+	x0 = *new(big.Int).Mod(&x0, &secpP)
+
+	x1 := point1.X.Pack86()
+	x1 = *new(big.Int).Mod(&x1, &secpP)
+
+	y0 := point0.Y.Pack86()
+	y0 = *new(big.Int).Mod(&y0, &secpP)
+
+	slopeSquared := new(big.Int).Mul(&slope, &slope)
+	x0PlusX1 := new(big.Int).Add(&x0, &x1)
+
+	value := *new(big.Int).Sub(slopeSquared, x0PlusX1)
+	value = *new(big.Int).Mod(&value, &secpP)
+
+	execScopes.AssignOrUpdateVariable("slope", slope)
+	execScopes.AssignOrUpdateVariable("x0", x0)
+	execScopes.AssignOrUpdateVariable("y0", y0)
+	execScopes.AssignOrUpdateVariable("value", value)
+	execScopes.AssignOrUpdateVariable("new_x", value)
+
+	return nil
+}
+
+/*
+Implements hint:
+
+	%{ value = new_y = (slope * (x0 - new_x) - y0) % SECP_P %}
+*/
+func fastEcAddAssignNewY(execScopes *ExecutionScopes) error {
+	slope, err := execScopes.Get("slope")
+	if err != nil {
+		return err
+	}
+	slopeBigInt := slope.(big.Int)
+	x0, err := execScopes.Get("x0")
+	if err != nil {
+		return err
+	}
+	x0BigInt := x0.(big.Int)
+
+	newX, err := execScopes.Get("new_x")
+	if err != nil {
+		return err
+	}
+	newXBigInt := newX.(big.Int)
+
+	y0, err := execScopes.Get("y0")
+	if err != nil {
+		return err
+	}
+	y0BigInt := y0.(big.Int)
+
+	secpP, err := execScopes.Get("SECP_P")
+	if err != nil {
+		return err
+	}
+	secpBigInt := secpP.(big.Int)
+
+	x0MinusNewX := *new(big.Int).Sub(&x0BigInt, &newXBigInt)
+	x0MinusNewXMinusY0 := *new(big.Int).Sub(&x0MinusNewX, &y0BigInt)
+	valueBeforeMod := *new(big.Int).Mul(&slopeBigInt, &x0MinusNewXMinusY0)
+	value := *new(big.Int).Mod(&valueBeforeMod, &secpBigInt)
+
+	execScopes.AssignOrUpdateVariable("value", value)
+	execScopes.AssignOrUpdateVariable("new_y", value)
+
 	return nil
 }
