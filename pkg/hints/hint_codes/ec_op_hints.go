@@ -27,3 +27,5 @@ y0 = pack(ids.pt0.y, PRIME)
 value = new_x = (pow(slope, 2, SECP_P) - x0 - x1) % SECP_P"`
 
 const FAST_EC_ADD_ASSIGN_NEW_Y = "value = new_y = (slope * (x0 - new_x) - y0) % SECP_P"
+
+const BIGINT_SAFE_DIV = "k = safe_div(res * y - x, p)\nvalue = k if k > 0 else 0 - k\nids.flag = 1 if k > 0 else 0"
