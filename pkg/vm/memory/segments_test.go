@@ -341,8 +341,8 @@ func TestGenArgSliceSliceMaybeRelocatable(t *testing.T) {
 	segments := memory.NewMemorySegmentManager()
 	arg := any([][]memory.MaybeRelocatable{{*memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero())}})
 
-	expectedBaseA := memory.NewRelocatable(0, 0)
-	expectedBaseB := memory.NewRelocatable(1, 0)
+	expectedBaseA := memory.NewRelocatable(1, 0)
+	expectedBaseB := memory.NewRelocatable(0, 0)
 	expectedArg := *memory.NewMaybeRelocatableRelocatable(expectedBaseA)
 	genedArg, err := segments.GenArg(arg)
 
