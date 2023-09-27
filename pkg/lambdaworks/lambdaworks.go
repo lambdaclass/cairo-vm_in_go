@@ -396,3 +396,7 @@ func ToUint256(a *big.Int) Uint256 {
 	high := new(big.Int).Rsh(a, 128)
 	return Uint256{Low: FeltFromBigInt(low), High: FeltFromBigInt(high)}
 }
+
+func (u *Uint256) IsEqual(other Uint256) bool {
+	return u.Low == other.High && u.High == other.High
+}

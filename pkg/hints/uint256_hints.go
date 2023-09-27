@@ -249,19 +249,6 @@ func uint256MulDivMod(ids IdsManager, vm *VirtualMachine) error {
 	if err != nil {
 		return err
 	}
-	quotientLow, err := ids.GetUint256("quotient_low", vm)
-	if err != nil {
-		fmt.Pri
-		return err
-	}
-	quotientHigh, err := ids.GetUint256("quotient_high", vm)
-	if err != nil {
-		return err
-	}
-	remainder, err := ids.GetUint256("remainder", vm)
-	if err != nil {
-		return err
-	}
 
 	if div.ToBigInt().Cmp(big.NewInt(0)) == 0 {
 		return errors.Errorf("Attempted to divide by zero")
@@ -272,6 +259,9 @@ func uint256MulDivMod(ids IdsManager, vm *VirtualMachine) error {
 
 	maxU128, _ := new(big.Int).SetString("340282366920938463463374607431768211455", 10)
 
+	var quotientLow Uint256
+	var quotientHigh Uint256
+	var remainder Uint256
 	quotientLow.Low = FeltFromBigInt(new(big.Int).And(quotient, maxU128))                         // q & maxU128
 	quotientLow.High = FeltFromBigInt(new(big.Int).And(new(big.Int).Rsh(quotient, 128), maxU128)) // q >> 128 & maxU128
 	quotientHigh.Low = FeltFromBigInt(new(big.Int).And(new(big.Int).Rsh(quotient, 256), maxU128)) // q >> 256 & maxU128

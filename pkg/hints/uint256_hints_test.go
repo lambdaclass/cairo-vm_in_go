@@ -681,23 +681,30 @@ func TestUint256MulDivOk(t *testing.T) {
 		t.Errorf("failed with error: %s", err)
 	}
 
-	// quotient, err := idsManager.GetUint256("quotient", vm)
-	// if err != nil {
-	// 	t.Errorf("failed with error: %s", err)
-	// }
+	quotientLow, err := idsManager.GetUint256("quotient_low", vm)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+	expectedQuotientLow := Uint256{Low: FeltFromDecString("143276786071974089879315624181797141668"), High: FeltFromUint(4)}
+	if !quotientLow.IsEqual(expectedQuotientLow) {
+		t.Errorf("expected quotient_low: %s, got: %s", expectedQuotientLow.ToString(), quotientLow.ToString())
+	}
 
-	// expectedQuotient := Uint256{Low: FeltFromUint(10), High: FeltFromUint(0)}
-	// if quotient != expectedQuotient {
-	// 	t.Errorf("expected quotient: %s, got: %s", expectedQuotient.ToString(), quotient.ToString())
-	// }
+	quotientHigh, err := idsManager.GetUint256("quotient_high", vm)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+	expectedQuotientHigh := Uint256{Low: FeltFromUint(0), High: FeltFromUint(0)}
+	if !quotientHigh.IsEqual(expectedQuotientHigh) {
+		t.Errorf("expected quotient_high: %s, got: %s", expectedQuotientHigh.ToString(), quotientHigh.ToString())
+	}
 
-	// remainder, err := idsManager.GetUint256("remainder", vm)
-	// if err != nil {
-	// 	t.Errorf("failed with error: %s", err)
-	// }
-
-	// expectedRemainder := Uint256{Low: FeltFromUint(59), High: FeltFromUint(2)}
-	// if remainder != expectedRemainder {
-	// 	t.Errorf("expected remainder: %s, got: %s", expectedRemainder.ToString(), remainder.ToString())
-	// }
+	remainder, err := idsManager.GetUint256("remainder", vm)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+	expectedRemainder := Uint256{Low: FeltFromDecString("322372768661941702228460154409043568767"), High: FeltFromUint(101)}
+	if !remainder.IsEqual(expectedRemainder) {
+		t.Errorf("expected remainder: %s, got: %s", expectedRemainder.ToString(), remainder.ToString())
+	}
 }
