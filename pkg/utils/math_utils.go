@@ -100,5 +100,9 @@ func Igcdex(a *big.Int, b *big.Int) (*big.Int, *big.Int, *big.Int) {
 		return new(big.Int).Mul(x, xSign), new(big.Int).Mul(y, ySign), a
 
 	}
+}
 
+func IsEven(n *big.Int) bool {
+	res := new(big.Int).And(n, big.NewInt(1))
+	return res.Cmp(big.NewInt(0)) != 0
 }

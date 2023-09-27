@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
+	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
 	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
@@ -80,5 +81,35 @@ func divModNSafeDiv(ids IdsManager, scopes *ExecutionScopes, aAlias string, bAli
 	}
 	// Update scope
 	scopes.AssignOrUpdateVariable("value", *value)
+	return nil
+}
+
+func getPointFromX(ids IdsManager, vm *VirtualMachine, scopes *ExecutionScopes, constants *map[string]Felt) error {
+	// Handle scope & ids variables
+	secpP := SECP_P()
+	scopes.AssignOrUpdateVariable("SECP_P", secpP)
+	betaFelt, err := ids.GetConst("BETA", constants)
+	if err != nil {
+		return err
+	}
+	beta := new(big.Int).Mod(betaFelt.ToBigInt(), &secpP)
+	xCubeIntUnpacked, err := Uint384FromVarName("x_cube", ids, vm)
+	if err != nil {
+		return err
+	}
+	xCube := xCubeIntUnpacked.Pack86()
+	vFelt, err := ids.GetFelt("v", vm)
+	v := vFelt.ToBigInt()
+	if err != nil {
+		return err
+	}
+	// Hint logic
+	yCube := new(big.Int).Mod(new(big.Int).Mul(&xCube, beta), &secpP)
+	// y = (yCube ** ((SECP_P + 1) << 2)) % SECP_P
+	y := new(big.Int).Exp(yCube, new(big.Int).Rsh(new(big.Int).Add(&secpP, big.NewInt(1)), 2), &secpP)
+	if utils.IsEven(v) != utils.IsEven(y) {
+		y = new(big.Int).Sub(&secpP, y)
+	}
+	scopes.AssignOrUpdateVariable("value", *y)
 	return nil
 }
