@@ -280,3 +280,10 @@ func (r *RangeCheckBuiltinRunner) GetUsedInstances(segments *memory.MemorySegmen
 
 	return usedCells, nil
 }
+
+func (b *RangeCheckBuiltinRunner) GetMemorySegmentAddresses() (memory.Relocatable, memory.Relocatable, error) {
+	if b.StopPtr == nil {
+		return memory.Relocatable{}, memory.Relocatable{}, NewErrNoStopPointer(b.Name())
+	}
+	return b.base, memory.NewRelocatable(b.base.SegmentIndex, *b.StopPtr), nil
+}

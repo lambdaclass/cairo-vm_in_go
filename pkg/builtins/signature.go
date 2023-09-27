@@ -235,3 +235,10 @@ func (r *SignatureBuiltinRunner) GetUsedInstances(segments *memory.MemorySegment
 
 	return utils.DivCeil(usedCells, r.CellsPerInstance()), nil
 }
+
+func (b *SignatureBuiltinRunner) GetMemorySegmentAddresses() (memory.Relocatable, memory.Relocatable, error) {
+	if b.StopPtr == nil {
+		return memory.Relocatable{}, memory.Relocatable{}, NewErrNoStopPointer(b.Name())
+	}
+	return b.base, memory.NewRelocatable(b.base.SegmentIndex, *b.StopPtr), nil
+}

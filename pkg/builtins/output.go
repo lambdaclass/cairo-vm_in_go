@@ -133,3 +133,10 @@ func (r *OutputBuiltinRunner) GetUsedInstances(segments *memory.MemorySegmentMan
 
 	return usedCells, nil
 }
+
+func (b *OutputBuiltinRunner) GetMemorySegmentAddresses() (memory.Relocatable, memory.Relocatable, error) {
+	if b.StopPtr == nil {
+		return memory.Relocatable{}, memory.Relocatable{}, NewErrNoStopPointer(b.Name())
+	}
+	return b.base, memory.NewRelocatable(b.base.SegmentIndex, *b.StopPtr), nil
+}

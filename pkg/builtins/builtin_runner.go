@@ -58,7 +58,7 @@ type BuiltinRunner interface {
 	// // II. SECURITY (secure-run flag cairo-run || verify-secure flag run_from_entrypoint)
 	// RunSecurityChecks(*vm.VirtualMachine) error // verify_secure_runner logic
 	// // Returns the base & stop_ptr, stop_ptr can be nil
-	// GetMemorySegmentAddresses() (memory.Relocatable, *memory.Relocatable) //verify_secure_runner logic
+	GetMemorySegmentAddresses() (memory.Relocatable, memory.Relocatable, error)
 	// // III. STARKNET-SPECIFIC
 	GetUsedInstances(*memory.MemorySegmentManager) (uint, error)
 	// // IV. GENERAL CASE (but not critical)

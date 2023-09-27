@@ -14,5 +14,16 @@ Checks include:
 Note: Each builtin is responsible for checking its own segments' data.
 */
 func VerifySecureRunner(runner *CairoRunner, verifyBuiltins bool, programSegmentSize *uint) error {
+	// programSize := uint(len(runner.Program.Data))
+	// if programSegmentSize != nil {
+	// 	programSize = *programSegmentSize
+	// }
+	// builtinSegmentInfo := make(map[string]uint)
+	// if verifyBuiltins {
+	// 	for i := 0; i < len(runner.Vm.BuiltinRunners); i++ {
+	// 		info := runner.Vm.BuiltinRunners[i].GetSegmentInfo
+	// 	}
+	// }
+
 	return nil
 }
