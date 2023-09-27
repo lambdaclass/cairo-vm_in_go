@@ -1,8 +1,11 @@
 package builtins
 
 import (
+	"sort"
+
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	"github.com/pkg/errors"
@@ -259,4 +262,52 @@ func (b *BitwiseBuiltinRunner) GetMemorySegmentAddresses() (memory.Relocatable, 
 		return memory.Relocatable{}, memory.Relocatable{}, NewErrNoStopPointer(b.Name())
 	}
 	return b.base, memory.NewRelocatable(b.base.SegmentIndex, *b.StopPtr), nil
+}
+
+func (b *BitwiseBuiltinRunner) RunSecurityChecks(vm *vm.VirtualMachine) error {
+	cellsPerInstance := BITWISE_CELLS_PER_INSTANCE
+	nInputCells := BIWISE_INPUT_CELLS_PER_INSTANCE
+	builtinSegmentIndex := b.base.SegmentIndex
+
+	offsets := make([]int, 0)
+	// Find the max offset for the builtin's segment
+	for addr, _ := range vm.Segments.Memory.Data {
+		if addr.SegmentIndex == builtinSegmentIndex {
+			offsets = append(offsets, int(addr.Offset))
+		}
+	}
+	// Sort offsets for easier comparison
+	sort.Ints(offsets)
+	maxOffset := offsets[len(offsets)-1]
+
+	n := utils.DivCeil(uint(maxOffset), uint(cellsPerInstance)+1)
+	//Verify that n is not too large to make sure the expectedOffsets list that is constructed below is not too large.
+	if n > utils.DivCeil(uint(len(offsets)), uint(nInputCells)) {
+		return errors.Errorf("Missing memory cells for %s", b.Name())
+	}
+
+	// Check that the two inputs (x and y) of each instance are set.
+	expectedOffsets := make([]int, 0)
+	for i := 0; i < int(n); i++ {
+		for j := 0; j < nInputCells; j++ {
+			expectedOffsets = append(expectedOffsets, cellsPerInstance*i+j)
+		}
+	}
+	if len(offsets) < len(expectedOffsets) {
+		// Find the missing offsets
+		j := 0
+		missingOffsets := make([]int, 0)
+		for i := 0; i < len(expectedOffsets); i++ {
+			if expectedOffsets[i] < offsets[j] {
+				missingOffsets = append(missingOffsets, expectedOffsets[i])
+			} else {
+				j++
+			}
+		}
+		return errors.Errorf("Missing memory cells for builtin: %s: %v", b.Name(), missingOffsets)
+	}
+
+	//To be continued...
+
+	return nil
 }
