@@ -1,7 +1,7 @@
 package lambdaworks
 
 /*
-#cgo LDFLAGS: pkg/lambdaworks/lib/liblambdaworks.a -ldl
+#cgo LDFLAGS: pkg/lambdaworks/lib/liblambdaworks.a
 #include "lib/lambdaworks.h"
 #include <stdlib.h>
 */
@@ -59,6 +59,12 @@ func FeltFromUint64(value uint64) Felt {
 	return fromC(result)
 }
 
+func FeltFromUint(value uint) Felt {
+	var result C.felt_t
+	C.from_uint(&result[0], C.uint_t(value))
+	return fromC(result)
+}
+
 func FeltFromHex(value string) Felt {
 	cs := C.CString(value)
 	defer C.free(unsafe.Pointer(cs))
@@ -77,13 +83,22 @@ func FeltFromDecString(value string) Felt {
 	return fromC(result)
 }
 
-// turns a felt to usize
+// turns a felt to u64
 func (felt Felt) ToU64() (uint64, error) {
 	if felt.limbs[0] == 0 && felt.limbs[1] == 0 && felt.limbs[2] == 0 {
 		return uint64(felt.limbs[3]), nil
 	} else {
 		return 0, ConversionError(felt, "u64")
 	}
+}
+
+// turns a felt to usize
+func (felt Felt) ToUint() (uint, error) {
+	felt_u64, err := felt.ToU64()
+	if err != nil {
+		return 0, ConversionError(felt, "uint")
+	}
+	return uint(felt_u64), nil
 }
 
 func (felt Felt) ToLeBytes() *[32]byte {
@@ -294,10 +309,9 @@ func FeltFromBigInt(n *big.Int) Felt {
 	if n.Cmp(prime) != -1 {
 		n = new(big.Int).Mod(n, prime)
 	}
-	bytes := n.Bytes()
-	var bytes32 [32]byte
-	copy(bytes32[:], bytes)
-	return FeltFromLeBytes(&bytes32)
+
+	value := n.Text(10)
+	return FeltFromDecString(value)
 }
 
 const CAIRO_PRIME_HEX = "0x800000000000011000000000000000000000000000000000000000000000001"

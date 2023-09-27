@@ -247,7 +247,7 @@ func (vm *VirtualMachine) OpcodeAssertions(instruction Instruction, operands Ope
 			return &VirtualMachineError{"UnconstrainedResAssertEq"}
 		}
 		if !operands.Res.IsEqual(&operands.Dst) {
-			return &VirtualMachineError{"DiffAssertValues"}
+			return &VirtualMachineError{fmt.Sprintf("An ASSERT_EQ instruction failed: %s != %s.", operands.Res.ToString(), operands.Dst.ToString())}
 		}
 	case Call:
 		new_rel := vm.RunContext.Pc.AddUint(instruction.Size())
@@ -324,11 +324,13 @@ func (vm *VirtualMachine) DeduceOp1(instruction *Instruction, dst *memory.MaybeR
 				return &dst_rel, dst, nil
 			}
 		case ResMul:
-			dst_felt, dst_is_felt := dst.GetFelt()
-			op0_felt, op0_is_felt := op0.GetFelt()
-			if dst_is_felt && op0_is_felt && !op0_felt.IsZero() {
-				res := memory.NewMaybeRelocatableFelt(dst_felt.Div(op0_felt))
-				return res, dst, nil
+			if op0 != nil && dst != nil {
+				dst_felt, dst_is_felt := dst.GetFelt()
+				op0_felt, op0_is_felt := op0.GetFelt()
+				if dst_is_felt && op0_is_felt && !op0_felt.IsZero() {
+					res := memory.NewMaybeRelocatableFelt(dst_felt.Div(op0_felt))
+					return res, dst, nil
+				}
 			}
 		}
 	}

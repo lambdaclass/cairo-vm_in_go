@@ -520,6 +520,14 @@ func TestDeduceMemoryCellNoBuiltins(t *testing.T) {
 	}
 }
 
+func TestRelocateTraceWithoutRelocatingTrace(t *testing.T) {
+	virtualMachine := vm.NewVirtualMachine()
+	_, err := virtualMachine.GetRelocatedTrace()
+	if err == nil {
+		t.Fatalf("GetRelocatedTrace should have failed")
+	}
+}
+
 func TestRelocateTraceOneEntry(t *testing.T) {
 	virtualMachine := vm.NewVirtualMachine()
 	buildTestProgramMemory(virtualMachine)
@@ -615,7 +623,7 @@ func TestOpcodeAssertionsInstructionFailed(t *testing.T) {
 
 	testVm := vm.NewVirtualMachine()
 	err := testVm.OpcodeAssertions(instruction, operands)
-	if err.Error() != "DiffAssertValues" {
+	if err == nil {
 		t.Error("Assertion should error out with DiffAssertValues")
 	}
 
@@ -645,7 +653,7 @@ func TestOpcodeAssertionsInstructionFailedRelocatables(t *testing.T) {
 
 	testVm := vm.NewVirtualMachine()
 	err := testVm.OpcodeAssertions(instruction, operands)
-	if err.Error() != "DiffAssertValues" {
+	if err == nil {
 		t.Error("Assertion should error out with DiffAssertValues")
 	}
 }

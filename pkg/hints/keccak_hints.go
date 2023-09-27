@@ -1,7 +1,10 @@
 package hints
 
 import (
+	"math"
+
 	"github.com/ebfe/keccak"
+	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
@@ -116,4 +119,139 @@ func unsafeKeccakFinalize(ids IdsManager, vm *VirtualMachine) error {
 		return err
 	}
 	return ids.Insert("low", NewMaybeRelocatableFelt(low), vm)
+}
+
+func compareBytesInWordNondet(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt) error {
+	nBytes, err := ids.GetFelt("n_bytes", vm)
+	if err != nil {
+		return err
+	}
+	bytesInWord, err := ids.GetConst("BYTES_IN_WORD", constants)
+	if nBytes.Cmp(bytesInWord) == -1 {
+		return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltOne()))
+	}
+	return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltZero()))
+}
+
+func compareKeccakFullRateInBytesNondet(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt) error {
+	nBytes, err := ids.GetFelt("n_bytes", vm)
+	if err != nil {
+		return err
+	}
+	bytesInWord, err := ids.GetConst("KECCAK_FULL_RATE_IN_BYTES", constants)
+	if nBytes.Cmp(bytesInWord) != -1 {
+		return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltOne()))
+	}
+	return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltZero()))
+}
+
+func blockPermutation(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt) error {
+	const KECCAK_SIZE = 25
+	keccakStateSizeFeltsFelt, err := ids.GetConst("KECCAK_STATE_SIZE_FELTS", constants)
+	if err != nil {
+		return err
+	}
+	if keccakStateSizeFeltsFelt.Cmp(FeltFromUint64(KECCAK_SIZE)) != 0 {
+		return errors.New("Assertion failed: _keccak_state_size_felts == 25")
+	}
+
+	keccakPtr, err := ids.GetRelocatable("keccak_ptr", vm)
+	if err != nil {
+		return err
+	}
+	startPtr, err := keccakPtr.SubUint(KECCAK_SIZE)
+	if err != nil {
+		return err
+	}
+	inputFelt, err := vm.Segments.GetFeltRange(startPtr, KECCAK_SIZE)
+	if err != nil {
+		return err
+	}
+
+	var inputU64 [KECCAK_SIZE]uint64
+	for i := 0; i < KECCAK_SIZE; i++ {
+		val, err := inputFelt[i].ToU64()
+		if err != nil {
+			return err
+		}
+		inputU64[i] = val
+	}
+
+	builtins.KeccakF1600(&inputU64)
+
+	output := make([]MaybeRelocatable, 0, KECCAK_SIZE)
+	for i := 0; i < KECCAK_SIZE; i++ {
+		output = append(output, *NewMaybeRelocatableFelt(FeltFromUint64(inputU64[i])))
+	}
+
+	_, err = vm.Segments.LoadData(keccakPtr, &output)
+	return err
+}
+
+func cairoKeccakFinalize(ids IdsManager, vm *VirtualMachine, constants *map[string]Felt, blockSizeLimit uint64) error {
+	const KECCAK_SIZE = 25
+	keccakStateSizeFeltsFelt, err := ids.GetConst("KECCAK_STATE_SIZE_FELTS", constants)
+	if err != nil {
+		return err
+	}
+	if keccakStateSizeFeltsFelt.Cmp(FeltFromUint64(KECCAK_SIZE)) != 0 {
+		return errors.New("Assertion failed: _keccak_state_size_felts == 25")
+	}
+
+	blockSizeFelt, err := ids.GetConst("BLOCK_SIZE", constants)
+	if err != nil {
+		return err
+	}
+	if blockSizeFelt.Cmp(FeltFromUint64(blockSizeLimit)) != -1 {
+		return errors.Errorf("assert 0 <= _block_size < %d", blockSizeLimit)
+	}
+	blockSize, _ := blockSizeFelt.ToU64()
+	var input [KECCAK_SIZE]uint64
+	builtins.KeccakF1600(&input)
+	padding := make([]MaybeRelocatable, 0, KECCAK_SIZE*2*blockSize)
+	for i := 0; i < KECCAK_SIZE; i++ {
+		padding = append(padding, *NewMaybeRelocatableFelt(FeltZero()))
+	}
+	for i := 0; i < KECCAK_SIZE; i++ {
+		padding = append(padding, *NewMaybeRelocatableFelt(FeltFromUint64(input[i])))
+	}
+	for i := 1; i < int(blockSize); i++ {
+		padding = append(padding, padding[:50]...)
+	}
+	keccakEndPtr, err := ids.GetRelocatable("keccak_ptr_end", vm)
+	if err != nil {
+		return err
+	}
+	_, err = vm.Segments.LoadData(keccakEndPtr, &padding)
+	return err
+}
+
+func keccakWriteArgs(ids IdsManager, vm *VirtualMachine) error {
+	inputs, err := ids.GetRelocatable("inputs", vm)
+	if err != nil {
+		return err
+	}
+	low, err := ids.GetFelt("low", vm)
+	if err != nil {
+		return err
+	}
+	high, err := ids.GetFelt("high", vm)
+	if err != nil {
+		return err
+	}
+	low_args := []MaybeRelocatable{
+		*NewMaybeRelocatableFelt(low.And(FeltFromUint64(math.MaxUint64))),
+		*NewMaybeRelocatableFelt(low.Shr(64)),
+	}
+	high_args := []MaybeRelocatable{
+		*NewMaybeRelocatableFelt(high.And(FeltFromUint64(math.MaxUint64))),
+		*NewMaybeRelocatableFelt(high.Shr(64)),
+	}
+
+	inputs, err = vm.Segments.LoadData(inputs, &low_args)
+	if err != nil {
+		return err
+	}
+	_, err = vm.Segments.LoadData(inputs, &high_args)
+	return err
 }

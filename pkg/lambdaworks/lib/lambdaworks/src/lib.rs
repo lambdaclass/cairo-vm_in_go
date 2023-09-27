@@ -61,6 +61,11 @@ pub extern "C" fn from(result: Limbs, value: u64) {
 }
 
 #[no_mangle]
+pub extern "C" fn from_uint(result: Limbs, value: usize) {
+    felt_to_limbs(Felt::from(value as u64), result);
+}
+
+#[no_mangle]
 pub extern "C" fn from_hex(result: Limbs, value: *const libc::c_char) {
     let val_cstr = unsafe { core::ffi::CStr::from_ptr(value) };
     let value = val_cstr.to_str().unwrap();
