@@ -144,9 +144,9 @@ func (r *CairoRunner) initializeState(entrypoint uint, stack *[]memory.MaybeRelo
 
 // Initializes memory, initial register values & returns the end pointer (final pc) to run from a given pc offset
 // (entrypoint)
-func (r *CairoRunner) initializeFunctionEntrypoint(entrypoint uint, stack *[]memory.MaybeRelocatable, return_fp memory.Relocatable) (memory.Relocatable, error) {
+func (r *CairoRunner) initializeFunctionEntrypoint(entrypoint uint, stack *[]memory.MaybeRelocatable, return_fp memory.MaybeRelocatable) (memory.Relocatable, error) {
 	end := r.Vm.Segments.AddSegment()
-	*stack = append(*stack, *memory.NewMaybeRelocatableRelocatable(return_fp), *memory.NewMaybeRelocatableRelocatable(end))
+	*stack = append(*stack, return_fp, *memory.NewMaybeRelocatableRelocatable(end))
 	r.initialFp = r.executionBase
 	r.initialFp.Offset += uint(len(*stack))
 	r.initialAp = r.initialFp
@@ -188,7 +188,7 @@ func (r *CairoRunner) initializeMainEntrypoint() (memory.Relocatable, error) {
 		return memory.NewRelocatable(r.ProgramBase.SegmentIndex, r.ProgramBase.Offset+r.Program.End), nil
 	}
 
-	return_fp := r.Vm.Segments.AddSegment()
+	return_fp := *memory.NewMaybeRelocatableRelocatable(r.Vm.Segments.AddSegment())
 	return r.initializeFunctionEntrypoint(r.mainOffset, &stack, return_fp)
 }
 
@@ -582,6 +582,34 @@ func (runner *CairoRunner) GetExecutionResources() (ExecutionResources, error) {
 	}, nil
 }
 
-func (runner *CairoRunner) RunFromEntrypoint(entrypoint uint, args []any) error {
+// TODO: Add secure_run flag once its implemented
+// Each arg can be either MaybeRelocatable, []MaybeRelocatable or [][]MaybeRelocatable
+func (runner *CairoRunner) RunFromEntrypoint(entrypoint uint, args []any, hintProcessor vm.HintProcessor) error {
+	stack := make([]memory.MaybeRelocatable, 0)
+	for _, arg := range args {
+		val, err := runner.Vm.Segments.GenArg(arg)
+		if err != nil {
+			return err
+		}
+		stack = append(stack, val)
+	}
+	returnFp := *memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero())
+	end, err := runner.initializeFunctionEntrypoint(entrypoint, &stack, returnFp)
+	if err != nil {
+		return err
+	}
+	err = runner.initializeVM()
+	if err != nil {
+		return err
+	}
+	err = runner.RunUntilPC(end, hintProcessor)
+	if err != nil {
+		return err
+	}
+	err = runner.EndRun(false, false, hintProcessor)
+	if err != nil {
+		return err
+	}
+	// TODO: verifySecureRunner
 	return nil
 }
