@@ -164,7 +164,7 @@ func TestGetPointFromXNegativeY(t *testing.T) {
 	idsManager := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
 			"v": {
-				NewMaybeRelocatableFelt(FeltZero()),
+				NewMaybeRelocatableFelt(FeltOne()),
 			},
 			"x_cube": {
 				NewMaybeRelocatableFelt(FeltFromUint64(2147483647)),
