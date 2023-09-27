@@ -4,7 +4,6 @@ import (
 	"math/big"
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
-	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
@@ -131,7 +130,7 @@ func uint256Sqrt(ids IdsManager, vm *VirtualMachine, onlyLow bool) error {
 	if onlyLow {
 		return ids.Insert("root", NewMaybeRelocatableFelt(feltRoot), vm)
 	} else {
-		return ids.InsertUint256("root", lambdaworks.Uint256{Low: feltRoot, High: FeltZero()}, vm)
+		return ids.InsertUint256("root", Uint256{Low: feltRoot, High: FeltZero()}, vm)
 	}
 }
 

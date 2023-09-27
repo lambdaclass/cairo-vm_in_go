@@ -76,16 +76,16 @@ func (ids *IdsManager) GetFelt(name string, vm *VirtualMachine) (lambdaworks.Fel
 	return felt, nil
 }
 
-func (ids *IdsManager) GetUint256(name string, vm *VirtualMachine) (lambdaworks.Uint256, error) {
+func (ids *IdsManager) GetUint256(name string, vm *VirtualMachine) (Uint256, error) {
 	low, err := ids.GetStructFieldFelt(name, 0, vm)
 	if err != nil {
-		return lambdaworks.Uint256{}, err
+		return Uint256{}, err
 	}
 	high, err := ids.GetStructFieldFelt(name, 1, vm)
 	if err != nil {
-		return lambdaworks.Uint256{}, err
+		return Uint256{}, err
 	}
-	return lambdaworks.Uint256{Low: low, High: high}, nil
+	return Uint256{Low: low, High: high}, nil
 }
 
 // Returns the value of an identifier as a Relocatable
@@ -230,7 +230,7 @@ func (ids *IdsManager) InsertStructField(name string, field_off uint, value *May
 }
 
 // Inserts Uint256 value into an ids field (given the identifier is a Uint256)
-func (ids *IdsManager) InsertUint256(name string, val lambdaworks.Uint256, vm *VirtualMachine) error {
+func (ids *IdsManager) InsertUint256(name string, val Uint256, vm *VirtualMachine) error {
 	err := ids.InsertStructField(name, 0, NewMaybeRelocatableFelt(val.Low), vm)
 	if err != nil {
 		return err

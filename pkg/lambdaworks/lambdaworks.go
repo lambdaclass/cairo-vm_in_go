@@ -26,11 +26,6 @@ type Felt struct {
 	limbs [N_LIMBS_IN_FELT]Limb
 }
 
-type Uint256 struct {
-	Low  Felt
-	High Felt
-}
-
 func LambdaworksError(err error) error {
 	return errors.Wrapf(err, "Lambdaworks Error")
 }
@@ -368,34 +363,4 @@ func (a Felt) Cmp(b Felt) int {
 	var a_c C.felt_t = a.toC()
 	var b_c C.felt_t = b.toC()
 	return int(C.cmp(&a_c[0], &b_c[0]))
-}
-
-func (ui256 *Uint256) ToString() string {
-	return "Uint256 {low: " + ui256.Low.ToSignedFeltString() + ", high: " + ui256.High.ToSignedFeltString() + "}"
-}
-
-/*
-Returns a Uint256 as a big.Int
-
-	res = high << 128 + low
-*/
-func (ui256 *Uint256) ToBigInt() *big.Int {
-	high := new(big.Int).Lsh(ui256.High.ToBigInt(), 128)
-	low := ui256.Low.ToBigInt()
-	res := new(big.Int).Add(high, low)
-	return res
-}
-
-/*
-Returns a big.Int as Uint256
-*/
-func ToUint256(a *big.Int) Uint256 {
-	maxU128, _ := new(big.Int).SetString("340282366920938463463374607431768211455", 10)
-	low := new(big.Int).And(a, maxU128)
-	high := new(big.Int).Rsh(a, 128)
-	return Uint256{Low: FeltFromBigInt(low), High: FeltFromBigInt(high)}
-}
-
-func (u *Uint256) IsEqual(other Uint256) bool {
-	return u.Low.Cmp(other.Low) == 0 && u.High.Cmp(other.High) == 0
 }
