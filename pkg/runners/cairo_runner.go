@@ -581,3 +581,7 @@ func (runner *CairoRunner) GetExecutionResources() (ExecutionResources, error) {
 		BuiltinsInstanceCounter: builtinInstaceCounter,
 	}, nil
 }
+
+func (runner *CairoRunner) RunFromEntrypoint(entrypoint uint, args []any) error {
+	return nil
+}
