@@ -121,9 +121,7 @@ func uint256Sqrt(ids IdsManager, vm *VirtualMachine, onlyLow bool) error {
 	if err != nil {
 		return err
 	}
-	bHigh := new(big.Int).Lsh(uintN.High.ToBigInt(), 128)
-	bLow := uintN.Low.ToBigInt()
-	n := new(big.Int).Add(bHigh, bLow)
+	n := uintN.ToBigInt()
 	root := new(big.Int).Sqrt(n)
 	if root.BitLen() > 128 {
 		return ErrRootOOR(root)
