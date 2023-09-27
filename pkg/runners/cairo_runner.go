@@ -582,8 +582,13 @@ func (runner *CairoRunner) GetExecutionResources() (ExecutionResources, error) {
 	}, nil
 }
 
-// TODO: Add secure_run flag once its implemented
-// Each arg can be either MaybeRelocatable, []MaybeRelocatable or [][]MaybeRelocatable
+// TODO: Add verifySecure once its implemented
+/*
+Runs a cairo program from a give entrypoint, indicated by its pc offset, with the given arguments.
+If `verifySecure` is set to true, [verifySecureRunner] will be called to run extra verifications.
+`programSegmentSize` is only used by the [verifySecureRunner] function and will be ignored if `verifySecure` is set to false.
+Each arg can be either MaybeRelocatable, []MaybeRelocatable or [][]MaybeRelocatable
+*/
 func (runner *CairoRunner) RunFromEntrypoint(entrypoint uint, args []any, hintProcessor vm.HintProcessor) error {
 	stack := make([]memory.MaybeRelocatable, 0)
 	for _, arg := range args {

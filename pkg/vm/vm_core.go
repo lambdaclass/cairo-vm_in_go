@@ -643,6 +643,7 @@ func (vm *VirtualMachine) GetRangeCheckBound() (lambdaworks.Felt, error) {
 	return rcBuiltin.Bound(), nil
 }
 
+// Gets `nRet` return values from memory
 func (vm *VirtualMachine) GetReturnValues(nRet uint) ([]memory.MaybeRelocatable, error) {
 	ptr, err := vm.RunContext.Ap.SubUint(nRet)
 	if err != nil {
