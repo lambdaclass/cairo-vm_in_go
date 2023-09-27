@@ -323,7 +323,7 @@ func TestUint256SqrtOk(t *testing.T) {
 				NewMaybeRelocatableFelt(FeltFromUint64(17)),
 				NewMaybeRelocatableFelt(FeltFromUint64(7)),
 			},
-			"root": {nil},
+			"root": {nil, nil},
 		},
 		vm,
 	)
