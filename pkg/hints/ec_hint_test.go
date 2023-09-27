@@ -260,7 +260,9 @@ func TestRunComputeSlopeV2Ok(t *testing.T) {
 				NewMaybeRelocatableFelt(FeltFromUint64(1)),
 				NewMaybeRelocatableFelt(FeltFromUint64(7)),
 				NewMaybeRelocatableFelt(FeltFromUint64(465)),
-			}})
+			},
+		},
+		vm)
 
 	hintProcessor := CairoVmHintProcessor{}
 	hintData := any(HintData{
