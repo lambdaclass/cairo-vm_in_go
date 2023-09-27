@@ -710,3 +710,19 @@ func TestCheckUsedCellsDilutedCheckUsageError(t *testing.T) {
 		t.Errorf("Check Used Cells Should Have failed With Insufficient Allocated Cells Error")
 	}
 }
+
+func TestRunFibonacciGetExecutionResources(t *testing.T) {
+	cairoRunConfig := cairo_run.CairoRunConfig{Layout: "all_cairo", ProofMode: false}
+	runner, err := cairo_run.CairoRun("../../cairo_programs/fibonacci.json", cairoRunConfig)
+	if err != nil {
+		t.Errorf("Program execution failed with error: %s", err)
+	}
+	expectedExecutionResources := runners.ExecutionResources{
+		NSteps:                  80,
+		BuiltinsInstanceCounter: make(map[string]uint),
+	}
+	executionResources, _ := runner.GetExecutionResources()
+	if !reflect.DeepEqual(executionResources, expectedExecutionResources) {
+		t.Errorf("Wong ExecutionResources.\n Expected : %+v, got: %+v", expectedExecutionResources, executionResources)
+	}
+}
