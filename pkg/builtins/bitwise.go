@@ -298,15 +298,21 @@ func (b *BitwiseBuiltinRunner) RunSecurityChecks(segments *memory.MemorySegmentM
 			expectedOffsets = append(expectedOffsets, cellsPerInstance*i+j)
 		}
 	}
-	// Find the missing offsets
-	j := 0
+	// Find the missing offsets (offsets in expectedOffsets but not in offsets)
 	missingOffsets := make([]int, 0)
-	for i := 0; i < len(expectedOffsets); i++ {
+	j := 0
+	i := 0
+	for i < len(expectedOffsets) && j < len(offsets) {
 		if expectedOffsets[i] < offsets[j] {
 			missingOffsets = append(missingOffsets, expectedOffsets[i])
 		} else {
 			j++
 		}
+		i++
+	}
+	for i < len(expectedOffsets) {
+		missingOffsets = append(missingOffsets, expectedOffsets[i])
+		i++
 	}
 	if len(missingOffsets) != 0 {
 		return errors.Errorf("Missing memory cells for builtin: %s: %v", b.Name(), missingOffsets)
