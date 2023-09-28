@@ -298,19 +298,20 @@ func (b *BitwiseBuiltinRunner) RunSecurityChecks(segments *memory.MemorySegmentM
 			expectedOffsets = append(expectedOffsets, cellsPerInstance*i+j)
 		}
 	}
-	if len(offsets) < len(expectedOffsets) {
-		// Find the missing offsets
-		j := 0
-		missingOffsets := make([]int, 0)
-		for i := 0; i < len(expectedOffsets); i++ {
-			if expectedOffsets[i] < offsets[j] {
-				missingOffsets = append(missingOffsets, expectedOffsets[i])
-			} else {
-				j++
-			}
+	// Find the missing offsets
+	j := 0
+	missingOffsets := make([]int, 0)
+	for i := 0; i < len(expectedOffsets); i++ {
+		if expectedOffsets[i] < offsets[j] {
+			missingOffsets = append(missingOffsets, expectedOffsets[i])
+		} else {
+			j++
 		}
+	}
+	if len(missingOffsets) != 0 {
 		return errors.Errorf("Missing memory cells for builtin: %s: %v", b.Name(), missingOffsets)
 	}
+
 	// Verify auto deduction rules for the unassigned output cells.
 	// Assigned output cells are checked as part of the call to VerifyAutoDeductions().
 	for i := uint(0); i < n; i++ {

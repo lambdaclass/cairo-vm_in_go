@@ -191,3 +191,26 @@ func TestRunSecurityChecksEmptyMemory(t *testing.T) {
 		t.Errorf("RunSecurityChecks failed with error: %s", err.Error())
 	}
 }
+
+func TestRunSecurityChecksMissingMemoryCells(t *testing.T) {
+	builtin := builtins.NewBitwiseBuiltinRunner(256)
+	segments := memory.NewMemorySegmentManager()
+
+	builtin.InitializeSegments(&segments)
+	builtinBase := builtin.Base()
+	// A bitwise cell consists of 5 elements: 2 input cells & 3 output cells
+	// In this test we insert cells 4-5 and leave the first input cell empty
+	// This will fail the security checks, as the memory cell with offset 0 will be missing
+	builtinSegment := []memory.MaybeRelocatable{
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint(1)),
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint(2)),
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint(3)),
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint(4)),
+	}
+	segments.LoadData(builtinBase.AddUint(1), &builtinSegment)
+
+	err := builtin.RunSecurityChecks(&segments)
+	if err == nil {
+		t.Errorf("RunSecurityChecks should have failed")
+	}
+}
