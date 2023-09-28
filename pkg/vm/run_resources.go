@@ -13,7 +13,7 @@ func (r *RunResources) Consumed() bool {
 }
 
 func (r *RunResources) ConsumeStep() {
-	if r.nSteps != nil {
+	if r.nSteps != nil && *r.nSteps != 0 {
 		*r.nSteps--
 	}
 }
