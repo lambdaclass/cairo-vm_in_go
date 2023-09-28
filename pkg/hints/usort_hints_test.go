@@ -14,7 +14,7 @@ import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
-func TestReverseFeltArray(t *testing.T) {
+func TestSortFeltArray(t *testing.T) {
 	array := []lambdaworks.Felt{lambdaworks.FeltFromUint(6), lambdaworks.FeltFromUint(0), lambdaworks.FeltFromUint(100), lambdaworks.FeltFromUint(1), lambdaworks.FeltFromUint(50)}
 
 	sort.Sort(SortFelt(array))

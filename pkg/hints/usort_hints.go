@@ -186,7 +186,7 @@ func usortVerifyMultiplicityAssert(executionScopes *types.ExecutionScopes) error
 	}
 
 	if len(positions) != 0 {
-		return errors.New("unexpected verify multiplicity fail: positions length != 0")
+		return errors.New("Assertion failed: len(positions) == 0")
 	}
 
 	return nil
