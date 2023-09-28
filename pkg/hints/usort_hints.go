@@ -111,7 +111,11 @@ func usortBody(ids IdsManager, executionScopes *types.ExecutionScopes, vm *Virtu
 	output_base := vm.Segments.AddSegment()
 
 	for i := range output {
-		vm.Segments.Memory.Insert(output_base.AddUint(uint(i)), memory.NewMaybeRelocatableFelt(output[i]))
+		err = vm.Segments.Memory.Insert(output_base.AddUint(uint(i)), memory.NewMaybeRelocatableFelt(output[i]))
+
+		if err != nil {
+			return err
+		}
 	}
 
 	multiplicities_base := vm.Segments.AddSegment()
@@ -123,7 +127,11 @@ func usortBody(ids IdsManager, executionScopes *types.ExecutionScopes, vm *Virtu
 	}
 
 	for i := range multiplicities {
-		vm.Segments.Memory.Insert(multiplicities_base.AddUint(uint(i)), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(multiplicities[i])))
+		err = vm.Segments.Memory.Insert(multiplicities_base.AddUint(uint(i)), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(multiplicities[i])))
+
+		if err != nil {
+			return err
+		}
 	}
 
 	err = ids.Insert("output", memory.NewMaybeRelocatableRelocatable(output_base), vm)
