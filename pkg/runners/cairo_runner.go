@@ -238,6 +238,9 @@ func (r *CairoRunner) RunUntilPC(end memory.Relocatable, hintProcessor vm.HintPr
 			r.Vm.RunResources.ConsumeStep()
 		}
 	}
+	if r.Vm.RunContext.Pc != end {
+		return errors.New("Could not reach the end of the program. RunResources has no remaining steps.")
+	}
 	return nil
 }
 
