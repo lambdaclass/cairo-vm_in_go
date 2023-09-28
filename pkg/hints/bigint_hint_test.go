@@ -125,7 +125,6 @@ func TestSafeDivBigInt(t *testing.T) {
 		if err != nil {
 			t.Errorf("%s", err)
 		}
-
 		value, _ := valUncast.(big.Int)
 
 		if expectedK.Cmp(&k) != 0 {

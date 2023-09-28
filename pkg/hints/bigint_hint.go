@@ -2,7 +2,6 @@ package hints
 
 import (
 	"errors"
-	"fmt"
 	"math/big"
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
@@ -64,7 +63,7 @@ func NondetBigInt3(vm VirtualMachine, execScopes ExecutionScopes, idsData IdsMan
 /// ids.flag = 1 if k > 0 else 0
 /// ```
 
-func SafeDivBigint(vm VirtualMachine, execScopes ExecutionScopes, idsData IdsManager) error {
+func SafeDivBigint(vm *VirtualMachine, execScopes *ExecutionScopes, idsData IdsManager) error {
 	resUncast, err := execScopes.Get("res")
 	if err != nil {
 		return err
@@ -104,9 +103,7 @@ func SafeDivBigint(vm VirtualMachine, execScopes ExecutionScopes, idsData IdsMan
 	param_x := new(big.Int).Mul(&res, &y)
 	param_x.Sub(param_x, &x)
 
-	fmt.Println("param x: ",param_x)
 	k, err := SafeDivBig(param_x, &p)
-	fmt.Println("k", k)
 	if err != nil {
 		return err
 	}
@@ -123,11 +120,11 @@ func SafeDivBigint(vm VirtualMachine, execScopes ExecutionScopes, idsData IdsMan
 		flag = lambdaworks.FeltFromUint(0)
 	}
 
-	execScopes.AssignOrUpdateVariable("k", k)
+	execScopes.AssignOrUpdateVariable("k", *k)
 	execScopes.AssignOrUpdateVariable("value", value)
 
 	val := memory.NewMaybeRelocatableFelt(flag)
-	idsData.Insert("flag", val, &vm)
+	idsData.Insert("flag", val, vm)
 
 	return nil
 }
