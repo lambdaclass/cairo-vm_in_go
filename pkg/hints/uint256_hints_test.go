@@ -313,6 +313,52 @@ func TestSplit64Ok(t *testing.T) {
 
 }
 
+func TestSplit64BigA(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"a": {
+				NewMaybeRelocatableFelt(FeltFromDecString("400066369019890261321163226850167045262")),
+			},
+			"low":  {nil},
+			"high": {nil},
+		},
+		vm,
+	)
+
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: SPLIT_64,
+	})
+	scopes := NewExecutionScopes()
+	hintProcessor := CairoVmHintProcessor{}
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+
+	low, err := idsManager.GetFelt("low", vm)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+
+	expected_low := FeltFromUint64(2279400676465785998)
+	if low.Cmp(expected_low) != 0 {
+		t.Errorf("expected low: %d, got: %d", expected_low, low)
+	}
+	high, err := idsManager.GetFelt("high", vm)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+	expected_high := FeltFromDecString("21687641321487626429")
+	if high.Cmp(expected_high) != 0 {
+		t.Errorf("expected high: %d, got: %d", expected_high, high)
+	}
+
+}
+
 func TestUint256SqrtOk(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()
