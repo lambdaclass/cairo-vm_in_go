@@ -235,3 +235,46 @@ func TestRunSecurityChecksMissingMemoryCellsNCheck(t *testing.T) {
 		t.Errorf("RunSecurityChecks should have failed")
 	}
 }
+
+func TestRunSecurityChecksValidateOutputCellsNotDeducedOk(t *testing.T) {
+	builtin := builtins.NewBitwiseBuiltinRunner(256)
+	segments := memory.NewMemorySegmentManager()
+
+	builtin.InitializeSegments(&segments)
+	builtinBase := builtin.Base()
+	// A bitwise cell consists of 5 elements: 2 input cells & 3 output cells
+	// In this test we insert the input cells (1-2), but not the output cells (3-5)
+	// This will cause the security checks to run the auto-deductions for those output cells
+	builtinSegment := []memory.MaybeRelocatable{
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint(1)),
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint(2)),
+	}
+	segments.LoadData(builtinBase, &builtinSegment)
+
+	err := builtin.RunSecurityChecks(&segments)
+	if err != nil {
+		t.Errorf("RunSecurityChecks failed with error: %s", err.Error())
+	}
+}
+
+func TestRunSecurityChecksValidateOutputCellsNotDeducedErr(t *testing.T) {
+	builtin := builtins.NewBitwiseBuiltinRunner(256)
+	segments := memory.NewMemorySegmentManager()
+
+	builtin.InitializeSegments(&segments)
+	builtinBase := builtin.Base()
+	// A bitwise cell consists of 5 elements: 2 input cells & 3 output cells
+	// In this test we insert the input cells (1-2), but not the output cells (3-5)
+	// This will cause the security checks to run the auto-deductions for those output cells
+	// As we inserted an invalid value (PRIME -1) on the first input cell, this deduction will fail
+	builtinSegment := []memory.MaybeRelocatable{
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromDecString("-1")),
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint(2)),
+	}
+	segments.LoadData(builtinBase, &builtinSegment)
+
+	err := builtin.RunSecurityChecks(&segments)
+	if err == nil {
+		t.Errorf("RunSecurityChecks should have failed")
+	}
+}
