@@ -228,10 +228,14 @@ func (r *CairoRunner) RunUntilPC(end memory.Relocatable, hintProcessor vm.HintPr
 		return err
 	}
 	constants := r.Program.ExtractConstants()
-	for r.Vm.RunContext.Pc != end {
+	for r.Vm.RunContext.Pc != end &&
+		(r.Vm.RunResources == nil || !r.Vm.RunResources.Consumed()) {
 		err := r.Vm.Step(hintProcessor, &hintDataMap, &constants, &r.execScopes)
 		if err != nil {
 			return err
+		}
+		if r.Vm.RunResources != nil {
+			r.Vm.RunResources.ConsumeStep()
 		}
 	}
 	return nil
@@ -588,7 +592,8 @@ If `verifySecure` is set to true, [verifySecureRunner] will be called to run ext
 `programSegmentSize` is only used by the [verifySecureRunner] function and will be ignored if `verifySecure` is set to false.
 Each arg can be either MaybeRelocatable, []MaybeRelocatable or [][]MaybeRelocatable
 */
-func (runner *CairoRunner) RunFromEntrypoint(entrypoint uint, args []any, hintProcessor vm.HintProcessor, verifySecure bool, programSegmentSize *uint) error {
+func (runner *CairoRunner) RunFromEntrypoint(entrypoint uint, args []any, hintProcessor vm.HintProcessor, runResources *vm.RunResources, verifySecure bool, programSegmentSize *uint) error {
+	runner.Vm.RunResources = runResources
 	stack := make([]memory.MaybeRelocatable, 0)
 	for _, arg := range args {
 		val, err := runner.Vm.Segments.GenArg(arg)
