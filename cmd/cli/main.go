@@ -17,7 +17,14 @@ func handleCommands(ctx *cli.Context) error {
 		layout = "plain"
 	}
 
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, ProofMode: ctx.Bool("proof_mode"), Layout: layout}
+	proofMode := ctx.Bool("proof_mode")
+
+	secureRun := !proofMode
+	if ctx.Bool("secure_run") {
+		secureRun = true
+	}
+
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, ProofMode: proofMode, Layout: layout, SecureRun: secureRun}
 
 	cairoRunner, err := cairo_run.CairoRun(programPath, cairoRunConfig)
 	if err != nil {
@@ -50,6 +57,11 @@ func main() {
 				Name:    "proof_mode",
 				Aliases: []string{"p"},
 				Usage:   "Run in proof mode",
+			},
+			&cli.BoolFlag{
+				Name:    "secure_run",
+				Aliases: []string{"p"},
+				Usage:   "Run security checks. Default: true unless proof_mode is true",
 			},
 			&cli.StringFlag{
 				Name:    "layout",
