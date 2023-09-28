@@ -227,26 +227,6 @@ func (vm *VirtualMachine) VerifyAutoDeductions() error {
 	return nil
 }
 
-// Makes sure that the value at the given address is consistent with the auto deduction rules.
-func (vm *VirtualMachine) VerifyAutoDeductionsForAddr(addr memory.Relocatable, builtin builtins.BuiltinRunner) error {
-	deducedVal, err := builtin.DeduceMemoryCell(addr, &vm.Segments.Memory)
-	if err != nil {
-		return err
-	}
-	if deducedVal == nil {
-		return nil
-	}
-	currentVal, err := vm.Segments.Memory.Get(addr)
-	if err != nil {
-		return nil
-	}
-	if *deducedVal != *currentVal {
-		return &VirtualMachineError{fmt.Sprintf("InconsistentAutoDeduction: %s", builtin.Name())}
-	}
-
-	return nil
-}
-
 type Operands struct {
 	Dst memory.MaybeRelocatable
 	Res *memory.MaybeRelocatable

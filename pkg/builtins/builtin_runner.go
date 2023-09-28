@@ -56,7 +56,7 @@ type BuiltinRunner interface {
 	GetUsedCellsAndAllocatedSizes(segments *memory.MemorySegmentManager, currentStep uint) (uint, uint, error)
 	FinalStack(segments *memory.MemorySegmentManager, pointer memory.Relocatable) (memory.Relocatable, error)
 	// // II. SECURITY (secure-run flag cairo-run || verify-secure flag run_from_entrypoint)
-	// RunSecurityChecks(*vm.VirtualMachine) error // verify_secure_runner logic
+	// RunSecurityChecks(*memory.MemorySegmentManager) error // verify_secure_runner logic
 	// // Returns the base & stop_ptr, stop_ptr can be nil
 	GetMemorySegmentAddresses() (memory.Relocatable, memory.Relocatable, error)
 	// // III. STARKNET-SPECIFIC

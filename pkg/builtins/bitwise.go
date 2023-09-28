@@ -5,7 +5,6 @@ import (
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
-	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	"github.com/pkg/errors"
@@ -264,20 +263,21 @@ func (b *BitwiseBuiltinRunner) GetMemorySegmentAddresses() (memory.Relocatable, 
 	return b.base, memory.NewRelocatable(b.base.SegmentIndex, *b.StopPtr), nil
 }
 
-func (b *BitwiseBuiltinRunner) RunSecurityChecks(vm *vm.VirtualMachine) error {
+func (b *BitwiseBuiltinRunner) RunSecurityChecks(segments *memory.MemorySegmentManager) error {
 	cellsPerInstance := BITWISE_CELLS_PER_INSTANCE
 	nInputCells := BIWISE_INPUT_CELLS_PER_INSTANCE
 	builtinSegmentIndex := b.base.SegmentIndex
 
 	offsets := make([]int, 0)
-	// Find the max offset for the builtin's segment
-	for addr, _ := range vm.Segments.Memory.Data {
+	// Collect the builtin segment's addres' offsets
+	for addr, _ := range segments.Memory.Data {
 		if addr.SegmentIndex == builtinSegmentIndex {
 			offsets = append(offsets, int(addr.Offset))
 		}
 	}
 	// Sort offsets for easier comparison
 	sort.Ints(offsets)
+	// Obtain max offset
 	maxOffset := offsets[len(offsets)-1]
 
 	n := utils.DivCeil(uint(maxOffset), uint(cellsPerInstance)+1)
@@ -306,8 +306,21 @@ func (b *BitwiseBuiltinRunner) RunSecurityChecks(vm *vm.VirtualMachine) error {
 		}
 		return errors.Errorf("Missing memory cells for builtin: %s: %v", b.Name(), missingOffsets)
 	}
-
-	//To be continued...
+	// Verify auto deduction rules for the unassigned output cells.
+	// Assigned output cells are checked as part of the call to VerifyAutoDeductions().
+	for i := uint(0); i < n; i++ {
+		for j := uint(nInputCells); j < uint(cellsPerInstance); j++ {
+			addr := memory.NewRelocatable(builtinSegmentIndex, uint(cellsPerInstance)*i+j)
+			_, err := segments.Memory.Get(addr)
+			// Output cell not in memory
+			if err != nil {
+				_, err = b.DeduceMemoryCell(addr, &segments.Memory)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
 
 	return nil
 }
