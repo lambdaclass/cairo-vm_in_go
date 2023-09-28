@@ -45,29 +45,21 @@ type BuiltinRunner interface {
 	AddValidationRule(*memory.Memory)
 	// Sets the inclusion of the Builtin Runner in the Cairo Runner
 	Include(bool)
-	// TODO: Later additions -> Some of them could depend on a Default Implementation
-	// // Most of them depend on Layouts being implemented
-	// // Use cases:
-	// // I. PROOF_MODE
 	// Returns the builtin's ratio, is zero if the layout is dynamic
 	Ratio() uint
 	// Returns the builtin's allocated memory units
 	GetAllocatedMemoryUnits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error)
-	// // Returns the list of memory addresses used by the builtin
+	// Returns the list of memory addresses used by the builtin
 	GetMemoryAccesses(*memory.MemorySegmentManager) ([]memory.Relocatable, error)
 	GetRangeCheckUsage(*memory.Memory) (*uint, *uint)
 	GetUsedPermRangeCheckLimits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error)
 	GetUsedDilutedCheckUnits(dilutedSpacing uint, dilutedNBits uint) uint
 	GetUsedCellsAndAllocatedSizes(segments *memory.MemorySegmentManager, currentStep uint) (uint, uint, error)
 	FinalStack(segments *memory.MemorySegmentManager, pointer memory.Relocatable) (memory.Relocatable, error)
-	// // II. SECURITY (secure-run flag cairo-run || verify-secure flag run_from_entrypoint)
-	// RunSecurityChecks(*memory.MemorySegmentManager) error // verify_secure_runner logic
-	// // Returns the base & stop_ptr, stop_ptr can be nil
+	// Returns the base & stop_ptr
 	GetMemorySegmentAddresses() (memory.Relocatable, memory.Relocatable, error)
-	// // III. STARKNET-SPECIFIC
+	// Amount of builtin instances used
 	GetUsedInstances(*memory.MemorySegmentManager) (uint, error)
-	// // IV. GENERAL CASE (but not critical)
-	// FinalStack(*memory.MemorySegmentManager, memory.Relocatable) (memory.Relocatable, error) // read_return_values
 }
 
 func RunSecurityChecksForBuiltin(builtin BuiltinRunner, segments *memory.MemorySegmentManager) error {
