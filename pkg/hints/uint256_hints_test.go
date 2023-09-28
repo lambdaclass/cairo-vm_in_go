@@ -15,45 +15,67 @@ import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
-/*
-flag := (1 << 128)
-
-	a := {
-		a.low: flag - 5
-		a.high = ...
-	}
-
-	b := {
-		b.low: 4
-		b.high = ...
-	}
-
-a.low + b.low < flag -> carryLow = 0
-*/
-func TestUint256AddCarryLow0(t *testing.T) {
+func TestUint256AddOk(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()
-
-	flag := FeltOne().Shl(128)
 
 	idsManager := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
 			"a": {
-				NewMaybeRelocatableFelt(flag.Sub(FeltFromUint64(5))),
-				nil,
+				NewMaybeRelocatableFeltFromUint64(2),
+				NewMaybeRelocatableFeltFromUint64(3),
 			},
 			"b": {
-				NewMaybeRelocatableFelt(FeltFromUint64(4)),
-				nil,
+				NewMaybeRelocatableFeltFromUint64(4),
+				NewMaybeRelocatableFelt(FeltFromDecString("340282366920938463463374607431768211455")),
 			},
-			"carry_low": {
-				nil,
-				nil,
+			"carry_low":  {nil},
+			"carry_high": {nil},
+		},
+		vm,
+	)
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: UINT256_ADD,
+	})
+	scopes := NewExecutionScopes()
+	hintProcessor := CairoVmHintProcessor{}
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+
+	carry_low, err := idsManager.GetFelt("carry_low", vm)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+	if carry_low.Cmp(FeltZero()) != 0 {
+		t.Errorf("expected carry_low: 0, got: %s", carry_low.ToSignedFeltString())
+	}
+	carry_high, err := idsManager.GetFelt("carry_high", vm)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+	if carry_high.Cmp(FeltOne()) != 0 {
+		t.Errorf("expected carry_high: 0, got: %s", carry_high.ToSignedFeltString())
+	}
+}
+
+func TestUint256AddLowOnlyOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"a": {
+				NewMaybeRelocatableFeltFromUint64(2),
+				NewMaybeRelocatableFeltFromUint64(3),
 			},
-			"carry_high": {
-				nil,
-				nil,
+			"b": {
+				NewMaybeRelocatableFeltFromUint64(4),
+				NewMaybeRelocatableFelt(FeltFromDecString("340282366920938463463374607431768211455")),
 			},
+			"carry_low": {nil},
 		},
 		vm,
 	)
@@ -68,54 +90,29 @@ func TestUint256AddCarryLow0(t *testing.T) {
 		t.Errorf("failed with error: %s", err)
 	}
 
-	carry_low, err := idsManager.GetStructFieldFelt("carry_low", 0, vm)
+	carry_low, err := idsManager.GetFelt("carry_low", vm)
 	if err != nil {
 		t.Errorf("failed with error: %s", err)
 	}
-	if carry_low != FeltZero() {
+	if carry_low.Cmp(FeltZero()) != 0 {
 		t.Errorf("expected carry_low: 0, got: %s", carry_low.ToSignedFeltString())
 	}
 }
 
-/*
-flag := (1 << 128)
-
-	a := {
-		a.low: flag
-		a.high = ...
-	}
-
-	b := {
-		b.low: 0
-		b.high = ...
-	}
-
-a.low + b.low >= flag -> carryLow = 1
-*/
-func TestUint256AddCarryLow1(t *testing.T) {
+func TestUint256AddFailInsert(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()
-
-	flag := FeltOne().Shl(128)
-
 	idsManager := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
 			"a": {
-				NewMaybeRelocatableFelt(flag),
-				nil,
+				NewMaybeRelocatableFeltFromUint64(2),
+				NewMaybeRelocatableFeltFromUint64(3),
 			},
 			"b": {
-				NewMaybeRelocatableFelt(FeltZero()),
-				nil,
+				NewMaybeRelocatableFeltFromUint64(4),
+				NewMaybeRelocatableFeltFromUint64(2),
 			},
-			"carry_low": {
-				nil,
-				nil,
-			},
-			"carry_high": {
-				nil,
-				nil,
-			},
+			"carry_low": {NewMaybeRelocatableFeltFromUint64(2)},
 		},
 		vm,
 	)
@@ -126,145 +123,11 @@ func TestUint256AddCarryLow1(t *testing.T) {
 	scopes := NewExecutionScopes()
 	hintProcessor := CairoVmHintProcessor{}
 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
-	if err != nil {
-		t.Errorf("failed with error: %s", err)
+	expected_err := ErrMemoryWriteOnce(NewRelocatable(0, 4), *NewMaybeRelocatableFeltFromUint64(2), *NewMaybeRelocatableFeltFromUint64(0))
+	if err.Error() != expected_err.Error() {
+		t.Errorf("should fail with error: %s", expected_err)
 	}
 
-	carry_low, err := idsManager.GetStructFieldFelt("carry_low", 0, vm)
-	if err != nil {
-		t.Errorf("failed with error: %s", err)
-	}
-	if carry_low != FeltOne() {
-		t.Errorf("expected carry_low: 1, got: %s", carry_low.ToSignedFeltString())
-	}
-}
-
-/*
-flag := (1 << 128)
-
-	a := {
-		a.low: 0
-		a.high = flag / 2
-	}
-
-	b := {
-		b.low: 0
-		b.high = a.high - 1
-	}
-
-a.low + b.low < flag -> carryLow = 0
-a.high + b.high + carryLow < flag -> carry_high = 0
-*/
-func TestUint256AddCarryHigh0(t *testing.T) {
-	vm := NewVirtualMachine()
-	vm.Segments.AddSegment()
-
-	flag := FeltOne().Shl(128)
-	aHigh := flag.Div(FeltFromUint64(2))
-	bHigh := aHigh.Sub(FeltFromUint64(1))
-
-	idsManager := SetupIdsForTest(
-		map[string][]*MaybeRelocatable{
-			"a": {
-				NewMaybeRelocatableFelt(FeltZero()),
-				NewMaybeRelocatableFelt(aHigh),
-			},
-			"b": {
-				NewMaybeRelocatableFelt(FeltZero()),
-				NewMaybeRelocatableFelt(bHigh),
-			},
-			"carry_low": {
-				nil,
-				nil,
-			},
-			"carry_high": {
-				nil,
-				nil,
-			},
-		},
-		vm,
-	)
-	hintData := any(HintData{
-		Ids:  idsManager,
-		Code: UINT256_ADD,
-	})
-	scopes := NewExecutionScopes()
-	hintProcessor := CairoVmHintProcessor{}
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
-	if err != nil {
-		t.Errorf("failed with error: %s", err)
-	}
-
-	carry_high, err := idsManager.GetStructFieldFelt("carry_high", 0, vm)
-	if err != nil {
-		t.Errorf("failed with error: %s", err)
-	}
-	if carry_high != FeltZero() {
-		t.Errorf("expected carry_low: 0, got: %s", carry_high.ToSignedFeltString())
-	}
-}
-
-/*
-		flag := (1 << 128)
-		a := {
-			a.low: flag
-			a.high = flag / 2
-		}
-
-		b := {
-			b.low: 0
-			b.high = a.high - 1
-		}
-
-		a.low + b.low >= flag -> carryLow = 1
-	    a.high + b.high + carryLow > flag -> carry_high = 1
-*/
-func TestUint256AddCarryHigh1(t *testing.T) {
-	vm := NewVirtualMachine()
-	vm.Segments.AddSegment()
-
-	flag := FeltOne().Shl(128)
-	aHigh := flag.Div(FeltFromUint64(2))
-	bHigh := aHigh.Sub(FeltFromUint64(1))
-
-	idsManager := SetupIdsForTest(
-		map[string][]*MaybeRelocatable{
-			"a": {
-				NewMaybeRelocatableFelt(flag),
-				NewMaybeRelocatableFelt(aHigh),
-			},
-			"b": {
-				NewMaybeRelocatableFelt(FeltZero()),
-				NewMaybeRelocatableFelt(bHigh),
-			},
-			"carry_low": {
-				nil,
-				nil,
-			},
-			"carry_high": {
-				nil,
-				nil,
-			},
-		},
-		vm,
-	)
-	hintData := any(HintData{
-		Ids:  idsManager,
-		Code: UINT256_ADD,
-	})
-	scopes := NewExecutionScopes()
-	hintProcessor := CairoVmHintProcessor{}
-	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
-	if err != nil {
-		t.Errorf("failed with error: %s", err)
-	}
-	carry_high, err := idsManager.GetStructFieldFelt("carry_high", 0, vm)
-	if err != nil {
-		t.Errorf("failed with error: %s", err)
-	}
-	if carry_high != FeltOne() {
-		t.Errorf("expected carry_low: 1, got: %s", carry_high.ToSignedFeltString())
-	}
 }
 
 func TestSplit64Ok(t *testing.T) {

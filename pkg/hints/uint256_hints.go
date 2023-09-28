@@ -30,44 +30,31 @@ Implements hints:
 
 func uint256Add(ids IdsManager, vm *VirtualMachine, lowOnly bool) error {
 	shift := FeltOne().Shl(128)
-	aLow, err := ids.GetStructFieldFelt("a", 0, vm)
+	a, err := ids.GetUint256("a", vm)
+	if err != nil {
+		return err
+	}
+	b, err := ids.GetUint256("b", vm)
 	if err != nil {
 		return err
 	}
 
-	bLow, err := ids.GetStructFieldFelt("b", 0, vm)
-	if err != nil {
-		return err
-	}
-
-	sumLow := aLow.Add(bLow)
-	var carryLow Felt
-	switch sumLow.Cmp(shift) {
-	case -1:
-		carryLow = FeltZero()
-	default:
+	sumLow := a.Low.Add(b.Low)
+	carryLow := FeltZero()
+	if sumLow.Cmp(shift) != -1 {
 		carryLow = FeltOne()
 	}
 
 	if !lowOnly {
-		aHigh, err := ids.GetStructFieldFelt("a", 1, vm)
-		if err != nil {
-			return err
-		}
-		bHigh, err := ids.GetStructFieldFelt("b", 1, vm)
-		if err != nil {
-			return err
-		}
-
-		sumHigh := aHigh.Add(bHigh.Add(carryLow))
-		var carryHigh Felt
-		switch sumHigh.Cmp(shift) {
-		case -1:
-			carryHigh = FeltZero()
-		default:
+		sumHigh := a.High.Add(b.High.Add(carryLow))
+		carryHigh := FeltZero()
+		if sumHigh.Cmp(shift) != -1 {
 			carryHigh = FeltOne()
 		}
-		ids.Insert("carry_high", NewMaybeRelocatableFelt(carryHigh), vm)
+		err := ids.Insert("carry_high", NewMaybeRelocatableFelt(carryHigh), vm)
+		if err != nil {
+			return err
+		}
 	}
 	return ids.Insert("carry_low", NewMaybeRelocatableFelt(carryLow), vm)
 
@@ -145,9 +132,9 @@ func uint256SignedNN(ids IdsManager, vm *VirtualMachine) error {
 	}
 	i128Max := FeltFromDecString("170141183460469231731687303715884105727")
 	if a.High.Cmp(FeltZero()) != -1 && a.High.Cmp(i128Max) != 1 {
-		return ids.InsertValueIntoAP(vm, *NewMaybeRelocatableFelt(FeltOne()))
+		return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltOne()))
 	} else {
-		return ids.InsertValueIntoAP(vm, *NewMaybeRelocatableFelt(FeltZero()))
+		return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltZero()))
 	}
 }
 
