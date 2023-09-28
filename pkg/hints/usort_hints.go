@@ -102,7 +102,11 @@ func usortBody(ids IdsManager, executionScopes *types.ExecutionScopes, vm *Virtu
 	sort.Sort(SortFelt(output))
 
 	output_len := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(uint64((len(output)))))
-	ids.Insert("output_len", output_len, vm)
+	err = ids.Insert("output_len", output_len, vm)
+
+	if err != nil {
+		return err
+	}
 
 	output_base := vm.Segments.AddSegment()
 
@@ -121,8 +125,18 @@ func usortBody(ids IdsManager, executionScopes *types.ExecutionScopes, vm *Virtu
 	for i := range multiplicities {
 		vm.Segments.Memory.Insert(multiplicities_base.AddUint(uint(i)), memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(multiplicities[i])))
 	}
-	ids.Insert("output", memory.NewMaybeRelocatableRelocatable(output_base), vm)
-	ids.Insert("multiplicities", memory.NewMaybeRelocatableRelocatable(multiplicities_base), vm)
+
+	err = ids.Insert("output", memory.NewMaybeRelocatableRelocatable(output_base), vm)
+
+	if err != nil {
+		return err
+	}
+
+	err = ids.Insert("multiplicities", memory.NewMaybeRelocatableRelocatable(multiplicities_base), vm)
+
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -231,7 +245,12 @@ func usortVerifyMultiplicityBody(ids IdsManager, executionScopes *types.Executio
 	executionScopes.AssignOrUpdateVariable("positions", positions[:len(positions)-1])
 
 	next_item_index := current_pos - last_pos
-	ids.Insert("next_item_index", memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(next_item_index)), vm)
+
+	err = ids.Insert("next_item_index", memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(next_item_index)), vm)
+
+	if err != nil {
+		return err
+	}
 
 	executionScopes.AssignOrUpdateVariable("last_pos", current_pos+1)
 
