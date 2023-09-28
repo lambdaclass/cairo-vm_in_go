@@ -1,7 +1,6 @@
 package builtins
 
 import (
-	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
 
@@ -142,6 +141,6 @@ func (b *OutputBuiltinRunner) GetMemorySegmentAddresses() (memory.Relocatable, m
 	return b.base, memory.NewRelocatable(b.base.SegmentIndex, *b.StopPtr), nil
 }
 
-func (b *OutputBuiltinRunner) RunSecurityChecks(*vm.VirtualMachine) error {
+func (b *OutputBuiltinRunner) RunSecurityChecks(*memory.MemorySegmentManager) error {
 	return nil
 }

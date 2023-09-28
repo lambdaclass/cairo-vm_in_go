@@ -270,10 +270,15 @@ func (b *BitwiseBuiltinRunner) RunSecurityChecks(segments *memory.MemorySegmentM
 
 	offsets := make([]int, 0)
 	// Collect the builtin segment's addres' offsets
-	for addr, _ := range segments.Memory.Data {
+	for addr := range segments.Memory.Data {
 		if addr.SegmentIndex == builtinSegmentIndex {
 			offsets = append(offsets, int(addr.Offset))
 		}
+	}
+
+	if len(offsets) == 0 {
+		// No checks to run for empty segment
+		return nil
 	}
 	// Sort offsets for easier comparison
 	sort.Ints(offsets)

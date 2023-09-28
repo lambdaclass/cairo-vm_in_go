@@ -182,3 +182,12 @@ func TestGetUsedDilutedCheckUnitsC(t *testing.T) {
 		t.Errorf("Wrong Value for GetUsedDilutedChecks, should be %d, got %d", expected, result)
 	}
 }
+
+func TestRunSecurityChecksEmptyMemory(t *testing.T) {
+	builtin := builtins.NewBitwiseBuiltinRunner(256)
+	segments := memory.NewMemorySegmentManager()
+	err := builtin.RunSecurityChecks(&segments)
+	if err != nil {
+		t.Errorf("RunSecurityChecks failed with error: %s", err.Error())
+	}
+}
