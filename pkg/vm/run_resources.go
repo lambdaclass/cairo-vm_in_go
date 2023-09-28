@@ -14,7 +14,7 @@ func (r *RunResources) Consumed() bool {
 
 func (r *RunResources) ConsumeStep() {
 	if r.nSteps != nil {
-		*r.nSteps++
+		*r.nSteps--
 	}
 }
 
