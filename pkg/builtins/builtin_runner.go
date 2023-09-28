@@ -72,7 +72,7 @@ func RunSecurityChecksForBuiltin(builtin BuiltinRunner, segments *memory.MemoryS
 	builtinSegmentIndex := builtin.Base().SegmentIndex
 
 	offsets := make([]int, 0)
-	// Collect the builtin segment's addres' offsets
+	// Collect the builtin segment's address' offsets
 	for addr := range segments.Memory.Data {
 		if addr.SegmentIndex == builtinSegmentIndex {
 			offsets = append(offsets, int(addr.Offset))
