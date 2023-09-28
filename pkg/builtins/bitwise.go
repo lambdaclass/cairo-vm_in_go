@@ -285,7 +285,7 @@ func (b *BitwiseBuiltinRunner) RunSecurityChecks(segments *memory.MemorySegmentM
 	// Obtain max offset
 	maxOffset := offsets[len(offsets)-1]
 
-	n := utils.DivCeil(uint(maxOffset), uint(cellsPerInstance)+1)
+	n := utils.DivCeil(uint(maxOffset), uint(cellsPerInstance)) + 1
 	//Verify that n is not too large to make sure the expectedOffsets list that is constructed below is not too large.
 	if n > utils.DivCeil(uint(len(offsets)), uint(nInputCells)) {
 		return errors.Errorf("Missing memory cells for %s", b.Name())
