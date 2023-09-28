@@ -14,7 +14,7 @@ import (
 // This file contains an implementation of each behaviour at the limbs level, and the wrappers for each specific type
 
 // Generic methods for all types
-func limbsFromVarName(nLimbs int, name string, ids IdsManager, vm *VirtualMachine) ([]Felt, error) {
+func LimbsFromVarName(nLimbs int, name string, ids IdsManager, vm *VirtualMachine) ([]Felt, error) {
 	baseAddr, err := ids.GetAddr(name, vm)
 	if err != nil {
 		return nil, err

@@ -128,3 +128,59 @@ func SafeDivBigint(vm *VirtualMachine, execScopes *ExecutionScopes, idsData IdsM
 
 	return nil
 }
+
+func calculateX(vm *VirtualMachine, idsData IdsManager) (big.Int, error) {
+	x_bigint5, err := LimbsFromVarName(5, "x", idsData, vm)
+	if err != nil {
+		return big.Int{}, err
+	}
+	// pack only takes the first three limbs
+	x0 := x_bigint5[0]
+	x1 := x_bigint5[1]
+	x2 := x_bigint5[2]
+	var limbs = []lambdaworks.Felt{x0, x1, x2}
+
+	x_lower := BigInt3{Limbs: limbs}
+	x_lower_bigint := x_lower.Pack86()
+
+	d3 := x_bigint5[3].ToSigned()
+	d4 := x_bigint5[4].ToSigned()
+
+	base := BASE()
+	d3.Mul(d3, base.Exp(&base, big.NewInt(3), nil))
+	d4.Mul(d4, base.Exp(&base, big.NewInt(4), nil))
+
+	x_lower_bigint.Add(&x_lower_bigint, d3)
+	x_lower_bigint.Add(&x_lower_bigint, d4)
+
+	return x_lower_bigint, nil
+}
+
+func bigintPackDivMod(vm *VirtualMachine, execScopes *ExecutionScopes, idsData IdsManager) error {
+
+	pUnpack, err := BigInt3FromVarName("P", idsData, vm)
+	if err != nil {
+		return err
+	}
+	p := pUnpack.Pack86()
+
+	x, err := calculateX(vm, idsData)
+	if err != nil {
+		return err
+	}
+
+	yUnpacked, err := BigInt3FromVarName("y", idsData, vm)
+	if err != nil {
+		return err
+	}
+	y := yUnpacked.Pack86()
+
+	res, _ := new(big.Int).DivMod(&x, &y, &p)
+	execScopes.AssignOrUpdateVariable("res", *res)
+	execScopes.AssignOrUpdateVariable("value", *res)
+	execScopes.AssignOrUpdateVariable("x", x)
+	execScopes.AssignOrUpdateVariable("y", y)
+	execScopes.AssignOrUpdateVariable("p", p)
+
+	return nil
+}

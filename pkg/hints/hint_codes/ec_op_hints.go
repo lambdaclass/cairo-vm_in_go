@@ -32,3 +32,4 @@ value = new_x = (pow(slope, 2, SECP_P) - x0 - x1) % SECP_P"`
 const FAST_EC_ADD_ASSIGN_NEW_Y = "value = new_y = (slope * (x0 - new_x) - y0) % SECP_P"
 
 const BIGINT_SAFE_DIV = "k = safe_div(res * y - x, p)\nvalue = k if k > 0 else 0 - k\nids.flag = 1 if k > 0 else 0"
+const BIGINT_PACK_DIV_MOD = "from starkware.cairo.common.cairo_secp.secp_utils import pack\nfrom starkware.cairo.common.math_utils import as_int\nfrom starkware.python.math_utils import div_mod, safe_div\n\np = pack(ids.P, PRIME)\nx = pack(ids.x, PRIME) + as_int(ids.x.d3, PRIME) * ids.BASE ** 3 + as_int(ids.x.d4, PRIME) * ids.BASE ** 4\ny = pack(ids.y, PRIME)\n\nvalue = res = div_mod(x, y, p)"

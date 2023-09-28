@@ -246,7 +246,6 @@ func TestRunComputeSlopeV2Ok(t *testing.T) {
 	idsManager := SetupIdsForTest(
 		map[string][]*MaybeRelocatable{
 			"point0": {
-
 				NewMaybeRelocatableFelt(FeltFromUint64(512)),
 				NewMaybeRelocatableFelt(FeltFromUint64(2412)),
 				NewMaybeRelocatableFelt(FeltFromUint64(133)),
