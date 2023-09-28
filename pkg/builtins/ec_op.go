@@ -148,6 +148,10 @@ func (r *EcOpBuiltinRunner) CellsPerInstance() uint {
 	return CELLS_PER_EC_OP
 }
 
+func (b *EcOpBuiltinRunner) InputCellsPerInstance() uint {
+	return INPUT_CELLS_PER_EC_OP
+}
+
 func (ec *EcOpBuiltinRunner) AddValidationRule(*memory.Memory) {}
 
 func (ec *EcOpBuiltinRunner) Base() memory.Relocatable {

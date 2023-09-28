@@ -107,6 +107,10 @@ func (p *PedersenBuiltinRunner) CellsPerInstance() uint {
 	return PEDERSEN_CELLS_PER_INSTANCE
 }
 
+func (p *PedersenBuiltinRunner) InputCellsPerInstance() uint {
+	return PEDERSEN_INPUT_CELLS_PER_INSTANCE
+}
+
 func (p *PedersenBuiltinRunner) GetAllocatedMemoryUnits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
 	// This condition corresponds to an uninitialized ratio for the builtin, which should only
 	// happen when layout is `dynamic`

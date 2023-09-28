@@ -96,6 +96,10 @@ func (p *PoseidonBuiltinRunner) CellsPerInstance() uint {
 	return POSEIDON_CELLS_PER_INSTANCE
 }
 
+func (p *PoseidonBuiltinRunner) InputCellsPerInstance() uint {
+	return POSEIDON_INPUT_CELLS_PER_INSTANCE
+}
+
 func (p *PoseidonBuiltinRunner) GetAllocatedMemoryUnits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
 	// This condition corresponds to an uninitialized ratio for the builtin, which should only
 	// happen when layout is `dynamic`

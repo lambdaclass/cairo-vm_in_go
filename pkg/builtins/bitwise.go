@@ -1,8 +1,6 @@
 package builtins
 
 import (
-	"sort"
-
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
 
@@ -111,6 +109,10 @@ func (b *BitwiseBuiltinRunner) Ratio() uint {
 
 func (b *BitwiseBuiltinRunner) CellsPerInstance() uint {
 	return BITWISE_CELLS_PER_INSTANCE
+}
+
+func (b *BitwiseBuiltinRunner) InputCellsPerInstance() uint {
+	return BIWISE_INPUT_CELLS_PER_INSTANCE
 }
 
 func (b *BitwiseBuiltinRunner) GetAllocatedMemoryUnits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
@@ -261,78 +263,4 @@ func (b *BitwiseBuiltinRunner) GetMemorySegmentAddresses() (memory.Relocatable, 
 		return memory.Relocatable{}, memory.Relocatable{}, NewErrNoStopPointer(b.Name())
 	}
 	return b.base, memory.NewRelocatable(b.base.SegmentIndex, *b.StopPtr), nil
-}
-
-func (b *BitwiseBuiltinRunner) RunSecurityChecks(segments *memory.MemorySegmentManager) error {
-	cellsPerInstance := BITWISE_CELLS_PER_INSTANCE
-	nInputCells := BIWISE_INPUT_CELLS_PER_INSTANCE
-	builtinSegmentIndex := b.base.SegmentIndex
-
-	offsets := make([]int, 0)
-	// Collect the builtin segment's addres' offsets
-	for addr := range segments.Memory.Data {
-		if addr.SegmentIndex == builtinSegmentIndex {
-			offsets = append(offsets, int(addr.Offset))
-		}
-	}
-
-	if len(offsets) == 0 {
-		// No checks to run for empty segment
-		return nil
-	}
-	// Sort offsets for easier comparison
-	sort.Ints(offsets)
-	// Obtain max offset
-	maxOffset := offsets[len(offsets)-1]
-
-	n := (maxOffset / cellsPerInstance) + 1
-	//Verify that n is not too large to make sure the expectedOffsets list that is constructed below is not too large.
-	if n > len(offsets)/nInputCells {
-		return errors.Errorf("Missing memory cells for %s", b.Name())
-	}
-
-	// Check that the two inputs (x and y) of each instance are set.
-	expectedOffsets := make([]int, 0)
-	for i := 0; i < n; i++ {
-		for j := 0; j < nInputCells; j++ {
-			expectedOffsets = append(expectedOffsets, cellsPerInstance*i+j)
-		}
-	}
-	// Find the missing offsets (offsets in expectedOffsets but not in offsets)
-	missingOffsets := make([]int, 0)
-	j := 0
-	i := 0
-	for i < len(expectedOffsets) && j < len(offsets) {
-		if expectedOffsets[i] < offsets[j] {
-			missingOffsets = append(missingOffsets, expectedOffsets[i])
-		} else {
-			j++
-		}
-		i++
-	}
-	for i < len(expectedOffsets) {
-		missingOffsets = append(missingOffsets, expectedOffsets[i])
-		i++
-	}
-	if len(missingOffsets) != 0 {
-		return errors.Errorf("Missing memory cells for builtin: %s: %v", b.Name(), missingOffsets)
-	}
-
-	// Verify auto deduction rules for the unassigned output cells.
-	// Assigned output cells are checked as part of the call to VerifyAutoDeductions().
-	for i := uint(0); i < uint(n); i++ {
-		for j := uint(nInputCells); j < uint(cellsPerInstance); j++ {
-			addr := memory.NewRelocatable(builtinSegmentIndex, uint(cellsPerInstance)*i+j)
-			_, err := segments.Memory.Get(addr)
-			// Output cell not in memory
-			if err != nil {
-				_, err = b.DeduceMemoryCell(addr, &segments.Memory)
-				if err != nil {
-					return err
-				}
-			}
-		}
-	}
-
-	return nil
 }

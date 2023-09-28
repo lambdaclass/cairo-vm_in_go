@@ -131,6 +131,10 @@ func (r *SignatureBuiltinRunner) CellsPerInstance() uint {
 	return SIGNATURE_CELLS_PER_INSTANCE
 }
 
+func (r *SignatureBuiltinRunner) InputCellsPerInstance() uint {
+	return SIGNATURE_CELLS_PER_INSTANCE
+}
+
 func (r *SignatureBuiltinRunner) GetRangeCheckUsage(memory *memory.Memory) (*uint, *uint) {
 	return nil, nil
 }

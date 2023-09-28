@@ -539,6 +539,10 @@ func (k *KeccakBuiltinRunner) CellsPerInstance() uint {
 	return KECCAK_CELLS_PER_INSTANCE
 }
 
+func (b *KeccakBuiltinRunner) InputCellsPerInstance() uint {
+	return KECCAK_INPUT_CELLS_PER_INSTANCE
+}
+
 func (k *KeccakBuiltinRunner) GetAllocatedMemoryUnits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
 	// This condition corresponds to an uninitialized ratio for the builtin, which should only
 	// happen when layout is `dynamic`
