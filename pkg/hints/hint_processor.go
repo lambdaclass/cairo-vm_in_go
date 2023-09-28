@@ -107,15 +107,15 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 	case VM_ENTER_SCOPE:
 		return vm_enter_scope(execScopes)
 	case USORT_ENTER_SCOPE:
-		return usort_enter_scope(execScopes)
+		return usortEnterScope(execScopes)
 	case USORT_BODY:
-		return usort_body(data.Ids, execScopes, vm)
+		return usortBody(data.Ids, execScopes, vm)
 	case USORT_VERIFY:
-		return usort_verify(data.Ids, execScopes, vm)
+		return usortVerify(data.Ids, execScopes, vm)
 	case USORT_VERIFY_MULTIPLICITY_ASSERT:
-		return usort_verify_multiplicity_assert(execScopes)
+		return usortVerifyMultiplicityAssert(execScopes)
 	case USORT_VERIFY_MULTIPLICITY_BODY:
-		return usort_verify_multiplicity_body(data.Ids, execScopes, vm)
+		return usortVerifyMultiplicityBody(data.Ids, execScopes, vm)
 	case SET_ADD:
 		return setAdd(data.Ids, vm)
 	case FIND_ELEMENT:

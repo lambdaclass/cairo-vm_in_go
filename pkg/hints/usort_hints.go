@@ -26,7 +26,7 @@ func (s SortFelt) Less(i, j int) bool {
 
 // Implements hint:
 // %{ vm_enter_scope(dict(__usort_max_size = globals().get('__usort_max_size'))) %}
-func usort_enter_scope(executionScopes *types.ExecutionScopes) error {
+func usortEnterScope(executionScopes *types.ExecutionScopes) error {
 	usort_max_size_interface, err := executionScopes.Get("usort_max_size")
 
 	if err != nil {
@@ -47,7 +47,7 @@ func usort_enter_scope(executionScopes *types.ExecutionScopes) error {
 	return nil
 }
 
-func usort_body(ids IdsManager, executionScopes *types.ExecutionScopes, vm *VirtualMachine) error {
+func usortBody(ids IdsManager, executionScopes *types.ExecutionScopes, vm *VirtualMachine) error {
 
 	input_ptr, err := ids.GetRelocatable("input", vm)
 	if err != nil {
@@ -133,7 +133,7 @@ func usort_body(ids IdsManager, executionScopes *types.ExecutionScopes, vm *Virt
 //			last_pos = 0
 //			positions = positions_dict[ids.value][::-1]
 //	 %}
-func usort_verify(ids IdsManager, executionScopes *types.ExecutionScopes, vm *VirtualMachine) error {
+func usortVerify(ids IdsManager, executionScopes *types.ExecutionScopes, vm *VirtualMachine) error {
 
 	executionScopes.AssignOrUpdateVariable("last_pos", uint64(0))
 
@@ -171,7 +171,7 @@ func usort_verify(ids IdsManager, executionScopes *types.ExecutionScopes, vm *Vi
 
 // Implements hint:
 // %{ assert len(positions) == 0 %}
-func usort_verify_multiplicity_assert(executionScopes *types.ExecutionScopes) error {
+func usortVerifyMultiplicityAssert(executionScopes *types.ExecutionScopes) error {
 
 	positions_interface, err := executionScopes.Get("positions")
 
@@ -200,7 +200,7 @@ func usort_verify_multiplicity_assert(executionScopes *types.ExecutionScopes) er
 //		 ids.next_item_index = current_pos - last_pos
 //		 last_pos = current_pos + 1
 //	 %}
-func usort_verify_multiplicity_body(ids IdsManager, executionScopes *types.ExecutionScopes, vm *VirtualMachine) error {
+func usortVerifyMultiplicityBody(ids IdsManager, executionScopes *types.ExecutionScopes, vm *VirtualMachine) error {
 
 	positions_interface, err := executionScopes.Get("positions")
 
