@@ -214,3 +214,24 @@ func TestRunSecurityChecksMissingMemoryCells(t *testing.T) {
 		t.Errorf("RunSecurityChecks should have failed")
 	}
 }
+
+func TestRunSecurityChecksMissingMemoryCellsNCheck(t *testing.T) {
+	builtin := builtins.NewBitwiseBuiltinRunner(256)
+	segments := memory.NewMemorySegmentManager()
+
+	builtin.InitializeSegments(&segments)
+	builtinBase := builtin.Base()
+	// n = max(offsets) // cellsPerInstance + 1
+	// n = max[(0]) // 5 + 1 = 0 // 5 + 1 = 1
+	// len(offsets) // inputCells = 1 // 2
+	// This will fail the security checks, as n > len(offsets) // inputCells
+	builtinSegment := []memory.MaybeRelocatable{
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint(1)),
+	}
+	segments.LoadData(builtinBase, &builtinSegment)
+
+	err := builtin.RunSecurityChecks(&segments)
+	if err == nil {
+		t.Errorf("RunSecurityChecks should have failed")
+	}
+}

@@ -285,15 +285,15 @@ func (b *BitwiseBuiltinRunner) RunSecurityChecks(segments *memory.MemorySegmentM
 	// Obtain max offset
 	maxOffset := offsets[len(offsets)-1]
 
-	n := utils.DivCeil(uint(maxOffset), uint(cellsPerInstance)) + 1
+	n := (maxOffset / cellsPerInstance) + 1
 	//Verify that n is not too large to make sure the expectedOffsets list that is constructed below is not too large.
-	if n > utils.DivCeil(uint(len(offsets)), uint(nInputCells)) {
+	if n > len(offsets)/nInputCells {
 		return errors.Errorf("Missing memory cells for %s", b.Name())
 	}
 
 	// Check that the two inputs (x and y) of each instance are set.
 	expectedOffsets := make([]int, 0)
-	for i := 0; i < int(n); i++ {
+	for i := 0; i < n; i++ {
 		for j := 0; j < nInputCells; j++ {
 			expectedOffsets = append(expectedOffsets, cellsPerInstance*i+j)
 		}
@@ -320,7 +320,7 @@ func (b *BitwiseBuiltinRunner) RunSecurityChecks(segments *memory.MemorySegmentM
 
 	// Verify auto deduction rules for the unassigned output cells.
 	// Assigned output cells are checked as part of the call to VerifyAutoDeductions().
-	for i := uint(0); i < n; i++ {
+	for i := uint(0); i < uint(n); i++ {
 		for j := uint(nInputCells); j < uint(cellsPerInstance); j++ {
 			addr := memory.NewRelocatable(builtinSegmentIndex, uint(cellsPerInstance)*i+j)
 			_, err := segments.Memory.Get(addr)
