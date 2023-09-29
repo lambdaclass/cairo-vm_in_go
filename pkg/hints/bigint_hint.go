@@ -2,7 +2,6 @@ package hints
 
 import (
 	"errors"
-	"fmt"
 	"math/big"
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
@@ -171,16 +170,15 @@ func bigintPackDivMod(vm *VirtualMachine, execScopes *ExecutionScopes, idsData I
 	if err != nil {
 		return err
 	}
+	x1 := x
 
 	yUnpacked, err := BigInt3FromVarName("y", idsData, vm)
 	if err != nil {
 		return err
 	}
-	x1 := x
 	y := yUnpacked.Pack86()
 
 	res, _ := math_utils.DivMod(&x1, &y, &p)
-	fmt.Println("x", x.Text(10))
 
 	execScopes.AssignOrUpdateVariable("res", *res)
 	execScopes.AssignOrUpdateVariable("value", *res)

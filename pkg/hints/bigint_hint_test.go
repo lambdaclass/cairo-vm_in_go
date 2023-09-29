@@ -1,7 +1,6 @@
 package hints_test
 
 import (
-	"fmt"
 	"math/big"
 	"testing"
 
@@ -235,12 +234,6 @@ func TestBigintPackDivModHint(t *testing.T) {
 		}
 		p := pu.(big.Int)
 
-		fmt.Println("")
-		fmt.Println("")
-		fmt.Println("")
-		fmt.Println("")
-		fmt.Println("")
-		fmt.Println("")
 		if res.Cmp(expected) != 0 {
 			t.Errorf("incorrect res expected: %s, got: %s", expected.Text(10), res.Text(10))
 		}
