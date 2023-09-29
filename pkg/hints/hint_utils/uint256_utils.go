@@ -11,8 +11,8 @@ type Uint256 struct {
 	High Felt
 }
 
-func (ui256 *Uint256) ToString() string {
-	return "Uint256 {low: " + ui256.Low.ToSignedFeltString() + ", high: " + ui256.High.ToSignedFeltString() + "}"
+func (u *Uint256) ToString() string {
+	return "Uint256 { low: " + u.Low.ToSignedFeltString() + ", high: " + u.High.ToSignedFeltString() + " }"
 }
 
 /*
