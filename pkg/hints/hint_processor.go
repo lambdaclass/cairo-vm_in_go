@@ -106,6 +106,16 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return memset_step_loop(data.Ids, vm, execScopes, "continue_loop")
 	case VM_ENTER_SCOPE:
 		return vm_enter_scope(execScopes)
+	case USORT_ENTER_SCOPE:
+		return usortEnterScope(execScopes)
+	case USORT_BODY:
+		return usortBody(data.Ids, execScopes, vm)
+	case USORT_VERIFY:
+		return usortVerify(data.Ids, execScopes, vm)
+	case USORT_VERIFY_MULTIPLICITY_ASSERT:
+		return usortVerifyMultiplicityAssert(execScopes)
+	case USORT_VERIFY_MULTIPLICITY_BODY:
+		return usortVerifyMultiplicityBody(data.Ids, execScopes, vm)
 	case SET_ADD:
 		return setAdd(data.Ids, vm)
 	case FIND_ELEMENT:
@@ -114,12 +124,30 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return searchSortedLower(data.Ids, vm, *execScopes)
 	case COMPUTE_SLOPE_V1:
 		return computeSlopeAndAssingSecpP(vm, *execScopes, data.Ids, "point0", "point1", SECP_P())
+	case COMPUTE_SLOPE_V2:
+		return computeSlopeAndAssingSecpP(vm, *execScopes, data.Ids, "point0", "point1", SECP_P_V2())
+	case COMPUTE_SLOPE_WHITELIST:
+		return computeSlopeAndAssingSecpP(vm, *execScopes, data.Ids, "pt0", "pt1", SECP_P())
+	case COMPUTE_SLOPE_SECP256R1:
+		return computeSlope(vm, *execScopes, data.Ids, "point0", "point1")
 	case EC_DOUBLE_SLOPE_V1:
 		return computeDoublingSlope(vm, *execScopes, data.Ids, "point", SECP_P(), ALPHA())
 	case UNSAFE_KECCAK:
 		return unsafeKeccak(data.Ids, vm, *execScopes)
 	case UNSAFE_KECCAK_FINALIZE:
 		return unsafeKeccakFinalize(data.Ids, vm)
+	case COMPARE_BYTES_IN_WORD_NONDET:
+		return compareBytesInWordNondet(data.Ids, vm, constants)
+	case COMPARE_KECCAK_FULL_RATE_IN_BYTES_NONDET:
+		return compareKeccakFullRateInBytesNondet(data.Ids, vm, constants)
+	case BLOCK_PERMUTATION:
+		return blockPermutation(data.Ids, vm, constants)
+	case CAIRO_KECCAK_FINALIZE_V1:
+		return cairoKeccakFinalize(data.Ids, vm, constants, 10)
+	case CAIRO_KECCAK_FINALIZE_V2:
+		return cairoKeccakFinalize(data.Ids, vm, constants, 1000)
+	case KECCAK_WRITE_ARGS:
+		return keccakWriteArgs(data.Ids, vm)
 	case UNSIGNED_DIV_REM:
 		return unsignedDivRem(data.Ids, vm)
 	case SIGNED_DIV_REM:
@@ -144,10 +172,30 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return Assert250Bit(data.Ids, vm, constants)
 	case SPLIT_FELT:
 		return SplitFelt(data.Ids, vm, constants)
+	case IMPORT_SECP256R1_ALPHA:
+		return importSecp256r1Alpha(*execScopes)
+	case IMPORT_SECP256R1_N:
+		return importSECP256R1N(*execScopes)
+	case IMPORT_SECP256R1_P:
+		return importSECP256R1P(*execScopes)
+	case EC_DOUBLE_SLOPE_EXTERNAL_CONSTS:
+		return computeDoublingSlopeExternalConsts(*vm, *execScopes, data.Ids)
+	case NONDET_BIGINT3_V1:
+		return NondetBigInt3(*vm, *execScopes, data.Ids)
 	case SPLIT_INT:
 		return splitInt(data.Ids, vm)
 	case SPLIT_INT_ASSERT_RANGE:
 		return splitIntAssertRange(data.Ids, vm)
+	case VERIFY_ZERO_EXTERNAL_SECP:
+		return verifyZeroWithExternalConst(*vm, *execScopes, data.Ids)
+	case FAST_EC_ADD_ASSIGN_NEW_X:
+		return fastEcAddAssignNewX(data.Ids, vm, execScopes, "point0", "point1", SECP_P())
+	case FAST_EC_ADD_ASSIGN_NEW_X_V2:
+		return fastEcAddAssignNewX(data.Ids, vm, execScopes, "point0", "point1", SECP_P_V2())
+	case FAST_EC_ADD_ASSIGN_NEW_X_V3:
+		return fastEcAddAssignNewX(data.Ids, vm, execScopes, "pt0", "pt1", SECP_P())
+	case FAST_EC_ADD_ASSIGN_NEW_Y:
+		return fastEcAddAssignNewY(execScopes)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}

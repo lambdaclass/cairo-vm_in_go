@@ -6,6 +6,7 @@ import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
+
 	"github.com/pkg/errors"
 )
 
@@ -92,4 +93,18 @@ func (b *BigInt3) Pack86() big.Int {
 func BigInt3FromBaseAddr(addr Relocatable, name string, vm *VirtualMachine) (BigInt3, error) {
 	limbs, err := limbsFromBaseAddress(3, name, addr, vm)
 	return BigInt3{Limbs: limbs}, err
+}
+
+func BigInt3FromVarName(name string, ids IdsManager, vm *VirtualMachine) (BigInt3, error) {
+	bigIntAddr, err := ids.GetAddr(name, vm)
+	if err != nil {
+		return BigInt3{}, err
+	}
+
+	bigInt, err := BigInt3FromBaseAddr(bigIntAddr, name, vm)
+	if err != nil {
+		return BigInt3{}, err
+	}
+
+	return bigInt, err
 }

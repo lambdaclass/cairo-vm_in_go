@@ -204,6 +204,18 @@ func ParseHintReference(reference parser.Reference) HintReference {
 			ValueType:      valueType,
 		}
 	}
+	// Reference no dereference 2 offsets - + : cast(reg - off1 + off2, type)
+	_, err = fmt.Sscanf(valueString, "cast%c%c - %d + %d, %s", &off1Reg0, &off1Reg1, &off1, &off2, &valueType)
+	if err == nil {
+		off1Reg := getRegister(off1Reg0, off1Reg1)
+		return HintReference{
+			ApTrackingData: reference.ApTrackingData,
+			Offset1:        OffsetValue{ValueType: Reference, Register: off1Reg, Value: -off1},
+			Offset2:        OffsetValue{Value: off2},
+			Dereference:    dereference,
+			ValueType:      valueType,
+		}
+	}
 	// No matches (aka wrong format)
 	return HintReference{ApTrackingData: reference.ApTrackingData}
 }

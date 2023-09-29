@@ -2,6 +2,7 @@ package utils
 
 import (
 	"math"
+	"math/big"
 
 	"github.com/pkg/errors"
 )
@@ -49,4 +50,16 @@ func DivCeil(x uint, y uint) uint {
 		q++
 	}
 	return q
+}
+
+// Performs integer division between x and y; fails if x is not divisible by y.
+func SafeDivBig(x *big.Int, y *big.Int) (*big.Int, error) {
+	if y.Cmp(big.NewInt(0)) == 0 {
+		return &big.Int{}, errors.New("SafeDiv: Attempted to divide by zero")
+	}
+	q, r := x.DivMod(x, y, new(big.Int))
+	if r.Cmp(big.NewInt(0)) != 0 {
+		return &big.Int{}, errors.Errorf("SafeDiv: %s is not divisible by %s", x.Text(10), y.Text(10))
+	}
+	return q, nil
 }
