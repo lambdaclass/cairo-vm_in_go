@@ -309,6 +309,14 @@ func TestSplitFeltHint(t *testing.T) {
 	testProgram("split_felt", t)
 }
 
+func TestUsort(t *testing.T) {
+	testProgram("usort", t)
+}
+
+func TestUsortProofMode(t *testing.T) {
+	testProgramProof("usort", t)
+}
+
 func TestSplitFeltHintProofMode(t *testing.T) {
 	testProgramProof("split_felt", t)
 }
