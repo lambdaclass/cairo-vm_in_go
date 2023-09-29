@@ -1,8 +1,12 @@
 package hint_utils
 
 import (
+	"reflect"
+	"testing"
+
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
+	"github.com/lambdaclass/cairo-vm.go/pkg/types"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 )
@@ -55,4 +59,14 @@ func SetupConstantsForTest(new_constants map[string]lambdaworks.Felt, ids *IdsMa
 		constants["path."+name] = constant
 	}
 	return constants
+}
+
+func CheckScopeVar[T any](name string, expectedVal T, scopes *types.ExecutionScopes, t *testing.T) {
+	val, err := types.FetchScopeVar[T](name, scopes)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	if !reflect.DeepEqual(val, expectedVal) {
+		t.Errorf("Wrong scope var %s.\n Expected: %v, got: %v", name, expectedVal, val)
+	}
 }
