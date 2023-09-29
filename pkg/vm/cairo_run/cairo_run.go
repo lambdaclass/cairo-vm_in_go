@@ -53,18 +53,18 @@ func CairoRun(programPath string, cairoRunConfig CairoRunConfig) (*runners.Cairo
 	if err != nil {
 		return nil, err
 	}
-	err = cairoRunner.EndRun(cairoRunConfig.DisableTracePadding, false, &cairoRunner.Vm, &hintProcessor)
+	err = cairoRunner.EndRun(cairoRunConfig.DisableTracePadding, false, &hintProcessor)
 	if err != nil {
 		return nil, err
 	}
 
-	err = cairoRunner.ReadReturnValues(&cairoRunner.Vm)
+	err = cairoRunner.ReadReturnValues()
 	if err != nil {
 		return nil, err
 	}
 
 	if cairoRunConfig.ProofMode {
-		cairoRunner.FinalizeSegments(cairoRunner.Vm)
+		cairoRunner.FinalizeSegments()
 	}
 
 	err = cairoRunner.Vm.Relocate()
