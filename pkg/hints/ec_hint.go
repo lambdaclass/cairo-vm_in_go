@@ -7,6 +7,7 @@ import (
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
 	"github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
+	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/types"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm"
@@ -181,6 +182,48 @@ func computeSlope(vm *VirtualMachine, execScopes ExecutionScopes, idsData IdsMan
 	execScopes.AssignOrUpdateVariable("value", value)
 	execScopes.AssignOrUpdateVariable("slope", value)
 
+	return nil
+}
+
+// Implements hint:
+// from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
+//
+// slope = pack(ids.slope, PRIME)
+// x = pack(ids.point.x, PRIME)
+// y = pack(ids.point.y, PRIME)
+//
+// value = new_x = (pow(slope, 2, SECP_P) - 2 * x) % SECP_P
+func ecDoubleAssignNewX(vm *VirtualMachine, execScopes ExecutionScopes, ids IdsManager, secpP big.Int) error {
+	execScopes.AssignOrUpdateVariable("SECP_P", secpP)
+
+	slope3, err := BigInt3FromVarName("slope", ids, vm)
+	if err != nil {
+		return err
+	}
+	packedSlope := slope3.Pack86()
+	slope := new(big.Int).Mod(&packedSlope, Prime())
+	point, err := EcPointFromVarName("point", vm, ids)
+	if err != nil {
+		return err
+	}
+
+	xPacked := point.X.Pack86()
+	x := new(big.Int).Mod(&xPacked, Prime())
+	yPacked := point.Y.Pack86()
+	y := new(big.Int).Mod(&yPacked, Prime())
+
+	value := new(big.Int).Mul(slope, slope)
+	value = value.Mod(value, &secpP)
+
+	value = value.Sub(value, x)
+	value = value.Sub(value, x)
+	value = value.Mod(value, &secpP)
+
+	execScopes.AssignOrUpdateVariable("slope", slope)
+	execScopes.AssignOrUpdateVariable("x", x)
+	execScopes.AssignOrUpdateVariable("y", y)
+	execScopes.AssignOrUpdateVariable("value", *value)
+	execScopes.AssignOrUpdateVariable("new_x", *value)
 	return nil
 }
 
