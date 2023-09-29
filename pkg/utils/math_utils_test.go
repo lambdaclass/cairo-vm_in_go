@@ -44,3 +44,43 @@ func TestSafeDivBigErrZeroDivison(t *testing.T) {
 		t.Error("SafeDivBig should have failed")
 	}
 }
+
+func TestIgcdex11(t *testing.T) {
+	a := big.NewInt(1)
+	b := big.NewInt(1)
+	expectedX, expectedY, expectedZ := big.NewInt(0), big.NewInt(1), big.NewInt(1)
+	x, y, z := Igcdex(a, b)
+	if x.Cmp(expectedX) != 0 || y.Cmp(expectedY) != 0 || z.Cmp(expectedZ) != 0 {
+		t.Error("Wrong values returned by Igcdex")
+	}
+}
+
+func TestIgcdex00(t *testing.T) {
+	a := big.NewInt(0)
+	b := big.NewInt(0)
+	expectedX, expectedY, expectedZ := big.NewInt(0), big.NewInt(1), big.NewInt(0)
+	x, y, z := Igcdex(a, b)
+	if x.Cmp(expectedX) != 0 || y.Cmp(expectedY) != 0 || z.Cmp(expectedZ) != 0 {
+		t.Error("Wrong values returned by Igcdex")
+	}
+}
+
+func TestIgcdex10(t *testing.T) {
+	a := big.NewInt(1)
+	b := big.NewInt(0)
+	expectedX, expectedY, expectedZ := big.NewInt(1), big.NewInt(0), big.NewInt(1)
+	x, y, z := Igcdex(a, b)
+	if x.Cmp(expectedX) != 0 || y.Cmp(expectedY) != 0 || z.Cmp(expectedZ) != 0 {
+		t.Error("Wrong values returned by Igcdex")
+	}
+}
+
+func TestIgcdex46(t *testing.T) {
+	a := big.NewInt(4)
+	b := big.NewInt(6)
+	expectedX, expectedY, expectedZ := big.NewInt(-1), big.NewInt(1), big.NewInt(2)
+	x, y, z := Igcdex(a, b)
+	if x.Cmp(expectedX) != 0 || y.Cmp(expectedY) != 0 || z.Cmp(expectedZ) != 0 {
+		t.Error("Wrong values returned by Igcdex")
+	}
+}
