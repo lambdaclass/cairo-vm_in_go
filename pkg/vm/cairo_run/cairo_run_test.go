@@ -344,3 +344,7 @@ func TestCairoKeccak(t *testing.T) {
 func TestKeccakAddUint256(t *testing.T) {
 	testProgram("keccak_add_uint256", t)
 }
+
+func TestEcMulInner(t *testing.T) {
+	testProgram("ec_mul_inner", t)
+}

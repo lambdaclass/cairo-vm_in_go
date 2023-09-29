@@ -129,6 +129,84 @@ func TestRunEcEmbeddedSecpOk(t *testing.T) {
 
 }
 
+func TestEcMulInnerSuccessEven(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+
+	scalar := NewMaybeRelocatableFelt(FeltFromUint64(89712))
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"scalar": {scalar},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: EC_MUL_INNER,
+	})
+
+	vm.RunContext.Ap = NewRelocatable(1, 1)
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	result, err := vm.Segments.Memory.Get(NewRelocatable(1, 1))
+
+	if err != nil {
+		t.Errorf("EC_MUL_INNER hint failed with error %s", err)
+	}
+
+	resultFelt, ok := result.GetFelt()
+	if !ok {
+		t.Errorf("EC_MUL_INNER hint expected Felt value as result")
+	}
+
+	if !resultFelt.IsZero() {
+		t.Errorf("EC_MUL_INNER should have returned 0 but got %v", resultFelt)
+	}
+}
+
+func TestEcMulInnerSuccessOdd(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+
+	scalar := NewMaybeRelocatableFelt(FeltFromUint64(89711))
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"scalar": {scalar},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: EC_MUL_INNER,
+	})
+
+	vm.RunContext.Ap = NewRelocatable(1, 1)
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	result, err := vm.Segments.Memory.Get(NewRelocatable(1, 1))
+
+	if err != nil {
+		t.Errorf("EC_MUL_INNER hint failed with error %s", err)
+	}
+
+	resultFelt, ok := result.GetFelt()
+	if !ok {
+		t.Errorf("EC_MUL_INNER hint expected Felt value as result")
+	}
+
+	if resultFelt.Cmp(FeltOne()) != 0 {
+		t.Errorf("EC_MUL_INNER should have returned 1 but got %v", resultFelt)
+	}
+}
+
 func TestComputeDoublingSlopeOk(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()

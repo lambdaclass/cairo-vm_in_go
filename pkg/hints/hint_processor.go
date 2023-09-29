@@ -186,6 +186,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return splitInt(data.Ids, vm)
 	case SPLIT_INT_ASSERT_RANGE:
 		return splitIntAssertRange(data.Ids, vm)
+	case EC_MUL_INNER:
+		return ecMulInner(vm, data.Ids)
 	case VERIFY_ZERO_EXTERNAL_SECP:
 		return verifyZeroWithExternalConst(*vm, *execScopes, data.Ids)
 	case FAST_EC_ADD_ASSIGN_NEW_X:
