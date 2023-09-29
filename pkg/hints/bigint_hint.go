@@ -2,10 +2,12 @@ package hints
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
+	"github.com/lambdaclass/cairo-vm.go/pkg/math_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
@@ -138,6 +140,7 @@ func calculateX(vm *VirtualMachine, idsData IdsManager) (big.Int, error) {
 	x0 := x_bigint5[0]
 	x1 := x_bigint5[1]
 	x2 := x_bigint5[2]
+
 	var limbs = []lambdaworks.Felt{x0, x1, x2}
 
 	x_lower := BigInt3{Limbs: limbs}
@@ -173,9 +176,12 @@ func bigintPackDivMod(vm *VirtualMachine, execScopes *ExecutionScopes, idsData I
 	if err != nil {
 		return err
 	}
+	x1 := x
 	y := yUnpacked.Pack86()
 
-	res, _ := new(big.Int).DivMod(&x, &y, &p)
+	res, _ := math_utils.DivMod(&x1, &y, &p)
+	fmt.Println("x", x.Text(10))
+
 	execScopes.AssignOrUpdateVariable("res", *res)
 	execScopes.AssignOrUpdateVariable("value", *res)
 	execScopes.AssignOrUpdateVariable("x", x)

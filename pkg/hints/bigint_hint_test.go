@@ -1,6 +1,7 @@
 package hints_test
 
 import (
+	"fmt"
 	"math/big"
 	"testing"
 
@@ -167,6 +168,7 @@ func TestBigintPackDivModHint(t *testing.T) {
 			"x": {
 				NewMaybeRelocatableFelt(lambdaworks.FeltFromHex("0x38a23ca66202c8c2a72277")),
 				NewMaybeRelocatableFelt(lambdaworks.FeltFromHex("0x6730e765376ff17ea8385")),
+				NewMaybeRelocatableFelt(lambdaworks.FeltFromHex("0xca1ad489ab60ea581e6c1")),
 				NewMaybeRelocatableFelt(lambdaworks.FeltFromUint(0)),
 				NewMaybeRelocatableFelt(lambdaworks.FeltFromUint(0)),
 			},
@@ -233,11 +235,17 @@ func TestBigintPackDivModHint(t *testing.T) {
 		}
 		p := pu.(big.Int)
 
+		fmt.Println("")
+		fmt.Println("")
+		fmt.Println("")
+		fmt.Println("")
+		fmt.Println("")
+		fmt.Println("")
 		if res.Cmp(expected) != 0 {
-			t.Errorf("incorrect res expected: %s, got: %s", expected.Text(10), expected.Text(10))
+			t.Errorf("incorrect res expected: %s, got: %s", expected.Text(10), res.Text(10))
 		}
 		if value.Cmp(expected) != 0 {
-			t.Errorf("incorrect value expected: %s, got: %s", value.Text(10), expected.Text(10))
+			t.Errorf("incorrect value expected: %s, got: %s", expected.Text(10), value.Text(10))
 		}
 		if y.Cmp(yExpected) != 0 {
 			t.Errorf("incorrect y expected: %s, got: %s", yExpected.Text(10), y.Text(10))
