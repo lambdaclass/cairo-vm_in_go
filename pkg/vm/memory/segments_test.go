@@ -310,3 +310,52 @@ func TestGetFeltRangeRelocatable(t *testing.T) {
 		t.Errorf("GetFeltRange should have failed")
 	}
 }
+
+func TestGenArgMaybeRelocatable(t *testing.T) {
+	segments := memory.NewMemorySegmentManager()
+	arg := any(*memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero()))
+	expectedArg := *memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero())
+	genedArg, err := segments.GenArg(arg)
+	if err != nil || !reflect.DeepEqual(expectedArg, genedArg) {
+		t.Error("GenArg failed or returned wrong value")
+	}
+}
+
+func TestGenArgSliceMaybeRelocatable(t *testing.T) {
+	segments := memory.NewMemorySegmentManager()
+	arg := any([]memory.MaybeRelocatable{*memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero())})
+
+	expectedBase := memory.NewRelocatable(0, 0)
+	expectedArg := *memory.NewMaybeRelocatableRelocatable(expectedBase)
+	genedArg, err := segments.GenArg(arg)
+	if err != nil || !reflect.DeepEqual(expectedArg, genedArg) {
+		t.Error("GenArg failed or returned wrong value")
+	}
+	val, err := segments.Memory.GetFelt(expectedBase)
+	if err != nil || !val.IsZero() {
+		t.Error("GenArg inserted wrong value into memory")
+	}
+}
+
+func TestGenArgSliceSliceMaybeRelocatable(t *testing.T) {
+	segments := memory.NewMemorySegmentManager()
+	arg := any([][]memory.MaybeRelocatable{{*memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero())}})
+
+	expectedBaseA := memory.NewRelocatable(1, 0)
+	expectedBaseB := memory.NewRelocatable(0, 0)
+	expectedArg := *memory.NewMaybeRelocatableRelocatable(expectedBaseA)
+	genedArg, err := segments.GenArg(arg)
+
+	if err != nil || !reflect.DeepEqual(expectedArg, genedArg) {
+		t.Error("GenArg failed or returned wrong value")
+	}
+	valA, err := segments.Memory.GetRelocatable(expectedBaseA)
+	if err != nil || valA != expectedBaseB {
+		t.Error("GenArg inserted wrong value into memory")
+	}
+
+	valB, err := segments.Memory.GetFelt(expectedBaseB)
+	if err != nil || !valB.IsZero() {
+		t.Error("GenArg inserted wrong value into memory")
+	}
+}

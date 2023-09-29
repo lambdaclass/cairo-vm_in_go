@@ -70,11 +70,11 @@ func NewCairoRunner(program vm.Program, layoutName string, proofMode bool) (*Cai
 
 // Performs the initialization step, returns the end pointer (pc upon which execution should stop)
 func (r *CairoRunner) Initialize() (memory.Relocatable, error) {
-	err := r.initializeBuiltins()
+	err := r.InitializeBuiltins()
 	if err != nil {
 		return memory.Relocatable{}, errors.New(err.Error())
 	}
-	r.initializeSegments()
+	r.InitializeSegments()
 	end, err := r.initializeMainEntrypoint()
 	if err == nil {
 		err = r.initializeVM()
@@ -84,7 +84,7 @@ func (r *CairoRunner) Initialize() (memory.Relocatable, error) {
 
 // Initializes builtin runners in accordance to the specified layout and
 // the builtins present in the running program.
-func (r *CairoRunner) initializeBuiltins() error {
+func (r *CairoRunner) InitializeBuiltins() error {
 	var builtinRunners []builtins.BuiltinRunner
 	programBuiltins := map[string]struct{}{}
 	for _, builtin := range r.Program.Builtins {
@@ -113,7 +113,7 @@ func (r *CairoRunner) initializeBuiltins() error {
 }
 
 // Creates program, execution and builtin segments
-func (r *CairoRunner) initializeSegments() {
+func (r *CairoRunner) InitializeSegments() {
 	// Program Segment
 	r.ProgramBase = r.Vm.Segments.AddSegment()
 	// Execution Segment
@@ -144,9 +144,9 @@ func (r *CairoRunner) initializeState(entrypoint uint, stack *[]memory.MaybeRelo
 
 // Initializes memory, initial register values & returns the end pointer (final pc) to run from a given pc offset
 // (entrypoint)
-func (r *CairoRunner) initializeFunctionEntrypoint(entrypoint uint, stack *[]memory.MaybeRelocatable, return_fp memory.Relocatable) (memory.Relocatable, error) {
+func (r *CairoRunner) initializeFunctionEntrypoint(entrypoint uint, stack *[]memory.MaybeRelocatable, return_fp memory.MaybeRelocatable) (memory.Relocatable, error) {
 	end := r.Vm.Segments.AddSegment()
-	*stack = append(*stack, *memory.NewMaybeRelocatableRelocatable(return_fp), *memory.NewMaybeRelocatableRelocatable(end))
+	*stack = append(*stack, return_fp, *memory.NewMaybeRelocatableRelocatable(end))
 	r.initialFp = r.executionBase
 	r.initialFp.Offset += uint(len(*stack))
 	r.initialAp = r.initialFp
@@ -188,7 +188,7 @@ func (r *CairoRunner) initializeMainEntrypoint() (memory.Relocatable, error) {
 		return memory.NewRelocatable(r.ProgramBase.SegmentIndex, r.ProgramBase.Offset+r.Program.End), nil
 	}
 
-	return_fp := r.Vm.Segments.AddSegment()
+	return_fp := *memory.NewMaybeRelocatableRelocatable(r.Vm.Segments.AddSegment())
 	return r.initializeFunctionEntrypoint(r.mainOffset, &stack, return_fp)
 }
 
@@ -580,4 +580,41 @@ func (runner *CairoRunner) GetExecutionResources() (ExecutionResources, error) {
 		NMemoryHoles:            nMemoryHoles,
 		BuiltinsInstanceCounter: builtinInstaceCounter,
 	}, nil
+}
+
+// TODO: Add verifySecure once its implemented
+/*
+Runs a cairo program from a give entrypoint, indicated by its pc offset, with the given arguments.
+If `verifySecure` is set to true, [verifySecureRunner] will be called to run extra verifications.
+`programSegmentSize` is only used by the [verifySecureRunner] function and will be ignored if `verifySecure` is set to false.
+Each arg can be either MaybeRelocatable, []MaybeRelocatable or [][]MaybeRelocatable
+*/
+func (runner *CairoRunner) RunFromEntrypoint(entrypoint uint, args []any, hintProcessor vm.HintProcessor) error {
+	stack := make([]memory.MaybeRelocatable, 0)
+	for _, arg := range args {
+		val, err := runner.Vm.Segments.GenArg(arg)
+		if err != nil {
+			return err
+		}
+		stack = append(stack, val)
+	}
+	returnFp := *memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero())
+	end, err := runner.initializeFunctionEntrypoint(entrypoint, &stack, returnFp)
+	if err != nil {
+		return err
+	}
+	err = runner.initializeVM()
+	if err != nil {
+		return err
+	}
+	err = runner.RunUntilPC(end, hintProcessor)
+	if err != nil {
+		return err
+	}
+	err = runner.EndRun(false, false, hintProcessor)
+	if err != nil {
+		return err
+	}
+	// TODO: verifySecureRunner
+	return nil
 }
