@@ -623,6 +623,24 @@ func assertLeFeltV06(vm *VirtualMachine, ids IdsManager) error {
 		return errors.New(err)
 	}
 
+	return nil
+}
+
+func assertLeFeltV08(vm *VirtualMachine, ids IdsManager) error {
+	a, err := ids.GetFelt("a", vm)
+	if err != nil {
+		return err
+	}
+
+	b, err := ids.GetFelt("b", vm)
+	if err != nil {
+		return err
+	}
+	if a.Cmp(b) == 1 {
+		err := fmt.Sprintf("Assertion failed, %s, is not less or equal to %s", a.ToHexString(), b.ToHexString())
+		return errors.New(err)
+	}
+
 	bound, err := vm.GetRangeCheckBound()
 	if err != nil {
 		return err

@@ -192,6 +192,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return bigintPackDivMod(vm, execScopes, data.Ids)
 	case ASSERT_LE_FELT_V_0_6:
 		return assertLeFeltV06(vm, data.Ids)
+	case ASSERT_LE_FELT_V_0_8:
+		return assertLeFeltV08(vm, data.Ids)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
