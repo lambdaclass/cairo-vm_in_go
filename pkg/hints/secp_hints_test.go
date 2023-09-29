@@ -39,17 +39,8 @@ func TestReduceV1(t *testing.T) {
 		t.Errorf("REDUCE_V1 hint failed with error %s", err)
 	}
 	// Checked scope variables
-	// SECP_P
-	secpP, err := FetchScopeVar[big.Int]("SECP_P", scopes)
-	expectedSecpP := SECP_P()
-	if err != nil || secpP.Cmp(&expectedSecpP) != 0 {
-		t.Errorf("Wrong/No scope var SECP_P")
-	}
+	CheckScopeVar[big.Int]("SECP_P", SECP_P(), scopes, t)
 
-	value, err := FetchScopeVar[big.Int]("value", scopes)
 	valueUnpacked := Uint384{Limbs: []Felt{FeltFromUint(6), FeltFromUint(6), FeltFromUint(6)}}
-	expectedvalue := valueUnpacked.Pack86()
-	if err != nil || value.Cmp(&expectedvalue) != 0 {
-		t.Errorf("Wrong/No scope var value")
-	}
+	CheckScopeVar[big.Int]("value", valueUnpacked.Pack86(), scopes, t)
 }
