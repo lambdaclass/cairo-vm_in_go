@@ -42,3 +42,5 @@ const SPLIT_FELT = "from starkware.cairo.common.math_utils import assert_integer
 const SPLIT_INT = "memory[ids.output] = res = (int(ids.value) % PRIME) % ids.base\nassert res < ids.bound, f'split_int(): Limb {res} is out of range.'"
 
 const SPLIT_INT_ASSERT_RANGE = "assert ids.value == 0, 'split_int(): value is out of range.'"
+
+const ASSERT_LE_FELT_V_0_6 = "from starkware.cairo.common.math_utils import assert_integer\nassert_integer(ids.a)\nassert_integer(ids.b)\nassert (ids.a % PRIME) <= (ids.b % PRIME), \\\n    f'a = {ids.a % PRIME} is not less than or equal to b = {ids.b % PRIME}.'"
