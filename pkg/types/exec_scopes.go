@@ -18,6 +18,10 @@ func ErrVariableNotInScope(varName string) error {
 	return ExecutionScopesError(errors.Errorf("Variable %s not in scope", varName))
 }
 
+func ErrVariableHasWrongType(varName string) error {
+	return ExecutionScopesError(errors.Errorf("Scope variable %s has wrong type", varName))
+}
+
 func NewExecutionScopes() *ExecutionScopes {
 	data := make([]map[string]interface{}, 1)
 	data[0] = make(map[string]interface{})
@@ -79,6 +83,23 @@ func (es *ExecutionScopes) Get(varName string) (interface{}, error) {
 	val, prs := locals[varName]
 	if !prs {
 		return nil, ErrVariableNotInScope(varName)
+	}
+	return val, nil
+}
+
+// Generic version of ExecutionScopes.Get which also handles casting
+func FetchScopeVar[T interface{}](varName string, scopes *ExecutionScopes) (T, error) {
+	locals, err := scopes.GetLocalVariables()
+	if err != nil {
+		return *new(T), err
+	}
+	valAny, prs := locals[varName]
+	if !prs {
+		return *new(T), ErrVariableNotInScope(varName)
+	}
+	val, ok := valAny.(T)
+	if !ok {
+		return *new(T), ErrVariableHasWrongType(varName)
 	}
 	return val, nil
 }
