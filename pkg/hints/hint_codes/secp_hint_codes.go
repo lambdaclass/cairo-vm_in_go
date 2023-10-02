@@ -12,6 +12,9 @@ const REDUCE_V1 = `from starkware.cairo.common.cairo_secp.secp_utils import SECP
 
 value = pack(ids.x, PRIME) % SECP_P`
 
+const REDUCE_V2 = `from starkware.cairo.common.cairo_secp.secp_utils import pack
+value = pack(ids.x, PRIME) % SECP_P`
+
 const REDUCE_ED25519 = `from starkware.cairo.common.cairo_secp.secp_utils import pack
 SECP_P=2**255-19
 

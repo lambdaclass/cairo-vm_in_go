@@ -20,6 +20,20 @@ func reduceV1(ids IdsManager, vm *VirtualMachine, scopes *ExecutionScopes) error
 	return nil
 }
 
+func reduceV2(ids IdsManager, vm *VirtualMachine, scopes *ExecutionScopes) error {
+	secpP, err := FetchScopeVar[big.Int]("SECP_P", scopes)
+	if err != nil {
+		return err
+	}
+	value, err := Uint384FromVarName("x", ids, vm)
+	if err != nil {
+		return err
+	}
+	packedValue := value.Pack86()
+	scopes.AssignOrUpdateVariable("value", *new(big.Int).Mod(&packedValue, &secpP))
+	return nil
+}
+
 func reduceED25519(ids IdsManager, vm *VirtualMachine, scopes *ExecutionScopes) error {
 	secpP := SECP_P_V2()
 	scopes.AssignOrUpdateVariable("SECP_P", secpP)

@@ -45,6 +45,37 @@ func TestReduceV1(t *testing.T) {
 	CheckScopeVar[big.Int]("value", valueUnpacked.Pack86(), scopes, t)
 }
 
+func TestReduceV2(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"x": {
+				NewMaybeRelocatableFelt(FeltFromDecString("6")),
+				NewMaybeRelocatableFelt(FeltFromDecString("6")),
+				NewMaybeRelocatableFelt(FeltFromDecString("6")),
+			},
+		},
+		vm,
+	)
+	scopes := NewExecutionScopes()
+	scopes.AssignOrUpdateVariable("SECP_P", SECP_P())
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: REDUCE_V2,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("REDUCE_V2 hint failed with error %s", err)
+	}
+
+	valueUnpacked := Uint384{Limbs: []Felt{FeltFromUint(6), FeltFromUint(6), FeltFromUint(6)}}
+	CheckScopeVar[big.Int]("value", valueUnpacked.Pack86(), scopes, t)
+}
+
 func TestReduceED(t *testing.T) {
 	vm := NewVirtualMachine()
 	vm.Segments.AddSegment()

@@ -210,6 +210,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return fastEcAddAssignNewY(execScopes)
 	case REDUCE_V1:
 		return reduceV1(data.Ids, vm, execScopes)
+	case REDUCE_V2:
+		return reduceV2(data.Ids, vm, execScopes)
 	case REDUCE_ED25519:
 		return reduceED25519(data.Ids, vm, execScopes)
 	default:
