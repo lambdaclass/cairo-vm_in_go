@@ -36,7 +36,6 @@ go.work
 
 # python env
 cairo-vm-env
-env
 
 # generated trace files
 cairo_programs/*.trace
