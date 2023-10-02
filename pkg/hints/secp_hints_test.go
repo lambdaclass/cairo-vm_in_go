@@ -250,3 +250,65 @@ func TestBigIntTo256(t *testing.T) {
 		t.Error("Wrong/No ids.low")
 	}
 }
+
+func TestIsZeroTrue(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"x": {
+				NewMaybeRelocatableFelt(FeltZero()),
+			},
+		},
+		vm,
+	)
+	// Advance ap to avoid clashes
+	vm.RunContext.Ap.Offset += 1
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: IS_ZERO_NONDET,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("IS_ZERO_NONDET hint failed with error %s", err)
+	}
+	// Check memory[ap]
+	val, err := vm.Segments.Memory.GetFelt(vm.RunContext.Ap)
+	if err != nil || val != FeltOne() {
+		t.Error("Wrong/No value inserted into ap")
+	}
+}
+
+func TestIsZeroFalse(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"x": {
+				NewMaybeRelocatableFelt(FeltOne()),
+			},
+		},
+		vm,
+	)
+	// Advance ap to avoid clashes
+	vm.RunContext.Ap.Offset += 1
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: IS_ZERO_NONDET,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("IS_ZERO_NONDET hint failed with error %s", err)
+	}
+	// Check memory[ap]
+	val, err := vm.Segments.Memory.GetFelt(vm.RunContext.Ap)
+	if err != nil || val != FeltZero() {
+		t.Error("Wrong/No value inserted into ap")
+	}
+}

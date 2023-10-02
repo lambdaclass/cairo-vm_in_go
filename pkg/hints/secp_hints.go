@@ -82,3 +82,14 @@ func bigintToUint256(ids IdsManager, vm *VirtualMachine, constants *map[string]l
 	low := xD0.Add(xD1.Mul(base)).And((lambdaworks.FeltOne().Shl(128)).Sub(lambdaworks.FeltOne()))
 	return ids.Insert("low", memory.NewMaybeRelocatableFelt(low), vm)
 }
+
+func isZeroNondet(ids IdsManager, vm *VirtualMachine) error {
+	x, err := ids.GetFelt("x", vm)
+	if err != nil {
+		return err
+	}
+	if x.IsZero() {
+		return vm.Segments.Memory.Insert(vm.RunContext.Ap, memory.NewMaybeRelocatableFelt(lambdaworks.FeltOne()))
+	}
+	return vm.Segments.Memory.Insert(vm.RunContext.Ap, memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero()))
+}

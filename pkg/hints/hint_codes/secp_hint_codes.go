@@ -39,3 +39,5 @@ assert r == 0, f"verify_zero: Invalid input {ids.val.d0, ids.val.d1, ids.val.d2}
 ids.q = q % PRIME`
 
 const BIGINT_TO_UINT256 = "ids.low = (ids.x.d0 + ids.x.d1 * ids.BASE) & ((1 << 128) - 1)"
+
+const IS_ZERO_NONDET = "memory[ap] = to_felt_or_relocatable(x == 0)"

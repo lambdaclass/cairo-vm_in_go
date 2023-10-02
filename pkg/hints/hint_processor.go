@@ -223,6 +223,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return verifyZero(data.Ids, vm, execScopes, hint_utils.SECP_P_V2())
 	case BIGINT_TO_UINT256:
 		return bigintToUint256(data.Ids, vm, constants)
+	case IS_ZERO_NONDET:
+		return isZeroNondet(data.Ids, vm)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
