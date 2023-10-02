@@ -11,3 +11,8 @@ const VERIFY_ZERO_EXTERNAL_SECP = "from starkware.cairo.common.cairo_secp.secp_u
 const REDUCE_V1 = `from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
 
 value = pack(ids.x, PRIME) % SECP_P`
+
+const REDUCE_ED25519 = `from starkware.cairo.common.cairo_secp.secp_utils import pack
+SECP_P=2**255-19
+
+value = pack(ids.x, PRIME) % SECP_P`
