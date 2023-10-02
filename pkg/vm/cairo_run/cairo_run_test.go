@@ -333,6 +333,10 @@ func TestDivModN(t *testing.T) {
 	testProgram("div_mod_n", t)
 }
 
+func TestEcDoubleAssign(t *testing.T) {
+	testProgram("ec_double_assign", t)
+}
+
 func TestIntegrationEcDoubleSlope(t *testing.T) {
 	testProgram("ec_double_slope", t)
 }

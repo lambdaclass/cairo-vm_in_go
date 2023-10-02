@@ -27,3 +27,4 @@ func main{range_check_ptr: felt, bitwise_ptr: BitwiseBuiltin*}() {
 
     return ();
 }
+
