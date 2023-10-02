@@ -309,6 +309,14 @@ func TestSplitFeltHint(t *testing.T) {
 	testProgram("split_felt", t)
 }
 
+func TestUsort(t *testing.T) {
+	testProgram("usort", t)
+}
+
+func TestUsortProofMode(t *testing.T) {
+	testProgramProof("usort", t)
+}
+
 func TestSplitFeltHintProofMode(t *testing.T) {
 	testProgramProof("split_felt", t)
 }
@@ -323,6 +331,10 @@ func TestSplitIntHintProofMode(t *testing.T) {
 
 func TestDivModN(t *testing.T) {
 	testProgram("div_mod_n", t)
+}
+
+func TestEcDoubleAssign(t *testing.T) {
+	testProgram("ec_double_assign", t)
 }
 
 func TestIntegrationEcDoubleSlope(t *testing.T) {

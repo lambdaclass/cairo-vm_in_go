@@ -100,5 +100,12 @@ func Igcdex(a *big.Int, b *big.Int) (*big.Int, *big.Int, *big.Int) {
 		return new(big.Int).Mul(x, xSign), new(big.Int).Mul(y, ySign), a
 
 	}
+}
 
+func ISqrt(x *big.Int) (*big.Int, error) {
+	if x.Sign() == -1 {
+		return nil, errors.Errorf("Expected x: %s to be non-negative", x)
+	}
+	res := new(big.Int)
+	return res.Sqrt(x), nil
 }

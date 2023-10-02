@@ -92,6 +92,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return ecNegateImportSecpP(vm, *execScopes, data.Ids)
 	case EC_NEGATE_EMBEDDED_SECP:
 		return ecNegateEmbeddedSecpP(vm, *execScopes, data.Ids)
+	case EC_DOUBLE_ASSIGN_NEW_X_V1, EC_DOUBLE_ASSIGN_NEW_X_V2, EC_DOUBLE_ASSIGN_NEW_X_V3, EC_DOUBLE_ASSIGN_NEW_X_V4:
+		return ecDoubleAssignNewX(vm, *execScopes, data.Ids, SECP_P_V2())
 	case POW:
 		return pow(data.Ids, vm)
 	case SQRT:
@@ -106,6 +108,16 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return memset_step_loop(data.Ids, vm, execScopes, "continue_loop")
 	case VM_ENTER_SCOPE:
 		return vm_enter_scope(execScopes)
+	case USORT_ENTER_SCOPE:
+		return usortEnterScope(execScopes)
+	case USORT_BODY:
+		return usortBody(data.Ids, execScopes, vm)
+	case USORT_VERIFY:
+		return usortVerify(data.Ids, execScopes, vm)
+	case USORT_VERIFY_MULTIPLICITY_ASSERT:
+		return usortVerifyMultiplicityAssert(execScopes)
+	case USORT_VERIFY_MULTIPLICITY_BODY:
+		return usortVerifyMultiplicityBody(data.Ids, execScopes, vm)
 	case SET_ADD:
 		return setAdd(data.Ids, vm)
 	case FIND_ELEMENT:
