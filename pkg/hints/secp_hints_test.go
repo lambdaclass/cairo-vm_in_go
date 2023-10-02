@@ -215,3 +215,38 @@ func TestVerifyZeroV3(t *testing.T) {
 		t.Error("Wrong/No ids.q")
 	}
 }
+
+func TestBigIntTo256(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"x": {
+				NewMaybeRelocatableFelt(FeltFromDecString("1")),
+				NewMaybeRelocatableFelt(FeltFromDecString("0")),
+				NewMaybeRelocatableFelt(FeltFromDecString("0")),
+			},
+			"low": {nil},
+		},
+		vm,
+	)
+	constants := SetupConstantsForTest(map[string]Felt{
+		"BASE": FeltFromUint(1).Shl(86),
+	}, &idsManager)
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: BIGINT_TO_UINT256,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, &constants, nil)
+	if err != nil {
+		t.Errorf("BIGINT_TO_UINT256 hint failed with error %s", err)
+	}
+	// Check ids.low
+	low, err := idsManager.GetFelt("low", vm)
+	if err != nil || low != FeltOne() {
+		t.Error("Wrong/No ids.low")
+	}
+}

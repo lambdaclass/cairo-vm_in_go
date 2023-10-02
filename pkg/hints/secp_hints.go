@@ -62,3 +62,23 @@ func verifyZero(ids IdsManager, vm *VirtualMachine, scopes *ExecutionScopes, sec
 	}
 	return ids.Insert("q", memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromBigInt(q)), vm)
 }
+
+// ids.low = (ids.x.d0 + ids.x.d1 * ids.BASE) & ((1 << 128) - 1)
+func bigintToUint256(ids IdsManager, vm *VirtualMachine, constants *map[string]lambdaworks.Felt) error {
+	// Fetch variables
+	xD0, err := ids.GetStructFieldFelt("x", 0, vm)
+	if err != nil {
+		return err
+	}
+	xD1, err := ids.GetStructFieldFelt("x", 1, vm)
+	if err != nil {
+		return err
+	}
+	base, err := ids.GetConst("BASE", constants)
+	if err != nil {
+		return err
+	}
+	// Hint Logic
+	low := xD0.Add(xD1.Mul(base)).And((lambdaworks.FeltOne().Shl(128)).Sub(lambdaworks.FeltOne()))
+	return ids.Insert("low", memory.NewMaybeRelocatableFelt(low), vm)
+}
