@@ -6,6 +6,7 @@ import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
+	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	"github.com/pkg/errors"
@@ -104,5 +105,21 @@ func isZeroPack(ids IdsManager, vm *VirtualMachine, scopes *ExecutionScopes) err
 	scopes.AssignOrUpdateVariable("SECP_P", secpP)
 	xModP := x.Mod(&x, &secpP)
 	scopes.AssignOrUpdateVariable("x", *xModP)
+	return nil
+}
+
+func isZeroAssignScopeVars(scopes *ExecutionScopes) error {
+	secpP := SECP_P()
+	scopes.AssignOrUpdateVariable("SECP_P", secpP)
+	x, err := FetchScopeVar[big.Int]("x", scopes)
+	if err != nil {
+		return err
+	}
+	value, err := utils.DivMod(big.NewInt(1), &x, &secpP)
+	if err != nil {
+		return err
+	}
+	scopes.AssignOrUpdateVariable("value", *value)
+	scopes.AssignOrUpdateVariable("x_inv", *value)
 	return nil
 }

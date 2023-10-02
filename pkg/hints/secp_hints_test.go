@@ -344,3 +344,29 @@ func TestIsZeroPack(t *testing.T) {
 	xUnpacked := Uint384{Limbs: []Felt{FeltFromUint(6), FeltFromUint(6), FeltFromUint(6)}}
 	CheckScopeVar[big.Int]("x", xUnpacked.Pack86(), scopes, t)
 }
+
+func TestIsZeroAssignScopeVars(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(map[string][]*MaybeRelocatable{}, vm)
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: IS_ZERO_ASSIGN_SCOPE_VARS,
+	})
+	scopes := NewExecutionScopes()
+	x, _ := new(big.Int).SetString("52621538839140286024584685587354966255185961783273479086367", 10)
+	scopes.AssignOrUpdateVariable("x", *x)
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("IS_ZERO_ASSIGN_SCOPE_VARS hint failed with error %s", err)
+	}
+	// Check scope vars
+	CheckScopeVar[big.Int]("SECP_P", SECP_P(), scopes, t)
+
+	value, _ := new(big.Int).SetString("19429627790501903254364315669614485084365347064625983303617500144471999752609", 10)
+	CheckScopeVar[big.Int]("value", *value, scopes, t)
+	CheckScopeVar[big.Int]("x_inv", *value, scopes, t)
+}

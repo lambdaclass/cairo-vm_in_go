@@ -50,3 +50,8 @@ x = pack(ids.x, PRIME) % SECP_P`
 
 const IS_ZERO_PACK_V2 = `from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
 x = pack(ids.x, PRIME) % SECP_P`
+
+const IS_ZERO_ASSIGN_SCOPE_VARS = `from starkware.cairo.common.cairo_secp.secp_utils import SECP_P
+from starkware.python.math_utils import div_mod
+
+value = x_inv = div_mod(1, x, SECP_P)`

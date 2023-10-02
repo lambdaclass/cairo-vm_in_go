@@ -227,6 +227,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return isZeroNondet(data.Ids, vm)
 	case IS_ZERO_PACK_V1, IS_ZERO_PACK_V2:
 		return isZeroPack(data.Ids, vm, execScopes)
+	case IS_ZERO_ASSIGN_SCOPE_VARS:
+		return isZeroAssignScopeVars(execScopes)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
