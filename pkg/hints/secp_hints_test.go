@@ -107,3 +107,111 @@ func TestReduceED(t *testing.T) {
 	valueUnpacked := Uint384{Limbs: []Felt{FeltFromUint(6), FeltFromUint(6), FeltFromUint(6)}}
 	CheckScopeVar[big.Int]("value", valueUnpacked.Pack86(), scopes, t)
 }
+
+func TestVerifyZeroV1(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"val": {
+				NewMaybeRelocatableFelt(FeltFromDecString("0")),
+				NewMaybeRelocatableFelt(FeltFromDecString("0")),
+				NewMaybeRelocatableFelt(FeltFromDecString("0")),
+			},
+			"q": {nil, nil, nil},
+		},
+		vm,
+	)
+	scopes := NewExecutionScopes()
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: VERIFY_ZERO_V1,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("VERIFY_ZERO_V1 hint failed with error %s", err)
+	}
+	// Check scope variables
+	CheckScopeVar[big.Int]("SECP_P", SECP_P(), scopes, t)
+	// Check ids variables
+	expectedQ := FeltZero()
+	idsQ, err := idsManager.GetFelt("q", vm)
+	if err != nil || expectedQ.Cmp(idsQ) != 0 {
+		t.Error("Wrong/No ids.q")
+	}
+}
+
+func TestVerifyZeroV2(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"val": {
+				NewMaybeRelocatableFelt(FeltFromDecString("0")),
+				NewMaybeRelocatableFelt(FeltFromDecString("0")),
+				NewMaybeRelocatableFelt(FeltFromDecString("0")),
+			},
+			"q": {nil, nil, nil},
+		},
+		vm,
+	)
+	scopes := NewExecutionScopes()
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: VERIFY_ZERO_V2,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("VERIFY_ZERO_V2 hint failed with error %s", err)
+	}
+	// Check scope variables
+	CheckScopeVar[big.Int]("SECP_P", SECP_P(), scopes, t)
+	// Check ids variables
+	expectedQ := FeltZero()
+	idsQ, err := idsManager.GetFelt("q", vm)
+	if err != nil || expectedQ.Cmp(idsQ) != 0 {
+		t.Error("Wrong/No ids.q")
+	}
+}
+
+func TestVerifyZeroV3(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"val": {
+				NewMaybeRelocatableFelt(FeltFromDecString("0")),
+				NewMaybeRelocatableFelt(FeltFromDecString("0")),
+				NewMaybeRelocatableFelt(FeltFromDecString("0")),
+			},
+			"q": {nil, nil, nil},
+		},
+		vm,
+	)
+	scopes := NewExecutionScopes()
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: VERIFY_ZERO_V3,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("VERIFY_ZERO_V3 hint failed with error %s", err)
+	}
+	// Check scope variables
+	CheckScopeVar[big.Int]("SECP_P", SECP_P_V2(), scopes, t)
+	// Check ids variables
+	expectedQ := FeltZero()
+	idsQ, err := idsManager.GetFelt("q", vm)
+	if err != nil || expectedQ.Cmp(idsQ) != 0 {
+		t.Error("Wrong/No ids.q")
+	}
+}
