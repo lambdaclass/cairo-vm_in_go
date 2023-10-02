@@ -312,3 +312,35 @@ func TestIsZeroFalse(t *testing.T) {
 		t.Error("Wrong/No value inserted into ap")
 	}
 }
+
+func TestIsZeroPack(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"x": {
+				NewMaybeRelocatableFelt(FeltFromUint(6)),
+				NewMaybeRelocatableFelt(FeltFromUint(6)),
+				NewMaybeRelocatableFelt(FeltFromUint(6)),
+			},
+		},
+		vm,
+	)
+
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: IS_ZERO_PACK_V1,
+	})
+	scopes := NewExecutionScopes()
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, scopes)
+	if err != nil {
+		t.Errorf("IS_ZERO_PACK_V1 hint failed with error %s", err)
+	}
+	// Check scope vars
+	CheckScopeVar[big.Int]("SECP_P", SECP_P(), scopes, t)
+
+	xUnpacked := Uint384{Limbs: []Felt{FeltFromUint(6), FeltFromUint(6), FeltFromUint(6)}}
+	CheckScopeVar[big.Int]("x", xUnpacked.Pack86(), scopes, t)
+}

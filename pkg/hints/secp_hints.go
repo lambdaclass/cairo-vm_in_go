@@ -93,3 +93,16 @@ func isZeroNondet(ids IdsManager, vm *VirtualMachine) error {
 	}
 	return vm.Segments.Memory.Insert(vm.RunContext.Ap, memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero()))
 }
+
+func isZeroPack(ids IdsManager, vm *VirtualMachine, scopes *ExecutionScopes) error {
+	xUnpacked, err := Uint384FromVarName("x", ids, vm)
+	if err != nil {
+		return err
+	}
+	x := xUnpacked.Pack86()
+	secpP := SECP_P()
+	scopes.AssignOrUpdateVariable("SECP_P", secpP)
+	xModP := x.Mod(&x, &secpP)
+	scopes.AssignOrUpdateVariable("x", *xModP)
+	return nil
+}
