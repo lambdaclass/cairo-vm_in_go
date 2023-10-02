@@ -19,3 +19,21 @@ const REDUCE_ED25519 = `from starkware.cairo.common.cairo_secp.secp_utils import
 SECP_P=2**255-19
 
 value = pack(ids.x, PRIME) % SECP_P`
+
+const VERIFY_ZERO_V1 = `from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
+
+q, r = divmod(pack(ids.val, PRIME), SECP_P)
+assert r == 0, f"verify_zero: Invalid input {ids.val.d0, ids.val.d1, ids.val.d2}."
+ids.q = q % PRIME`
+
+const VERIFY_ZERO_V2 = `from starkware.cairo.common.cairo_secp.secp_utils import SECP_P
+q, r = divmod(pack(ids.val, PRIME), SECP_P)
+assert r == 0, f"verify_zero: Invalid input {ids.val.d0, ids.val.d1, ids.val.d2}."
+ids.q = q % PRIME`
+
+const VERIFY_ZERO_V3 = `from starkware.cairo.common.cairo_secp.secp_utils import pack
+SECP_P = 2**255-19
+to_assert = pack(ids.val, PRIME)
+q, r = divmod(pack(ids.val, PRIME), SECP_P)
+assert r == 0, f"verify_zero: Invalid input {ids.val.d0, ids.val.d1, ids.val.d2}."
+ids.q = q % PRIME`

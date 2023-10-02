@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_codes"
+	"github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
@@ -214,6 +215,10 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return reduceV2(data.Ids, vm, execScopes)
 	case REDUCE_ED25519:
 		return reduceED25519(data.Ids, vm, execScopes)
+	case VERIFY_ZERO_V1, VERIFY_ZERO_V2:
+		return verifyZero(data.Ids, vm, execScopes, hint_utils.SECP_P())
+	case VERIFY_ZERO_V3:
+		return verifyZero(data.Ids, vm, execScopes, hint_utils.SECP_P_V2())
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
