@@ -360,3 +360,7 @@ func TestBlake2sFelts(t *testing.T) {
 func TestFinalizeBlake2s(t *testing.T) {
 	testProgram("finalize_blake2s", t)
 }
+
+func TestBlake2sIntegrationTests(t *testing.T) {
+	testProgram("blake2s_integration_tests", t)
+}
