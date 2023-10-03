@@ -356,3 +356,7 @@ func TestBlake2sHelloWorldHash(t *testing.T) {
 func TestBlake2sFelts(t *testing.T) {
 	testProgram("blake2s_felts", t)
 }
+
+func TestFinalizeBlake2s(t *testing.T) {
+	testProgram("finalize_blake2s", t)
+}
