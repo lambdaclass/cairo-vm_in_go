@@ -1,6 +1,7 @@
 package hints_test
 
 import (
+	"reflect"
 	"testing"
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints"
@@ -150,5 +151,43 @@ func TestBlake2sComputeOk(t *testing.T) {
 	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
 	if err != nil {
 		t.Errorf("BLAKE2S_COMPUTE hint test failed with error %s", err)
+	}
+}
+
+func TestBlake2sAddUint256BigEndOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	data := vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"data": {NewMaybeRelocatableRelocatable(data)},
+			"high": {NewMaybeRelocatableFelt(FeltFromUint(25))},
+			"low":  {NewMaybeRelocatableFelt(FeltFromUint(20))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: BLAKE2S_ADD_UINT256_BIGEND,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("BLAKE2S_ADD_UINT256_BIGEND hint test failed with error %s", err)
+	}
+	// Check the data segment
+	dataSegment, err := vm.Segments.GetFeltRange(data, 8)
+	expectedDataSegment := []Felt{
+		FeltZero(),
+		FeltZero(),
+		FeltZero(),
+		FeltFromUint(25),
+		FeltZero(),
+		FeltZero(),
+		FeltZero(),
+		FeltFromUint(20),
+	}
+	if err != nil || !reflect.DeepEqual(dataSegment, expectedDataSegment) {
+		t.Errorf("Wrong/No data loaded.\n Expected %v, got %v", expectedDataSegment, dataSegment)
 	}
 }
