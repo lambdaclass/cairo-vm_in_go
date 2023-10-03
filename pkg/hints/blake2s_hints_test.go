@@ -281,3 +281,55 @@ func TestBlake2sFinaizeOk(t *testing.T) {
 		t.Errorf("Wrong/No data loaded.\n Expected: %v.\n Got: %v", expectedDataSegment, dataSegment)
 	}
 }
+
+func TestBlake2sFinaizeV3Ok(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	data := vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"blake2s_ptr_end": {NewMaybeRelocatableRelocatable(data)},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: BLAKE2S_FINALIZE_V3,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("BLAKE2S_FINALIZE_V3 hint test failed with error %s", err)
+	}
+	// Check the data segment
+	dataSegment, err := vm.Segments.GetFeltRange(data, 204)
+
+	expectedDataSegment := []Felt{
+		FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(),
+		FeltFromUint(1795745351), FeltFromUint(3144134277), FeltFromUint(1013904242), FeltFromUint(2773480762), FeltFromUint(1359893119), FeltFromUint(2600822924), FeltFromUint(528734635), FeltFromUint(1541459225), FeltZero(), FeltFromUint(4294967295), FeltFromUint(813310313),
+		FeltFromUint(2491453561), FeltFromUint(3491828193), FeltFromUint(2085238082), FeltFromUint(1219908895), FeltFromUint(514171180), FeltFromUint(4245497115), FeltFromUint(4193177630),
+
+		FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(),
+		FeltFromUint(1795745351), FeltFromUint(3144134277), FeltFromUint(1013904242), FeltFromUint(2773480762), FeltFromUint(1359893119), FeltFromUint(2600822924), FeltFromUint(528734635), FeltFromUint(1541459225), FeltZero(), FeltFromUint(4294967295), FeltFromUint(813310313),
+		FeltFromUint(2491453561), FeltFromUint(3491828193), FeltFromUint(2085238082), FeltFromUint(1219908895), FeltFromUint(514171180), FeltFromUint(4245497115), FeltFromUint(4193177630),
+
+		FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(),
+		FeltFromUint(1795745351), FeltFromUint(3144134277), FeltFromUint(1013904242), FeltFromUint(2773480762), FeltFromUint(1359893119), FeltFromUint(2600822924), FeltFromUint(528734635), FeltFromUint(1541459225), FeltZero(), FeltFromUint(4294967295), FeltFromUint(813310313),
+		FeltFromUint(2491453561), FeltFromUint(3491828193), FeltFromUint(2085238082), FeltFromUint(1219908895), FeltFromUint(514171180), FeltFromUint(4245497115), FeltFromUint(4193177630),
+
+		FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(),
+		FeltFromUint(1795745351), FeltFromUint(3144134277), FeltFromUint(1013904242), FeltFromUint(2773480762), FeltFromUint(1359893119), FeltFromUint(2600822924), FeltFromUint(528734635), FeltFromUint(1541459225), FeltZero(), FeltFromUint(4294967295), FeltFromUint(813310313),
+		FeltFromUint(2491453561), FeltFromUint(3491828193), FeltFromUint(2085238082), FeltFromUint(1219908895), FeltFromUint(514171180), FeltFromUint(4245497115), FeltFromUint(4193177630),
+
+		FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(),
+		FeltFromUint(1795745351), FeltFromUint(3144134277), FeltFromUint(1013904242), FeltFromUint(2773480762), FeltFromUint(1359893119), FeltFromUint(2600822924), FeltFromUint(528734635), FeltFromUint(1541459225), FeltZero(), FeltFromUint(4294967295), FeltFromUint(813310313),
+		FeltFromUint(2491453561), FeltFromUint(3491828193), FeltFromUint(2085238082), FeltFromUint(1219908895), FeltFromUint(514171180), FeltFromUint(4245497115), FeltFromUint(4193177630),
+
+		FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(),
+		FeltFromUint(1795745351), FeltFromUint(3144134277), FeltFromUint(1013904242), FeltFromUint(2773480762), FeltFromUint(1359893119), FeltFromUint(2600822924), FeltFromUint(528734635), FeltFromUint(1541459225), FeltZero(), FeltFromUint(4294967295), FeltFromUint(813310313),
+		FeltFromUint(2491453561), FeltFromUint(3491828193), FeltFromUint(2085238082), FeltFromUint(1219908895), FeltFromUint(514171180), FeltFromUint(4245497115), FeltFromUint(4193177630),
+	}
+	if err != nil || !reflect.DeepEqual(dataSegment, expectedDataSegment) {
+		t.Errorf("Wrong/No data loaded.\n Expected: %v.\n Got: %v", expectedDataSegment, dataSegment)
+	}
+}
