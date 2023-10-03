@@ -215,27 +215,27 @@ func TestBlake2sFinaizeOk(t *testing.T) {
 	dataSegment, err := vm.Segments.GetFeltRange(data, 204)
 
 	expectedDataSegment := []Felt{
-		FeltFromUint(179574535), FeltFromUint(3144134277), FeltFromUint(1013904242), FeltFromUint(2773480762), FeltFromUint(1359893119), FeltFromUint(2600822924), FeltFromUint(528734635),
+		FeltFromUint(1795745351), FeltFromUint(3144134277), FeltFromUint(1013904242), FeltFromUint(2773480762), FeltFromUint(1359893119), FeltFromUint(2600822924), FeltFromUint(528734635),
 		FeltFromUint(1541459225), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltFromUint(4294967295), FeltFromUint(813310313),
 		FeltFromUint(2491453561), FeltFromUint(3491828193), FeltFromUint(2085238082), FeltFromUint(1219908895), FeltFromUint(514171180), FeltFromUint(4245497115), FeltFromUint(4193177630),
 
-		FeltFromUint(179574535), FeltFromUint(3144134277), FeltFromUint(1013904242), FeltFromUint(2773480762), FeltFromUint(1359893119), FeltFromUint(2600822924), FeltFromUint(528734635),
+		FeltFromUint(1795745351), FeltFromUint(3144134277), FeltFromUint(1013904242), FeltFromUint(2773480762), FeltFromUint(1359893119), FeltFromUint(2600822924), FeltFromUint(528734635),
 		FeltFromUint(1541459225), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltFromUint(4294967295), FeltFromUint(813310313),
 		FeltFromUint(2491453561), FeltFromUint(3491828193), FeltFromUint(2085238082), FeltFromUint(1219908895), FeltFromUint(514171180), FeltFromUint(4245497115), FeltFromUint(4193177630),
 
-		FeltFromUint(179574535), FeltFromUint(3144134277), FeltFromUint(1013904242), FeltFromUint(2773480762), FeltFromUint(1359893119), FeltFromUint(2600822924), FeltFromUint(528734635),
+		FeltFromUint(1795745351), FeltFromUint(3144134277), FeltFromUint(1013904242), FeltFromUint(2773480762), FeltFromUint(1359893119), FeltFromUint(2600822924), FeltFromUint(528734635),
 		FeltFromUint(1541459225), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltFromUint(4294967295), FeltFromUint(813310313),
 		FeltFromUint(2491453561), FeltFromUint(3491828193), FeltFromUint(2085238082), FeltFromUint(1219908895), FeltFromUint(514171180), FeltFromUint(4245497115), FeltFromUint(4193177630),
 
-		FeltFromUint(179574535), FeltFromUint(3144134277), FeltFromUint(1013904242), FeltFromUint(2773480762), FeltFromUint(1359893119), FeltFromUint(2600822924), FeltFromUint(528734635),
+		FeltFromUint(1795745351), FeltFromUint(3144134277), FeltFromUint(1013904242), FeltFromUint(2773480762), FeltFromUint(1359893119), FeltFromUint(2600822924), FeltFromUint(528734635),
 		FeltFromUint(1541459225), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltFromUint(4294967295), FeltFromUint(813310313),
 		FeltFromUint(2491453561), FeltFromUint(3491828193), FeltFromUint(2085238082), FeltFromUint(1219908895), FeltFromUint(514171180), FeltFromUint(4245497115), FeltFromUint(4193177630),
 
-		FeltFromUint(179574535), FeltFromUint(3144134277), FeltFromUint(1013904242), FeltFromUint(2773480762), FeltFromUint(1359893119), FeltFromUint(2600822924), FeltFromUint(528734635),
+		FeltFromUint(1795745351), FeltFromUint(3144134277), FeltFromUint(1013904242), FeltFromUint(2773480762), FeltFromUint(1359893119), FeltFromUint(2600822924), FeltFromUint(528734635),
 		FeltFromUint(1541459225), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltFromUint(4294967295), FeltFromUint(813310313),
 		FeltFromUint(2491453561), FeltFromUint(3491828193), FeltFromUint(2085238082), FeltFromUint(1219908895), FeltFromUint(514171180), FeltFromUint(4245497115), FeltFromUint(4193177630),
 
-		FeltFromUint(179574535), FeltFromUint(3144134277), FeltFromUint(1013904242), FeltFromUint(2773480762), FeltFromUint(1359893119), FeltFromUint(2600822924), FeltFromUint(528734635),
+		FeltFromUint(1795745351), FeltFromUint(3144134277), FeltFromUint(1013904242), FeltFromUint(2773480762), FeltFromUint(1359893119), FeltFromUint(2600822924), FeltFromUint(528734635),
 		FeltFromUint(1541459225), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltZero(), FeltFromUint(4294967295), FeltFromUint(813310313),
 		FeltFromUint(2491453561), FeltFromUint(3491828193), FeltFromUint(2085238082), FeltFromUint(1219908895), FeltFromUint(514171180), FeltFromUint(4245497115), FeltFromUint(4193177630),
 	}
