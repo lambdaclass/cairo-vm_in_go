@@ -348,3 +348,7 @@ func TestCairoKeccak(t *testing.T) {
 func TestKeccakAddUint256(t *testing.T) {
 	testProgram("keccak_add_uint256", t)
 }
+
+func TestBlake2sHelloWorldHash(t *testing.T) {
+	testProgram("blake2s_hello_world_hash", t)
+}
