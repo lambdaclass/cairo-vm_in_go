@@ -364,3 +364,7 @@ func TestFinalizeBlake2s(t *testing.T) {
 func TestBlake2sIntegrationTests(t *testing.T) {
 	testProgram("blake2s_integration_tests", t)
 }
+
+func TestFinalizeBlake2sV2(t *testing.T) {
+	testProgram("finalize_blake2s_v2", t)
+}
