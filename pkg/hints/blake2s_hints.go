@@ -120,3 +120,25 @@ func blake2sAddUint256Bigend(ids IdsManager, vm *VirtualMachine) error {
 	_, err = vm.Segments.LoadData(dataPtr, &data)
 	return err
 }
+
+func blake2sFinalize(ids IdsManager, vm *VirtualMachine) error {
+	const N_PACKED_INSTANCES = 7
+	blake2sPtrEnd, err := ids.GetRelocatable("blake2s_ptr_end", vm)
+	if err != nil {
+		return err
+	}
+	var message [16]uint32
+	modifiedIv := IV()
+	output := Blake2sCompress(modifiedIv, message, 0, 0, 0xffffffff, 0)
+	padding := modifiedIv[:]
+	padding = append(padding, message[:]...)
+	padding = append(padding, 0, 0xffffffff)
+	padding = append(padding, output[:]...)
+	fullPadding := padding
+	for i := 2; i < N_PACKED_INSTANCES; i++ {
+		fullPadding = append(fullPadding, padding...)
+	}
+	data := Uint32SliceToMRSlice(fullPadding)
+	_, err = vm.Segments.LoadData(blake2sPtrEnd, &data)
+	return err
+}
