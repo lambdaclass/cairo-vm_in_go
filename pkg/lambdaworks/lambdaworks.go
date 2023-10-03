@@ -106,7 +106,7 @@ func (felt Felt) ToUint() (uint, error) {
 func (felt Felt) ToU32() (uint32, error) {
 	feltU64, err := felt.ToU64()
 	if err != nil || feltU64 > math.MaxUint32 {
-		return 0, ConversionError(felt, "uint32")
+		return 0, ConversionError(felt, "u32")
 	}
 	return uint32(feltU64), nil
 }
