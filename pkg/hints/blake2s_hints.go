@@ -129,6 +129,7 @@ func blake2sFinalize(ids IdsManager, vm *VirtualMachine) error {
 	}
 	var message [16]uint32
 	modifiedIv := IV()
+	modifiedIv[0] = modifiedIv[0] ^ 0x01010020
 	output := Blake2sCompress(modifiedIv, message, 0, 0, 0xffffffff, 0)
 	padding := modifiedIv[:]
 	padding = append(padding, message[:]...)
