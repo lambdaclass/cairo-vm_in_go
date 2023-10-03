@@ -344,3 +344,7 @@ func TestUint256Integration(t *testing.T) {
 func TestUint256(t *testing.T) {
 	testProgram("uint256", t)
 }
+
+func TestUint256Root(t *testing.T) {
+	testProgram("uint256_root", t)
+}
