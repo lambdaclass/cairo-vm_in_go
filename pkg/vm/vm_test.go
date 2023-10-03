@@ -1088,3 +1088,31 @@ func TestGetFooBuiltinReturnsNilAndError(t *testing.T) {
 		t.Error("Obtained a non existant builtin, or didn't raise an error")
 	}
 }
+
+func TestReadReturnValuesOk(t *testing.T) {
+	vm := vm.NewVirtualMachine()
+	vm.Segments.AddSegment()
+	// Load data at ap and advance ap
+	data := []memory.MaybeRelocatable{
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint(1)),
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint(2)),
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint(3)),
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint(4)),
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint(5)),
+	}
+	vm.RunContext.Ap, _ = vm.Segments.LoadData(vm.RunContext.Ap, &data)
+	// Fetch 3 return values
+	expectedReturnValues := []memory.MaybeRelocatable{
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint(3)),
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint(4)),
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint(5)),
+	}
+	returnValues, err := vm.GetReturnValues(3)
+	if err != nil {
+		t.Errorf("GetReturnValues failed with error: %s", err.Error())
+	}
+
+	if !reflect.DeepEqual(expectedReturnValues, returnValues) {
+		t.Errorf("Wrong return values.\n Expected: %+v, got: %+v", expectedReturnValues, returnValues)
+	}
+}
