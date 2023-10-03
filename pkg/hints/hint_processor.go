@@ -180,6 +180,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return uint256Add(data.Ids, vm, false)
 	case UINT256_ADD_LOW:
 		return uint256Add(data.Ids, vm, true)
+	case UINT256_SUB:
+		return uint256Sub(data.Ids, vm)
 	case SPLIT_64:
 		return split64(data.Ids, vm)
 	case UINT256_SQRT:

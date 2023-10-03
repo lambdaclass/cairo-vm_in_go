@@ -62,6 +62,61 @@ func uint256Add(ids IdsManager, vm *VirtualMachine, lowOnly bool) error {
 
 /*
 Implements hint:
+%{
+    def split(num: int, num_bits_shift: int = 128, length: int = 2):
+        a = []
+        for _ in range(length):
+            a.append( num & ((1 << num_bits_shift) - 1) )
+            num = num >> num_bits_shift
+        return tuple(a)
+
+    def pack(z, num_bits_shift: int = 128) -> int:
+        limbs = (z.low, z.high)
+        return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))
+
+    a = pack(ids.a)
+    b = pack(ids.b)
+    res = (a - b)%2**256
+    res_split = split(res)
+    ids.res.low = res_split[0]
+    ids.res.high = res_split[1]
+%}
+*/
+
+func uint256Sub(ids IdsManager, vm *VirtualMachine) error {
+	a, err := ids.GetUint256("a", vm)
+	if err != nil {
+		return err
+	}
+	b, err := ids.GetUint256("b", vm)
+	if err != nil {
+		return err
+	}
+	var resBigInt *big.Int
+	if a.ToBigInt().Cmp(b.ToBigInt()) != -1 {
+		resBigInt = new(big.Int).Sub(a.ToBigInt(), b.ToBigInt())
+	} else {
+		mod256 := new(big.Int).Lsh(new(big.Int).SetUint64(1), 256)
+		if mod256.Cmp(b.ToBigInt()) != -1 {
+			resBigInt = new(big.Int).Sub(mod256, b.ToBigInt())
+			resBigInt = new(big.Int).Add(resBigInt, a.ToBigInt())
+		} else {
+			loweredB := new(big.Int).Mod(b.ToBigInt(), mod256)
+			if a.ToBigInt().Cmp(loweredB) != -1 {
+				resBigInt = new(big.Int).Sub(a.ToBigInt(), loweredB)
+			} else {
+				resBigInt = new(big.Int).Sub(mod256, loweredB)
+				resBigInt = new(big.Int).Add(resBigInt, a.ToBigInt())
+			}
+		}
+	}
+
+	res := ToUint256(resBigInt)
+	return ids.InsertUint256("res", res, vm)
+}
+
+/*
+Implements hint:
 
 	%{
 	    ids.low = ids.a & ((1<<64) - 1)
@@ -258,5 +313,4 @@ func uint256MulDivMod(ids IdsManager, vm *VirtualMachine) error {
 		return err
 	}
 	return ids.InsertUint256("remainder", remainder, vm)
-
 }

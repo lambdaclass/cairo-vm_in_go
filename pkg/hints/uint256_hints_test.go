@@ -590,3 +590,169 @@ func TestUint256MulDivOk(t *testing.T) {
 		t.Errorf("expected remainder: %s, got: %s", expectedRemainder.ToString(), remainder.ToString())
 	}
 }
+
+func TestUint256SubNonNegativeOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+
+	ids := map[string][]*MaybeRelocatable{
+		"a": {
+			NewMaybeRelocatableFeltFromUint64(12179),
+			NewMaybeRelocatableFeltFromUint64(13044),
+		},
+		"b": {
+			NewMaybeRelocatableFeltFromUint64(1001),
+			NewMaybeRelocatableFeltFromUint64(6687),
+		},
+		"res": {nil, nil},
+	}
+	idsManager := SetupIdsForTest(ids, vm)
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: UINT256_SUB,
+	})
+	hintProcessor := CairoVmHintProcessor{}
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+
+	result, err := idsManager.GetUint256("res", vm)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+	expectedResult := Uint256{Low: FeltFromUint(11178), High: FeltFromUint(6357)}
+	if !result.IsEqual(expectedResult) {
+		t.Errorf("expected result: %s, got: %s", expectedResult.ToString(), result.ToString())
+	}
+}
+
+func TestUint256SubNegativeOk(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+
+	ids := map[string][]*MaybeRelocatable{
+		"a": {
+			NewMaybeRelocatableFeltFromUint64(1001),
+			NewMaybeRelocatableFeltFromUint64(6687),
+		},
+		"b": {
+			NewMaybeRelocatableFeltFromUint64(12179),
+			NewMaybeRelocatableFeltFromUint64(13044),
+		},
+		"res": {nil, nil},
+	}
+	idsManager := SetupIdsForTest(ids, vm)
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: UINT256_SUB,
+	})
+	hintProcessor := CairoVmHintProcessor{}
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+
+	result, err := idsManager.GetUint256("res", vm)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+	expectedResult := Uint256{Low: FeltFromDecString("340282366920938463463374607431768200278"), High: FeltFromDecString("340282366920938463463374607431768205098")}
+	if !result.IsEqual(expectedResult) {
+		t.Errorf("expected result: %s, got: %s", expectedResult.ToString(), result.ToString())
+	}
+}
+
+func TestUint256SubBHighGt256LteA(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+
+	ids := map[string][]*MaybeRelocatable{
+		"a": {
+			NewMaybeRelocatableFelt(FeltFromDecString("340282366920938463463374607431768211456")),
+			NewMaybeRelocatableFelt(FeltZero()),
+		},
+		"b": {
+			NewMaybeRelocatableFelt(FeltZero()),
+			NewMaybeRelocatableFelt(FeltFromDecString("340282366920938463463374607431768211457")),
+		},
+		"res": {nil, nil},
+	}
+	idsManager := SetupIdsForTest(ids, vm)
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: UINT256_SUB,
+	})
+	hintProcessor := CairoVmHintProcessor{}
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+
+	result, err := idsManager.GetUint256("res", vm)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+	expectedResult := Uint256{Low: FeltZero(), High: FeltZero()}
+	if !result.IsEqual(expectedResult) {
+		t.Errorf("expected result: %s, got: %s", expectedResult.ToString(), result.ToString())
+	}
+}
+
+func TestUint256SubBHighGt256GtA(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+
+	ids := map[string][]*MaybeRelocatable{
+		"a": {
+			NewMaybeRelocatableFelt(FeltOne()),
+			NewMaybeRelocatableFelt(FeltZero()),
+		},
+		"b": {
+			NewMaybeRelocatableFelt(FeltZero()),
+			NewMaybeRelocatableFelt(FeltFromDecString("340282366920938463463374607431768211457")),
+		},
+		"res": {nil, nil},
+	}
+	idsManager := SetupIdsForTest(ids, vm)
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: UINT256_SUB,
+	})
+	hintProcessor := CairoVmHintProcessor{}
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+
+	result, err := idsManager.GetUint256("res", vm)
+	if err != nil {
+		t.Errorf("failed with error: %s", err)
+	}
+	expectedResult := Uint256{Low: FeltOne(), High: FeltFromDecString("340282366920938463463374607431768211455")}
+	if !result.IsEqual(expectedResult) {
+		t.Errorf("expected result: %s, got: %s", expectedResult.ToString(), result.ToString())
+	}
+}
+
+func TestUint256SubMissingNumber(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+
+	ids := map[string][]*MaybeRelocatable{
+		"a": {
+			NewMaybeRelocatableFelt(FeltOne()),
+			nil,
+		},
+	}
+	idsManager := SetupIdsForTest(ids, vm)
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: UINT256_SUB,
+	})
+	hintProcessor := CairoVmHintProcessor{}
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err == nil {
+		t.Errorf("should fail with error: Memory Get: Value not found")
+	}
+}
