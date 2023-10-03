@@ -1,6 +1,8 @@
 package hints
 
 import (
+	"math"
+
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
@@ -80,5 +82,41 @@ func blake2sCompute(ids IdsManager, vm *VirtualMachine) error {
 	data := Uint32SliceToMRSlice(newState)
 
 	_, err = vm.Segments.LoadData(output, &data)
+	return err
+}
+
+func blake2sAddUint256Bigend(ids IdsManager, vm *VirtualMachine) error {
+	// Fetch ids variables
+	dataPtr, err := ids.GetRelocatable("data", vm)
+	if err != nil {
+		return err
+	}
+	low, err := ids.GetFelt("low", vm)
+	if err != nil {
+		return err
+	}
+	high, err := ids.GetFelt("high", vm)
+	if err != nil {
+		return err
+	}
+	// Hint logic
+	const MASK = math.MaxUint32
+	const B = 32
+	mask := FeltFromUint(MASK)
+	// First batch
+	data := make([]MaybeRelocatable, 0, 4)
+	for i := uint(0); i < 4; i++ {
+		data = append(data, *NewMaybeRelocatableFelt(high.Shr(B * (3 - i)).And(mask)))
+	}
+	dataPtr, err = vm.Segments.LoadData(dataPtr, &data)
+	if err != nil {
+		return err
+	}
+	// Second batch
+	data = make([]MaybeRelocatable, 0, 4)
+	for i := uint(0); i < 4; i++ {
+		data = append(data, *NewMaybeRelocatableFelt(low.Shr(B * (3 - i)).And(mask)))
+	}
+	_, err = vm.Segments.LoadData(dataPtr, &data)
 	return err
 }

@@ -200,6 +200,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return fastEcAddAssignNewY(execScopes)
 	case BLAKE2S_COMPUTE:
 		return blake2sCompute(data.Ids, vm)
+	case BLAKE2S_ADD_UINT256_BIGEND:
+		return blake2sAddUint256Bigend(data.Ids, vm)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
