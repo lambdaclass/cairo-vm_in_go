@@ -75,3 +75,19 @@ output = blake2s_compress(
 )
 padding = (message + modified_iv + [0, 0xffffffff] + output) * (_n_packed_instances - 1)
 segments.write_arg(ids.blake2s_ptr_end, padding)`
+
+const EXAMPLE_BLAKE2S_COMPRESS = `from starkware.cairo.common.cairo_blake2s.blake2s_utils import IV, blake2s_compress
+
+_blake2s_input_chunk_size_felts = int(ids.BLAKE2S_INPUT_CHUNK_SIZE_FELTS)
+assert 0 <= _blake2s_input_chunk_size_felts < 100
+
+new_state = blake2s_compress(
+    message=memory.get_range(ids.blake2s_start, _blake2s_input_chunk_size_felts),
+    h=[IV[0] ^ 0x01010020] + IV[1:],
+    t0=ids.n_bytes,
+    t1=0,
+    f0=0xffffffff,
+    f1=0,
+)
+
+segments.write_arg(ids.output, new_state)`
