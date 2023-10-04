@@ -189,3 +189,6 @@ clean_trace_and_memory_files:
 
 compare_benchmarks: $(COMPILED_BENCHES) build
 	sh scripts/run_benchmarks.sh
+
+compare_benchmarks_light: $(COMPILED_BENCHES) build
+	sh scripts/run_benchmarks_light.sh
