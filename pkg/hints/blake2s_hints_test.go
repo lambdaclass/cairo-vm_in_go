@@ -333,3 +333,27 @@ func TestBlake2sFinaizeV3Ok(t *testing.T) {
 		t.Errorf("Wrong/No data loaded.\n Expected: %v.\n Got: %v", expectedDataSegment, dataSegment)
 	}
 }
+
+func TestExampleBlake2sCompressEmptyInput(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	output := vm.Segments.AddSegment()
+	blake2sStart := vm.Segments.AddSegment()
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"output":        {NewMaybeRelocatableRelocatable(output)},
+			"blake2s_start": {NewMaybeRelocatableRelocatable(blake2sStart)},
+			"n_bytes":       {NewMaybeRelocatableFelt(FeltOne())},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: EXAMPLE_BLAKE2S_COMPRESS,
+	})
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+	if err == nil {
+		t.Errorf("EXAMPLE_BLAKE2S_COMPRESS hint test should have failed")
+	}
+}
