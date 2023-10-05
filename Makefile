@@ -3,9 +3,9 @@
 
 CAIRO_VM_CLI:=cairo-vm/target/release/cairo-vm-cli
 
-# TODO: clone from last release once the fix is merged
+# TODO: clone from last release
 $(CAIRO_VM_CLI):
-	git clone --depth 1 -b fix-blake-hint https://github.com/lambdaclass/cairo-vm
+	git clone --depth 1 -b main https://github.com/lambdaclass/cairo-vm
 	cd cairo-vm; cargo b --release --bin cairo-vm-cli
 
 # Create proof mode programs. 
