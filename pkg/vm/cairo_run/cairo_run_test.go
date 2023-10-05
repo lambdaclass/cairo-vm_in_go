@@ -329,6 +329,10 @@ func TestSplitIntHintProofMode(t *testing.T) {
 	testProgramProof("split_int", t)
 }
 
+func TestDivModN(t *testing.T) {
+	testProgram("div_mod_n", t)
+}
+
 func TestEcDoubleAssign(t *testing.T) {
 	testProgram("ec_double_assign", t)
 }
@@ -347,4 +351,16 @@ func TestCairoKeccak(t *testing.T) {
 
 func TestKeccakAddUint256(t *testing.T) {
 	testProgram("keccak_add_uint256", t)
+}
+
+func TestUint256Integration(t *testing.T) {
+	testProgram("uint256_integration_tests", t)
+}
+
+func TestUint256(t *testing.T) {
+	testProgram("uint256", t)
+}
+
+func TestUint256Root(t *testing.T) {
+	testProgram("uint256_root", t)
 }
