@@ -189,6 +189,26 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return splitInt(data.Ids, vm)
 	case SPLIT_INT_ASSERT_RANGE:
 		return splitIntAssertRange(data.Ids, vm)
+	case UINT256_ADD:
+		return uint256Add(data.Ids, vm, false)
+	case UINT256_ADD_LOW:
+		return uint256Add(data.Ids, vm, true)
+	case UINT256_SUB:
+		return uint256Sub(data.Ids, vm)
+	case SPLIT_64:
+		return split64(data.Ids, vm)
+	case UINT256_SQRT:
+		return uint256Sqrt(data.Ids, vm, false)
+	case UINT256_SQRT_FELT:
+		return uint256Sqrt(data.Ids, vm, true)
+	case UINT256_SIGNED_NN:
+		return uint256SignedNN(data.Ids, vm)
+	case UINT256_UNSIGNED_DIV_REM:
+		return uint256UnsignedDivRem(data.Ids, vm)
+	case UINT256_EXPANDED_UNSIGNED_DIV_REM:
+		return uint256ExpandedUnsignedDivRem(data.Ids, vm)
+	case UINT256_MUL_DIV_MOD:
+		return uint256MulDivMod(data.Ids, vm)
 	case DIV_MOD_N_PACKED_DIVMOD_V1:
 		return divModNPackedDivMod(data.Ids, vm, execScopes)
 	case DIV_MOD_N_PACKED_DIVMOD_EXTERNAL_N:

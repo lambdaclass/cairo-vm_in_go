@@ -360,3 +360,15 @@ func TestKeccakAddUint256(t *testing.T) {
 func TestReduce(t *testing.T) {
 	testProgram("reduce", t)
 }
+
+func TestUint256Integration(t *testing.T) {
+	testProgram("uint256_integration_tests", t)
+}
+
+func TestUint256(t *testing.T) {
+	testProgram("uint256", t)
+}
+
+func TestUint256Root(t *testing.T) {
+	testProgram("uint256_root", t)
+}

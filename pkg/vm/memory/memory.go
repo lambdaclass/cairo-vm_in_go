@@ -117,7 +117,7 @@ func (m *Memory) Get(addr Relocatable) (*MaybeRelocatable, error) {
 	value, ok := m.Data[addr]
 
 	if !ok {
-		return nil, errors.New("Memory Get: Value not found")
+		return nil, errors.Errorf("Memory Get: Value not found in addr: %s", addr.ToString())
 	}
 
 	return &value, nil
