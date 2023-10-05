@@ -360,3 +360,7 @@ func TestKeccakAddUint256(t *testing.T) {
 func TestReduce(t *testing.T) {
 	testProgram("reduce", t)
 }
+
+func TestSecp(t *testing.T) {
+	testProgram("secp", t)
+}

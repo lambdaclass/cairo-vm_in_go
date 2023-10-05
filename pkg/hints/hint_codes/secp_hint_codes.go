@@ -37,3 +37,21 @@ to_assert = pack(ids.val, PRIME)
 q, r = divmod(pack(ids.val, PRIME), SECP_P)
 assert r == 0, f"verify_zero: Invalid input {ids.val.d0, ids.val.d1, ids.val.d2}."
 ids.q = q % PRIME`
+
+const BIGINT_TO_UINT256 = "ids.low = (ids.x.d0 + ids.x.d1 * ids.BASE) & ((1 << 128) - 1)"
+
+const IS_ZERO_NONDET = "memory[ap] = to_felt_or_relocatable(x == 0)"
+
+const IS_ZERO_INT = "memory[ap] = int(x == 0)"
+
+const IS_ZERO_PACK_V1 = `from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
+
+x = pack(ids.x, PRIME) % SECP_P`
+
+const IS_ZERO_PACK_V2 = `from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
+x = pack(ids.x, PRIME) % SECP_P`
+
+const IS_ZERO_ASSIGN_SCOPE_VARS = `from starkware.cairo.common.cairo_secp.secp_utils import SECP_P
+from starkware.python.math_utils import div_mod
+
+value = x_inv = div_mod(1, x, SECP_P)`
