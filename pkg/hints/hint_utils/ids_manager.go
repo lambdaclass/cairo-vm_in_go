@@ -76,6 +76,22 @@ func (ids *IdsManager) GetFelt(name string, vm *VirtualMachine) (lambdaworks.Fel
 	return felt, nil
 }
 
+func (ids *IdsManager) GetUint256(name string, vm *VirtualMachine) (Uint256, error) {
+	lowAddr, err := ids.GetAddr(name, vm)
+	if err != nil {
+		return Uint256{}, err
+	}
+	low, err := vm.Segments.Memory.GetFelt(lowAddr)
+	if err != nil {
+		return Uint256{}, err
+	}
+	high, err := vm.Segments.Memory.GetFelt(lowAddr.AddUint(1))
+	if err != nil {
+		return Uint256{}, err
+	}
+	return Uint256{Low: low, High: high}, nil
+}
+
 // Returns the value of an identifier as a Relocatable
 func (ids *IdsManager) GetRelocatable(name string, vm *VirtualMachine) (Relocatable, error) {
 	val, err := ids.Get(name, vm)
@@ -215,6 +231,19 @@ func (ids *IdsManager) InsertStructField(name string, field_off uint, value *May
 		return err
 	}
 	return vm.Segments.Memory.Insert(addr.AddUint(field_off), value)
+}
+
+// Inserts Uint256 value into an ids field (given the identifier is a Uint256)
+func (ids *IdsManager) InsertUint256(name string, val Uint256, vm *VirtualMachine) error {
+	baseAddr, err := ids.GetAddr(name, vm)
+	if err != nil {
+		return err
+	}
+	err = vm.Segments.Memory.Insert(baseAddr, NewMaybeRelocatableFelt(val.Low))
+	if err != nil {
+		return err
+	}
+	return vm.Segments.Memory.Insert(baseAddr.AddUint(1), NewMaybeRelocatableFelt(val.High))
 }
 
 // Inserts value into the address of the given identifier
