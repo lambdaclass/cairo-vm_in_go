@@ -199,6 +199,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return divModNSafeDiv(data.Ids, execScopes, "a", "b", false)
 	case DIV_MOD_N_SAFE_DIV_PLUS_ONE:
 		return divModNSafeDiv(data.Ids, execScopes, "a", "b", true)
+	case GET_POINT_FROM_X:
+		return getPointFromX(data.Ids, vm, execScopes, constants)
 	case VERIFY_ZERO_EXTERNAL_SECP:
 		return verifyZeroWithExternalConst(*vm, *execScopes, data.Ids)
 	case FAST_EC_ADD_ASSIGN_NEW_X:
