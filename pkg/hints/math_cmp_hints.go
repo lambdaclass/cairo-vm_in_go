@@ -26,7 +26,9 @@ func isNNOutOfRange(ids IdsManager, vm *VirtualMachine) error {
 	if err != nil {
 		return err
 	}
-	if (FeltZero().Sub(a).Sub(FeltOne())).Bits() < builtins.RANGE_CHECK_N_PARTS*builtins.INNER_RC_BOUND_SHIFT {
+	op := FeltZero().Sub(a).Sub(FeltOne())
+	bound := FeltOne().Shl(16 * builtins.RANGE_CHECK_N_PARTS)
+	if op.Cmp(bound) == -1 {
 		return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltZero()))
 	}
 	return vm.Segments.Memory.Insert(vm.RunContext.Ap, NewMaybeRelocatableFelt(FeltOne()))
