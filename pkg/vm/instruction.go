@@ -95,9 +95,9 @@ type Opcode uint
 
 const (
 	NOp      Opcode = 0
-	AssertEq Opcode = 1
-	Call     Opcode = 2
-	Ret      Opcode = 4
+	Call     Opcode = 1
+	Ret      Opcode = 2
+	AssertEq Opcode = 4
 )
 
 var ErrNonZeroHighBitError = errors.New("Instruction high bit was not set to zero")
