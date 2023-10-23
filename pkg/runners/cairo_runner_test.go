@@ -743,7 +743,7 @@ func TestRunFromEntryPointFibonacci(t *testing.T) {
 
 	runner.InitializeBuiltins()
 	runner.InitializeSegments()
-	err := runner.RunFromEntrypoint(uint(entrypoint), args, &hintProcessor)
+	err := runner.RunFromEntrypoint(uint(entrypoint), args, &hintProcessor, true, nil)
 
 	if err != nil {
 		t.Errorf("Running fib entrypoint failed with error %s", err.Error())

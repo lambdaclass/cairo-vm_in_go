@@ -582,14 +582,13 @@ func (runner *CairoRunner) GetExecutionResources() (ExecutionResources, error) {
 	}, nil
 }
 
-// TODO: Add verifySecure once its implemented
 /*
 Runs a cairo program from a give entrypoint, indicated by its pc offset, with the given arguments.
 If `verifySecure` is set to true, [verifySecureRunner] will be called to run extra verifications.
 `programSegmentSize` is only used by the [verifySecureRunner] function and will be ignored if `verifySecure` is set to false.
 Each arg can be either MaybeRelocatable, []MaybeRelocatable or [][]MaybeRelocatable
 */
-func (runner *CairoRunner) RunFromEntrypoint(entrypoint uint, args []any, hintProcessor vm.HintProcessor) error {
+func (runner *CairoRunner) RunFromEntrypoint(entrypoint uint, args []any, hintProcessor vm.HintProcessor, verifySecure bool, programSegmentSize *uint) error {
 	stack := make([]memory.MaybeRelocatable, 0)
 	for _, arg := range args {
 		val, err := runner.Vm.Segments.GenArg(arg)
@@ -615,6 +614,8 @@ func (runner *CairoRunner) RunFromEntrypoint(entrypoint uint, args []any, hintPr
 	if err != nil {
 		return err
 	}
-	// TODO: verifySecureRunner
+	if verifySecure {
+		return VerifySecureRunner(runner, true, programSegmentSize)
+	}
 	return nil
 }
