@@ -5,6 +5,11 @@ import (
 	"math/big"
 )
 
+func BASE() big.Int {
+	base, _ := new(big.Int).SetString("77371252455336267181195264", 10)
+	return *base
+}
+
 func SECP_P() big.Int {
 	secpP, _ := new(big.Int).SetString("115792089237316195423570985008687907853269984665640564039457584007908834671663", 10)
 	return *secpP

@@ -1138,3 +1138,57 @@ func TestSplitIntAssertRangeHintOutOfRangeError(t *testing.T) {
 		t.Errorf("SPLIT_INT_ASSERT_RANGE hint should have failed")
 	}
 }
+
+func TestAssertLeFeltV06AssertionFail(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+
+	vm.RunContext.Fp = memory.NewRelocatable(1, 2)
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"a": {NewMaybeRelocatableFelt(FeltFromDecString("17"))},
+			"b": {NewMaybeRelocatableFelt(FeltFromDecString("7"))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: ASSERT_LE_FELT_V_0_6,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+
+	if err == nil {
+		t.Errorf("ASSERT_LE_FELT_V_0_6 hint should have failed")
+	}
+
+}
+
+func TestAssertLeFeltV08AssertionFail(t *testing.T) {
+	vm := NewVirtualMachine()
+	vm.Segments.AddSegment()
+	vm.Segments.AddSegment()
+
+	vm.RunContext.Fp = memory.NewRelocatable(1, 2)
+	idsManager := SetupIdsForTest(
+		map[string][]*MaybeRelocatable{
+			"a": {NewMaybeRelocatableFelt(FeltFromDecString("17"))},
+			"b": {NewMaybeRelocatableFelt(FeltFromDecString("7"))},
+		},
+		vm,
+	)
+	hintProcessor := CairoVmHintProcessor{}
+	hintData := any(HintData{
+		Ids:  idsManager,
+		Code: ASSERT_LE_FELT_V_0_8,
+	})
+
+	err := hintProcessor.ExecuteHint(vm, &hintData, nil, nil)
+
+	if err == nil {
+		t.Errorf("ASSERT_LE_FELT_V_0_6 hint should have failed")
+	}
+
+}

@@ -1,6 +1,7 @@
 package hints
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/builtins"
@@ -10,6 +11,7 @@ import (
 	. "github.com/lambdaclass/cairo-vm.go/pkg/types"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm"
+	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	"github.com/pkg/errors"
 )
@@ -602,6 +604,55 @@ func splitIntAssertRange(ids IdsManager, vm *VirtualMachine) error {
 	if !value.IsZero() {
 		return errors.Errorf("split_int(): value is out of range")
 	}
+
+	return nil
+}
+
+func assertLeFeltV06(vm *VirtualMachine, ids IdsManager) error {
+	a, err := ids.GetFelt("a", vm)
+	if err != nil {
+		return err
+	}
+
+	b, err := ids.GetFelt("b", vm)
+	if err != nil {
+		return err
+	}
+	if a.Cmp(b) == 1 {
+		err := fmt.Sprintf("Assertion failed, %s, is not less or equal to %s", a.ToHexString(), b.ToHexString())
+		return errors.New(err)
+	}
+
+	return nil
+}
+
+func assertLeFeltV08(vm *VirtualMachine, ids IdsManager) error {
+	a, err := ids.GetFelt("a", vm)
+	if err != nil {
+		return err
+	}
+
+	b, err := ids.GetFelt("b", vm)
+	if err != nil {
+		return err
+	}
+	if a.Cmp(b) == 1 {
+		err := fmt.Sprintf("Assertion failed, %s, is not less or equal to %s", a.ToHexString(), b.ToHexString())
+		return errors.New(err)
+	}
+
+	bound, err := vm.GetRangeCheckBound()
+	if err != nil {
+		return err
+	}
+
+	acmp := a.Cmp(bound)
+	bcmp := b.Sub(a).Cmp(bound)
+
+	// Todo: check if using only & is enough (rust uses && between bools)
+	small_inputs := lambdaworks.FeltFromUint(uint(acmp & bcmp))
+
+	ids.Insert("small_inputs", memory.NewMaybeRelocatableFelt(small_inputs), vm)
 
 	return nil
 }
