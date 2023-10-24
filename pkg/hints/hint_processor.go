@@ -92,6 +92,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return ecNegateImportSecpP(vm, *execScopes, data.Ids)
 	case EC_NEGATE_EMBEDDED_SECP:
 		return ecNegateEmbeddedSecpP(vm, *execScopes, data.Ids)
+	case EC_DOUBLE_ASSIGN_NEW_X_V1, EC_DOUBLE_ASSIGN_NEW_X_V2, EC_DOUBLE_ASSIGN_NEW_X_V3, EC_DOUBLE_ASSIGN_NEW_X_V4:
+		return ecDoubleAssignNewX(vm, *execScopes, data.Ids, SECP_P_V2())
 	case POW:
 		return pow(data.Ids, vm)
 	case SQRT:
@@ -106,6 +108,16 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return memset_step_loop(data.Ids, vm, execScopes, "continue_loop")
 	case VM_ENTER_SCOPE:
 		return vm_enter_scope(execScopes)
+	case USORT_ENTER_SCOPE:
+		return usortEnterScope(execScopes)
+	case USORT_BODY:
+		return usortBody(data.Ids, execScopes, vm)
+	case USORT_VERIFY:
+		return usortVerify(data.Ids, execScopes, vm)
+	case USORT_VERIFY_MULTIPLICITY_ASSERT:
+		return usortVerifyMultiplicityAssert(execScopes)
+	case USORT_VERIFY_MULTIPLICITY_BODY:
+		return usortVerifyMultiplicityBody(data.Ids, execScopes, vm)
 	case SET_ADD:
 		return setAdd(data.Ids, vm)
 	case FIND_ELEMENT:
@@ -176,6 +188,36 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return splitInt(data.Ids, vm)
 	case SPLIT_INT_ASSERT_RANGE:
 		return splitIntAssertRange(data.Ids, vm)
+	case UINT256_ADD:
+		return uint256Add(data.Ids, vm, false)
+	case UINT256_ADD_LOW:
+		return uint256Add(data.Ids, vm, true)
+	case UINT256_SUB:
+		return uint256Sub(data.Ids, vm)
+	case SPLIT_64:
+		return split64(data.Ids, vm)
+	case UINT256_SQRT:
+		return uint256Sqrt(data.Ids, vm, false)
+	case UINT256_SQRT_FELT:
+		return uint256Sqrt(data.Ids, vm, true)
+	case UINT256_SIGNED_NN:
+		return uint256SignedNN(data.Ids, vm)
+	case UINT256_UNSIGNED_DIV_REM:
+		return uint256UnsignedDivRem(data.Ids, vm)
+	case UINT256_EXPANDED_UNSIGNED_DIV_REM:
+		return uint256ExpandedUnsignedDivRem(data.Ids, vm)
+	case UINT256_MUL_DIV_MOD:
+		return uint256MulDivMod(data.Ids, vm)
+	case DIV_MOD_N_PACKED_DIVMOD_V1:
+		return divModNPackedDivMod(data.Ids, vm, execScopes)
+	case DIV_MOD_N_PACKED_DIVMOD_EXTERNAL_N:
+		return divModNPackedDivModExternalN(data.Ids, vm, execScopes)
+	case XS_SAFE_DIV:
+		return divModNSafeDiv(data.Ids, execScopes, "x", "s", false)
+	case DIV_MOD_N_SAFE_DIV:
+		return divModNSafeDiv(data.Ids, execScopes, "a", "b", false)
+	case DIV_MOD_N_SAFE_DIV_PLUS_ONE:
+		return divModNSafeDiv(data.Ids, execScopes, "a", "b", true)
 	case VERIFY_ZERO_EXTERNAL_SECP:
 		return verifyZeroWithExternalConst(*vm, *execScopes, data.Ids)
 	case FAST_EC_ADD_ASSIGN_NEW_X:
@@ -186,6 +228,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return fastEcAddAssignNewX(data.Ids, vm, execScopes, "pt0", "pt1", SECP_P())
 	case FAST_EC_ADD_ASSIGN_NEW_Y:
 		return fastEcAddAssignNewY(execScopes)
+	case BLAKE2S_COMPUTE:
+		return blake2sCompute(data.Ids, vm)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}

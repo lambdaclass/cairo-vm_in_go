@@ -12,10 +12,10 @@ import (
 // │                     off_op0 (biased representation)                     │
 // ├─────────────────────────────────────────────────────────────────────────┤
 // │                     off_op1 (biased representation)                     │
-// ├─────┬─────┬───────┬───────┬───────────┬────────┬───────────────────┬────┤
-// │ dst │ op0 │  op1  │  res  │    pc     │   ap   │      opcode       │ 0  │
-// │ reg │ reg │  src  │ logic │  update   │ update │                   │    │
-// ├─────┼─────┼───┬───┼───┬───┼───┬───┬───┼───┬────┼────┬────┬────┬────┼────┤
+// ├─────┬─────┬───────────┬───────┬───────────┬─────────┬──────────────┬────┤
+// │ dst │ op0 │    op1    │  res  │    pc     │   ap    │    opcode    │ 0  │
+// │ reg │ reg │    src    │ logic │  update   │ update  │              │    │
+// ├─────┼─────┼───┬───┬───┼───┬───┼───┬───┬───┼────┬────┼────┬────┬────┼────┤
 // │  0  │  1  │ 2 │ 3 │ 4 │ 5 │ 6 │ 7 │ 8 │ 9 │ 10 │ 11 │ 12 │ 13 │ 14 │ 15 │
 // └─────┴─────┴───┴───┴───┴───┴───┴───┴───┴───┴────┴────┴────┴────┴────┴────┘
 
@@ -95,9 +95,9 @@ type Opcode uint
 
 const (
 	NOp      Opcode = 0
-	AssertEq Opcode = 1
-	Call     Opcode = 2
-	Ret      Opcode = 4
+	Call     Opcode = 1
+	Ret      Opcode = 2
+	AssertEq Opcode = 4
 )
 
 var ErrNonZeroHighBitError = errors.New("Instruction high bit was not set to zero")

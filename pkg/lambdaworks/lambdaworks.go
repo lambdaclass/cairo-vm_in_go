@@ -8,6 +8,7 @@ package lambdaworks
 import "C"
 
 import (
+	"math"
 	"math/big"
 	"reflect"
 	"strings"
@@ -99,6 +100,15 @@ func (felt Felt) ToUint() (uint, error) {
 		return 0, ConversionError(felt, "uint")
 	}
 	return uint(felt_u64), nil
+}
+
+// turns a felt to uint32
+func (felt Felt) ToU32() (uint32, error) {
+	feltU64, err := felt.ToU64()
+	if err != nil || feltU64 > math.MaxUint32 {
+		return 0, ConversionError(felt, "u32")
+	}
+	return uint32(feltU64), nil
 }
 
 func (felt Felt) ToLeBytes() *[32]byte {
@@ -353,7 +363,7 @@ func (a Felt) DivFloor(b Felt) Felt {
 }
 
 /*
-Compares x and y and returns:
+Compares a and b and returns:
 
 	-1 if a <  b
 	 0 if a == b

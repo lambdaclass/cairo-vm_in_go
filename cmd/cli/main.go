@@ -60,7 +60,7 @@ func main() {
 			},
 			&cli.BoolFlag{
 				Name:    "secure_run",
-				Aliases: []string{"p"},
+				Aliases: []string{"s"},
 				Usage:   "Run security checks. Default: true unless proof_mode is true",
 			},
 			&cli.StringFlag{

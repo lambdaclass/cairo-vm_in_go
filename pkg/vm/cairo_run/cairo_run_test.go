@@ -8,7 +8,7 @@ import (
 )
 
 func testProgram(programName string, t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false, SecureRun: true}
 	_, err := cairo_run.CairoRun("../../../cairo_programs/"+programName+".json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
@@ -309,6 +309,14 @@ func TestSplitFeltHint(t *testing.T) {
 	testProgram("split_felt", t)
 }
 
+func TestUsort(t *testing.T) {
+	testProgram("usort", t)
+}
+
+func TestUsortProofMode(t *testing.T) {
+	testProgramProof("usort", t)
+}
+
 func TestSplitFeltHintProofMode(t *testing.T) {
 	testProgramProof("split_felt", t)
 }
@@ -319,6 +327,14 @@ func TestSplitIntHint(t *testing.T) {
 
 func TestSplitIntHintProofMode(t *testing.T) {
 	testProgramProof("split_int", t)
+}
+
+func TestDivModN(t *testing.T) {
+	testProgram("div_mod_n", t)
+}
+
+func TestEcDoubleAssign(t *testing.T) {
+	testProgram("ec_double_assign", t)
 }
 
 func TestIntegrationEcDoubleSlope(t *testing.T) {
@@ -335,4 +351,20 @@ func TestCairoKeccak(t *testing.T) {
 
 func TestKeccakAddUint256(t *testing.T) {
 	testProgram("keccak_add_uint256", t)
+}
+
+func TestBlake2sHelloWorldHash(t *testing.T) {
+	testProgram("blake2s_hello_world_hash", t)
+}
+
+func TestUint256Integration(t *testing.T) {
+	testProgram("uint256_integration_tests", t)
+}
+
+func TestUint256(t *testing.T) {
+	testProgram("uint256", t)
+}
+
+func TestUint256Root(t *testing.T) {
+	testProgram("uint256_root", t)
 }
