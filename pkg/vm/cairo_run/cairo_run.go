@@ -24,6 +24,7 @@ type CairoRunConfig struct {
 	DisableTracePadding bool
 	ProofMode           bool
 	Layout              string
+	SecureRun           bool
 }
 
 func CairoRunError(err error) error {
@@ -65,6 +66,13 @@ func CairoRun(programPath string, cairoRunConfig CairoRunConfig) (*runners.Cairo
 
 	if cairoRunConfig.ProofMode {
 		cairoRunner.FinalizeSegments()
+	}
+
+	if cairoRunConfig.SecureRun {
+		err = runners.VerifySecureRunner(cairoRunner, true, nil)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	err = cairoRunner.Vm.Relocate()

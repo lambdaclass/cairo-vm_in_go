@@ -743,7 +743,7 @@ func TestRunFromEntryPointFibonacci(t *testing.T) {
 
 	runner.InitializeBuiltins()
 	runner.InitializeSegments()
-	err := runner.RunFromEntrypoint(uint(entrypoint), args, &hintProcessor)
+	err := runner.RunFromEntrypoint(uint(entrypoint), args, &hintProcessor, nil, true, nil)
 
 	if err != nil {
 		t.Errorf("Running fib entrypoint failed with error %s", err.Error())
@@ -756,6 +756,30 @@ func TestRunFromEntryPointFibonacci(t *testing.T) {
 	}
 	if len(res) != 1 || !reflect.DeepEqual(res[0], *memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint(144))) {
 		t.Errorf("Wrong value returned by fib entrypoint.\n Expected [144], got: %+v", res)
+	}
+
+}
+
+func TestRunFromEntryPointFibonacciNotEnoughSteps(t *testing.T) {
+	compiledProgram, _ := parser.Parse("../../cairo_programs/fibonacci.json")
+	programJson := vm.DeserializeProgramJson(compiledProgram)
+
+	entrypoint := programJson.Identifiers["__main__.fib"].PC
+	args := []any{
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltOne()),
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltOne()),
+		*memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint(10)),
+	}
+	runner, _ := runners.NewCairoRunner(programJson, "all_cairo", false)
+	hintProcessor := hints.CairoVmHintProcessor{}
+
+	runner.InitializeBuiltins()
+	runner.InitializeSegments()
+	runResources := vm.NewRunResources(2)
+	err := runner.RunFromEntrypoint(uint(entrypoint), args, &hintProcessor, &runResources, true, nil)
+
+	if err == nil {
+		t.Errorf("Running fib entrypoint should have failed")
 	}
 
 }

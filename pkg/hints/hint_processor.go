@@ -241,6 +241,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return verifyZero(data.Ids, vm, execScopes, hint_utils.SECP_P())
 	case VERIFY_ZERO_V3:
 		return verifyZero(data.Ids, vm, execScopes, hint_utils.SECP_P_V2())
+	case BLAKE2S_COMPUTE:
+		return blake2sCompute(data.Ids, vm)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}

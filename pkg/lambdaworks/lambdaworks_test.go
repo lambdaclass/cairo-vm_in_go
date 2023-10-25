@@ -427,6 +427,40 @@ func TestToU64Fail(t *testing.T) {
 	}
 }
 
+func TestToU321(t *testing.T) {
+	felt := lambdaworks.FeltOne()
+	result, err := felt.ToU32()
+
+	var expected uint32 = 1
+
+	if expected != result {
+		t.Errorf("Error in conversion expected: %v, got %v with err: %v", expected, result, err)
+	}
+
+}
+
+func TestToU3210230(t *testing.T) {
+	felt := lambdaworks.FeltFromUint64(10230)
+	result, err := felt.ToU32()
+
+	var expected uint32 = 10230
+
+	if expected != result {
+		t.Errorf("Error in conversion expected: %v, got %v with err: %v", expected, result, err)
+	}
+}
+
+func TestTo32Fail(t *testing.T) {
+	felt := lambdaworks.FeltFromUint64(4294967297)
+
+	_, err := felt.ToU32()
+	expected_err := lambdaworks.ConversionError(felt, "u32")
+
+	if err.Error() != expected_err.Error() {
+		t.Errorf("Conversion test should fail with error: %v", expected_err)
+	}
+}
+
 func TestToUint1(t *testing.T) {
 	felt := lambdaworks.FeltOne()
 	result, err := felt.ToUint()

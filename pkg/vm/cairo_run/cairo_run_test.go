@@ -8,7 +8,7 @@ import (
 )
 
 func testProgram(programName string, t *testing.T) {
-	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false}
+	cairoRunConfig := cairo_run.CairoRunConfig{DisableTracePadding: false, Layout: "all_cairo", ProofMode: false, SecureRun: true}
 	_, err := cairo_run.CairoRun("../../../cairo_programs/"+programName+".json", cairoRunConfig)
 	if err != nil {
 		t.Errorf("Program execution failed with error: %s", err)
@@ -359,6 +359,9 @@ func TestKeccakAddUint256(t *testing.T) {
 
 func TestReduce(t *testing.T) {
 	testProgram("reduce", t)
+}
+func TestBlake2sHelloWorldHash(t *testing.T) {
+	testProgram("blake2s_hello_world_hash", t)
 }
 
 func TestUint256Integration(t *testing.T) {
