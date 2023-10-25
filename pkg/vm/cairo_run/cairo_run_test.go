@@ -364,6 +364,13 @@ func TestBlake2sHelloWorldHash(t *testing.T) {
 	testProgram("blake2s_hello_world_hash", t)
 }
 
+func TestBlake2sFelts(t *testing.T) {
+	testProgram("blake2s_felts", t)
+}
+
+func TestFinalizeBlake2s(t *testing.T) {
+	testProgram("finalize_blake2s", t)
+}
 func TestUint256Integration(t *testing.T) {
 	testProgram("uint256_integration_tests", t)
 }
