@@ -2875,7 +2875,7 @@ func (b *BitwiseBuiltinRunner) Base() memory.Relocatable {
 }
 
 func (b *BitwiseBuiltinRunner) Name() string {
-	return "range_check"
+	return "bitwise"
 }
 ```
 
