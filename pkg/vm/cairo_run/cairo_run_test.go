@@ -333,6 +333,10 @@ func TestDivModN(t *testing.T) {
 	testProgram("div_mod_n", t)
 }
 
+func TestSignature(t *testing.T) {
+	testProgram("signature", t)
+}
+
 func TestEcDoubleAssign(t *testing.T) {
 	testProgram("ec_double_assign", t)
 }
@@ -353,6 +357,9 @@ func TestKeccakAddUint256(t *testing.T) {
 	testProgram("keccak_add_uint256", t)
 }
 
+func TestReduce(t *testing.T) {
+	testProgram("reduce", t)
+}
 func TestBlake2sHelloWorldHash(t *testing.T) {
 	testProgram("blake2s_hello_world_hash", t)
 }

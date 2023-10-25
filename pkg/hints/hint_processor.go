@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_codes"
+	"github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/hints/hint_utils"
 	. "github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
 	"github.com/lambdaclass/cairo-vm.go/pkg/parser"
@@ -218,6 +219,8 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return divModNSafeDiv(data.Ids, execScopes, "a", "b", false)
 	case DIV_MOD_N_SAFE_DIV_PLUS_ONE:
 		return divModNSafeDiv(data.Ids, execScopes, "a", "b", true)
+	case GET_POINT_FROM_X:
+		return getPointFromX(data.Ids, vm, execScopes, constants)
 	case VERIFY_ZERO_EXTERNAL_SECP:
 		return verifyZeroWithExternalConst(*vm, *execScopes, data.Ids)
 	case FAST_EC_ADD_ASSIGN_NEW_X:
@@ -228,6 +231,16 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return fastEcAddAssignNewX(data.Ids, vm, execScopes, "pt0", "pt1", SECP_P())
 	case FAST_EC_ADD_ASSIGN_NEW_Y:
 		return fastEcAddAssignNewY(execScopes)
+	case REDUCE_V1:
+		return reduceV1(data.Ids, vm, execScopes)
+	case REDUCE_V2:
+		return reduceV2(data.Ids, vm, execScopes)
+	case REDUCE_ED25519:
+		return reduceED25519(data.Ids, vm, execScopes)
+	case VERIFY_ZERO_V1, VERIFY_ZERO_V2:
+		return verifyZero(data.Ids, vm, execScopes, hint_utils.SECP_P())
+	case VERIFY_ZERO_V3:
+		return verifyZero(data.Ids, vm, execScopes, hint_utils.SECP_P_V2())
 	case BLAKE2S_COMPUTE:
 		return blake2sCompute(data.Ids, vm)
 	default:

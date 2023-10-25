@@ -102,6 +102,11 @@ func Igcdex(a *big.Int, b *big.Int) (*big.Int, *big.Int, *big.Int) {
 	}
 }
 
+func IsEven(n *big.Int) bool {
+	res := new(big.Int).And(n, big.NewInt(1))
+	return res.Cmp(big.NewInt(0)) != 0
+}
+
 func ISqrt(x *big.Int) (*big.Int, error) {
 	if x.Sign() == -1 {
 		return nil, errors.Errorf("Expected x: %s to be non-negative", x)
