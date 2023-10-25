@@ -5,7 +5,6 @@ import (
 	"math/big"
 
 	"github.com/lambdaclass/cairo-vm.go/pkg/lambdaworks"
-	"github.com/lambdaclass/cairo-vm.go/pkg/math_utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/utils"
 	"github.com/lambdaclass/cairo-vm.go/pkg/vm/memory"
 	"github.com/pkg/errors"
@@ -148,6 +147,10 @@ func (r *EcOpBuiltinRunner) CellsPerInstance() uint {
 	return CELLS_PER_EC_OP
 }
 
+func (b *EcOpBuiltinRunner) InputCellsPerInstance() uint {
+	return INPUT_CELLS_PER_EC_OP
+}
+
 func (ec *EcOpBuiltinRunner) AddValidationRule(*memory.Memory) {}
 
 func (ec *EcOpBuiltinRunner) Base() memory.Relocatable {
@@ -263,7 +266,7 @@ func LineSlope(point_a PartialSumB, point_b DoublePointB, prime big.Int) (big.In
 	n := new(big.Int).Sub(&point_a.Y, &point_b.Y)
 	m := new(big.Int).Sub(&point_a.X, &point_b.X)
 
-	z, err := math_utils.DivMod(n, m, &prime)
+	z, err := utils.DivMod(n, m, &prime)
 	if err != nil {
 		return big.Int{}, err
 	}
@@ -299,7 +302,7 @@ func EcDoubleSlope(point DoublePointB, alpha big.Int, prime big.Int) (big.Int, e
 	n.Add(n, &alpha)
 
 	m := new(big.Int).Mul(&point.Y, big.NewInt(2))
-	z, err := math_utils.DivMod(n, m, &prime)
+	z, err := utils.DivMod(n, m, &prime)
 
 	if err != nil {
 		return big.Int{}, err
@@ -405,4 +408,11 @@ func (r *EcOpBuiltinRunner) GetUsedInstances(segments *memory.MemorySegmentManag
 	}
 
 	return utils.DivCeil(usedCells, r.CellsPerInstance()), nil
+}
+
+func (b *EcOpBuiltinRunner) GetMemorySegmentAddresses() (memory.Relocatable, memory.Relocatable, error) {
+	if b.StopPtr == nil {
+		return memory.Relocatable{}, memory.Relocatable{}, NewErrNoStopPointer(b.Name())
+	}
+	return b.base, memory.NewRelocatable(b.base.SegmentIndex, *b.StopPtr), nil
 }

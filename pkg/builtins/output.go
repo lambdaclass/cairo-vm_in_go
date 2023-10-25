@@ -5,6 +5,7 @@ import (
 )
 
 const OUTPUT_BUILTIN_NAME = "output"
+const OUTPUT_CELLS_PER_INSTANCE = 1
 
 type OutputBuiltinRunner struct {
 	base     memory.Relocatable
@@ -132,4 +133,19 @@ func (r *OutputBuiltinRunner) GetUsedInstances(segments *memory.MemorySegmentMan
 	}
 
 	return usedCells, nil
+}
+
+func (b *OutputBuiltinRunner) GetMemorySegmentAddresses() (memory.Relocatable, memory.Relocatable, error) {
+	if b.StopPtr == nil {
+		return memory.Relocatable{}, memory.Relocatable{}, NewErrNoStopPointer(b.Name())
+	}
+	return b.base, memory.NewRelocatable(b.base.SegmentIndex, *b.StopPtr), nil
+}
+
+func (r *OutputBuiltinRunner) CellsPerInstance() uint {
+	return OUTPUT_CELLS_PER_INSTANCE
+}
+
+func (b *OutputBuiltinRunner) InputCellsPerInstance() uint {
+	return OUTPUT_CELLS_PER_INSTANCE
 }

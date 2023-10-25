@@ -96,6 +96,10 @@ func (p *PoseidonBuiltinRunner) CellsPerInstance() uint {
 	return POSEIDON_CELLS_PER_INSTANCE
 }
 
+func (p *PoseidonBuiltinRunner) InputCellsPerInstance() uint {
+	return POSEIDON_INPUT_CELLS_PER_INSTANCE
+}
+
 func (p *PoseidonBuiltinRunner) GetAllocatedMemoryUnits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
 	// This condition corresponds to an uninitialized ratio for the builtin, which should only
 	// happen when layout is `dynamic`
@@ -216,4 +220,11 @@ func (r *PoseidonBuiltinRunner) GetUsedInstances(segments *memory.MemorySegmentM
 	}
 
 	return utils.DivCeil(usedCells, r.CellsPerInstance()), nil
+}
+
+func (b *PoseidonBuiltinRunner) GetMemorySegmentAddresses() (memory.Relocatable, memory.Relocatable, error) {
+	if b.StopPtr == nil {
+		return memory.Relocatable{}, memory.Relocatable{}, NewErrNoStopPointer(b.Name())
+	}
+	return b.base, memory.NewRelocatable(b.base.SegmentIndex, *b.StopPtr), nil
 }

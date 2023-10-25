@@ -96,15 +96,14 @@ func BigInt3FromBaseAddr(addr Relocatable, name string, vm *VirtualMachine) (Big
 }
 
 func BigInt3FromVarName(name string, ids IdsManager, vm *VirtualMachine) (BigInt3, error) {
-	bigIntAddr, err := ids.GetAddr(name, vm)
-	if err != nil {
-		return BigInt3{}, err
-	}
+	limbs, err := limbsFromVarName(3, name, ids, vm)
+	return BigInt3{Limbs: limbs}, err
+}
 
-	bigInt, err := BigInt3FromBaseAddr(bigIntAddr, name, vm)
-	if err != nil {
-		return BigInt3{}, err
-	}
+// Uint384
 
-	return bigInt, err
+type Uint384 = BigInt3
+
+func Uint384FromVarName(name string, ids IdsManager, vm *VirtualMachine) (Uint384, error) {
+	return BigInt3FromVarName(name, ids, vm)
 }
