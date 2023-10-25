@@ -60,7 +60,7 @@ func (b *BitwiseBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
 
 func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem *memory.Memory) (*memory.MaybeRelocatable, error) {
 	index := address.Offset % BITWISE_CELLS_PER_INSTANCE
-	if index < BIWISE_INPUT_CELLS_PER_INSTANCE {
+	if index < BITWISE_INPUT_CELLS_PER_INSTANCE {
 		return nil, nil
 	}
 
