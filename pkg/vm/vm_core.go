@@ -35,6 +35,7 @@ type VirtualMachine struct {
 	RunFinished     bool
 	RcLimitsMin     *int
 	RcLimitsMax     *int
+	RunResources    *RunResources
 }
 
 func NewVirtualMachine() *VirtualMachine {

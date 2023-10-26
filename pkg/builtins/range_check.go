@@ -110,6 +110,10 @@ func (r *RangeCheckBuiltinRunner) CellsPerInstance() uint {
 	return CELLS_PER_RANGE_CHECK
 }
 
+func (b *RangeCheckBuiltinRunner) InputCellsPerInstance() uint {
+	return CELLS_PER_RANGE_CHECK
+}
+
 func (r *RangeCheckBuiltinRunner) GetAllocatedMemoryUnits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
 	// This condition corresponds to an uninitialized ratio for the builtin, which should only
 	// happen when layout is `dynamic`
@@ -279,4 +283,11 @@ func (r *RangeCheckBuiltinRunner) GetUsedInstances(segments *memory.MemorySegmen
 	}
 
 	return usedCells, nil
+}
+
+func (b *RangeCheckBuiltinRunner) GetMemorySegmentAddresses() (memory.Relocatable, memory.Relocatable, error) {
+	if b.StopPtr == nil {
+		return memory.Relocatable{}, memory.Relocatable{}, NewErrNoStopPointer(b.Name())
+	}
+	return b.base, memory.NewRelocatable(b.base.SegmentIndex, *b.StopPtr), nil
 }

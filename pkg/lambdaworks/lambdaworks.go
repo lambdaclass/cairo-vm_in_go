@@ -363,7 +363,7 @@ func (a Felt) DivFloor(b Felt) Felt {
 }
 
 /*
-Compares x and y and returns:
+Compares a and b and returns:
 
 	-1 if a <  b
 	 0 if a == b
