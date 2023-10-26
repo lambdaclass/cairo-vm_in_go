@@ -1,10 +1,6 @@
 %builtins range_check bitwise
 
-<<<<<<< HEAD
 from starkware.cairo.common.bool import TRUE, FALSE
-=======
-from starkware.cairo.common.bool import TRUE
->>>>>>> f08fbfda96b1684c43057448947e444a13b60b55
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_blake2s.blake2s import blake2s_felts
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
@@ -30,17 +26,13 @@ func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
     assert inputs[15] = 74256930;
     let (local blake2s_ptr_start) = alloc();
     let blake2s_ptr = blake2s_ptr_start;
-<<<<<<< HEAD
 
     // Bigendian
-=======
->>>>>>> f08fbfda96b1684c43057448947e444a13b60b55
     let (result) = blake2s_felts{range_check_ptr=range_check_ptr, blake2s_ptr=blake2s_ptr}(
         16, inputs, TRUE
     );
     assert result.low = 23022179997536219430502258022509199703;
     assert result.high = 136831746058902715979837770794974289597;
-<<<<<<< HEAD
 
     // Little endian
     let (result) = blake2s_felts{range_check_ptr=range_check_ptr, blake2s_ptr=blake2s_ptr}(
@@ -49,7 +41,5 @@ func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
     assert result.low = 315510691254085211243916597439546947220;
     assert result.high = 42237338665522721102428636006748876126;
 
-=======
->>>>>>> f08fbfda96b1684c43057448947e444a13b60b55
     return ();
 }
