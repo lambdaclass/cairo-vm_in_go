@@ -357,12 +357,9 @@ func TestKeccakAddUint256(t *testing.T) {
 	testProgram("keccak_add_uint256", t)
 }
 
-<<<<<<< HEAD
-=======
 func TestReduce(t *testing.T) {
 	testProgram("reduce", t)
 }
->>>>>>> f08fbfda96b1684c43057448947e444a13b60b55
 func TestBlake2sHelloWorldHash(t *testing.T) {
 	testProgram("blake2s_hello_world_hash", t)
 }
@@ -374,11 +371,11 @@ func TestBlake2sFelts(t *testing.T) {
 func TestFinalizeBlake2s(t *testing.T) {
 	testProgram("finalize_blake2s", t)
 }
-<<<<<<< HEAD
 
 func TestBlake2sIntegrationTests(t *testing.T) {
 	testProgram("blake2s_integration_tests", t)
-=======
+}
+
 func TestUint256Integration(t *testing.T) {
 	testProgram("uint256_integration_tests", t)
 }
@@ -389,5 +386,4 @@ func TestUint256(t *testing.T) {
 
 func TestUint256Root(t *testing.T) {
 	testProgram("uint256_root", t)
->>>>>>> f08fbfda96b1684c43057448947e444a13b60b55
 }
