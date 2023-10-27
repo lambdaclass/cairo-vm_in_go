@@ -112,7 +112,7 @@ func (b *BitwiseBuiltinRunner) CellsPerInstance() uint {
 }
 
 func (b *BitwiseBuiltinRunner) InputCellsPerInstance() uint {
-	return BIWISE_INPUT_CELLS_PER_INSTANCE
+	return BITWISE_INPUT_CELLS_PER_INSTANCE
 }
 
 func (b *BitwiseBuiltinRunner) GetAllocatedMemoryUnits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
