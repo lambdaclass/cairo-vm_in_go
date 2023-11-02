@@ -11,7 +11,7 @@ import (
 const BITWISE_BUILTIN_NAME = "bitwise"
 const BITWISE_CELLS_PER_INSTANCE = 5
 const BITWISE_TOTAL_N_BITS = 251
-const BIWISE_INPUT_CELLS_PER_INSTANCE = 2
+const BITWISE_INPUT_CELLS_PER_INSTANCE = 2
 
 type BitwiseBuiltinRunner struct {
 	base                  memory.Relocatable
@@ -60,7 +60,7 @@ func (b *BitwiseBuiltinRunner) InitialStack() []memory.MaybeRelocatable {
 
 func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem *memory.Memory) (*memory.MaybeRelocatable, error) {
 	index := address.Offset % BITWISE_CELLS_PER_INSTANCE
-	if index < BIWISE_INPUT_CELLS_PER_INSTANCE {
+	if index < BITWISE_INPUT_CELLS_PER_INSTANCE {
 		return nil, nil
 	}
 
@@ -112,7 +112,7 @@ func (b *BitwiseBuiltinRunner) CellsPerInstance() uint {
 }
 
 func (b *BitwiseBuiltinRunner) InputCellsPerInstance() uint {
-	return BIWISE_INPUT_CELLS_PER_INSTANCE
+	return BITWISE_INPUT_CELLS_PER_INSTANCE
 }
 
 func (b *BitwiseBuiltinRunner) GetAllocatedMemoryUnits(segments *memory.MemorySegmentManager, currentStep uint) (uint, error) {
