@@ -42,7 +42,7 @@ type Memory struct {
 	Data              map[Relocatable]MaybeRelocatable
 	numSegments       uint
 	validationRules   map[uint]ValidationRule
-	validatedAdresses AddressSet
+	validatedAddresses AddressSet
 	// This is a map of addresses that were accessed during execution
 	// The map is of the form `segmentIndex` -> `offset`. This is to
 	// make the counting of memory holes easier
@@ -67,7 +67,7 @@ func InsufficientAllocatedCellsErrorMinStepNotReached(minStep uint, builtinName 
 func NewMemory() *Memory {
 	return &Memory{
 		Data:              make(map[Relocatable]MaybeRelocatable),
-		validatedAdresses: NewAddressSet(),
+		validatedAddresses: NewAddressSet(),
 		validationRules:   make(map[uint]ValidationRule),
 		AccessedAddresses: make(map[Relocatable]bool),
 	}
@@ -171,7 +171,7 @@ func (m *Memory) AddValidationRule(SegmentIndex uint, rule ValidationRule) {
 // Applies the validation rule for the addr's segment if any
 // Skips validation if the address is temporary or if it has been previously validated
 func (m *Memory) validateAddress(addr Relocatable) error {
-	if addr.SegmentIndex < 0 || m.validatedAdresses.Contains(addr) {
+	if addr.SegmentIndex < 0 || m.validatedAddresses.Contains(addr) {
 		return nil
 	}
 	rule, ok := m.validationRules[uint(addr.SegmentIndex)]
@@ -183,7 +183,7 @@ func (m *Memory) validateAddress(addr Relocatable) error {
 		return err
 	}
 	for _, validated_address := range validated_addresses {
-		m.validatedAdresses.Add(validated_address)
+		m.validatedAddresses.Add(validated_address)
 	}
 	return nil
 }
@@ -192,7 +192,7 @@ func (m *Memory) MarkAsAccessed(address Relocatable) {
 	m.AccessedAddresses[address] = true
 }
 
-// Applies validation_rules to every memory address, if applicatble
+// Applies validation_rules to every memory address, if applicable
 // Skips validation if the address is temporary or if it has been previously validated
 func (m *Memory) ValidateExistingMemory() error {
 	for addr := range m.Data {

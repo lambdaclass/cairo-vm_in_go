@@ -75,7 +75,7 @@ func (r *Relocatable) IsEqual(r1 *Relocatable) bool {
 
 func (relocatable *Relocatable) SubUint(other uint) (Relocatable, error) {
 	if relocatable.Offset < other {
-		return NewRelocatable(0, 0), &SubReloctableError{Msg: "RelocatableSubUsizeNegOffset"}
+		return NewRelocatable(0, 0), &SubRelocatableError{Msg: "RelocatableSubUsizeNegOffset"}
 	} else {
 		new_offset := relocatable.Offset - other
 		return NewRelocatable(relocatable.SegmentIndex, new_offset), nil

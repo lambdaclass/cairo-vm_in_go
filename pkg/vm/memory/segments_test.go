@@ -315,8 +315,8 @@ func TestGenArgMaybeRelocatable(t *testing.T) {
 	segments := memory.NewMemorySegmentManager()
 	arg := any(*memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero()))
 	expectedArg := *memory.NewMaybeRelocatableFelt(lambdaworks.FeltZero())
-	genedArg, err := segments.GenArg(arg)
-	if err != nil || !reflect.DeepEqual(expectedArg, genedArg) {
+	generatedArgs, err := segments.GenArg(arg)
+	if err != nil || !reflect.DeepEqual(expectedArg, generatedArgs) {
 		t.Error("GenArg failed or returned wrong value")
 	}
 }
@@ -327,8 +327,8 @@ func TestGenArgSliceMaybeRelocatable(t *testing.T) {
 
 	expectedBase := memory.NewRelocatable(0, 0)
 	expectedArg := *memory.NewMaybeRelocatableRelocatable(expectedBase)
-	genedArg, err := segments.GenArg(arg)
-	if err != nil || !reflect.DeepEqual(expectedArg, genedArg) {
+	generatedArgs, err := segments.GenArg(arg)
+	if err != nil || !reflect.DeepEqual(expectedArg, generatedArgs) {
 		t.Error("GenArg failed or returned wrong value")
 	}
 	val, err := segments.Memory.GetFelt(expectedBase)
@@ -344,9 +344,9 @@ func TestGenArgSliceSliceMaybeRelocatable(t *testing.T) {
 	expectedBaseA := memory.NewRelocatable(1, 0)
 	expectedBaseB := memory.NewRelocatable(0, 0)
 	expectedArg := *memory.NewMaybeRelocatableRelocatable(expectedBaseA)
-	genedArg, err := segments.GenArg(arg)
+	generatedArgs, err := segments.GenArg(arg)
 
-	if err != nil || !reflect.DeepEqual(expectedArg, genedArg) {
+	if err != nil || !reflect.DeepEqual(expectedArg, generatedArgs) {
 		t.Error("GenArg failed or returned wrong value")
 	}
 	valA, err := segments.Memory.GetRelocatable(expectedBaseA)

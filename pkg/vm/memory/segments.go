@@ -222,5 +222,5 @@ func (m *MemorySegmentManager) GenArg(arg any) (MaybeRelocatable, error) {
 		_, err := m.LoadData(base, &args)
 		return *NewMaybeRelocatableRelocatable(base), err
 	}
-	return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), errors.New("GenArg: found argument of invalid type.")
+	return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), errors.New("GenArg: found argument of invalid type")
 }

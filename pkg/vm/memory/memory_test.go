@@ -166,7 +166,7 @@ func TestMemoryInsertOverWriteValue(t *testing.T) {
 	val2 := memory.NewMaybeRelocatableFelt(lambdaworks.FeltFromUint64(8))
 	err2 := mem.Insert(key, val2)
 	if err2 == nil {
-		t.Errorf("Overwritting memory value should fail")
+		t.Errorf("Overwriting memory value should fail")
 	}
 }
 
