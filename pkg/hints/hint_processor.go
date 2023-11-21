@@ -231,6 +231,10 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return fastEcAddAssignNewX(data.Ids, vm, execScopes, "pt0", "pt1", SECP_P())
 	case FAST_EC_ADD_ASSIGN_NEW_Y:
 		return fastEcAddAssignNewY(execScopes)
+	case BLAKE2S_COMPUTE:
+		return blake2sCompute(data.Ids, vm)
+	case BLAKE2S_ADD_UINT256:
+		return blake2sAddUint256(data.Ids, vm)
 	case REDUCE_V1:
 		return reduceV1(data.Ids, vm, execScopes)
 	case REDUCE_V2:
@@ -241,8 +245,6 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return verifyZero(data.Ids, vm, execScopes, hint_utils.SECP_P())
 	case VERIFY_ZERO_V3:
 		return verifyZero(data.Ids, vm, execScopes, hint_utils.SECP_P_V2())
-	case BLAKE2S_COMPUTE:
-		return blake2sCompute(data.Ids, vm)
 	case BLAKE2S_ADD_UINT256_BIGEND:
 		return blake2sAddUint256Bigend(data.Ids, vm)
 	case BLAKE2S_FINALIZE:
