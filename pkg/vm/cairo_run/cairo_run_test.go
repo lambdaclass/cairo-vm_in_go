@@ -376,6 +376,14 @@ func TestBlake2sIntegrationTests(t *testing.T) {
 	testProgram("blake2s_integration_tests", t)
 }
 
+func TestFinalizeBlake2sV2(t *testing.T) {
+	testProgram("finalize_blake2s_v2", t)
+}
+
+func TestExampleBlake2s(t *testing.T) {
+	testProgram("example_blake2s", t)
+}
+
 func TestUint256Integration(t *testing.T) {
 	testProgram("uint256_integration_tests", t)
 }

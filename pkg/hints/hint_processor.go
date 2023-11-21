@@ -247,8 +247,14 @@ func (p *CairoVmHintProcessor) ExecuteHint(vm *vm.VirtualMachine, hintData *any,
 		return verifyZero(data.Ids, vm, execScopes, hint_utils.SECP_P_V2())
 	case BLAKE2S_ADD_UINT256_BIGEND:
 		return blake2sAddUint256Bigend(data.Ids, vm)
-	case BLAKE2S_FINALIZE:
+	case BLAKE2S_FINALIZE, BLAKE2S_FINALIZE_V2:
 		return blake2sFinalize(data.Ids, vm)
+	case BLAKE2S_FINALIZE_V3:
+		return blake2sFinalizeV3(data.Ids, vm)
+	case SHA256_INPUT:
+		return sha256Input(data.Ids, vm)
+	case EXAMPLE_BLAKE2S_COMPRESS:
+		return exampleBlake2sCompress(data.Ids, vm)
 	default:
 		return errors.Errorf("Unknown Hint: %s", data.Code)
 	}
