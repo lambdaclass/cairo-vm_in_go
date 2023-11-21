@@ -2875,7 +2875,7 @@ func (b *BitwiseBuiltinRunner) Base() memory.Relocatable {
 }
 
 func (b *BitwiseBuiltinRunner) Name() string {
-	return "range_check"
+	return "bitwise"
 }
 ```
 
@@ -2913,7 +2913,7 @@ const BIWISE_INPUT_CELLS_PER_INSTANCE = 2
 
 func (b *BitwiseBuiltinRunner) DeduceMemoryCell(address memory.Relocatable, mem *memory.Memory) (*memory.MaybeRelocatable, error) {
 	index := address.Offset % BITWISE_CELLS_PER_INSTANCE
-	if index < BIWISE_INPUT_CELLS_PER_INSTANCE {
+	if index < BITWISE_INPUT_CELLS_PER_INSTANCE {
 		return nil, nil
 	}
 
