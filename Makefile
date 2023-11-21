@@ -4,7 +4,7 @@
 CAIRO_VM_CLI:=cairo-vm/target/release/cairo-vm-cli
 
 $(CAIRO_VM_CLI):
-	git clone --depth 1 -b v0.9.0 https://github.com/lambdaclass/cairo-vm
+	git clone --depth 1 -b v0.9.1 https://github.com/lambdaclass/cairo-vm
 	cd cairo-vm; cargo b --release --bin cairo-vm-cli
 
 # Create proof mode programs. 
