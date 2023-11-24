@@ -11,6 +11,13 @@ $(CAIRO_VM_CLI):
 # NOTE: This is super flaky, DO NOT move this section below the non proof mode one
 # or things will go wrong.
 
+BENCH_DIR=cairo_programs/benchmarks
+BENCH_FILES:=$(wildcard $(BENCH_DIR)/*.cairo)
+COMPILED_BENCHES:=$(patsubst $(BENCH_DIR)/%.cairo, $(BENCH_DIR)/%.json, $(BENCH_FILES))
+
+$(BENCH_DIR)/%.json: $(BENCH_DIR)/%.cairo
+	cairo-compile --cairo_path="$(BENCH_DIR)" $< --output $@ --proof_mode
+
 TEST_PROOF_DIR=cairo_programs/proof_programs
 TEST_PROOF_FILES:=$(wildcard $(TEST_PROOF_DIR)/*.cairo)
 COMPILED_PROOF_TESTS:=$(patsubst $(TEST_PROOF_DIR)/%.cairo, $(TEST_PROOF_DIR)/%.json, $(TEST_PROOF_FILES))
@@ -83,7 +90,7 @@ build:
 	@cp pkg/lambdaworks/lib/lambdaworks/target/release/liblambdaworks.a pkg/lambdaworks/lib
 	@cd pkg/starknet_crypto/lib/starknet_crypto && cargo build --release
 	@cp pkg/starknet_crypto/lib/starknet_crypto/target/release/libstarknet_crypto.a pkg/starknet_crypto/lib
-	@go build ./...
+	@go build -ldflags "-w -s" ./...
 
 fmt:
 	gofmt -w pkg
@@ -95,6 +102,10 @@ clean:
 	rm -f $(TEST_DIR)/*.json
 	rm -f $(TEST_DIR)/*.memory
 	rm -f $(TEST_DIR)/*.trace
+	rm -f $(TEST_PROOF_DIR)/*.json
+	rm -f $(TEST_PROOF_DIR)/*.memory
+	rm -f $(TEST_PROOF_DIR)/*.trace
+	rm -f $(BENCH_DIR)/*.json
 	cd pkg/lambdaworks/lib/lambdaworks && cargo clean
 	rm -f pkg/lambdaworks/lib/liblambdaworks.a
 	cd pkg/starknet_crypto/lib/starknet_crypto && cargo clean
@@ -104,9 +115,12 @@ clean:
 
 clean_files:
 	rm -f $(TEST_DIR)/*.json
-	rm -f $(TEST_DIR)/proof_programs/*.json
 	rm -f $(TEST_DIR)/*.memory
 	rm -f $(TEST_DIR)/*.trace
+	rm -f $(TEST_PROOF_DIR)/*.json
+	rm -f $(TEST_PROOF_DIR)/*.memory
+	rm -f $(TEST_PROOF_DIR)/*.trace
+	rm -f $(BENCH_DIR)/*.json
 
 demo_fibonacci: clean_files build_cairo_vm_cli build
 	@echo "Compiling fibonacci program..."
@@ -172,3 +186,9 @@ compare_proof_memory: build_cairo_vm_cli $(CAIRO_RS_PROOF_MEM) $(CAIRO_GO_PROOF_
 
 clean_trace_and_memory_files:
 	rm -f $(TEST_DIR)/*.rs.* && rm -f $(TEST_DIR)/*.go.* && rm -f $(TEST_PROOF_DIR)/*.rs.* && rm -f $(TEST_PROOF_DIR)/*.go.*
+
+compare_benchmarks: $(COMPILED_BENCHES) build
+	sh scripts/run_benchmarks.sh
+
+compare_benchmarks_light: $(COMPILED_BENCHES) build
+	sh scripts/run_benchmarks_light.sh
