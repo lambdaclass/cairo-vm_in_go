@@ -1,9 +1,9 @@
 package memory
 
-type SubReloctableError struct {
+type SubRelocatableError struct {
 	Msg string
 }
 
-func (e *SubReloctableError) Error() string {
+func (e *SubRelocatableError) Error() string {
 	return e.Msg
 }

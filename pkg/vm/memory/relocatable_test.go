@@ -90,7 +90,7 @@ func TestRelocatableIsEqual(t *testing.T) {
 
 	is_equal := a.IsEqual(&b)
 	if !is_equal {
-		t.Errorf("TestRelocatableIsEqual failed epected true, got %v", is_equal)
+		t.Errorf("TestRelocatableIsEqual failed expected true, got %v", is_equal)
 	}
 
 }
@@ -101,7 +101,7 @@ func TestRelocatableIsNotEqual(t *testing.T) {
 
 	is_equal := a.IsEqual(&b)
 	if is_equal {
-		t.Errorf("TestRelocatableIsNotEqual failed epected false, got %v", is_equal)
+		t.Errorf("TestRelocatableIsNotEqual failed expected false, got %v", is_equal)
 	}
 }
 

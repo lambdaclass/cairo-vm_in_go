@@ -55,7 +55,7 @@ func (r *Relocatable) SubFelt(other lambdaworks.Felt) (Relocatable, error) {
 func (r *Relocatable) AddMaybeRelocatable(other MaybeRelocatable) (Relocatable, error) {
 	felt, ok := other.GetFelt()
 	if !ok {
-		return Relocatable{}, errors.New("Can't add two relocatable values")
+		return Relocatable{}, errors.New("can't add two relocatable values")
 	}
 	return r.AddFelt(felt)
 }
@@ -64,7 +64,7 @@ func (r *Relocatable) AddMaybeRelocatable(other MaybeRelocatable) (Relocatable, 
 // Fails if they have different segment indexes
 func (r *Relocatable) Sub(other Relocatable) (lambdaworks.Felt, error) {
 	if r.SegmentIndex != other.SegmentIndex {
-		return lambdaworks.Felt{}, errors.New("Cant subtract two relocatables with different segment indexes")
+		return lambdaworks.Felt{}, errors.New("can't subtract two relocatables with different segment indexes")
 	}
 	return lambdaworks.FeltFromUint64(uint64(r.Offset)).Sub(lambdaworks.FeltFromUint64(uint64(other.Offset))), nil
 }
@@ -75,7 +75,7 @@ func (r *Relocatable) IsEqual(r1 *Relocatable) bool {
 
 func (relocatable *Relocatable) SubUint(other uint) (Relocatable, error) {
 	if relocatable.Offset < other {
-		return NewRelocatable(0, 0), &SubReloctableError{Msg: "RelocatableSubUsizeNegOffset"}
+		return NewRelocatable(0, 0), &SubRelocatableError{Msg: "RelocatableSubUsizeNegOffset"}
 	} else {
 		new_offset := relocatable.Offset - other
 		return NewRelocatable(relocatable.SegmentIndex, new_offset), nil
@@ -143,7 +143,7 @@ func (m *MaybeRelocatable) RelocateValue(relocationTable *[]uint) (lambdaworks.F
 		return lambdaworks.FeltFromUint64(uint64(inner_relocatable.RelocateAddress(relocationTable))), nil
 	}
 
-	return lambdaworks.FeltZero(), errors.New(fmt.Sprintf("Unexpected type %T", m.inner))
+	return lambdaworks.FeltZero(), fmt.Errorf("unexpected type %T", m.inner)
 }
 
 func (m *MaybeRelocatable) IsEqual(m1 *MaybeRelocatable) bool {
@@ -229,7 +229,7 @@ func (m MaybeRelocatable) Sub(other MaybeRelocatable) (MaybeRelocatable, error) 
 		return *NewMaybeRelocatableFelt(res), err
 
 	} else {
-		return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), errors.New("Cant sub Relocatable from Felt")
+		return *NewMaybeRelocatableFelt(lambdaworks.FeltZero()), errors.New("can't sub Relocatable from Felt")
 	}
 }
 
